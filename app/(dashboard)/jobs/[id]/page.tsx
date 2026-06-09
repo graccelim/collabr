@@ -104,6 +104,16 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         )}
       </div>
 
+      {/* Escrow info */}
+      {campaign.comp_type !== 'barter' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+          <p className="text-xs font-medium text-blue-700 mb-1">Secured payment</p>
+          <p className="text-xs text-blue-600">
+            Payment is held in escrow when your collab begins. Funds are released to you once the brand confirms your post is live — you're protected throughout.
+          </p>
+        </div>
+      )}
+
       {/* Apply or status */}
       {existing ? (
         <div className={`card ${existing.status === 'selected' ? 'bg-teal-50 border-teal-200' : 'bg-surface'}`}>

@@ -10,11 +10,7 @@ const PROTECTED_PREFIXES = [
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  const isProtected = PROTECTED_PREFIXES.some(prefix =>
-    pathname === prefix || pathname.startsWith(prefix + '/')
-  )
-  if (!isProtected) return NextResponse.next()
-
+  // Always create a response so we can forward refreshed session cookies
   const res = NextResponse.next()
 
   const supabase = createServerClient(
@@ -23,14 +19,20 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         getAll: () => req.cookies.getAll(),
-        setAll: (cookies: { name: string; value: string; options?: Record<string, unknown> }[]) =>
-          cookies.forEach(({ name, value, options }) => res.cookies.set(name, value, options as any)),
+        setAll: (cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) =>
+          cookiesToSet.forEach(({ name, value, options }) => res.cookies.set(name, value, options as any)),
       },
     }
   )
 
+  // Always call getUser() — this refreshes the session token and writes updated cookies
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+
+  const isProtected = PROTECTED_PREFIXES.some(prefix =>
+    pathname === prefix || pathname.startsWith(prefix + '/')
+  )
+
+  if (isProtected && !user) {
     const loginUrl = new URL('/login', req.url)
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)

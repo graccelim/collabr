@@ -9,16 +9,16 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'creator') return NextResponse.json({ error: 'Creators only' }, { status: 403 })
 
-  const { plan } = await req.json() // 'monthly' | 'per_app'
-  if (!['monthly', 'per_app'].includes(plan)) {
-    return NextResponse.json({ error: 'plan must be monthly or per_app' }, { status: 400 })
+  const { type } = await req.json() // 'monthly' | 'per_app'
+  if (!['monthly', 'per_app'].includes(type)) {
+    return NextResponse.json({ error: 'type must be monthly or per_app' }, { status: 400 })
   }
 
   const { data: creator } = await supabase.from('creator_profiles')
     .select('id, boost_active_until').eq('user_id', user.id).single()
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
 
-  const daysToAdd = plan === 'monthly' ? 30 : 7
+  const daysToAdd = type === 'monthly' ? 30 : 7
   const base = creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
     ? new Date(creator.boost_active_until)
     : new Date()
@@ -34,5 +34,5 @@ export async function POST(req: NextRequest) {
   await supabase.from('creator_profiles')
     .update({ boost_active_until: boostUntil }).eq('id', creator.id)
 
-  return NextResponse.json({ success: true, boost_active_until: boostUntil, plan })
+  return NextResponse.json({ success: true, boost_active_until: boostUntil, type })
 }

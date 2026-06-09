@@ -12,14 +12,6 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
 
-  const { data: reviews } = await supabase.from('reviews')
-    .select('*, collabs(campaigns(title))')
-    .eq('reviewer_type', 'brand')
-    .eq('collab_id', supabase.from('collabs').select('id').eq('creator_id', params.id) as any)
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  // Fetch reviews differently — join via collabs
   const { data: brandReviews } = await supabase.from('reviews')
     .select('*, collabs!inner(id, creator_id, campaigns(title))')
     .eq('reviewer_type', 'brand')

@@ -28,6 +28,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const creatorId = (application.creator_profiles as any)?.id
   const campaignTitle = (application.campaigns as any)?.title
 
+  let collabId: string | undefined
+
   if (status === 'selected' && creatorUserId && creatorId) {
     const plan: 'free' | 'pro' = (application.campaigns as any)?.brand_profiles?.plan || 'free'
     const agreedRate = application.proposed_rate || 0
@@ -36,8 +38,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const brandId = (application.campaigns as any)?.brand_id
     const campaignId = (application.campaigns as any)?.id
 
-    // Create the collab row — triggers the full workflow
-    const { error: collabErr } = await supabase.from('collabs').insert({
+    const { data: newCollab, error: collabErr } = await supabase.from('collabs').insert({
       application_id: params.id,
       campaign_id: campaignId,
       creator_id: creatorId,
@@ -46,11 +47,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       platform_fee: fee,
       creator_payout: payout,
       status: 'briefed',
-    })
+    }).select('id').single()
     if (collabErr) {
       console.error('[COLLAB CREATE]', collabErr)
       return NextResponse.json({ error: 'Could not create collab' }, { status: 500 })
     }
+
+    collabId = newCollab?.id
 
     await sendNotification({
       userId: creatorUserId,
@@ -76,5 +79,5 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     })
   }
 
-  return NextResponse.json({ success: true, status })
+  return NextResponse.json({ success: true, status, ...(collabId ? { collab_id: collabId } : {}) })
 }

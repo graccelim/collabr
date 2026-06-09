@@ -25,6 +25,11 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   const visibleApps = isFreePlan ? (applications || []).slice(0, 5) : (applications || [])
   const hiddenCount = (applications?.length || 0) - visibleApps.length
 
+  const total = applications?.length || 0
+  const pending = applications?.filter(a => a.status === 'pending').length || 0
+  const shortlisted = applications?.filter(a => a.status === 'shortlisted').length || 0
+  const selected = applications?.filter(a => a.status === 'selected').length || 0
+
   return (
     <div className="max-w-3xl space-y-6">
       {/* Header */}
@@ -41,6 +46,21 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           </div>
         </div>
         <Link href={`/campaigns/${params.id}/edit`} className="btn-secondary text-sm">Edit</Link>
+      </div>
+
+      {/* Stat cards */}
+      <div className="grid grid-cols-4 gap-3">
+        {[
+          { label: 'Total', value: total },
+          { label: 'Pending', value: pending },
+          { label: 'Shortlisted', value: shortlisted },
+          { label: 'Selected', value: selected },
+        ].map(s => (
+          <div key={s.label} className="card text-center">
+            <p className="text-2xl font-semibold text-gray-900">{s.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Brief */}

@@ -26,12 +26,12 @@ export default function BoostPage() {
     ? Math.ceil((new Date(boostUntil!).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : 0
 
-  async function purchase(plan: 'monthly' | 'per_app') {
-    setLoading(plan)
+  async function purchase(type: 'monthly' | 'per_app') {
+    setLoading(type)
     const res = await fetch('/api/payments/boost-creator', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ type }),
     })
     const data = await res.json()
     if (!res.ok) { toast.error(data.error || 'Purchase failed'); setLoading(null); return }
@@ -82,9 +82,7 @@ export default function BoostPage() {
             onClick={() => purchase('per_app')}
             disabled={!!loading}
             className="btn-secondary mt-4 text-sm"
-          >
-            {loading === 'per_app' ? 'Activating…' : 'Buy — S$4'}
-          </button>
+          >{loading === 'per_app' ? 'Activating…' : 'Buy — S$4'}</button>
         </div>
 
         <div className="card flex flex-col border-purple-300 bg-purple-50/30">
@@ -98,9 +96,7 @@ export default function BoostPage() {
             onClick={() => purchase('monthly')}
             disabled={!!loading}
             className="btn-primary mt-4 text-sm"
-          >
-            {loading === 'monthly' ? 'Activating…' : 'Buy — S$20/mo'}
-          </button>
+          >{loading === 'monthly' ? 'Activating…' : 'Buy — S$20/mo'}</button>
         </div>
       </div>
 

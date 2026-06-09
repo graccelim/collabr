@@ -21,15 +21,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     { href: '/collabs', label: 'Collabs' },
     { href: '/creators', label: 'Browse creators' },
     { href: '/billing', label: 'Billing' },
+    { href: '/notifications', label: 'Notifications' },
     { href: '/settings', label: 'Settings' },
   ]
   const creatorLinks = [
     { href: '/dashboard', label: 'Overview' },
-    { href: '/jobs', label: 'Browse jobs' },
+    { href: '/jobs', label: 'Browse campaigns' },
     { href: '/applications', label: 'My applications' },
     { href: '/collabs', label: 'Collabs' },
     { href: '/profile', label: 'My profile' },
     { href: '/earnings', label: 'Earnings' },
+    { href: '/notifications', label: 'Notifications' },
     { href: '/boost', label: 'Boost' },
     { href: '/settings', label: 'Settings' },
   ]
