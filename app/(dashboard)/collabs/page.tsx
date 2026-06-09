@@ -1,7 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import Link from 'next/link'
-import { formatSGD, COLLAB_STATUSES } from '@/lib/utils'
+import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
+import { Lock, ChevronRight, MessageSquare } from 'lucide-react'
+
+const STATUS_BADGE: Record<string, string> = {
+  briefed:         'badge-neutral',
+  draft_submitted: 'badge-warn',
+  in_revision:     'badge-danger',
+  draft_approved:  'badge-safe',
+  live_submitted:  'badge-warn',
+  live_confirmed:  'badge-safe',
+  completed:       'badge-safe',
+  disputed:        'badge-danger',
+  cancelled:       'badge-neutral',
+}
+
+const ESCROW_COLOR: Record<string, string> = {
+  briefed:         'var(--warn)',
+  draft_submitted: 'var(--safe)',
+  in_revision:     'var(--safe)',
+  draft_approved:  'var(--safe)',
+  live_submitted:  'var(--safe)',
+  completed:       'var(--safe)',
+  disputed:        'var(--danger)',
+  cancelled:       'var(--ink-faint-solid)',
+}
 
 export default async function CollabsPage() {
   const user = await requireAuth()
@@ -9,7 +33,7 @@ export default async function CollabsPage() {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
 
   const isBrand = profile?.role === 'brand'
-  let query = supabase.from('collabs').select('*, campaigns(title), creator_profiles(*, users(display_name)), brand_profiles(company_name)')
+  let query = supabase.from('collabs').select('*, campaigns(title), creator_profiles(*, users(display_name)), brand_profiles(company_name), stripe_payment_intent_id')
 
   if (isBrand) {
     const { data: brand } = await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single()
@@ -21,57 +45,80 @@ export default async function CollabsPage() {
 
   const { data: collabs } = await query.order('created_at', { ascending: false })
 
-  const active = collabs?.filter(c => !['completed','cancelled'].includes(c.status)) || []
-  const past = collabs?.filter(c => ['completed','cancelled'].includes(c.status)) || []
+  const active = collabs?.filter(c => !['completed', 'cancelled'].includes(c.status)) || []
+  const past = collabs?.filter(c => ['completed', 'cancelled'].includes(c.status)) || []
+
+  const CollabCard = ({ c, dimmed = false }: { c: any; dimmed?: boolean }) => {
+    const counterparty = isBrand
+      ? (c.creator_profiles as any)?.users?.display_name || 'Creator'
+      : (c.brand_profiles as any)?.company_name || 'Brand'
+    const initials = getInitials(counterparty)
+    const statusLabel = COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label || c.status
+    const badgeClass = STATUS_BADGE[c.status] || 'badge-neutral'
+    const escrowColor = ESCROW_COLOR[c.status] || 'var(--ink-faint-solid)'
+    const escrowFunded = c.stripe_payment_intent_id && c.status !== 'cancelled'
+
+    return (
+      <Link href={`/collabs/${c.id}`} style={{ textDecoration: 'none' }}>
+        <div className="card card-hover" style={{ opacity: dimmed ? 0.65 : 1, padding: '16px 18px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', flexShrink: 0, background: isBrand ? 'var(--creator-tint)' : 'var(--brand-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13, color: isBrand ? 'var(--creator-deep)' : 'var(--ink)' }}>
+              {initials}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {c.campaigns?.title || 'Campaign'}
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>{counterparty}</div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
+              <span className={`badge ${badgeClass}`}>{statusLabel}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: escrowColor }}>
+                <Lock size={12} />
+                <span style={{ fontWeight: 600 }}>{formatSGD(c.agreed_rate)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Link>
+    )
+  }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <h1 className="text-xl font-semibold text-gray-900">Collabs</h1>
+    <div style={{ maxWidth: 720 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 26, fontWeight: 800, letterSpacing: '-0.025em' }}>Collabs</h1>
+      </div>
 
       {active.length > 0 && (
-        <div>
-          <h2 className="text-sm font-medium text-gray-500 mb-3">Active ({active.length})</h2>
-          <div className="space-y-2">
-            {active.map(c => (
-              <Link key={c.id} href={`/collabs/${c.id}`}
-                className="card flex items-center justify-between hover:border-purple-200 transition-colors">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{c.campaigns?.title}</div>
-                  <div className="text-xs text-gray-500 mt-0.5">
-                    {isBrand ? (c.creator_profiles as any)?.users?.display_name : (c.brand_profiles as any)?.company_name}
-                    {' · '}{formatSGD(c.agreed_rate)}
-                  </div>
-                </div>
-                <span className={`badge badge-${COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.color || 'gray'}`}>
-                  {COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label || c.status}
-                </span>
-              </Link>
-            ))}
+        <div style={{ marginBottom: 32 }}>
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12 }}>
+            Active · {active.length}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {active.map(c => <CollabCard key={c.id} c={c} />)}
           </div>
         </div>
       )}
 
       {past.length > 0 && (
         <div>
-          <h2 className="text-sm font-medium text-gray-500 mb-3">Past</h2>
-          <div className="space-y-2">
-            {past.map(c => (
-              <Link key={c.id} href={`/collabs/${c.id}`}
-                className="card flex items-center justify-between opacity-70 hover:opacity-100 transition-opacity">
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{c.campaigns?.title}</div>
-                  <div className="text-xs text-gray-500">{formatSGD(c.creator_payout)} to creator</div>
-                </div>
-                <span className="badge badge-gray">{c.status}</span>
-              </Link>
-            ))}
+          <p style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 12 }}>
+            Past
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {past.map(c => <CollabCard key={c.id} c={c} dimmed />)}
           </div>
         </div>
       )}
 
       {(!collabs || collabs.length === 0) && (
-        <div className="card text-center py-10">
-          <p className="text-gray-500 text-sm">No collabs yet.</p>
+        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+          <MessageSquare size={36} color="var(--ink-faint-solid)" style={{ margin: '0 auto 14px' }} />
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No collabs yet</h2>
+          <p style={{ fontSize: 14, color: 'var(--ink-soft)' }}>
+            {isBrand ? 'Post a campaign and accept applications to start a collab.' : 'Apply to open campaigns to get started.'}
+          </p>
         </div>
       )}
     </div>

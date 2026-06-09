@@ -47,6 +47,16 @@
   --danger:       #DC2626;
   --danger-tint:  #FEF2F2;
 
+  /* safe (success green) */
+  --safe:       #16A34A;
+  --safe-deep:  #15803D;
+  --safe-tint:  #F0FDF4;
+
+  /* warn (amber caution) */
+  --warn:       #D97706;
+  --warn-deep:  #B45309;
+  --warn-tint:  #FFFBEB;
+
   /* active accent = rose gold */
   --accent:       var(--creator);
   --accent-deep:  var(--creator-deep);
@@ -225,6 +235,8 @@
   .badge-danger  { background: var(--danger-tint);  color: var(--danger); }
   .badge-neutral { background: var(--paper-2);      color: var(--ink-soft); }
   .badge-ink     { background: var(--ink);           color: var(--paper); }
+  .badge-safe    { background: var(--safe-tint);     color: var(--safe-deep); }
+  .badge-warn    { background: var(--warn-tint);     color: var(--warn-deep); }
   /* legacy alias → new tokens */
   .badge-purple  { background: var(--accent-tint);  color: var(--accent-deep); }
   .badge-teal    { background: var(--money-tint);   color: var(--money-deep); }
