@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { formatSGD, COLLAB_STATUSES } from '@/lib/utils'
 import CollabActions from '@/components/CollabActions'
+import DraftSubmitForm from '@/components/DraftSubmitForm'
+import ReviewForm from '@/components/ReviewForm'
 
 export default async function CollabDetailPage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -33,6 +35,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
 
   const { data: livePost } = await supabase.from('live_posts')
     .select('*').eq('collab_id', params.id).maybeSingle()
+
+  const { data: existingReview } = await supabase.from('reviews')
+    .select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle()
 
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
@@ -78,6 +83,11 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         creatorHasConnect={creatorHasConnect}
         livePostUrl={livePost?.post_url || null}
       />
+
+      {/* Creator: draft submission form */}
+      {!isBrand && (
+        <DraftSubmitForm collabId={params.id} collabStatus={collab.status} />
+      )}
 
       {/* Brief */}
       <div className="card">
@@ -134,6 +144,13 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           )}
         </div>
       )}
+
+      {/* Review — shown to both sides when collab is completed */}
+      <ReviewForm
+        collabId={params.id}
+        collabStatus={collab.status}
+        existingReview={existingReview ?? null}
+      />
     </div>
   )
 }

@@ -35,7 +35,10 @@ export default function LoginPage() {
               onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
           </div>
           <div>
-            <label className="label">Password</label>
+            <div className="flex items-center justify-between">
+              <label className="label">Password</label>
+              <Link href="/forgot-password" className="text-xs text-purple-600 hover:underline">Forgot password?</Link>
+            </div>
             <input className="input" type="password" value={password}
               onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
           </div>
