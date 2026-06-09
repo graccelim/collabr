@@ -1,0 +1,65 @@
+import { createClient } from '@/lib/supabase/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { stripe } from '@/lib/stripe'
+
+export async function POST(req: NextRequest) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { collab_id } = await req.json()
+  if (!collab_id) return NextResponse.json({ error: 'collab_id required' }, { status: 400 })
+
+  const { data: collab } = await supabase.from('collabs')
+    .select('*, brand_profiles(user_id, stripe_customer_id, plan)')
+    .eq('id', collab_id).single()
+  if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const brand = collab.brand_profiles as any
+  if (brand?.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!['briefed'].includes(collab.status)) {
+    return NextResponse.json({ error: 'Payment already processed for this collab' }, { status: 400 })
+  }
+
+  // Return existing intent if one was already created
+  if (collab.stripe_payment_intent_id) {
+    const existing = await stripe.paymentIntents.retrieve(collab.stripe_payment_intent_id)
+    if (existing.status === 'requires_payment_method' || existing.status === 'requires_confirmation') {
+      return NextResponse.json({ client_secret: existing.client_secret })
+    }
+  }
+
+  // Get or create Stripe customer for brand
+  let customerId: string = brand?.stripe_customer_id
+  if (!customerId) {
+    const { data: userProfile } = await supabase.from('users')
+      .select('email, display_name').eq('id', user.id).single()
+    const customer = await stripe.customers.create({
+      email: userProfile?.email,
+      name: userProfile?.display_name || undefined,
+      metadata: { user_id: user.id },
+    })
+    customerId = customer.id
+    await supabase.from('brand_profiles')
+      .update({ stripe_customer_id: customerId }).eq('user_id', user.id)
+  }
+
+  const intent = await stripe.paymentIntents.create({
+    amount: collab.agreed_rate,       // already in SGD cents
+    currency: 'sgd',
+    capture_method: 'manual',         // funds held until we capture on live confirmation
+    customer: customerId,
+    payment_method_types: ['card'],
+    metadata: {
+      collab_id,
+      creator_payout: String(collab.creator_payout),
+      platform_fee: String(collab.platform_fee),
+    },
+    description: `collabr. escrow — collab ${collab_id}`,
+  })
+
+  await supabase.from('collabs')
+    .update({ stripe_payment_intent_id: intent.id }).eq('id', collab_id)
+
+  return NextResponse.json({ client_secret: intent.client_secret })
+}

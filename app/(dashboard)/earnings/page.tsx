@@ -1,20 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
+import ConnectOnboarding from '@/components/ConnectOnboarding'
 
-export default async function EarningsPage() {
+export default async function EarningsPage({
+  searchParams,
+}: {
+  searchParams: { connect?: string }
+}) {
   const user = await requireCreator()
   const supabase = createClient()
-  const { data: creator } = await supabase.from('creator_profiles').select('*').eq('user_id', user.id).single()
+
+  const { data: creator } = await supabase.from('creator_profiles')
+    .select('*').eq('user_id', user.id).single()
   const { data: collabs } = await supabase.from('collabs')
     .select('*, campaigns(title), brand_profiles(company_name)')
     .eq('creator_id', creator!.id)
     .eq('status', 'completed')
     .order('created_at', { ascending: false })
 
+  const connectComplete = searchParams.connect === 'complete'
+  const connectRefresh = searchParams.connect === 'refresh'
+
   return (
     <div className="max-w-2xl space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Earnings</h1>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="card">
           <div className="text-2xl font-semibold text-gray-900">{formatSGD(creator?.total_earned || 0)}</div>
@@ -25,6 +36,14 @@ export default async function EarningsPage() {
           <div className="text-xs text-gray-500 mt-1">Completed collabs</div>
         </div>
       </div>
+
+      {/* Stripe Connect onboarding */}
+      <ConnectOnboarding
+        hasConnectId={!!creator?.stripe_connect_id}
+        justCompleted={connectComplete}
+        needsRefresh={connectRefresh}
+      />
+
       <div>
         <h2 className="text-sm font-medium text-gray-900 mb-3">Payout history</h2>
         <div className="space-y-2">
@@ -32,7 +51,9 @@ export default async function EarningsPage() {
             <div key={c.id} className="card flex items-center justify-between">
               <div>
                 <div className="text-sm font-medium text-gray-900">{c.campaigns?.title}</div>
-                <div className="text-xs text-gray-500">{(c.brand_profiles as any)?.company_name} · {new Date(c.created_at).toLocaleDateString('en-SG')}</div>
+                <div className="text-xs text-gray-500">
+                  {(c.brand_profiles as any)?.company_name} · {new Date(c.created_at).toLocaleDateString('en-SG')}
+                </div>
               </div>
               <div className="text-sm font-medium text-teal-600">{formatSGD(c.creator_payout)}</div>
             </div>
@@ -43,10 +64,6 @@ export default async function EarningsPage() {
             </div>
           )}
         </div>
-      </div>
-      <div className="card bg-purple-50 border-purple-200">
-        <p className="text-xs text-purple-600 font-medium mb-1">Payouts</p>
-        <p className="text-xs text-purple-500">PayNow and bank transfer supported during beta. Stripe Connect payouts coming with Phase 5.</p>
       </div>
     </div>
   )
