@@ -3,7 +3,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ArrowRight, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react'
 
 const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
 
@@ -17,7 +17,7 @@ function SignupForm() {
   const [password, setPassword] = useState('')
   const [niches, setNiches] = useState<string[]>([])
   const [agree, setAgree] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const isBrand = role === 'brand'
 
   function toggleNiche(n: string) {
@@ -27,17 +27,19 @@ function SignupForm() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     if (!agree) { toast.error('Please accept the terms'); return }
-    setLoading(true)
+    if (status !== 'idle') return
+    setStatus('loading')
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name, role }),
     })
     const data = await res.json()
-    if (!res.ok) { toast.error(data.error || 'Signup failed'); setLoading(false); return }
-    toast.success('Account created!')
+    if (!res.ok) { toast.error(data.error || 'Signup failed'); setStatus('idle'); return }
+    setStatus('success')
     router.push('/dashboard')
     router.refresh()
+    // status stays 'success' — component unmounts when dashboard loads
   }
 
   const brandBullets = [
@@ -241,13 +243,16 @@ function SignupForm() {
             <button
               type="submit"
               className="btn btn-primary btn-block btn-lg"
-              disabled={loading || !agree}
-              style={{ marginTop: 4 }}
+              disabled={status !== 'idle' || !agree}
+              style={{ marginTop: 4, gap: 8 }}
             >
-              {loading
-                ? 'Creating account…'
-                : <><span>Create {isBrand ? 'brand' : 'creator'} account</span><ArrowRight size={17} /></>
-              }
+              {status === 'success' ? (
+                <><Loader2 size={17} className="animate-spin" /> Taking you to dashboard…</>
+              ) : status === 'loading' ? (
+                <><Loader2 size={17} className="animate-spin" /> Creating account…</>
+              ) : (
+                <><span>Create {isBrand ? 'brand' : 'creator'} account</span><ArrowRight size={17} /></>
+              )}
             </button>
 
             <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)' }}>

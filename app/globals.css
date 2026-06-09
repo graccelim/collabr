@@ -294,13 +294,20 @@
 /* ============================================================
    ANIMATIONS
    ============================================================ */
-@keyframes riseIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
-@keyframes popIn   { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes riseIn   { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes popIn    { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes skelPulse { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
 
 .rise { animation: riseIn .5s cubic-bezier(.2,.7,.2,1) both; }
 .fade { animation: fadeIn .4s ease both; }
 .pop  { animation: popIn .35s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Loading skeleton */
+.skel {
+  background: var(--paper-2);
+  animation: skelPulse 1.6s ease-in-out infinite;
+}
 
 /* ============================================================
    MOBILE BOTTOM TAB BAR
