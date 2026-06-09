@@ -2,7 +2,6 @@
 import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 
 function SignupForm() {
@@ -18,19 +17,16 @@ function SignupForm() {
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const supabase = createClient()
-    const { data, error } = await supabase.auth.signUp({ email, password })
-    if (error || !data.user) { toast.error(error?.message || 'Signup failed'); setLoading(false); return }
-    // Create user row
-    const { error: userErr } = await supabase.from('users').insert({
-      id: data.user.id, role, email, display_name: name
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, name, role }),
     })
-    if (userErr) { toast.error('Could not create profile'); setLoading(false); return }
-    // Create role-specific profile
-    if (role === 'brand') {
-      await supabase.from('brand_profiles').insert({ user_id: data.user.id, company_name: name })
-    } else {
-      await supabase.from('creator_profiles').insert({ user_id: data.user.id })
+    const data = await res.json()
+    if (!res.ok) {
+      toast.error(data.error || 'Signup failed')
+      setLoading(false)
+      return
     }
     toast.success('Account created!')
     router.push('/dashboard')
