@@ -1,0 +1,56 @@
+// Email sending via Resend
+// Will log emails to console until RESEND_API_KEY is configured
+
+const RESEND_KEY = process.env.RESEND_API_KEY
+const FROM = process.env.RESEND_FROM_EMAIL || 'hello@collabr.sg'
+
+export async function sendEmail({
+  to, subject, html
+}: { to: string; subject: string; html: string }) {
+  if (!RESEND_KEY || RESEND_KEY === 're_placeholder') {
+    console.log(`[EMAIL] To: ${to} | Subject: ${subject}`)
+    return
+  }
+  try {
+    const { Resend } = await import('resend')
+    const resend = new Resend(RESEND_KEY)
+    await resend.emails.send({ from: `collabr. <${FROM}>`, to, subject, html })
+  } catch (e) {
+    console.error('[EMAIL ERROR]', e)
+  }
+}
+
+export const emails = {
+  welcomeCreator: (name: string, email: string) => sendEmail({
+    to: email, subject: "You're in — set up your profile to get your first collab",
+    html: `<p>Hey ${name},</p><p>Welcome to collabr. — you're one of our founding creators.</p><p>Complete your profile to unlock the Verified badge and start getting selected by brands.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/profile">Set up your profile →</a></p>`
+  }),
+  welcomeBrand: (name: string, email: string) => sendEmail({
+    to: email, subject: "Your first campaign is waiting — post it in 5 minutes",
+    html: `<p>Hey ${name},</p><p>You're on collabr. — post your first campaign brief and start receiving creator applications within 48 hours.</p><p>During beta, your first 3 campaigns are completely free.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/post-job">Post a campaign →</a></p>`
+  }),
+  draftSubmitted: (brandEmail: string, creatorName: string, collabId: string) => sendEmail({
+    to: brandEmail, subject: `Draft submitted by ${creatorName} — review it now (48h window)`,
+    html: `<p>${creatorName} has submitted their draft. You have 48 hours to approve, request revisions, or reject. After 48 hours it auto-approves.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/collabs/${collabId}/review">Review draft →</a></p>`
+  }),
+  draftApproved: (creatorEmail: string, collabId: string) => sendEmail({
+    to: creatorEmail, subject: "Draft approved — post live and submit your link",
+    html: `<p>Your draft has been approved. Post your content publicly, then return to submit your live post link to release payment.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/collabs/${collabId}/go-live">Submit live link →</a></p>`
+  }),
+  revisionRequested: (creatorEmail: string, collabId: string) => sendEmail({
+    to: creatorEmail, subject: "Revision requested — feedback is ready",
+    html: `<p>The brand has requested a revision. Check the feedback and resubmit your updated draft.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/collabs/${collabId}/submit">View feedback →</a></p>`
+  }),
+  liveSubmitted: (brandEmail: string, creatorName: string, collabId: string) => sendEmail({
+    to: brandEmail, subject: `${creatorName} posted live — confirm to release payment (72h)`,
+    html: `<p>${creatorName} has posted live and submitted their link. Verify the post and confirm to release payment. You have 72 hours — after that it auto-releases.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/collabs/${collabId}">Confirm live post →</a></p>`
+  }),
+  paymentReleased: (creatorEmail: string, amount: string) => sendEmail({
+    to: creatorEmail, subject: `Your ${amount} is on the way`,
+    html: `<p>Your payment of ${amount} has been released and is on its way to your account. It usually arrives within 1–2 business days.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/earnings">View earnings →</a></p>`
+  }),
+  disputeRaised: (email: string, collabId: string) => sendEmail({
+    to: email, subject: "A dispute has been raised — submit your evidence",
+    html: `<p>A dispute has been raised on a recent collaboration. Please submit your evidence within 48 hours. The platform will mediate and resolve within 3 business days.</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL}/collabs/${collabId}/dispute">View dispute →</a></p>`
+  }),
+}
