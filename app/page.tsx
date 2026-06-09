@@ -1,100 +1,281 @@
 import Link from 'next/link'
 
+function ShieldCheck() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9 12 11 14 15 10"/>
+    </svg>
+  )
+}
+
+function ArrowRight() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+    </svg>
+  )
+}
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Nav */}
-      <nav className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <span className="text-lg font-semibold text-gray-900">collabr.</span>
-        <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-gray-500 hover:text-gray-900">Log in</Link>
-          <Link href="/signup" className="btn-primary">Join free</Link>
+    <div style={{ minHeight: '100vh', background: 'var(--paper)', fontFamily: 'var(--font-body)' }}>
+
+      {/* ── Nav ── */}
+      <nav style={{
+        position: 'sticky', top: 0, zIndex: 40,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 40px', height: 68,
+        background: 'rgba(253,250,249,.88)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid var(--line)',
+      }}>
+        <span style={{
+          fontFamily: 'var(--font-display)',
+          fontWeight: 800, fontSize: 20,
+          letterSpacing: '-0.04em', color: 'var(--ink)',
+        }}>
+          collabr<span style={{ color: 'var(--creator)' }}>.</span>
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
+            Log in
+          </Link>
+          <Link href="/signup" className="btn btn-primary btn-sm">
+            Join free
+          </Link>
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="px-6 py-20 text-center max-w-2xl mx-auto">
-        <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-800 text-xs font-medium px-3 py-1 rounded-full mb-6">
-          Free during beta · Singapore
-        </div>
-        <h1 className="text-4xl font-semibold text-gray-900 leading-tight mb-4">
-          Find creators who actually fit your brand
-        </h1>
-        <p className="text-gray-500 text-lg mb-8 leading-relaxed">
-          Post a campaign, review applicants with verified stats, and pay safely via escrow.
-          No agency needed.
-        </p>
-        <div className="flex gap-3 justify-center">
-          <Link href="/signup?role=brand" className="btn-primary text-base px-6 py-3">Post a campaign free</Link>
-          <Link href="/signup?role=creator" className="btn-secondary text-base px-6 py-3">Join as a creator</Link>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-border py-10">
-        <div className="max-w-2xl mx-auto grid grid-cols-3 gap-6 text-center px-6">
-          {[['1,200+','Verified creators'],['340+','Brands'],['$0','To get started']].map(([n,l]) => (
-            <div key={l}>
-              <div className="text-3xl font-semibold text-gray-900">{n}</div>
-              <div className="text-sm text-gray-500 mt-1">{l}</div>
+      {/* ── Split Hero ── */}
+      <div className="split-hero">
+        {/* Brand side */}
+        <Link href="/signup?role=brand" className="split-side split-side-brand" style={{ textDecoration: 'none' }}>
+          <div className="split-watermark" style={{ color: 'rgba(255,255,255,.05)' }}>B</div>
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: 460 }}>
+            <span className="badge badge-ink" style={{ marginBottom: 20, background: 'rgba(255,255,255,.12)', color: '#fff' }}>
+              For brands
+            </span>
+            <h1 style={{ fontSize: 'clamp(28px,3.5vw,46px)', color: '#fff', marginBottom: 20, lineHeight: 1.05 }}>
+              Find creators who actually fit your brand.
+            </h1>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36 }}>
+              {[
+                'Free during beta — no platform fees',
+                'Your money stays in escrow until you confirm',
+                'Pick from real, vetted creators',
+              ].map(t => (
+                <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: 'rgba(255,255,255,.8)', fontSize: 15 }}>
+                  <span style={{ color: 'var(--creator)', flexShrink: 0, marginTop: 1 }}><ShieldCheck /></span>
+                  {t}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+            <span className="btn btn-primary btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', gap: 8 }}>
+              Post a campaign free <ArrowRight />
+            </span>
+          </div>
+        </Link>
 
-      {/* How it works */}
-      <section className="max-w-3xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-10 text-center">How it works</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Centre medallion */}
+        <div className="split-medallion" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16, textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 17, letterSpacing: '-0.04em', color: 'var(--ink)', lineHeight: 1 }}>
+            collabr<span style={{ color: 'var(--creator)' }}>.</span>
+          </div>
+          <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--ink-soft)', letterSpacing: '.06em', textTransform: 'uppercase', marginTop: 5, lineHeight: 1.3 }}>
+            trusted by<br />both sides
+          </div>
+        </div>
+
+        {/* Creator side */}
+        <Link href="/signup?role=creator" className="split-side split-side-creator" style={{ textDecoration: 'none' }}>
+          <div className="split-watermark" style={{ color: 'rgba(28,25,23,.06)' }}>C</div>
+          <div style={{ position: 'relative', zIndex: 1, maxWidth: 460, marginLeft: 'auto' }}>
+            <span className="badge" style={{ marginBottom: 20, background: 'rgba(28,25,23,.08)', color: 'var(--ink)' }}>
+              For creators
+            </span>
+            <h1 style={{ fontSize: 'clamp(28px,3.5vw,46px)', color: 'var(--ink)', marginBottom: 20, lineHeight: 1.05 }}>
+              Get paid for content you'd make anyway.
+            </h1>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36 }}>
+              {[
+                'Free to join — keep 100% during beta',
+                'Get paid automatically once you post',
+                'Only campaigns that match your niche',
+              ].map(t => (
+                <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: 'var(--ink-soft)', fontSize: 15 }}>
+                  <span style={{ color: 'var(--creator-deep)', flexShrink: 0, marginTop: 1 }}><ShieldCheck /></span>
+                  {t}
+                </div>
+              ))}
+            </div>
+            <span className="btn btn-money btn-lg hover-lift" style={{ display: 'inline-flex', gap: 8 }}>
+              Start earning <ArrowRight />
+            </span>
+          </div>
+        </Link>
+      </div>
+
+      {/* ── Beta strip ── */}
+      <div style={{
+        background: 'var(--ink)', color: '#fff',
+        textAlign: 'center', padding: '14px 24px',
+        fontSize: 14, fontWeight: 600,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      }}>
+        <span style={{ color: 'var(--creator)' }}>✦</span>
+        Free during beta · Singapore · No credit card needed
+        <span style={{ color: 'var(--creator)' }}>✦</span>
+      </div>
+
+      {/* ── Escrow trust section ── */}
+      <section style={{ padding: '72px 40px', maxWidth: 960, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 52 }}>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Why escrow?</div>
+          <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Real money handled seriously.</h2>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 16, marginTop: 12, maxWidth: 540, margin: '12px auto 0' }}>
+            Every dollar is held safely until both sides are happy. No surprises, no chargebacks.
+          </p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
           {[
-            ['Post a brief','Describe what you need, set your budget, and list your campaign in minutes.'],
-            ['Review applicants','Creators apply with real verified stats. Pick who fits your brand best.'],
-            ['Pay safely','Content held for review before payment releases. Escrow protects both sides.'],
-          ].map(([t,d],i) => (
-            <div key={t} className="card">
-              <div className="w-7 h-7 rounded-full bg-purple-50 text-purple-600 text-sm font-medium flex items-center justify-center mb-3">{i+1}</div>
-              <h3 className="font-medium text-gray-900 mb-1">{t}</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">{d}</p>
+            { stat: '100%', label: 'Funds held in escrow', sub: 'until content is confirmed' },
+            { stat: '48h', label: 'Brand review window', sub: 'auto-approves if no response' },
+            { stat: '3 days', label: 'Dispute resolution', sub: 'platform mediates fairly' },
+          ].map(({ stat, label, sub }) => (
+            <div key={stat} className="card" style={{ textAlign: 'center', padding: 28 }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 42, letterSpacing: '-0.03em', color: 'var(--ink)', lineHeight: 1 }}>{stat}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', marginTop: 10 }}>{label}</div>
+              <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>{sub}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section className="bg-surface py-16 px-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Why collabr.</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              ['Escrow protection','Payment held safely until you approve the content.'],
-              ['Verified stats','Follower counts authenticated directly from platform APIs.'],
-              ['Two-way ratings','Brands and creators rate each other. Bad actors flagged fast.'],
-              ['No agency cut','Direct connection. No $2,000/month retainer.'],
-              ['Apple Pay + Google Pay','One-tap payments on mobile.'],
-              ['Auto-approve safety','48h review window. Auto-approves if brand doesn\'t respond.'],
-            ].map(([t,d]) => (
-              <div key={t} className="bg-white rounded-card p-4 border border-border">
-                <h3 className="font-medium text-gray-900 text-sm mb-1">{t}</h3>
-                <p className="text-sm text-gray-500">{d}</p>
+      {/* ── How it works ── */}
+      <section style={{ background: 'var(--surface-2)', padding: '72px 40px' }}>
+        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 52 }}>
+            <div className="eyebrow" style={{ marginBottom: 12 }}>How it works</div>
+            <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Simple for both sides.</h2>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="pc-grid">
+            {/* Brand steps */}
+            <div className="card" style={{ padding: 28 }}>
+              <div className="eyebrow" style={{ marginBottom: 20 }}>For brands</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {[
+                  ['Post a brief', 'Describe what you need. Set your budget. Live in 5 minutes.'],
+                  ['Review applicants', 'Creators apply with verified stats. Pick who fits your brand.'],
+                  ['Fund escrow', 'Deposit only the agreed amount. Held safely until you confirm.'],
+                  ['Approve & release', 'Happy with the content? Confirm and payment releases automatically.'],
+                ].map(([t, d], i) => (
+                  <div key={t} style={{ display: 'flex', gap: 14 }}>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: 'var(--ink)', color: '#fff',
+                      display: 'grid', placeItems: 'center',
+                      fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                      flexShrink: 0, marginTop: 1,
+                    }}>{i + 1}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{t}</div>
+                      <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>{d}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            {/* Creator steps */}
+            <div className="card" style={{ padding: 28, borderColor: 'var(--creator)', boxShadow: '0 0 0 1px var(--creator-tint) inset' }}>
+              <div className="eyebrow" style={{ marginBottom: 20 }}>For creators</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {[
+                  ['Browse campaigns', 'Filter by niche, platform, and payout. Apply with a pitch.'],
+                  ['Get accepted', 'Brand reviews your profile and picks you. Receive the brief.'],
+                  ['Submit your draft', 'Upload privately for brand review. No public posting yet.'],
+                  ['Post & get paid', 'Brand approves → you post → escrow releases to your account.'],
+                ].map(([t, d], i) => (
+                  <div key={t} style={{ display: 'flex', gap: 14 }}>
+                    <div style={{
+                      width: 28, height: 28, borderRadius: '50%',
+                      background: 'var(--creator)', color: 'var(--creator-ink)',
+                      display: 'grid', placeItems: 'center',
+                      fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 13,
+                      flexShrink: 0, marginTop: 1,
+                    }}>{i + 1}</div>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: 15 }}>{t}</div>
+                      <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>{d}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 px-6 text-center">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-3">Ready to start?</h2>
-        <p className="text-gray-500 mb-6">Free during beta. No credit card needed.</p>
-        <div className="flex gap-3 justify-center">
-          <Link href="/signup?role=brand" className="btn-primary px-6 py-3">I'm a brand</Link>
-          <Link href="/signup?role=creator" className="btn-secondary px-6 py-3">I'm a creator</Link>
+      {/* ── Feature grid ── */}
+      <section style={{ padding: '72px 40px', maxWidth: 1000, margin: '0 auto' }}>
+        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+          <div className="eyebrow" style={{ marginBottom: 12 }}>Why collabr.</div>
+          <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Built around trust.</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }} className="pc-grid">
+          {[
+            { icon: '🔒', title: 'Escrow protection',    body: 'Payment held safely until you approve the content. Neither side can lose.' },
+            { icon: '✅', title: 'Verified stats',       body: 'Follower counts authenticated directly from platform APIs. No fakes.' },
+            { icon: '⭐', title: 'Two-way ratings',      body: 'Brands and creators rate each other. Bad actors flagged fast.' },
+            { icon: '💸', title: 'No agency cut',        body: 'Direct connection. 0% platform fee during beta. 30 days notice before any change.' },
+            { icon: '📱', title: 'Apple & Google Pay',   body: 'One-tap mobile payments. Stripe-powered with bank-grade security.' },
+            { icon: '⏱', title: 'Auto-approve safety',  body: '48-hour review window. Content auto-approves if brand doesn\'t respond.' },
+          ].map(({ icon, title, body }) => (
+            <div key={title} className="card hover-lift" style={{ padding: 22 }}>
+              <div style={{ fontSize: 26, marginBottom: 10 }}>{icon}</div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{title}</div>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{body}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      <footer className="border-t border-border py-6 px-6 flex justify-between items-center text-xs text-gray-400">
-        <span>collabr. · collabr.sg</span>
-        <span>© 2025</span>
+      {/* ── CTA ── */}
+      <section style={{
+        background: 'var(--ink)', color: '#fff',
+        padding: '80px 40px', textAlign: 'center',
+      }}>
+        <h2 style={{ fontSize: 'clamp(28px,4vw,48px)', color: '#fff', marginBottom: 14 }}>
+          Ready to start?
+        </h2>
+        <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 16, marginBottom: 36 }}>
+          Free during beta. No credit card needed.
+        </p>
+        <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link href="/signup?role=brand" className="btn btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', gap: 8 }}>
+            I&apos;m a brand <ArrowRight />
+          </Link>
+          <Link href="/signup?role=creator" className="btn btn-money btn-lg hover-lift" style={{ display: 'inline-flex', gap: 8 }}>
+            I&apos;m a creator <ArrowRight />
+          </Link>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer style={{
+        background: 'var(--ink)', borderTop: '1px solid rgba(255,255,255,.08)',
+        padding: '24px 40px',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        flexWrap: 'wrap', gap: 8,
+      }}>
+        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.04em', color: '#fff' }}>
+          collabr<span style={{ color: 'var(--creator)' }}>.</span>
+        </span>
+        <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
+          <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>© 2025 collabr. · Singapore</span>
+          <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Log in</Link>
+          <Link href="/signup" style={{ fontSize: 13, color: 'var(--creator)', fontWeight: 600 }}>Join free →</Link>
+        </div>
       </footer>
     </div>
   )

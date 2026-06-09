@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { ArrowRight } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -22,32 +23,78 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-semibold text-gray-900">collabr.</Link>
-          <p className="text-gray-500 text-sm mt-1">Sign in to your account</p>
+    <div style={{
+      minHeight: '100vh',
+      display: 'grid',
+      placeItems: 'center',
+      background: 'var(--paper)',
+      padding: '24px',
+    }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
+        {/* Logo */}
+        <div style={{ textAlign: 'center', marginBottom: 36 }}>
+          <Link href="/" style={{
+            fontFamily: 'var(--font-display)',
+            fontWeight: 800, fontSize: 28,
+            letterSpacing: '-0.04em', color: 'var(--ink)',
+          }}>
+            collabr<span style={{ color: 'var(--creator)' }}>.</span>
+          </Link>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginTop: 6 }}>
+            Sign in to your account
+          </p>
         </div>
-        <form onSubmit={handleLogin} className="card space-y-4">
-          <div>
-            <label className="label">Email</label>
-            <input className="input" type="email" value={email}
-              onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required />
-          </div>
-          <div>
-            <div className="flex items-center justify-between">
-              <label className="label">Password</label>
-              <Link href="/forgot-password" className="text-xs text-purple-600 hover:underline">Forgot password?</Link>
+
+        {/* Form card */}
+        <div className="card pop" style={{ padding: 28 }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+            <div>
+              <label className="label">Email</label>
+              <input
+                className="input"
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
             </div>
-            <input className="input" type="password" value={password}
-              onChange={e => setPassword(e.target.value)} placeholder="••••••••" required />
-          </div>
-          <button type="submit" className="btn-primary w-full justify-center py-2.5" disabled={loading}>
-            {loading ? 'Signing in…' : 'Sign in'}
-          </button>
-        </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
-          No account? <Link href="/signup" className="text-purple-600 hover:underline">Join free</Link>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <label className="label" style={{ margin: 0 }}>Password</label>
+                <Link href="/forgot-password" style={{
+                  fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)',
+                }}>
+                  Forgot password?
+                </Link>
+              </div>
+              <input
+                className="input"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+                autoComplete="current-password"
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn btn-primary btn-block"
+              disabled={loading}
+              style={{ marginTop: 4 }}
+            >
+              {loading ? 'Signing in…' : <><span>Sign in</span><ArrowRight size={16} /></>}
+            </button>
+          </form>
+        </div>
+
+        <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--ink-soft)', marginTop: 20 }}>
+          No account?{' '}
+          <Link href="/signup" style={{ color: 'var(--accent-deep)', fontWeight: 600 }}>
+            Join free
+          </Link>
         </p>
       </div>
     </div>
