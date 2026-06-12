@@ -4,8 +4,11 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react'
-
-const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
+import {
+  CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
+  NICHE_LABELS, INDUSTRY_LABELS,
+  type CreatorNiche, type SocialPlatform,
+} from '@/lib/onboarding'
 
 function SignupForm() {
   const router = useRouter()
@@ -15,28 +18,72 @@ function SignupForm() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [niches, setNiches] = useState<string[]>([])
   const [agree, setAgree] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const isBrand = role === 'brand'
 
-  function toggleNiche(n: string) {
-    setNiches(p => p.includes(n) ? p.filter(x => x !== n) : [...p, n])
+  // Creator onboarding fields
+  const [niche, setNiche] = useState<CreatorNiche | ''>('')
+  const [handles, setHandles] = useState<Record<SocialPlatform, { handle: string; followers: string }>>({
+    instagram: { handle: '', followers: '' },
+    tiktok: { handle: '', followers: '' },
+    youtube: { handle: '', followers: '' },
+  })
+
+  // Brand onboarding fields
+  const [industry, setIndustry] = useState('')
+  const [website, setWebsite] = useState('')
+  const [socialUrl, setSocialUrl] = useState('')
+
+  function setHandle(p: SocialPlatform, field: 'handle' | 'followers', val: string) {
+    setHandles(prev => ({ ...prev, [p]: { ...prev[p], [field]: val } }))
   }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
     if (!agree) { toast.error('Please accept the terms'); return }
     if (status !== 'idle') return
+
+    let payload: Record<string, unknown> = { email, password, name, role }
+    if (isBrand) {
+      if (!industry) { toast.error('Pick your industry'); return }
+      if (!website.trim() && !socialUrl.trim()) {
+        toast.error('Add a website or a social account link'); return
+      }
+      payload = {
+        ...payload,
+        industry,
+        website: website.trim() || null,
+        social_url: socialUrl.trim() || null,
+      }
+    } else {
+      if (!niche) { toast.error('Pick your niche'); return }
+      const socials = SOCIAL_PLATFORMS
+        .filter(p => handles[p].handle.trim())
+        .map(p => ({
+          platform: p,
+          handle: handles[p].handle,
+          follower_count: handles[p].followers ? parseInt(handles[p].followers, 10) : null,
+        }))
+      if (socials.length === 0) { toast.error('Connect at least one social account'); return }
+      payload = { ...payload, niche, socials }
+    }
+
     setStatus('loading')
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, name, role }),
+      body: JSON.stringify(payload),
     })
     const data = await res.json()
     if (!res.ok) { toast.error(data.error || 'Signup failed'); setStatus('idle'); return }
+    if (data.warning) toast(data.warning)
     setStatus('success')
+    if (data.requiresEmailVerification) {
+      toast.success('Check your inbox to verify your email, then log in')
+      router.push('/login')
+      return
+    }
     router.push('/dashboard')
     router.refresh()
     // status stays 'success' — component unmounts when dashboard loads
@@ -205,24 +252,94 @@ function SignupForm() {
               />
             </div>
 
-            <div>
-              <label className="label">{isBrand ? 'What does your brand sell?' : 'Your niche'}</label>
-              <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
-                Pick all that apply — we use this to match you
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                {NICHES.map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => toggleNiche(n)}
-                    className={`chip${niches.includes(n) ? ' on' : ''}`}
+            {isBrand ? (
+              <>
+                <div>
+                  <label className="label">Industry</label>
+                  <select
+                    className="input"
+                    value={industry}
+                    onChange={e => setIndustry(e.target.value)}
+                    required
                   >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
+                    <option value="">Select industry</option>
+                    {BRAND_INDUSTRIES.map(i => (
+                      <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="label">Website</label>
+                  <input
+                    className="input"
+                    type="url"
+                    value={website}
+                    onChange={e => setWebsite(e.target.value)}
+                    placeholder="https://yourcompany.com"
+                  />
+                </div>
+                <div>
+                  <label className="label">Social account link</label>
+                  <input
+                    className="input"
+                    type="url"
+                    value={socialUrl}
+                    onChange={e => setSocialUrl(e.target.value)}
+                    placeholder="https://instagram.com/yourbrand"
+                  />
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 6 }}>
+                    A website or a social account is required
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div>
+                  <label className="label">Your niche</label>
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
+                    Pick your main niche — we use this to match you
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                    {CREATOR_NICHES.map(n => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setNiche(n)}
+                        className={`chip${niche === n ? ' on' : ''}`}
+                      >
+                        {NICHE_LABELS[n]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className="label">Social accounts</label>
+                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
+                    Connect at least one — this is what brands see
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {SOCIAL_PLATFORMS.map(p => (
+                      <div key={p} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                        <input
+                          className="input"
+                          value={handles[p].handle}
+                          onChange={e => setHandle(p, 'handle', e.target.value)}
+                          placeholder={`${p} @handle`}
+                        />
+                        <input
+                          className="input"
+                          type="number"
+                          min="0"
+                          value={handles[p].followers}
+                          onChange={e => setHandle(p, 'followers', e.target.value)}
+                          placeholder="Followers (optional)"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
 
             <label style={{
               display: 'flex', gap: 10, alignItems: 'flex-start',

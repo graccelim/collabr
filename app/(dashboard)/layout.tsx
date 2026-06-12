@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
 import { AppNav } from '@/components/AppNav'
+import TrustBanners from '@/components/TrustBanners'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -12,6 +13,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!profile) redirect('/signup')
 
   const role = profile.role as 'brand' | 'creator'
+
+  // Trust & onboarding state for the banner (admins are exempt).
+  let onboardingComplete = true
+  if (role === 'creator') {
+    const { data: creator } = await supabase.from('creator_profiles')
+      .select('onboarding_completed_at').eq('user_id', user.id).single()
+    onboardingComplete = Boolean(creator?.onboarding_completed_at)
+  } else if (role === 'brand') {
+    const { data: brand } = await supabase.from('brand_profiles')
+      .select('onboarding_completed_at').eq('user_id', user.id).single()
+    onboardingComplete = Boolean(brand?.onboarding_completed_at)
+  }
+  const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
 
@@ -41,6 +55,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
           margin: '0 auto',
           padding: '36px 28px 80px',
         }}>
+          {(role === 'brand' || role === 'creator') && (
+            <TrustBanners
+              emailVerified={emailVerified}
+              onboardingComplete={onboardingComplete}
+              role={role}
+            />
+          )}
           {children}
         </div>
       </main>

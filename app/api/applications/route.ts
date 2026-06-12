@@ -7,13 +7,42 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Email must be verified before applying to campaigns.
+  if (!user.email_confirmed_at) {
+    return NextResponse.json(
+      { error: 'Verify your email before applying to campaigns' },
+      { status: 403 }
+    )
+  }
+
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('id, boost_active_until').eq('user_id', user.id).single()
+    .select('id, boost_active_until, onboarding_completed_at').eq('user_id', user.id).single()
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
+
+  // Onboarding (niche + at least one social account) must be complete.
+  if (!creator.onboarding_completed_at) {
+    return NextResponse.json(
+      { error: 'Complete onboarding before applying to campaigns' },
+      { status: 403 }
+    )
+  }
 
   const body = await req.json()
   const isBoosted = creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
   const admin = createAdminClient()
+
+  // Anti-spam: max 10 applications per creator per hour, counted durably.
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+  const { count: recentCount } = await admin.from('applications')
+    .select('*', { count: 'exact', head: true })
+    .eq('creator_id', creator.id)
+    .gte('created_at', oneHourAgo)
+  if ((recentCount || 0) >= 10) {
+    return NextResponse.json(
+      { error: 'Application limit reached — try again in an hour' },
+      { status: 429 }
+    )
+  }
 
   const { data, error } = await admin.from('applications').insert({
     campaign_id: body.campaign_id,

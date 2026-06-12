@@ -2,12 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-
-const INDUSTRIES = [
-  'Beauty & Personal Care', 'Fashion & Apparel', 'Food & Beverage', 'Health & Wellness',
-  'Technology', 'Travel & Hospitality', 'Home & Lifestyle', 'Sports & Fitness',
-  'Entertainment & Media', 'Education', 'Finance', 'Other',
-]
+import { BRAND_INDUSTRIES, INDUSTRY_LABELS } from '@/lib/onboarding'
 
 export default function SettingsPage() {
   const supabase = createClient()
@@ -18,6 +13,7 @@ export default function SettingsPage() {
   const [companyName, setCompanyName] = useState('')
   const [industry, setIndustry] = useState('')
   const [website, setWebsite] = useState('')
+  const [socialUrl, setSocialUrl] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [logoUploading, setLogoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -37,11 +33,12 @@ export default function SettingsPage() {
 
       if (profile.role === 'brand') {
         const { data: brand } = await supabase.from('brand_profiles')
-          .select('company_name, industry, website, logo_url').eq('user_id', user.id).single()
+          .select('company_name, industry, website, social_url, logo_url').eq('user_id', user.id).single()
         if (brand) {
           setCompanyName(brand.company_name || '')
           setIndustry(brand.industry || '')
           setWebsite(brand.website || '')
+          setSocialUrl(brand.social_url || '')
           setLogoUrl(brand.logo_url || '')
         }
       }
@@ -70,6 +67,7 @@ export default function SettingsPage() {
         company_name: companyName,
         industry: industry || null,
         website: website || null,
+        social_url: socialUrl || null,
         logo_url: logoUrl || null,
       }).eq('user_id', userId)
       if (error) { toast.error('Save failed'); setSaving(false); return }
@@ -138,7 +136,7 @@ export default function SettingsPage() {
             <label className="label">Industry</label>
             <select className="input" value={industry} onChange={e => setIndustry(e.target.value)}>
               <option value="">Select industry</option>
-              {INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}
+              {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
             </select>
           </div>
 
@@ -151,6 +149,18 @@ export default function SettingsPage() {
               placeholder="https://yourcompany.com"
               type="url"
             />
+          </div>
+
+          <div>
+            <label className="label">Social account link</label>
+            <input
+              className="input"
+              value={socialUrl}
+              onChange={e => setSocialUrl(e.target.value)}
+              placeholder="https://instagram.com/yourbrand"
+              type="url"
+            />
+            <p className="text-xs text-gray-400 mt-1">A website or a social account is required</p>
           </div>
         </div>
       )}

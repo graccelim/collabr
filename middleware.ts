@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 const PROTECTED_PREFIXES = [
   '/dashboard', '/collabs', '/campaigns', '/jobs', '/profile',
   '/earnings', '/boost', '/billing', '/notifications', '/settings',
-  '/applications', '/creators', '/post-job', '/admin',
+  '/applications', '/creators', '/post-job', '/admin', '/onboarding',
 ]
 
 export async function middleware(req: NextRequest) {

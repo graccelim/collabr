@@ -5,6 +5,8 @@ export type CollabStatus =
   | 'live_submitted' | 'live_confirmed' | 'disputed' | 'completed' | 'cancelled'
 
 export type CompType = 'paid' | 'barter' | 'both'
+export type SocialPlatform = 'instagram' | 'tiktok' | 'youtube'
+export type SocialVerificationStatus = 'unverified' | 'pending' | 'verified'
 export type DisputeOutcome = 'pending' | 'creator_wins' | 'brand_wins' | 'split' | 'mutual'
 export type ApplicationStatus = 'pending' | 'shortlisted' | 'selected' | 'rejected'
 export type SubmissionDecision = 'pending' | 'approved' | 'revision' | 'rejected'
@@ -27,13 +29,29 @@ export interface BrandProfile {
   logo_url: string | null
   plan: 'free' | 'pro'
   stripe_customer_id: string | null
+  social_url: string | null
+  onboarding_completed_at: string | null
   created_at: string
+}
+
+export interface SocialAccount {
+  id: string
+  creator_id: string
+  platform: SocialPlatform
+  handle: string
+  url: string
+  follower_count: number | null
+  verification_status: SocialVerificationStatus
+  is_primary: boolean
+  created_at: string
+  updated_at: string
 }
 
 export interface CreatorProfile {
   id: string
   user_id: string
   bio: string | null
+  niche: string | null
   niches: string[] | null
   platforms: Record<string, { handle: string; followers: number; verified: boolean }> | null
   base_rate: number
@@ -44,7 +62,9 @@ export interface CreatorProfile {
   collabs_completed: number
   total_earned: number
   stripe_connect_id: string | null
+  onboarding_completed_at: string | null
   created_at: string
+  social_accounts?: SocialAccount[]
 }
 
 export interface Campaign {

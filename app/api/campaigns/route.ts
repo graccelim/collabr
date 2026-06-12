@@ -28,8 +28,25 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: brand } = await supabase.from('brand_profiles').select('id,plan').eq('user_id', user.id).single()
+  // Email must be verified before creating campaigns.
+  if (!user.email_confirmed_at) {
+    return NextResponse.json(
+      { error: 'Verify your email before creating campaigns' },
+      { status: 403 }
+    )
+  }
+
+  const { data: brand } = await supabase.from('brand_profiles')
+    .select('id, plan, onboarding_completed_at').eq('user_id', user.id).single()
   if (!brand) return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
+
+  // Onboarding (company name, industry, website or social) must be complete.
+  if (!brand.onboarding_completed_at) {
+    return NextResponse.json(
+      { error: 'Complete onboarding before creating campaigns' },
+      { status: 403 }
+    )
+  }
 
   // Free plan: max 2 active campaigns
   if (brand.plan === 'free') {

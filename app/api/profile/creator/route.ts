@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
   if (profile?.role !== 'creator') return NextResponse.json({ error: 'Creator only' }, { status: 403 })
 
   const body = await req.json()
-  const allowed = ['bio', 'niches', 'platforms', 'base_rate']
+  const allowed = ['bio', 'niche', 'niches', 'platforms', 'base_rate']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   const { data, error } = await supabase.from('creator_profiles')

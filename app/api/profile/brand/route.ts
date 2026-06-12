@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest) {
   if (profile?.role !== 'brand') return NextResponse.json({ error: 'Brand only' }, { status: 403 })
 
   const body = await req.json()
-  const allowed = ['company_name', 'industry', 'website', 'logo_url']
+  const allowed = ['company_name', 'industry', 'website', 'social_url', 'logo_url']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   const { data, error } = await supabase.from('brand_profiles')
