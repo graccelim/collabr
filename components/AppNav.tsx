@@ -7,7 +7,7 @@ import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
   Compass, FileText, Settings, Bell, User,
   CreditCard, LogOut, ChevronLeft, ChevronRight,
-  Zap,
+  Zap, Mail,
 } from 'lucide-react'
 
 type Icon = React.ComponentType<Partial<LucideProps>>
@@ -17,13 +17,16 @@ interface NavItem {
   label: string
   icon: Icon
   exact?: boolean
+  /** Subtle premium marker — teaches which features are Pro without blocking. */
+  pro?: boolean
 }
 
 const BRAND_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Overview',     icon: LayoutGrid, exact: true },
   { href: '/campaigns',     label: 'Campaigns',    icon: Briefcase },
   { href: '/collabs',       label: 'Collabs',      icon: Link2 },
-  { href: '/creators',      label: 'Creators',     icon: Users },
+  { href: '/creators',      label: 'Creators',     icon: Users, pro: true },
+  { href: '/invites',       label: 'Invites',      icon: Mail,  pro: true },
   { href: '/notifications', label: 'Notifications',icon: Bell },
   { href: '/billing',       label: 'Billing',      icon: CreditCard },
   { href: '/settings',      label: 'Settings',     icon: Settings },
@@ -33,6 +36,7 @@ const CREATOR_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Overview',     icon: LayoutGrid, exact: true },
   { href: '/jobs',          label: 'Browse',       icon: Compass },
   { href: '/applications',  label: 'Applications', icon: FileText },
+  { href: '/invites',       label: 'Invites',      icon: Mail },
   { href: '/collabs',       label: 'Collabs',      icon: Link2 },
   { href: '/earnings',      label: 'Earnings',     icon: Wallet },
   { href: '/profile',       label: 'Profile',      icon: User },
@@ -62,9 +66,11 @@ interface AppNavProps {
   displayName: string
   email: string
   initials: string
+  /** Resolved plan label for brands, e.g. "Pro Beta" — empty hides the badge. */
+  planLabel?: string
 }
 
-export function AppNav({ role, displayName, email, initials }: AppNavProps) {
+export function AppNav({ role, displayName, email, initials, planLabel }: AppNavProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const isBrand = role === 'brand'
@@ -104,15 +110,28 @@ export function AppNav({ role, displayName, email, initials }: AppNavProps) {
           flexShrink: 0,
         }}>
           {!collapsed && (
-            <Link href="/" style={{
-              fontFamily: 'var(--font-display)',
-              fontWeight: 700,
-              fontSize: 16.5,
-              letterSpacing: '-0.03em',
-              color: 'var(--ink)',
-            }}>
-              collabr<span style={{ color: 'var(--creator)' }}>.</span>
-            </Link>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <Link href="/" style={{
+                fontFamily: 'var(--font-display)',
+                fontWeight: 700,
+                fontSize: 16.5,
+                letterSpacing: '-0.03em',
+                color: 'var(--ink)',
+              }}>
+                collabr<span style={{ color: 'var(--creator)' }}>.</span>
+              </Link>
+              {planLabel && (
+                <span style={{
+                  fontSize: 9.5, fontWeight: 600, letterSpacing: '.05em',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent-deep)', background: 'var(--accent-tint)',
+                  border: '1px solid rgba(79,70,229,.14)',
+                  padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap',
+                }}>
+                  {planLabel}
+                </span>
+              )}
+            </div>
           )}
           <button
             onClick={() => setCollapsed(c => !c)}
@@ -188,6 +207,17 @@ export function AppNav({ role, displayName, email, initials }: AppNavProps) {
               >
                 <NavIcon size={16} style={{ opacity: on ? 1 : .75 }} />
                 {!collapsed && item.label}
+                {!collapsed && item.pro && (
+                  <span style={{
+                    marginLeft: 'auto',
+                    fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em',
+                    color: on ? 'var(--accent-deep)' : 'var(--ink-faint-solid)',
+                    border: `1px solid ${on ? 'rgba(79,70,229,.25)' : 'var(--line)'}`,
+                    padding: '0px 4px', borderRadius: 4, lineHeight: '12px',
+                  }}>
+                    PRO
+                  </span>
+                )}
               </Link>
             )
           })}

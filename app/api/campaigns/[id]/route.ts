@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
 async function getAuthedBrand(supabase: ReturnType<typeof createClient>, userId: string, campaignId: string) {
   const { data: campaign } = await supabase.from('campaigns')
@@ -30,6 +31,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const allowed = ['title', 'brief', 'deliverable_types', 'comp_type', 'budget_min', 'budget_max',
     'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
+
+  // Switching a campaign to barter is Pro (complimentary while in beta).
+  if (['barter', 'both'].includes(updates.comp_type as string)) {
+    const { data: brandPlan } = await createAdminClient().from('brand_profiles')
+      .select(PLAN_COLUMNS).eq('user_id', user.id).single()
+    const gate = proGateResponse(resolvePlan(brandPlan), 'Barter campaigns')
+    if (gate) return gate
+  }
 
   const admin = createAdminClient()
   const { data, error: updateErr } = await admin.from('campaigns')

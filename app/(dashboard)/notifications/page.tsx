@@ -23,6 +23,9 @@ const TYPE_ICONS: Record<string, string> = {
   dispute_resolved: '⚖️',
   draft_expiring: '⏰',
   live_expiring: '⏰',
+  invite_received: '💌',
+  invite_accepted: '🤝',
+  invite_declined: '—',
 }
 
 export default async function NotificationsPage() {
@@ -57,11 +60,13 @@ export default async function NotificationsPage() {
             const payload = (n.payload as any) || {}
             const href: string | null = payload.collab_id
               ? `/collabs/${payload.collab_id}`
-              : n.type === 'new_application' && payload.campaign_id
-                ? `/campaigns/${payload.campaign_id}`
-                : payload.application_id
-                  ? '/applications'
-                  : null
+              : payload.invite_id
+                ? '/invites'
+                : n.type === 'new_application' && payload.campaign_id
+                  ? `/campaigns/${payload.campaign_id}`
+                  : payload.application_id
+                    ? '/applications'
+                    : null
             const content = (
               <div className={`card flex gap-3 items-start transition-colors ${!n.read ? 'border-purple-200 bg-purple-50/30' : ''}`}>
                 <span className="text-lg mt-0.5 shrink-0">{icon}</span>

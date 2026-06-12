@@ -9,6 +9,67 @@ async function ensureWrite(result: PromiseLike<{ error: any }>) {
   if (error) throw error
 }
 
+// ── Phase 10: subscription sync ───────────────────────────────────────────────
+// Maps Stripe subscription state onto brand_profiles. Cancellation (including
+// cancel_at_period_end) keeps plan='pro' with status='cancelled' — resolvePlan
+// grants access until subscription_current_period_end, then the brand reverts
+// to Free with all saved data retained.
+async function applySubscriptionToBrand(
+  supabase: ReturnType<typeof createAdminClient>,
+  subscription: Stripe.Subscription
+) {
+  const brandId = subscription.metadata?.brand_id
+  const customerId = typeof subscription.customer === 'string'
+    ? subscription.customer
+    : subscription.customer?.id
+
+  const periodEnd = subscription.current_period_end
+    ? new Date(subscription.current_period_end * 1000).toISOString()
+    : null
+
+  let status: 'active' | 'cancelled' | 'past_due'
+  let plan: 'free' | 'pro'
+  switch (subscription.status) {
+    case 'active':
+    case 'trialing':
+      status = subscription.cancel_at_period_end ? 'cancelled' : 'active'
+      plan = 'pro'
+      break
+    case 'past_due':
+      status = 'past_due'
+      plan = 'pro' // access continues while Stripe retries payment
+      break
+    case 'canceled':
+    case 'unpaid':
+    case 'incomplete_expired':
+      // Terminal: the subscription is over (Stripe fires `deleted` at period
+      // end for cancel_at_period_end). Revert to Free; the period-end grace
+      // window was already covered by the cancelled+plan='pro' state above.
+      // Saved creators, invites and history are retained — only locked.
+      status = 'cancelled'
+      plan = 'free'
+      break
+    default: // incomplete / paused — no access change yet
+      return
+  }
+
+  const updates = {
+    plan,
+    subscription_status: status,
+    stripe_subscription_id: subscription.id,
+    subscription_current_period_end: periodEnd,
+    ...(customerId ? { stripe_customer_id: customerId } : {}),
+  }
+
+  if (brandId) {
+    await ensureWrite(supabase.from('brand_profiles').update(updates).eq('id', brandId))
+  } else if (customerId) {
+    await ensureWrite(supabase.from('brand_profiles').update(updates).eq('stripe_customer_id', customerId))
+  } else {
+    console.error('[WEBHOOK] Subscription has no brand_id metadata or customer:', subscription.id)
+  }
+}
+
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const signature = req.headers.get('stripe-signature')
@@ -137,6 +198,28 @@ export async function POST(req: NextRequest) {
         payment_status: 'transfer_failed',
         payment_failure_reason: 'Stripe transfer was reversed.',
       }).eq('stripe_transfer_id', transfer.id))
+      break
+    }
+
+    // ── Pro subscription lifecycle ─────────────────────────────────────────
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session
+      if (session.mode === 'subscription' && typeof session.subscription === 'string') {
+        const subscription = await stripe.subscriptions.retrieve(session.subscription)
+        await applySubscriptionToBrand(supabase, subscription)
+      }
+      break
+    }
+
+    case 'customer.subscription.created':
+    case 'customer.subscription.updated': {
+      await applySubscriptionToBrand(supabase, event.data.object as Stripe.Subscription)
+      break
+    }
+
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object as Stripe.Subscription
+      await applySubscriptionToBrand(supabase, { ...subscription, status: 'canceled' } as Stripe.Subscription)
       break
     }
 

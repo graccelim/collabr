@@ -1,17 +1,19 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
 import EmptyState from '@/components/EmptyState'
+import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import { Inbox, SearchX } from 'lucide-react'
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const user = await requireBrand()
   const supabase = createClient()
 
-  const { data: brand } = await supabase.from('brand_profiles')
-    .select('id, plan').eq('user_id', user.id).single()
+  // Admin client: subscription columns are server-only; own row by user_id.
+  const { data: brand } = await createAdminClient().from('brand_profiles')
+    .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
 
   const { data: campaign } = await supabase.from('campaigns')
     .select('*').eq('id', params.id).eq('brand_id', brand!.id).single()
@@ -35,8 +37,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     .order('is_boosted', { ascending: false })
     .order('created_at', { ascending: true })
 
-  const isFreePlan = brand?.plan === 'free'
-  const visibleApps = isFreePlan ? (applications || []).slice(0, 5) : (applications || [])
+  // Resolved plan: every brand is Pro while in beta.
+  const plan = resolvePlan(brand)
+  const visibleApps = plan.isPro ? (applications || []) : (applications || []).slice(0, 5)
   const hiddenCount = (applications?.length || 0) - visibleApps.length
 
   const total = applications?.length || 0
@@ -111,14 +114,13 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           <>
             <ApplicantList applications={visibleApps} campaignId={params.id} />
             {hiddenCount > 0 && (
-              <div className="card mt-3 bg-purple-50 border-purple-200 text-center">
-                <p className="text-sm text-purple-700 font-medium mb-1">
-                  {hiddenCount} more applicant{hiddenCount > 1 ? 's' : ''} hidden
+              <div className="card mt-3 text-center" style={{ background: 'var(--surface-2)' }}>
+                <p className="text-sm font-medium text-gray-700 mb-1">
+                  {hiddenCount} more applicant{hiddenCount > 1 ? 's' : ''} available with Pro
                 </p>
-                <p className="text-xs text-purple-500 mb-3">
-                  Upgrade to Pro to see all applicants and select the best fit.
-                </p>
-                <Link href="/billing" className="btn-primary text-sm">Upgrade to Pro — $99/mo</Link>
+                <Link href="/billing" className="text-xs font-medium" style={{ color: 'var(--accent-deep)' }}>
+                  Manage plan →
+                </Link>
               </div>
             )}
           </>

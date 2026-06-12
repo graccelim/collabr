@@ -1,8 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
 import { AppNav } from '@/components/AppNav'
 import TrustBanners from '@/components/TrustBanners'
+import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -16,14 +17,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   // Trust & onboarding state for the banner (admins are exempt).
   let onboardingComplete = true
+  let planLabel = ''
   if (role === 'creator') {
     const { data: creator } = await supabase.from('creator_profiles')
       .select('onboarding_completed_at').eq('user_id', user.id).single()
     onboardingComplete = Boolean(creator?.onboarding_completed_at)
   } else if (role === 'brand') {
-    const { data: brand } = await supabase.from('brand_profiles')
-      .select('onboarding_completed_at').eq('user_id', user.id).single()
+    // Admin client: subscription columns are not client-readable (RLS rows on
+    // brand_profiles are public, so a column grant would leak billing state).
+    const { data: brand } = await createAdminClient().from('brand_profiles')
+      .select(`onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
     onboardingComplete = Boolean(brand?.onboarding_completed_at)
+    // Quiet plan badge — "Pro Beta" during beta, "Pro" when subscribed.
+    const plan = resolvePlan(brand)
+    planLabel = plan.isPro ? plan.label : ''
   }
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
@@ -40,6 +47,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         displayName={displayName}
         email={profile.email || ''}
         initials={initials}
+        planLabel={planLabel}
       />
       <main
         className="main-content"

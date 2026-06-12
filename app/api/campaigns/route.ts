@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
@@ -36,8 +37,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { data: brand } = await supabase.from('brand_profiles')
-    .select('id, plan, onboarding_completed_at').eq('user_id', user.id).single()
+  // Admin client: subscription columns are server-only; own row by user_id.
+  const { data: brand } = await createAdminClient().from('brand_profiles')
+    .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
   if (!brand) return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
 
   // Onboarding (company name, industry, website or social) must be complete.
@@ -48,17 +50,26 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Plan resolution: during beta every brand resolves to Pro.
+  const plan = resolvePlan(brand)
+
   // Free plan: max 2 active campaigns
-  if (brand.plan === 'free') {
+  if (!plan.isPro) {
     const { count } = await supabase.from('campaigns')
       .select('*', { count: 'exact', head: true }).eq('brand_id', brand.id).eq('status', 'active')
     if ((count || 0) >= 2) return NextResponse.json(
-      { error: 'Free plan allows max 2 active campaigns. Upgrade to Pro for unlimited.' },
+      { error: 'The Free plan supports 2 active campaigns. Manage your plan from the Billing page.' },
       { status: 403 }
     )
   }
 
   const body = await req.json()
+
+  // Barter campaigns are a Pro feature (complimentary while in beta).
+  if (['barter', 'both'].includes(body.comp_type)) {
+    const gate = proGateResponse(plan, 'Barter campaigns')
+    if (gate) return gate
+  }
   const admin = createAdminClient()
   const { data, error } = await admin.from('campaigns').insert({
     brand_id: brand.id,

@@ -1,16 +1,22 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
+import SaveCreatorButton from '@/components/SaveCreatorButton'
+import InviteCreatorForm from '@/components/InviteCreatorForm'
+import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
 import Link from 'next/link'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
-  await requireAuth()
+  const user = await requireAuth()
   const supabase = createClient()
+  const admin = createAdminClient()
 
-  const { data: creator } = await supabase.from('creator_profiles')
+  // Admin client: public profile data, but the users join (display name /
+  // avatar) is RLS-limited to own-row for session clients.
+  const { data: creator } = await admin.from('creator_profiles')
     .select('id, user_id, bio, niche, niches, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url)')
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
@@ -21,6 +27,35 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     .order('is_primary', { ascending: false }).order('created_at')
   const { data: emailVerified } = await supabase
     .rpc('user_email_verified', { p_user_id: creator.user_id })
+
+  // Brand viewer: saved state + invitable campaigns (active, paid).
+  const { data: viewer } = await supabase.from('users').select('role').eq('id', user.id).single()
+  const isBrandViewer = viewer?.role === 'brand'
+  let isSaved = false
+  let viewerIsPro = false
+  let inviteCampaigns: { id: string; title: string }[] = []
+  let pendingInviteCampaignIds: string[] = []
+  if (isBrandViewer) {
+    const { data: brand } = await admin.from('brand_profiles')
+      .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+    viewerIsPro = resolvePlan(brand).isPro
+    if (brand) {
+      const [{ data: saved }, { data: campaigns }, { data: pendingInvites }] = await Promise.all([
+        supabase.from('saved_creators')
+          .select('id').eq('brand_id', brand.id).eq('creator_id', params.id).maybeSingle(),
+        supabase.from('campaigns')
+          .select('id, title').eq('brand_id', brand.id).eq('status', 'active')
+          .in('comp_type', ['paid', 'both']).order('created_at', { ascending: false }),
+        supabase.from('campaign_invites')
+          .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', params.id)
+          .eq('status', 'pending'),
+      ])
+      isSaved = Boolean(saved)
+      inviteCampaigns = campaigns || []
+      pendingInviteCampaignIds = (pendingInvites || [])
+        .map(i => i.campaign_id).filter((id): id is string => Boolean(id))
+    }
+  }
 
   const { data: brandReviews } = await supabase.from('reviews')
     .select('*, collabs!inner(id, creator_id, campaigns(title))')
@@ -80,6 +115,52 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         {creator.bio && (
           <p className="text-sm text-gray-600 mt-4 whitespace-pre-wrap">{creator.bio}</p>
         )}
+
+        {/* Brand actions: save + invite (Pro — complimentary during beta) */}
+        {isBrandViewer && (
+          viewerIsPro ? (
+            <div className="mt-4 pt-4 border-t border-border flex flex-wrap gap-2 items-start">
+              <InviteCreatorForm
+                creatorId={params.id}
+                creatorName={name}
+                campaigns={inviteCampaigns}
+                pendingCampaignIds={pendingInviteCampaignIds}
+              />
+              <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
+            </div>
+          ) : (
+            <div className="mt-4 pt-4 border-t border-border">
+              <p className="text-xs text-gray-500">
+                Inviting and saving creators is part of collabr Pro.{' '}
+                <Link href="/billing" className="font-medium" style={{ color: 'var(--accent-deep)' }}>
+                  Manage plan
+                </Link>
+              </p>
+            </div>
+          )
+        )}
+      </div>
+
+      {/* Completion statistics */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="card text-center">
+          <p className="text-xl font-semibold text-gray-900 mono-num">{creator.collabs_completed || 0}</p>
+          <p className="text-xs text-gray-500 mt-0.5">Collabs completed</p>
+        </div>
+        <div className="card text-center">
+          <p className="text-xl font-semibold text-gray-900 mono-num">
+            {creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—'}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'No reviews yet'}
+          </p>
+        </div>
+        <div className="card text-center">
+          <p className="text-xl font-semibold text-gray-900 mono-num">
+            {new Date(creator.created_at).toLocaleDateString('en-SG', { month: 'short', year: 'numeric' })}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">Member since</p>
+        </div>
       </div>
 
       {/* Niche & rate */}

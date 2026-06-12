@@ -30,6 +30,9 @@ export interface BrandProfile {
   website: string | null
   logo_url: string | null
   plan: 'free' | 'pro'
+  subscription_status: 'beta_free' | 'active' | 'cancelled' | 'past_due'
+  subscription_current_period_end: string | null
+  grandfathered_pro_until: string | null
   stripe_customer_id: string | null
   social_url: string | null
   completed_campaigns: number
@@ -173,6 +176,30 @@ export interface Review {
   rating: number
   note: string | null
   created_at: string
+}
+
+export type InviteStatus = 'pending' | 'accepted' | 'declined' | 'expired'
+
+export interface SavedCreator {
+  id: string
+  brand_id: string
+  creator_id: string
+  created_at: string
+}
+
+export interface CampaignInvite {
+  id: string
+  campaign_id: string | null
+  brand_id: string
+  creator_id: string
+  message: string | null
+  proposed_rate: number // cents
+  status: InviteStatus
+  created_at: string
+  responded_at: string | null
+  campaigns?: Campaign
+  creator_profiles?: CreatorProfile & { users?: User }
+  brand_profiles?: BrandProfile
 }
 
 export interface Notification {
