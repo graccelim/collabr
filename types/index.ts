@@ -7,6 +7,7 @@ export type CollabStatus =
 export type CompType = 'paid' | 'barter' | 'both'
 export type SocialPlatform = 'instagram' | 'tiktok' | 'youtube'
 export type SocialVerificationStatus = 'unverified' | 'pending' | 'verified'
+export type AvailabilityStatus = 'available' | 'limited' | 'unavailable'
 export type DisputeOutcome = 'pending' | 'creator_wins' | 'brand_wins' | 'split' | 'mutual'
 export type ApplicationStatus = 'pending' | 'shortlisted' | 'selected' | 'rejected'
 export type SubmissionDecision = 'pending' | 'approved' | 'revision' | 'rejected'
@@ -24,12 +25,14 @@ export interface BrandProfile {
   id: string
   user_id: string
   company_name: string
+  company_description: string | null
   industry: string | null
   website: string | null
   logo_url: string | null
   plan: 'free' | 'pro'
   stripe_customer_id: string | null
   social_url: string | null
+  completed_campaigns: number
   onboarding_completed_at: string | null
   created_at: string
 }
@@ -53,6 +56,11 @@ export interface CreatorProfile {
   bio: string | null
   niche: string | null
   niches: string[] | null
+  location: string | null
+  portfolio_links: string[]
+  media_kit_url: string | null
+  average_rate_sgd: number | null // cents, like all monetary values
+  availability_status: AvailabilityStatus
   platforms: Record<string, { handle: string; followers: number; verified: boolean }> | null
   base_rate: number
   is_verified: boolean

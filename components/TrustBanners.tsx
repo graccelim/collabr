@@ -29,28 +29,32 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role }
   if (emailVerified && onboardingComplete) return null
 
   return (
-    <div className="space-y-2 mb-6">
+    <div className="space-y-2 mb-5">
       {!emailVerified && (
-        <div className="card flex items-center gap-3 py-3" style={{ borderColor: '#fbbf24', background: '#fffbeb' }}>
-          <MailWarning size={18} className="text-amber-500 shrink-0" />
+        <div className="card flex items-center gap-3 py-2.5"
+          style={{ borderColor: 'rgba(217,119,6,.3)', background: 'var(--warn-tint)' }}>
+          <MailWarning size={16} className="shrink-0" style={{ color: 'var(--warn)' }} />
           <p className="text-sm text-gray-700 flex-1">
             Verify your email to {role === 'creator' ? 'apply to campaigns' : 'create campaigns'}.
           </p>
           <button onClick={resend} disabled={sending || sent}
-            className="text-sm font-medium text-amber-700 hover:text-amber-900 disabled:opacity-60">
+            className="text-sm font-medium disabled:opacity-60"
+            style={{ color: 'var(--warn-deep)' }}>
             {sent ? 'Sent ✓' : sending ? 'Sending…' : 'Resend email'}
           </button>
         </div>
       )}
       {!onboardingComplete && pathname !== '/onboarding' && (
-        <div className="card flex items-center gap-3 py-3" style={{ borderColor: '#5eead4', background: '#f0fdfa' }}>
-          <UserCheck size={18} className="text-teal-500 shrink-0" />
+        <div className="card flex items-center gap-3 py-2.5"
+          style={{ borderColor: 'rgba(79,70,229,.25)', background: 'var(--accent-tint)' }}>
+          <UserCheck size={16} className="shrink-0" style={{ color: 'var(--accent)' }} />
           <p className="text-sm text-gray-700 flex-1">
             {role === 'creator'
               ? 'Complete onboarding to apply to campaigns.'
               : 'Complete onboarding to create campaigns.'}
           </p>
-          <Link href="/onboarding" className="text-sm font-medium text-teal-700 hover:text-teal-900">
+          <Link href="/onboarding" className="text-sm font-medium"
+            style={{ color: 'var(--accent-deep)' }}>
             Finish setup →
           </Link>
         </div>

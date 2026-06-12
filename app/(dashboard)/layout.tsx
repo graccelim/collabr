@@ -51,9 +51,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
         }}
       >
         <div style={{
-          maxWidth: 1100,
+          maxWidth: 1080,
           margin: '0 auto',
-          padding: '36px 28px 80px',
+          padding: '24px 28px 64px',
         }}>
           {(role === 'brand' || role === 'creator') && (
             <TrustBanners

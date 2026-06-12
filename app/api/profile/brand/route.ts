@@ -1,5 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { brandProfileUpdateSchema, firstZodError } from '@/lib/profiles'
+
+const SELECT_COLUMNS =
+  'id, user_id, company_name, company_description, industry, website, social_url, ' +
+  'logo_url, plan, completed_campaigns, onboarding_completed_at, created_at'
 
 export async function PATCH(req: NextRequest) {
   const supabase = createClient()
@@ -9,19 +14,46 @@ export async function PATCH(req: NextRequest) {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'brand') return NextResponse.json({ error: 'Brand only' }, { status: 403 })
 
-  const body = await req.json()
-  const allowed = ['company_name', 'industry', 'website', 'social_url', 'logo_url']
-  const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
+  let body: unknown
+  try {
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
 
-  const { data, error } = await supabase.from('brand_profiles')
-    .update(updates).eq('user_id', user.id)
-    .select('id, user_id, company_name, industry, website, logo_url, plan, created_at')
-    .single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  const parsed = brandProfileUpdateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json({ error: firstZodError(parsed.error) }, { status: 400 })
+  }
 
-  // Also update display_name on users table if provided
-  if (body.display_name) {
-    await supabase.from('users').update({ display_name: body.display_name }).eq('id', user.id)
+  const { display_name, ...fields } = parsed.data
+  const updates: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(fields)) {
+    if (v !== undefined) updates[k] = v
+  }
+  // company_name has a not-null default — never blank it out.
+  if (updates.company_name === null) delete updates.company_name
+
+  if (Object.keys(updates).length === 0 && !display_name) {
+    return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })
+  }
+
+  let data = null
+  if (Object.keys(updates).length > 0) {
+    const result = await supabase.from('brand_profiles')
+      .update(updates).eq('user_id', user.id)
+      .select(SELECT_COLUMNS)
+      .single()
+    if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 })
+    data = result.data
+  } else {
+    const result = await supabase.from('brand_profiles')
+      .select(SELECT_COLUMNS).eq('user_id', user.id).single()
+    data = result.data
+  }
+
+  if (display_name) {
+    await supabase.from('users').update({ display_name }).eq('id', user.id)
   }
 
   return NextResponse.json(data)

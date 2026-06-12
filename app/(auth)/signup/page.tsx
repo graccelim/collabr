@@ -106,14 +106,12 @@ function SignupForm() {
       display: 'flex',
       background: 'var(--paper)',
     }}>
-      {/* Left branded rail */}
+      {/* Left branded rail — graphite, role marked by accent only */}
       <div style={{
         width: 400, flexShrink: 0,
         padding: '48px 40px',
-        background: isBrand
-          ? 'linear-gradient(165deg, #1C1917, #0F0D0C)'
-          : 'linear-gradient(195deg, #E8A598, #C4756A)',
-        color: isBrand ? '#fff' : '#1C1917',
+        background: 'linear-gradient(165deg, #17181C, #0E0F12)',
+        color: '#fff',
         display: 'flex', flexDirection: 'column',
         position: 'relative', overflow: 'hidden',
       }}
@@ -124,43 +122,48 @@ function SignupForm() {
           position: 'absolute', top: '-6%', right: '-8%',
           fontFamily: 'var(--font-display)', fontWeight: 800,
           fontSize: 300, lineHeight: .8,
-          color: isBrand ? 'rgba(255,255,255,.05)' : 'rgba(28,25,23,.07)',
+          color: 'rgba(255,255,255,.04)',
           pointerEvents: 'none', userSelect: 'none',
         }}>{isBrand ? 'B' : 'C'}</div>
 
         <Link href="/" style={{
-          fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20,
-          letterSpacing: '-0.04em',
-          color: isBrand ? '#fff' : '#1C1917',
+          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19,
+          letterSpacing: '-0.03em',
+          color: '#fff',
           position: 'relative',
         }}>
-          collabr<span style={{ color: isBrand ? 'var(--creator)' : 'rgba(28,25,23,.6)' }}>.</span>
+          collabr<span style={{ color: '#FDA4AF' }}>.</span>
         </Link>
 
         <div style={{ marginTop: 'auto', position: 'relative' }}>
           <span className="badge" style={{
-            background: isBrand ? 'rgba(255,255,255,.13)' : 'rgba(28,25,23,.1)',
-            color: isBrand ? '#fff' : '#1C1917',
+            background: 'rgba(255,255,255,.1)',
+            color: isBrand ? '#A5B4FC' : '#FDA4AF',
+            border: '1px solid rgba(255,255,255,.12)',
             marginBottom: 20,
           }}>
             {isBrand ? 'Brand account' : 'Creator account'}
           </span>
           <h2 style={{
-            fontSize: 30, color: isBrand ? '#fff' : '#1C1917',
-            lineHeight: 1.08, marginBottom: 24,
+            fontSize: 28, color: '#fff',
+            lineHeight: 1.15, marginBottom: 24, fontWeight: 600,
+            letterSpacing: '-0.02em',
           }}>
             {isBrand
               ? "Let's get your first campaign live."
               : "Let's start earning from your content."}
           </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
             {(isBrand ? brandBullets : creatorBullets).map(t => (
               <div key={t} style={{
                 display: 'flex', alignItems: 'flex-start', gap: 10,
-                fontSize: 14.5,
-                color: isBrand ? 'rgba(255,255,255,.82)' : 'rgba(28,25,23,.78)',
+                fontSize: 13.5,
+                color: 'rgba(255,255,255,.75)',
               }}>
-                <ShieldCheck size={18} style={{ flexShrink: 0, marginTop: 1 }} />
+                <ShieldCheck size={16} style={{
+                  flexShrink: 0, marginTop: 1,
+                  color: isBrand ? '#A5B4FC' : '#FDA4AF',
+                }} />
                 {t}
               </div>
             ))}

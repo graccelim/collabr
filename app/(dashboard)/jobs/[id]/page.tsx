@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
+import { INDUSTRY_LABELS, type BrandIndustry } from '@/lib/onboarding'
 import Link from 'next/link'
 import ApplyForm from '@/components/ApplyForm'
 
@@ -9,7 +10,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   const supabase = createClient()
 
   const { data: campaign } = await supabase.from('campaigns')
-    .select('*, brand_profiles(company_name, logo_url, website, industry)')
+    .select('*, brand_profiles(company_name, company_description, logo_url, website, social_url, industry, completed_campaigns)')
     .eq('id', params.id).eq('status', 'active').single()
   if (!campaign) return (
     <div className="card text-center py-10">
@@ -34,8 +35,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       {/* Brand + title */}
       <div className="card">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-surface border border-border flex items-center justify-center text-sm font-medium text-gray-500 shrink-0">
-            {brand?.company_name?.slice(0, 2).toUpperCase() || 'B'}
+          <div className="w-12 h-12 rounded-lg bg-surface border border-border flex items-center justify-center text-sm font-medium text-gray-500 shrink-0 overflow-hidden">
+            {brand?.logo_url
+              ? <img src={brand.logo_url} alt={brand.company_name || 'Brand'} className="w-12 h-12 object-cover" />
+              : brand?.company_name?.slice(0, 2).toUpperCase() || 'B'}
           </div>
           <div className="flex-1">
             <p className="text-xs text-gray-500">{brand?.company_name}</p>
@@ -55,6 +58,40 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           </div>
         </div>
       </div>
+
+      {/* About the brand — trust signals */}
+      {brand && (
+        <div className="card space-y-2">
+          <h2 className="text-sm font-medium text-gray-900">About {brand.company_name}</h2>
+          <div className="flex gap-2 flex-wrap">
+            {brand.industry && (
+              <span className="badge badge-gray">
+                {INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}
+              </span>
+            )}
+            {(brand.completed_campaigns || 0) > 0 && (
+              <span className="badge badge-teal">
+                {brand.completed_campaigns} campaign{brand.completed_campaigns !== 1 ? 's' : ''} completed
+              </span>
+            )}
+          </div>
+          {brand.company_description ? (
+            <p className="text-sm text-gray-600 whitespace-pre-wrap">{brand.company_description}</p>
+          ) : (
+            <p className="text-xs text-gray-400">This brand hasn&apos;t added a description yet.</p>
+          )}
+          <div className="flex gap-3">
+            {brand.website && (
+              <a href={brand.website} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-purple-600 hover:text-purple-800">Website ↗</a>
+            )}
+            {brand.social_url && (
+              <a href={brand.social_url} target="_blank" rel="noopener noreferrer"
+                className="text-xs text-purple-600 hover:text-purple-800">Social ↗</a>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Details */}
       <div className="card space-y-3">
