@@ -24,13 +24,29 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const body = await req.json()
-  if (!body.file_url) return NextResponse.json({ error: 'Draft file is required' }, { status: 400 })
+  const storagePath = typeof body.storage_path === 'string' ? body.storage_path.trim() : null
+  const externalUrl = typeof body.external_url === 'string' ? body.external_url.trim() : null
+  if ((!storagePath && !externalUrl) || (storagePath && externalUrl)) {
+    return NextResponse.json({ error: 'Exactly one draft file or external link is required' }, { status: 400 })
+  }
+  if (storagePath && !storagePath.startsWith(`${params.id}/`)) {
+    return NextResponse.json({ error: 'Draft file path does not belong to this collab' }, { status: 400 })
+  }
+  if (externalUrl) {
+    try {
+      const url = new URL(externalUrl)
+      if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Unsupported URL')
+    } catch {
+      return NextResponse.json({ error: 'External draft link must be a valid HTTP or HTTPS URL' }, { status: 400 })
+    }
+  }
   const autoApproveAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
   const admin = createAdminClient()
 
-  const { data: result, error } = await admin.rpc('submit_draft_atomic', {
+  const { data: result, error } = await admin.rpc('submit_draft_reference_atomic', {
     p_collab_id: params.id,
-    p_file_url: body.file_url,
+    p_storage_path: storagePath,
+    p_external_url: externalUrl,
     p_creator_note: body.creator_note || '',
     p_auto_approve_at: autoApproveAt,
   }).single()

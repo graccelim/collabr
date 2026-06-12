@@ -180,9 +180,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                         <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Note: </span>{s.creator_note}
                       </div>
                     )}
-                    {s.file_url && (
+                    {(s.storage_path || s.external_url || s.file_url) && (
                       <div style={{ padding: '0 14px 10px' }}>
-                        <a href={s.file_url} target="_blank" rel="noopener noreferrer"
+                        <a href={`/api/submissions/${s.id}/file`} target="_blank" rel="noopener noreferrer"
                           style={{ fontSize: 13, fontWeight: 600, color: 'var(--creator-deep)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           View draft →
                         </a>

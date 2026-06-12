@@ -105,6 +105,8 @@ export interface Submission {
   collab_id: string
   version: number
   file_url: string | null
+  storage_path: string | null
+  external_url: string | null
   creator_note: string | null
   brand_feedback: string | null
   decision: SubmissionDecision

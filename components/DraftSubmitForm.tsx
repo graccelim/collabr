@@ -56,7 +56,8 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
-    let fileUrl: string | null = null
+    let storagePath: string | null = null
+    let externalUrl: string | null = null
 
     if (mode === 'upload') {
       if (!selectedFile) { toast.error('Select a file to upload'); return }
@@ -74,28 +75,22 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
         return
       }
 
-      const { data: signedData, error: signError } = await supabase.storage
-        .from('draft-submissions')
-        .createSignedUrl(path, 3600)
-
-      if (signError || !signedData?.signedUrl) {
-        toast.error('Could not generate file URL')
-        setUploading(false)
-        return
-      }
-
-      fileUrl = signedData.signedUrl
+      storagePath = path
       setUploading(false)
     } else {
       if (!linkUrl.trim()) { toast.error('Paste a link to your draft'); return }
-      fileUrl = linkUrl.trim()
+      externalUrl = linkUrl.trim()
     }
 
     setSubmitting(true)
     const res = await fetch(`/api/collabs/${collabId}/submit-draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ file_url: fileUrl, creator_note: note.trim() || null }),
+      body: JSON.stringify({
+        storage_path: storagePath,
+        external_url: externalUrl,
+        creator_note: note.trim() || null,
+      }),
     })
     const data = await res.json()
     if (!res.ok) {
