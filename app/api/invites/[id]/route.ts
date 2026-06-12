@@ -71,6 +71,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!campaign?.id) {
     return NextResponse.json({ error: 'This invite has no campaign attached — ask the brand to re-invite you' }, { status: 409 })
   }
+  // The campaign may have changed since the invite was sent — recheck before
+  // creating anything. Capacity is enforced atomically by the selection RPC.
+  if (campaign.status !== 'active') {
+    return NextResponse.json(
+      { error: 'This campaign is no longer active, so the invite can\'t be accepted. The brand can re-invite you on a live campaign.' },
+      { status: 409 }
+    )
+  }
+  if (!['paid', 'both'].includes(campaign.comp_type)) {
+    return NextResponse.json(
+      { error: 'This campaign no longer pays a cash rate, so the invite can\'t be accepted.' },
+      { status: 409 }
+    )
+  }
 
   // Ensure an application exists with the invited rate, then reuse the
   // existing atomic selection to create the collab.

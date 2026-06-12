@@ -17,7 +17,9 @@ export default async function BillingPage() {
     .select(`id, company_name, stripe_customer_id, ${PLAN_COLUMNS}`)
     .eq('user_id', user.id).single()
 
-  const { data: collabs } = await supabase.from('collabs')
+  // Admin client: creator display identity is RLS own-row-only for session
+  // clients; the query is scoped to this brand's own collabs.
+  const { data: collabs } = await createAdminClient().from('collabs')
     .select('*, campaigns(title), creator_profiles(users(display_name))')
     .eq('brand_id', brand!.id)
     .eq('status', 'completed')

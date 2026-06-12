@@ -61,7 +61,7 @@ export default function HomePage() {
             </h1>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36 }}>
               {[
-                'Free during beta — no platform fees',
+                'Free to post during beta — you pay only your creator’s rate',
                 'Your money stays in escrow until you confirm',
                 'Pick from real, vetted creators',
               ].map(t => (
@@ -99,7 +99,7 @@ export default function HomePage() {
             </h1>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 36 }}>
               {[
-                'Free to join — keep 100% during beta',
+                'Free to join — a 12% platform fee applies only when you get paid',
                 'Get paid automatically once you post',
                 'Only campaigns that match your niche',
               ].map(t => (

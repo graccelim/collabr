@@ -31,7 +31,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     )
   }
 
-  const { data: applications } = await supabase.from('applications')
+  // Admin client: applicant identity (users join) is RLS own-row-only for
+  // session clients. Campaign ownership was verified above; emails excluded.
+  const { data: applications } = await createAdminClient().from('applications')
     .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
     .eq('campaign_id', params.id)
     .order('is_boosted', { ascending: false })

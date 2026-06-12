@@ -235,7 +235,7 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
             }}>
               <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--accent-deep)', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: 2 }}>Beta · Free</div>
               <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.4, margin: 0 }}>
-                No platform fees. 30 days notice before any change.
+                Pro features are free during beta. 30 days’ notice before pricing changes.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

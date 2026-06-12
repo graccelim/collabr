@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
@@ -35,17 +35,25 @@ export default async function CollabsPage() {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
 
   const isBrand = profile?.role === 'brand'
-  let query = supabase.from('collabs').select('*, campaigns(title), creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name)), brand_profiles(company_name), stripe_payment_intent_id')
 
+  // Resolve the viewer's own profile id first — the list query below uses the
+  // admin client (counterparty display identity is RLS own-row-only for
+  // session clients) and must always be scoped to the viewer's own collabs.
+  let ownFilter: { column: 'brand_id' | 'creator_id'; id: string } | null = null
   if (isBrand) {
     const { data: brand } = await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single()
-    if (brand) query = query.eq('brand_id', brand.id)
+    if (brand) ownFilter = { column: 'brand_id', id: brand.id }
   } else {
     const { data: creator } = await supabase.from('creator_profiles').select('id').eq('user_id', user.id).single()
-    if (creator) query = query.eq('creator_id', creator.id)
+    if (creator) ownFilter = { column: 'creator_id', id: creator.id }
   }
 
-  const { data: collabs } = await query.order('created_at', { ascending: false })
+  const { data: collabs } = ownFilter
+    ? await createAdminClient().from('collabs')
+        .select('*, campaigns(title), creator_profiles(id, user_id, users(display_name)), brand_profiles(company_name), stripe_payment_intent_id')
+        .eq(ownFilter.column, ownFilter.id)
+        .order('created_at', { ascending: false })
+    : { data: [] }
 
   const active = collabs?.filter(c => !['completed', 'cancelled'].includes(c.status)) || []
   const past = collabs?.filter(c => ['completed', 'cancelled'].includes(c.status)) || []

@@ -90,12 +90,12 @@ function SignupForm() {
   }
 
   const brandBullets = [
-    'Free during beta — no platform fees',
+    'Free to post during beta — you pay only your creator’s rate',
     'Your money stays in escrow until you confirm',
     'Pick from real, vetted creators',
   ]
   const creatorBullets = [
-    'Free to join — keep 100% during beta',
+    'Free to join — a 12% platform fee applies only when you get paid',
     'Get paid automatically once you post',
     'Only campaigns that fit your niche',
   ]
@@ -356,7 +356,7 @@ function SignupForm() {
               />
               <span>
                 I agree to collabr&apos;s terms and understand payments are protected by escrow.
-                This is a beta — it&apos;s free now, with 30 days&apos; notice before any fees.
+                A 12% platform fee applies to creator payouts. We&apos;ll give 30 days&apos; notice before any pricing changes.
               </span>
             </label>
 

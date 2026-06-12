@@ -32,6 +32,16 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
+  // Brands may only open/close campaigns. 'completed' feeds the public
+  // completed_campaigns trust signal (Phase 6 trigger) and is reserved for
+  // server-controlled/admin transitions; 'draft' is not a brand-facing state.
+  if (updates.status !== undefined && !['active', 'closed'].includes(updates.status as string)) {
+    return NextResponse.json(
+      { error: 'Campaigns can only be set to active or closed' },
+      { status: 400 }
+    )
+  }
+
   // Switching a campaign to barter is Pro (complimentary while in beta).
   if (['barter', 'both'].includes(updates.comp_type as string)) {
     const { data: brandPlan } = await createAdminClient().from('brand_profiles')

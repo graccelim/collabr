@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { formatSGD, COLLAB_STATUSES } from '@/lib/utils'
@@ -79,7 +79,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   const { data: campaigns } = await supabase.from('campaigns')
     .select('*').eq('brand_id', brand.id).order('created_at', { ascending: false }).limit(5)
-  const { data: collabs } = await supabase.from('collabs')
+  // Admin client: creator display identity is RLS own-row-only for session
+  // clients; scoped to this brand's own collabs.
+  const { data: collabs } = await createAdminClient().from('collabs')
     .select('*, campaigns(title), creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name))')
     .eq('brand_id', brand.id).neq('status', 'completed').neq('status', 'cancelled').limit(6)
 

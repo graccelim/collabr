@@ -46,7 +46,7 @@ export const emails = {
       subject: 'Your first campaign is waiting — post it in 5 minutes',
       html: `<p>Hey ${name},</p>
 <p>You're on collabr. — post your first campaign brief and start receiving creator applications within 48 hours.</p>
-<p>During beta, your first 3 campaigns are completely free.</p>
+<p>During beta, posting campaigns is free.</p>
 <p><a href="${APP_URL}/post-job">Post a campaign →</a></p>`,
     }),
 

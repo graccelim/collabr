@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import DisputeForm from '@/components/DisputeForm'
@@ -12,7 +12,9 @@ export default async function DisputePage({ params }: { params: { id: string } }
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   const isBrand = profile?.role === 'brand'
 
-  const { data: collab } = await supabase.from('collabs')
+  // Admin client: counterparty display identity is RLS own-row-only for
+  // session clients. The explicit party check below still gates access.
+  const { data: collab } = await createAdminClient().from('collabs')
     .select(`*, campaigns(title), creator_profiles(id, user_id, users(display_name)), brand_profiles(id, user_id, company_name)`)
     .eq('id', params.id).single()
 
