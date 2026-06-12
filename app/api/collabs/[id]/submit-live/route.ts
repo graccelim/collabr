@@ -15,28 +15,41 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const creatorUserId = (collab.creator_profiles as any)?.user_id
   if (creatorUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (collab.status !== 'draft_approved') return NextResponse.json({ error: 'Draft must be approved first' }, { status: 400 })
+  if (!['draft_approved', 'live_submitted'].includes(collab.status)) {
+    return NextResponse.json({ error: 'Draft must be approved first' }, { status: 400 })
+  }
   if (collab.payment_status !== 'funded') {
     return NextResponse.json({ error: 'Payment is no longer funded. Do not post live.' }, { status: 409 })
   }
 
   const body = await req.json()
+  if (!body.post_url) return NextResponse.json({ error: 'Live post URL is required' }, { status: 400 })
   const autoReleaseAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
   const admin = createAdminClient()
 
-  await admin.from('live_posts').insert({
-    collab_id: params.id, post_url: body.post_url, screenshot_url: body.screenshot_url || null
-  })
-  await admin.from('collabs').update({ status: 'live_submitted', live_auto_release_at: autoReleaseAt }).eq('id', params.id)
+  const { data: result, error } = await admin.rpc('submit_live_post_atomic', {
+    p_collab_id: params.id,
+    p_post_url: body.post_url,
+    p_screenshot_url: body.screenshot_url || '',
+    p_auto_release_at: autoReleaseAt,
+  }).single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  const created = (result as any)?.created === true
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   const brandEmail = (collab.brand_profiles as any)?.users?.email
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
 
-  if (brandUserId) await sendNotification({ userId: brandUserId, type: 'live_submitted',
+  if (brandUserId && created) await sendNotification({ userId: brandUserId, type: 'live_submitted',
     title: `${creatorName} posted live — confirm to release payment`, body: 'You have 72 hours',
-    payload: { collab_id: params.id } })
-  if (brandEmail) await emails.liveSubmitted(brandEmail, creatorName, params.id)
+    payload: { collab_id: params.id },
+    dedupeKey: `collab:${params.id}:live-submitted` })
+  if (brandEmail && created) await emails.liveSubmitted(brandEmail, creatorName, params.id)
 
-  return NextResponse.json({ success: true, auto_release_at: autoReleaseAt })
+  return NextResponse.json({
+    success: true,
+    created,
+    live_post_id: (result as any)?.live_post_id,
+    auto_release_at: created ? autoReleaseAt : collab.live_auto_release_at,
+  })
 }

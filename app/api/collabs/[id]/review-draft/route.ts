@@ -15,13 +15,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (collab.status !== 'draft_submitted') return NextResponse.json({ error: 'No draft pending review' }, { status: 400 })
-  if (collab.payment_status !== 'funded') {
-    return NextResponse.json({ error: 'Payment is no longer funded. Draft review is paused.' }, { status: 409 })
-  }
 
   const body = await req.json()
-  const { decision, feedback } = body // decision: 'approved' | 'revision' | 'rejected'
+  const { submission_id, decision, feedback } = body // decision: 'approved' | 'revision' | 'rejected'
+  if (!submission_id) return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
+  if (!['approved', 'revision', 'rejected'].includes(decision)) {
+    return NextResponse.json({ error: 'Invalid decision' }, { status: 400 })
+  }
 
   if (decision === 'revision' || decision === 'rejected') {
     if (!feedback || feedback.length < 20) {
@@ -33,34 +33,33 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const creatorEmail = (collab.creator_profiles as any)?.users?.email
   const admin = createAdminClient()
 
+  const { data: result, error } = await admin.rpc('review_draft_atomic', {
+    p_collab_id: params.id,
+    p_submission_id: submission_id,
+    p_decision: decision,
+    p_feedback: feedback || '',
+  }).single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  const applied = (result as any)?.applied === true
+  const submissionId = (result as any)?.submission_id
+
   if (decision === 'approved') {
-    await admin.from('collabs').update({ status: 'draft_approved', draft_auto_approve_at: null }).eq('id', params.id)
-    await admin.from('submissions').update({ decision: 'approved', decided_at: new Date().toISOString() })
-      .eq('collab_id', params.id).eq('decision', 'pending')
-    if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
-      title: 'Draft approved — post live now!', payload: { collab_id: params.id } })
-    if (creatorEmail) await emails.draftApproved(creatorEmail, params.id)
+    if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
+      title: 'Draft approved — post live now!', payload: { collab_id: params.id },
+      dedupeKey: `submission:${submissionId}:approved` })
+    if (creatorEmail && applied) await emails.draftApproved(creatorEmail, params.id)
 
   } else if (decision === 'revision') {
-    if (collab.revision_count >= 2) {
-      return NextResponse.json({ error: 'Max 2 revision rounds included. This would be a scope change — creator must agree first.' }, { status: 400 })
-    }
-    await admin.from('collabs').update({
-      status: 'in_revision', revision_count: collab.revision_count + 1, draft_auto_approve_at: null
-    }).eq('id', params.id)
-    await admin.from('submissions').update({ decision: 'revision', brand_feedback: feedback, decided_at: new Date().toISOString() })
-      .eq('collab_id', params.id).eq('decision', 'pending')
-    if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'revision_requested',
-      title: 'Revision requested', body: feedback, payload: { collab_id: params.id } })
-    if (creatorEmail) await emails.revisionRequested(creatorEmail, params.id)
+    if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'revision_requested',
+      title: 'Revision requested', body: feedback, payload: { collab_id: params.id },
+      dedupeKey: `submission:${submissionId}:revision` })
+    if (creatorEmail && applied) await emails.revisionRequested(creatorEmail, params.id)
 
   } else if (decision === 'rejected') {
-    await admin.from('collabs').update({ status: 'draft_submitted' }).eq('id', params.id) // stays, creator can dispute
-    await admin.from('submissions').update({ decision: 'rejected', brand_feedback: feedback, decided_at: new Date().toISOString() })
-      .eq('collab_id', params.id).eq('decision', 'pending')
-    if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'draft_rejected',
-      title: 'Draft rejected', body: feedback, payload: { collab_id: params.id } })
+    if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_rejected',
+      title: 'Draft rejected', body: feedback, payload: { collab_id: params.id },
+      dedupeKey: `submission:${submissionId}:rejected` })
   }
 
-  return NextResponse.json({ success: true, decision })
+  return NextResponse.json({ success: true, decision, applied })
 }

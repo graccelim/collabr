@@ -6,6 +6,7 @@ import { Clock, Check, RotateCcw, AlertTriangle, Send } from 'lucide-react'
 
 interface Props {
   collabId: string
+  submissionId: string
   creatorName: string
   revisionCount: number
   draftAutoApproveAt: string | null
@@ -27,7 +28,7 @@ function useCountdown(targetIso: string | null) {
   return { h, m, s, pad }
 }
 
-export default function BrandReviewActions({ collabId, creatorName, revisionCount, draftAutoApproveAt }: Props) {
+export default function BrandReviewActions({ collabId, submissionId, creatorName, revisionCount, draftAutoApproveAt }: Props) {
   const router = useRouter()
   const [mode, setMode] = useState<'idle' | 'revise'>('idle')
   const [feedback, setFeedback] = useState('')
@@ -46,7 +47,7 @@ export default function BrandReviewActions({ collabId, creatorName, revisionCoun
       const res = await fetch(`/api/collabs/${collabId}/review-draft`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ decision, feedback: feedback.trim() || undefined }),
+        body: JSON.stringify({ submission_id: submissionId, decision, feedback: feedback.trim() || undefined }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)

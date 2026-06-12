@@ -24,6 +24,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'split_percentage 0–100 required for split outcome' }, { status: 400 })
   }
 
+  const { data: claimed, error: claimError } = await admin.rpc('claim_dispute_resolution', {
+    p_dispute_id: params.id,
+    p_outcome: outcome,
+    p_split_percentage: outcome === 'split' ? split_percentage : null,
+    p_platform_ruling: platform_ruling || null,
+  })
+  if (claimError) return NextResponse.json({ error: claimError.message }, { status: 409 })
+  if (claimed !== true) return NextResponse.json({ error: 'Dispute is already resolved' }, { status: 409 })
+
   const collab = dispute.collabs as any
   let settlement
   if (outcome === 'creator_wins') {
@@ -47,12 +56,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }, { status: 502 })
   }
 
-  await admin.from('disputes').update({
-    outcome,
-    split_percentage: split_percentage || null,
-    platform_ruling: platform_ruling || null,
-    resolved_at: new Date().toISOString(),
-  }).eq('id', params.id)
+  const { data: finalized, error: finalizeError } = await admin.rpc('finalize_dispute_resolution', {
+    p_dispute_id: params.id,
+  })
+  if (finalizeError) return NextResponse.json({ error: finalizeError.message }, { status: 500 })
 
   // Notify both parties
   const { data: collabFull } = await admin.from('collabs')
@@ -64,10 +71,11 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const outcomeLabelMap: Record<string, string> = { creator_wins: 'Creator wins', brand_wins: 'Brand wins', split: `Split ${split_percentage}%/${100 - split_percentage}%`, mutual: 'Mutual resolution' }
   const outcomeLabel = outcomeLabelMap[outcome] || outcome
 
-  for (const uid of [creatorUserId, brandUserId].filter(Boolean)) {
+  for (const uid of finalized === true ? [creatorUserId, brandUserId].filter(Boolean) : []) {
     await sendNotification({ userId: uid, type: 'dispute_resolved',
-      title: `Dispute resolved — ${outcomeLabel}`, payload: { collab_id: collab.id } })
+      title: `Dispute resolved — ${outcomeLabel}`, payload: { collab_id: collab.id },
+      dedupeKey: `dispute:${params.id}:resolved` })
   }
 
-  return NextResponse.json({ success: true, outcome })
+  return NextResponse.json({ success: true, outcome, already_resolved: finalized !== true })
 }

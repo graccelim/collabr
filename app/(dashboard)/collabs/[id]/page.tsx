@@ -270,9 +270,10 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           />
 
           {/* Brand: draft review panel */}
-          {isBrand && collab.payment_status === 'funded' && collab.status === 'draft_submitted' && (
+          {isBrand && collab.payment_status === 'funded' && collab.status === 'draft_submitted' && latestSubmission && (
             <BrandReviewActions
               collabId={params.id}
+              submissionId={latestSubmission.id}
               creatorName={creatorName}
               revisionCount={collab.revision_count ?? 0}
               draftAutoApproveAt={collab.draft_auto_approve_at ?? null}

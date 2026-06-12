@@ -17,20 +17,27 @@ export async function GET(req: NextRequest) {
   if (!collabs?.length) return NextResponse.json({ processed: 0 })
 
   let processed = 0
+  const now = new Date().toISOString()
   for (const c of collabs) {
-    await supabase.from('collabs').update({ status: 'draft_approved', draft_auto_approve_at: null }).eq('id', c.id)
-    await supabase.from('submissions').update({ decision: 'approved', decided_at: new Date().toISOString() })
-      .eq('collab_id', c.id).eq('decision', 'pending')
+    const { data: approved, error } = await supabase.rpc('auto_approve_draft_atomic', {
+      p_collab_id: c.id,
+      p_now: now,
+    })
+    if (error) {
+      console.error(`[CRON AUTO-APPROVE] Failed for collab ${c.id}: ${error.message}`)
+      continue
+    }
+    if (approved !== true) continue
 
     const creatorUserId = (c.creator_profiles as any)?.user_id
     if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
       title: 'Draft auto-approved — post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
-      payload: { collab_id: c.id } })
+      payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator` })
 
     const brandUserId = (c.brand_profiles as any)?.user_id
     if (brandUserId) await sendNotification({ userId: brandUserId, type: 'draft_auto_approved',
       title: 'Draft auto-approved', body: 'You did not review within 48h, so the draft was auto-approved.',
-      payload: { collab_id: c.id } })
+      payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:brand` })
     processed++
   }
 

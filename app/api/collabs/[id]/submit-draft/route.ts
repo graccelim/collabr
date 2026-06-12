@@ -19,44 +19,42 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Brand payment must be verified as funded before draft work begins.' }, { status: 409 })
   }
 
-  if (!['briefed','in_revision','draft_approved'].includes(collab.status) &&
-      collab.status !== 'briefed' && collab.status !== 'in_revision') {
+  if (!['briefed', 'in_revision', 'draft_submitted'].includes(collab.status)) {
     return NextResponse.json({ error: 'Cannot submit draft at this stage' }, { status: 400 })
   }
 
   const body = await req.json()
+  if (!body.file_url) return NextResponse.json({ error: 'Draft file is required' }, { status: 400 })
   const autoApproveAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
   const admin = createAdminClient()
 
-  // Create submission record
-  const { data: lastSub } = await supabase.from('submissions')
-    .select('version').eq('collab_id', params.id).order('version', { ascending: false }).limit(1).single()
-  const version = (lastSub?.version || 0) + 1
-
-  await admin.from('submissions').insert({
-    collab_id: params.id,
-    version,
-    file_url: body.file_url,
-    creator_note: body.creator_note || null,
-  })
-
-  // Update collab status
-  await admin.from('collabs').update({
-    status: 'draft_submitted',
-    draft_auto_approve_at: autoApproveAt,
-  }).eq('id', params.id)
+  const { data: result, error } = await admin.rpc('submit_draft_atomic', {
+    p_collab_id: params.id,
+    p_file_url: body.file_url,
+    p_creator_note: body.creator_note || '',
+    p_auto_approve_at: autoApproveAt,
+  }).single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  const created = (result as any)?.created === true
 
   // Notify brand
   const brandUserId = (collab.brand_profiles as any)?.user_id
   const brandEmail = (collab.brand_profiles as any)?.users?.email
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
 
-  if (brandUserId) {
+  if (brandUserId && created) {
     await sendNotification({ userId: brandUserId, type: 'draft_submitted',
       title: `Draft submitted by ${creatorName}`, body: 'Review it within 48 hours',
-      payload: { collab_id: params.id } })
+      payload: { collab_id: params.id },
+      dedupeKey: `collab:${params.id}:draft:${(result as any)?.submission_version}:submitted` })
   }
-  if (brandEmail) await emails.draftSubmitted(brandEmail, creatorName, params.id)
+  if (brandEmail && created) await emails.draftSubmitted(brandEmail, creatorName, params.id)
 
-  return NextResponse.json({ success: true, auto_approve_at: autoApproveAt })
+  return NextResponse.json({
+    success: true,
+    created,
+    submission_id: (result as any)?.submission_id,
+    version: (result as any)?.submission_version,
+    auto_approve_at: created ? autoApproveAt : collab.draft_auto_approve_at,
+  })
 }

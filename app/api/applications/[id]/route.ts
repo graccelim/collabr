@@ -22,63 +22,82 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const brandUserId = (application.campaigns as any)?.brand_profiles?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  const admin = createAdminClient()
-  await admin.from('applications').update({ status }).eq('id', params.id)
-
   const creatorUserId = (application.creator_profiles as any)?.user_id
   const creatorId = (application.creator_profiles as any)?.id
   const campaignTitle = (application.campaigns as any)?.title
 
   let collabId: string | undefined
+  let changed = false
+  const admin = createAdminClient()
 
-  if (status === 'selected' && creatorUserId && creatorId) {
+  if (status === 'selected') {
+    if (!creatorUserId || !creatorId) {
+      return NextResponse.json({ error: 'Creator profile is incomplete; selection cannot create a collab.' }, { status: 409 })
+    }
     const plan: 'free' | 'pro' = (application.campaigns as any)?.brand_profiles?.plan || 'free'
-    const agreedRate = application.proposed_rate || 0
+    const agreedRate = application.proposed_rate
+    if (!agreedRate || agreedRate <= 0) {
+      return NextResponse.json({ error: 'A positive agreed rate is required before selecting a creator.' }, { status: 400 })
+    }
     const { fee, payout } = computeFee(agreedRate, plan)
 
-    const brandId = (application.campaigns as any)?.brand_id
     const campaignId = (application.campaigns as any)?.id
 
-    const { data: newCollab, error: collabErr } = await admin.from('collabs').insert({
-      application_id: params.id,
-      campaign_id: campaignId,
-      creator_id: creatorId,
-      brand_id: brandId,
-      agreed_rate: agreedRate,
-      platform_fee: fee,
-      creator_payout: payout,
-      status: 'briefed',
-    }).select('id').single()
+    const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
+      p_application_id: params.id,
+      p_agreed_rate: agreedRate,
+      p_platform_fee: fee,
+      p_creator_payout: payout,
+    }).single()
     if (collabErr) {
       console.error('[COLLAB CREATE]', collabErr)
-      return NextResponse.json({ error: 'Could not create collab' }, { status: 500 })
+      return NextResponse.json({ error: collabErr.message }, { status: 409 })
     }
 
-    collabId = newCollab?.id
+    collabId = (selection as any)?.collab_id
+    changed = (selection as any)?.created === true
 
-    await sendNotification({
+    if (changed) await sendNotification({
       userId: creatorUserId,
       type: 'application_selected',
       title: `You've been selected for "${campaignTitle}"`,
       body: 'Check your collabs to get started.',
       payload: { application_id: params.id, campaign_id: campaignId },
+      dedupeKey: `application:${params.id}:selected`,
     })
-  } else if (status === 'shortlisted' && creatorUserId) {
+  } else {
+    const { data: updated, error } = await admin.from('applications')
+      .update({ status })
+      .eq('id', params.id)
+      .in('status', ['pending', 'shortlisted'])
+      .neq('status', status)
+      .select('id')
+      .maybeSingle()
+    if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+    changed = Boolean(updated)
+    if (!changed && application.status !== status) {
+      return NextResponse.json({ error: `Application cannot move from ${application.status} to ${status}` }, { status: 409 })
+    }
+  }
+
+  if (status === 'shortlisted' && creatorUserId && changed) {
     await sendNotification({
       userId: creatorUserId,
       type: 'application_shortlisted',
       title: `Shortlisted for "${campaignTitle}"`,
       body: 'The brand has shortlisted your application.',
       payload: { application_id: params.id },
+      dedupeKey: `application:${params.id}:shortlisted`,
     })
-  } else if (status === 'rejected' && creatorUserId) {
+  } else if (status === 'rejected' && creatorUserId && changed) {
     await sendNotification({
       userId: creatorUserId,
       type: 'application_rejected',
       title: `Application not selected for "${campaignTitle}"`,
       payload: { application_id: params.id },
+      dedupeKey: `application:${params.id}:rejected`,
     })
   }
 
-  return NextResponse.json({ success: true, status, ...(collabId ? { collab_id: collabId } : {}) })
+  return NextResponse.json({ success: true, status, changed, ...(collabId ? { collab_id: collabId } : {}) })
 }

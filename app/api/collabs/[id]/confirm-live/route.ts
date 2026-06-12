@@ -17,8 +17,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (collab.status !== 'live_submitted') return NextResponse.json({ error: 'No live post to confirm' }, { status: 400 })
+  if (collab.status === 'completed' && ['paid', 'manual_exception'].includes(collab.payment_status)) {
+    return NextResponse.json({ success: true, already_completed: true })
+  }
   const admin = createAdminClient()
+
+  const { data: claimed, error: claimError } = await admin.rpc('claim_live_settlement', {
+    p_collab_id: params.id,
+    p_require_expired: false,
+    p_now: new Date().toISOString(),
+  })
+  if (claimError) return NextResponse.json({ error: claimError.message }, { status: 409 })
+  if (claimed !== true) return NextResponse.json({ error: 'No live post is eligible for confirmation' }, { status: 409 })
 
   const settlement = await captureTransferAndComplete(admin, collab)
   if (!settlement.ok) {
@@ -42,6 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       type: 'payment_released',
       title: `${formatSGD(collab.creator_payout)} is on the way`,
       payload: { collab_id: params.id },
+      dedupeKey: `collab:${params.id}:payment-released`,
     })
   }
   if (settlement.completed && creatorEmail) await emails.paymentReleased(creatorEmail, formatSGD(collab.creator_payout))

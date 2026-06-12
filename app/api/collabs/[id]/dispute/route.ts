@@ -19,7 +19,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const isCreator = creatorUserId === user.id
   if (!isBrand && !isCreator) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  if (!['live_submitted', 'draft_submitted', 'in_revision', 'draft_approved'].includes(collab.status)) {
+  if (!['live_submitted', 'draft_submitted', 'in_revision', 'draft_approved', 'disputed'].includes(collab.status)) {
     return NextResponse.json({ error: 'Cannot raise a dispute at this collab stage' }, { status: 400 })
   }
 
@@ -29,14 +29,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const admin = createAdminClient()
-  await admin.from('collabs').update({ status: 'disputed' }).eq('id', params.id)
-  await admin.from('disputes').insert({
-    collab_id: params.id,
-    raised_by: isBrand ? 'brand' : 'creator',
-    reason,
-    evidence_urls: evidence_urls || null,
-    outcome: 'pending',
-  })
+  const { data: result, error } = await admin.rpc('raise_dispute_atomic', {
+    p_collab_id: params.id,
+    p_raised_by: isBrand ? 'brand' : 'creator',
+    p_reason: reason,
+    p_evidence_urls: evidence_urls || [],
+  }).single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  const created = (result as any)?.created === true
+  const disputeId = (result as any)?.dispute_id
 
   // Notify both parties
   const otherUserId = isBrand ? creatorUserId : brandUserId
@@ -47,13 +48,15 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     ? (collab.brand_profiles as any)?.users?.email
     : (collab.creator_profiles as any)?.users?.email
 
-  if (otherUserId) await sendNotification({ userId: otherUserId, type: 'dispute_raised',
-    title: 'A dispute has been raised on your collab', payload: { collab_id: params.id } })
-  if (user.id) await sendNotification({ userId: user.id, type: 'dispute_raised',
-    title: 'Dispute submitted — we will review within 3 business days', payload: { collab_id: params.id } })
+  if (otherUserId && created) await sendNotification({ userId: otherUserId, type: 'dispute_raised',
+    title: 'A dispute has been raised on your collab', payload: { collab_id: params.id },
+    dedupeKey: `dispute:${disputeId}:raised` })
+  if (user.id && created) await sendNotification({ userId: user.id, type: 'dispute_raised',
+    title: 'Dispute submitted — we will review within 3 business days', payload: { collab_id: params.id },
+    dedupeKey: `dispute:${disputeId}:raised` })
 
-  if (otherEmail) await emails.disputeRaised(otherEmail, params.id)
-  if (raisingEmail) await emails.disputeRaised(raisingEmail, params.id)
+  if (otherEmail && created) await emails.disputeRaised(otherEmail, params.id)
+  if (raisingEmail && created) await emails.disputeRaised(raisingEmail, params.id)
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, created, dispute_id: disputeId })
 }
