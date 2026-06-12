@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD } from '@/lib/utils'
+import EmptyState from '@/components/EmptyState'
+import { FileText } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'badge-gray',
@@ -41,10 +43,13 @@ export default async function ApplicationsPage() {
       <h1 className="text-xl font-semibold text-gray-900">My applications</h1>
 
       {(!applications || applications.length === 0) && (
-        <div className="card text-center py-10">
-          <p className="text-sm text-gray-500 mb-4">No applications yet.</p>
-          <Link href="/jobs" className="btn-primary">Browse campaigns</Link>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="No applications yet"
+          body="Apply to open campaigns and track every application here — you'll see when you're shortlisted or selected."
+          actionHref="/jobs"
+          actionLabel="Browse campaigns"
+        />
       )}
 
       {active.length > 0 && (
@@ -70,7 +75,7 @@ export default async function ApplicationsPage() {
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`badge ${STATUS_COLORS[app.status] || 'badge-gray'}`}>{app.status}</span>
                       {collabId && (
-                        <Link href={`/collabs/${collabId}`} className="text-xs text-purple-600 underline">
+                        <Link href={`/collabs/${collabId}`} className="btn-primary btn-sm">
                           View collab →
                         </Link>
                       )}

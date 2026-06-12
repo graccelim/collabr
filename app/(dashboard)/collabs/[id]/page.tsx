@@ -6,7 +6,9 @@ import DraftSubmitForm from '@/components/DraftSubmitForm'
 import ReviewForm from '@/components/ReviewForm'
 import BrandReviewActions from '@/components/BrandReviewActions'
 import CreatorLivePostForm from '@/components/CreatorLivePostForm'
-import { Lock, CheckCircle2, AlertCircle } from 'lucide-react'
+import WorkflowTimeline from '@/components/WorkflowTimeline'
+import EmptyState from '@/components/EmptyState'
+import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert } from 'lucide-react'
 
 const PAYMENT_TRUTH: Record<string, { label: string; color: string; bg: string }> = {
   unfunded:         { label: 'Payment not funded', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
@@ -41,12 +43,34 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     `)
     .eq('id', params.id).single()
 
-  if (!collab) return <p className="text-sm" style={{ color: 'var(--ink-soft)' }}>Collab not found.</p>
+  if (!collab) {
+    return (
+      <div style={{ maxWidth: 560, margin: '40px auto' }}>
+        <EmptyState
+          icon={SearchX}
+          title="Collab not found"
+          body="This collab doesn't exist or may have been removed."
+          actionHref="/collabs"
+          actionLabel="Back to collabs"
+        />
+      </div>
+    )
+  }
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   const { data: creatorProfile } = await supabase.from('creator_profiles').select('user_id').eq('id', collab.creator_id).single()
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
-    return <p className="text-sm" style={{ color: 'var(--danger)' }}>You don't have access to this collab.</p>
+    return (
+      <div style={{ maxWidth: 560, margin: '40px auto' }}>
+        <EmptyState
+          icon={ShieldAlert}
+          title="You don't have access to this collab"
+          body="Only the brand and creator on a collab can view it. If you think this is a mistake, check that you're signed in to the right account."
+          actionHref="/collabs"
+          actionLabel="Back to collabs"
+        />
+      </div>
+    )
   }
   const admin = createAdminClient()
   const { data: connectProfile } = await admin.from('creator_profiles')
@@ -253,8 +277,18 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           )}
         </div>
 
-        {/* ── RIGHT: sticky actions ─── */}
+        {/* ── RIGHT: sticky timeline + actions ─── */}
         <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <WorkflowTimeline
+            status={collab.status}
+            paymentStatus={collab.payment_status}
+            isBrand={isBrand}
+            counterpartName={isBrand ? creatorName : brandName}
+            revisionCount={collab.revision_count ?? 0}
+            draftAutoApproveAt={collab.draft_auto_approve_at ?? null}
+            liveAutoReleaseAt={collab.live_auto_release_at ?? null}
+          />
+
           <CollabActions
             collabId={params.id}
             collabStatus={collab.status}

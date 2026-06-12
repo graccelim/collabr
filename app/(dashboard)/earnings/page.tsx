@@ -2,6 +2,8 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
+import EmptyState from '@/components/EmptyState'
+import { Wallet } from 'lucide-react'
 
 export default async function EarningsPage({
   searchParams,
@@ -64,9 +66,13 @@ export default async function EarningsPage({
             </div>
           ))}
           {(!collabs || collabs.length === 0) && (
-            <div className="card text-center py-8">
-            <p className="text-gray-500 text-sm">No paid collabs yet.</p>
-            </div>
+            <EmptyState
+              icon={Wallet}
+              title="No payouts yet"
+              body="Payouts land here after a brand confirms your live post and Stripe transfers your earnings. Escrow guarantees payment once requirements are met."
+              actionHref="/jobs"
+              actionLabel="Browse campaigns"
+            />
           )}
         </div>
       </div>

@@ -47,7 +47,7 @@ export default function PostJobPage() {
       })
     })
     if (!res.ok) { const d = await res.json(); toast.error(d.error); setLoading(false); return }
-    toast.success('Campaign posted!')
+    toast.success('Campaign is live — creators can apply now. Applications appear on the campaign page.')
     router.push('/campaigns')
   }
 

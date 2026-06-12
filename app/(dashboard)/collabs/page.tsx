@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
+import { deriveWorkflow, actorLabel } from '@/lib/workflow'
+import EmptyState from '@/components/EmptyState'
 import { Lock, ChevronRight, MessageSquare } from 'lucide-react'
 
 const STATUS_BADGE: Record<string, string> = {
@@ -74,6 +76,15 @@ export default async function CollabsPage() {
     const paymentSafe = ['funded', 'paid', 'manual_exception'].includes(c.payment_status)
     const escrowColor = paymentSafe ? 'var(--safe)' : ESCROW_COLOR[c.status] || 'var(--ink-faint-solid)'
 
+    // Who acts next — so users never have to open a collab to find out.
+    const view = deriveWorkflow({
+      status: c.status,
+      paymentStatus: c.payment_status,
+      isBrand,
+      counterpartName: counterparty,
+    })
+    const turn = actorLabel(view, isBrand, counterparty)
+
     return (
       <Link href={`/collabs/${c.id}`} style={{ textDecoration: 'none' }}>
         <div className="card card-hover" style={{ opacity: dimmed ? 0.65 : 1, padding: '16px 18px' }}>
@@ -85,7 +96,14 @@ export default async function CollabsPage() {
               <div style={{ fontWeight: 700, fontSize: 14.5, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {c.campaigns?.title || 'Campaign'}
               </div>
-              <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>{counterparty}</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {counterparty}
+                {!dimmed && turn.label && (
+                  turn.yourTurn
+                    ? <span className="badge badge-accent">Your turn</span>
+                    : <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>{turn.label}</span>
+                )}
+              </div>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6, flexShrink: 0 }}>
               <span className={`badge ${badgeClass}`}>{statusLabel}</span>
@@ -129,13 +147,15 @@ export default async function CollabsPage() {
       )}
 
       {(!collabs || collabs.length === 0) && (
-        <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
-          <MessageSquare size={36} color="var(--ink-faint-solid)" style={{ margin: '0 auto 14px' }} />
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No collabs yet</h2>
-          <p style={{ fontSize: 14, color: 'var(--ink-soft)' }}>
-            {isBrand ? 'Post a campaign and accept applications to start a collab.' : 'Apply to open campaigns to get started.'}
-          </p>
-        </div>
+        <EmptyState
+          icon={MessageSquare}
+          title="No collabs yet"
+          body={isBrand
+            ? 'Select a creator from a campaign to start your first collaboration. Escrow protects every deal.'
+            : 'Apply to open campaigns to get started. Once a brand selects you, your collab appears here.'}
+          actionHref={isBrand ? '/campaigns' : '/jobs'}
+          actionLabel={isBrand ? 'View campaigns' : 'Browse campaigns'}
+        />
       )}
     </div>
   )

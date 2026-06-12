@@ -61,8 +61,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       userId: creatorUserId,
       type: 'application_selected',
       title: `You've been selected for "${campaignTitle}"`,
-      body: 'Check your collabs to get started.',
-      payload: { application_id: params.id, campaign_id: campaignId },
+      body: 'Your collab has been created — escrow funding is the next step.',
+      payload: { application_id: params.id, campaign_id: campaignId, collab_id: collabId },
       dedupeKey: `application:${params.id}:selected`,
     })
   } else {
@@ -94,6 +94,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       userId: creatorUserId,
       type: 'application_rejected',
       title: `Application not selected for "${campaignTitle}"`,
+      body: 'The brand went in another direction. New campaigns are posted regularly — keep applying.',
       payload: { application_id: params.id },
       dedupeKey: `application:${params.id}:rejected`,
     })

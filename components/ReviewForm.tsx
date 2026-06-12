@@ -38,7 +38,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
       setSubmitting(false)
       return
     }
-    toast.success('Review submitted')
+    toast.success('Review submitted — thanks for building trust on collabr')
     router.refresh()
   }
 
@@ -58,6 +58,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
         {existingReview.note && (
           <p className="text-xs text-gray-600">{existingReview.note}</p>
         )}
+        <p className="text-xs text-gray-400">Submitted ✓ — reviews appear on public profiles.</p>
       </div>
     )
   }
@@ -65,6 +66,9 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
   return (
     <div className="card space-y-3">
       <h2 className="text-sm font-medium text-gray-900">Leave a review</h2>
+      <p className="text-xs text-gray-500">
+        The collab is complete — your review helps the other side win future work.
+      </p>
       <form onSubmit={submit} className="space-y-3">
         <div>
           <div className="flex gap-1" onMouseLeave={() => setHovered(0)}>

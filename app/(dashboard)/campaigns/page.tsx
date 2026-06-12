@@ -1,6 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
+import EmptyState from '@/components/EmptyState'
+import { Briefcase } from 'lucide-react'
 
 export default async function CampaignsPage() {
   const user = await requireBrand()
@@ -29,10 +31,13 @@ export default async function CampaignsPage() {
           </Link>
         ))}
         {(!campaigns || campaigns.length === 0) && (
-          <div className="card text-center py-10">
-            <p className="text-gray-500 text-sm mb-4">No campaigns yet.</p>
-            <Link href="/post-job" className="btn-primary">Post your first campaign</Link>
-          </div>
+          <EmptyState
+            icon={Briefcase}
+            title="No campaigns yet"
+            body="Post a campaign brief and creators will start applying — usually within 48 hours. Your money stays in escrow until you confirm the work."
+            actionHref="/post-job"
+            actionLabel="Post your first campaign"
+          />
         )}
       </div>
     </div>

@@ -155,11 +155,23 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       {existing ? (
         <div className={`card ${existing.status === 'selected' ? 'bg-teal-50 border-teal-200' : 'bg-surface'}`}>
           <p className="text-sm font-medium text-gray-900">
-            {existing.status === 'selected' ? '🎉 You were selected!' : 'Application submitted'}
+            {existing.status === 'selected'
+              ? '🎉 You were selected!'
+              : existing.status === 'shortlisted'
+                ? 'You’ve been shortlisted'
+                : 'Application submitted ✓'}
           </p>
-          <p className="text-xs text-gray-500 mt-1">Status: {existing.status}</p>
-          {existing.status === 'selected' && (
+          <p className="text-xs text-gray-500 mt-1">
+            {existing.status === 'selected'
+              ? 'A collab has been created. Once the brand funds escrow, you can start on the draft.'
+              : existing.status === 'shortlisted'
+                ? 'The brand is interested. You’ll be notified if you’re selected.'
+                : 'The brand is reviewing applications — you’ll be notified when you’re shortlisted or selected. Track it under Applications.'}
+          </p>
+          {existing.status === 'selected' ? (
             <Link href="/collabs" className="btn-primary mt-3 inline-block text-sm">View your collab →</Link>
+          ) : (
+            <Link href="/applications" className="btn-secondary mt-3 inline-block text-sm">View my applications</Link>
           )}
         </div>
       ) : (

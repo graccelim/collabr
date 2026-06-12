@@ -53,21 +53,27 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) {
-    if (error.code === '23505') return NextResponse.json({ error: 'Already applied' }, { status: 409 })
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'You have already applied to this campaign' }, { status: 409 })
+    }
+    console.error('[APPLICATION CREATE]', error)
+    return NextResponse.json(
+      { error: 'Your application could not be submitted. Please try again.' },
+      { status: 500 }
+    )
   }
 
   // Notify brand
   const { data: campaign } = await supabase.from('campaigns')
-    .select('brand_profiles(user_id)').eq('id', body.campaign_id).single()
+    .select('title, brand_profiles(user_id)').eq('id', body.campaign_id).single()
   const brandUserId = (campaign?.brand_profiles as any)?.user_id
   if (brandUserId) {
     await sendNotification({
       userId: brandUserId,
       type: 'new_application',
-      title: 'New application received',
-      body: `A creator applied to your campaign`,
-      payload: { application_id: data.id }
+      title: `New application for "${campaign?.title || 'your campaign'}"`,
+      body: 'Review the pitch and shortlist or select the creator.',
+      payload: { application_id: data.id, campaign_id: body.campaign_id }
     })
   }
 

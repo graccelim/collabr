@@ -3,6 +3,8 @@ import { requireAuth } from '@/lib/auth'
 import { relativeTime } from '@/lib/utils'
 import Link from 'next/link'
 import MarkNotificationsRead from '@/components/MarkNotificationsRead'
+import EmptyState from '@/components/EmptyState'
+import { Bell } from 'lucide-react'
 
 const TYPE_ICONS: Record<string, string> = {
   new_application: '📩',
@@ -41,14 +43,25 @@ export default async function NotificationsPage() {
       </div>
 
       {(!notifications || notifications.length === 0) ? (
-        <div className="card text-center py-10">
-          <p className="text-sm text-gray-500">No notifications yet.</p>
-        </div>
+        <EmptyState
+          icon={Bell}
+          title="No notifications yet"
+          body="Workflow updates — applications, drafts, approvals and payments — will appear here as they happen."
+        />
       ) : (
         <div className="space-y-1">
           {notifications.map(n => {
             const icon = TYPE_ICONS[n.type] || '🔔'
-            const collabId = (n.payload as any)?.collab_id
+            // Deep link: collab first, then campaign (brand events), then the
+            // creator's applications list for application updates.
+            const payload = (n.payload as any) || {}
+            const href: string | null = payload.collab_id
+              ? `/collabs/${payload.collab_id}`
+              : n.type === 'new_application' && payload.campaign_id
+                ? `/campaigns/${payload.campaign_id}`
+                : payload.application_id
+                  ? '/applications'
+                  : null
             const content = (
               <div className={`card flex gap-3 items-start transition-colors ${!n.read ? 'border-purple-200 bg-purple-50/30' : ''}`}>
                 <span className="text-lg mt-0.5 shrink-0">{icon}</span>
@@ -61,8 +74,8 @@ export default async function NotificationsPage() {
               </div>
             )
 
-            return collabId
-              ? <Link key={n.id} href={`/collabs/${collabId}`} className="block hover:opacity-90">{content}</Link>
+            return href
+              ? <Link key={n.id} href={href} className="block hover:opacity-90">{content}</Link>
               : <div key={n.id}>{content}</div>
           })}
         </div>

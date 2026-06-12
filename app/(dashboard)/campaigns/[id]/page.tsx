@@ -3,6 +3,8 @@ import { requireBrand } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
+import EmptyState from '@/components/EmptyState'
+import { Inbox, SearchX } from 'lucide-react'
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const user = await requireBrand()
@@ -13,7 +15,19 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
 
   const { data: campaign } = await supabase.from('campaigns')
     .select('*').eq('id', params.id).eq('brand_id', brand!.id).single()
-  if (!campaign) return <p className="text-sm text-red-500">Campaign not found.</p>
+  if (!campaign) {
+    return (
+      <div style={{ maxWidth: 560, margin: '40px auto' }}>
+        <EmptyState
+          icon={SearchX}
+          title="Campaign not found"
+          body="This campaign doesn't exist or belongs to a different account."
+          actionHref="/campaigns"
+          actionLabel="Back to campaigns"
+        />
+      </div>
+    )
+  }
 
   const { data: applications } = await supabase.from('applications')
     .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
@@ -88,9 +102,11 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         </div>
 
         {(!applications || applications.length === 0) ? (
-          <div className="card text-center py-8">
-            <p className="text-sm text-gray-500">No applications yet.</p>
-          </div>
+          <EmptyState
+            icon={Inbox}
+            title="No applications yet"
+            body="Applications will appear here once creators start applying. Most active campaigns receive their first applications within 48 hours."
+          />
         ) : (
           <>
             <ApplicantList applications={visibleApps} campaignId={params.id} />

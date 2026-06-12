@@ -104,7 +104,7 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
             return
           }
         }
-        toast.success('Payment authorized — verifying funded status')
+        toast.success('Funds secured in escrow — the creator can start once Stripe verifies the authorization')
         onSuccess()
         setPaying(false)
       })
