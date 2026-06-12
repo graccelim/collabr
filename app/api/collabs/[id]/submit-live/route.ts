@@ -16,6 +16,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const creatorUserId = (collab.creator_profiles as any)?.user_id
   if (creatorUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (collab.status !== 'draft_approved') return NextResponse.json({ error: 'Draft must be approved first' }, { status: 400 })
+  if (collab.payment_status !== 'funded') {
+    return NextResponse.json({ error: 'Payment is no longer funded. Do not post live.' }, { status: 409 })
+  }
 
   const body = await req.json()
   const autoReleaseAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()

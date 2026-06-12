@@ -16,6 +16,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (collab.status !== 'draft_submitted') return NextResponse.json({ error: 'No draft pending review' }, { status: 400 })
+  if (collab.payment_status !== 'funded') {
+    return NextResponse.json({ error: 'Payment is no longer funded. Draft review is paused.' }, { status: 409 })
+  }
 
   const body = await req.json()
   const { decision, feedback } = body // decision: 'approved' | 'revision' | 'rejected'

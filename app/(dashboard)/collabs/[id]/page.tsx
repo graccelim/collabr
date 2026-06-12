@@ -8,15 +8,21 @@ import BrandReviewActions from '@/components/BrandReviewActions'
 import CreatorLivePostForm from '@/components/CreatorLivePostForm'
 import { Lock, CheckCircle2, AlertCircle } from 'lucide-react'
 
-const STATUS_ESCROW: Record<string, { label: string; color: string; bg: string; icon: string }> = {
-  briefed:        { label: 'Awaiting deposit',         color: 'var(--warn-deep)',   bg: 'var(--warn-tint)',   icon: '⏳' },
-  draft_submitted:{ label: 'In escrow · draft pending', color: 'var(--safe-deep)',  bg: 'var(--safe-tint)',   icon: '🔒' },
-  in_revision:    { label: 'In escrow · in revision',   color: 'var(--warn-deep)',   bg: 'var(--warn-tint)',   icon: '🔒' },
-  draft_approved: { label: 'In escrow · approved',      color: 'var(--safe-deep)',  bg: 'var(--safe-tint)',   icon: '🔒' },
-  live_submitted: { label: 'In escrow · post live',     color: 'var(--safe-deep)',  bg: 'var(--safe-tint)',   icon: '🔒' },
-  completed:      { label: 'Released to creator',       color: 'var(--safe-deep)',  bg: 'var(--safe-tint)',   icon: '✓' },
-  disputed:       { label: 'Frozen — dispute open',     color: 'var(--danger)',      bg: 'var(--danger-tint)', icon: '⚠' },
-  cancelled:      { label: 'Cancelled',                 color: 'var(--ink-soft)',    bg: 'var(--paper-2)',     icon: '×' },
+const PAYMENT_TRUTH: Record<string, { label: string; color: string; bg: string }> = {
+  unfunded:         { label: 'Payment not funded', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  authorizing:      { label: 'Payment authorization pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  funded:           { label: 'Funds authorized and held', color: 'var(--safe-deep)', bg: 'var(--safe-tint)' },
+  capture_pending:  { label: 'Payment capture pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  captured:         { label: 'Payment captured · payout pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  transfer_pending: { label: 'Creator payout pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  paid:             { label: 'Creator paid', color: 'var(--safe-deep)', bg: 'var(--safe-tint)' },
+  manual_exception: { label: 'Paid · manually reconciled', color: 'var(--safe-deep)', bg: 'var(--safe-tint)' },
+  capture_failed:   { label: 'Payment capture failed', color: 'var(--danger)', bg: 'var(--danger-tint)' },
+  transfer_failed:  { label: 'Creator payout failed', color: 'var(--danger)', bg: 'var(--danger-tint)' },
+  refund_pending:   { label: 'Refund pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
+  refund_failed:    { label: 'Refund failed', color: 'var(--danger)', bg: 'var(--danger-tint)' },
+  refunded:         { label: 'Payment refunded', color: 'var(--ink-soft)', bg: 'var(--paper-2)' },
+  cancelled:        { label: 'Payment authorization cancelled', color: 'var(--ink-soft)', bg: 'var(--paper-2)' },
 }
 
 export default async function CollabDetailPage({ params }: { params: { id: string } }) {
@@ -56,7 +62,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     .select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle()
 
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]
-  const escrowInfo = STATUS_ESCROW[collab.status] ?? STATUS_ESCROW.briefed
+  const paymentInfo = PAYMENT_TRUTH[collab.payment_status] ?? PAYMENT_TRUTH.unfunded
 
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
   const brandName = (collab.brand_profiles as any)?.company_name || 'Brand'
@@ -95,10 +101,10 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       </div>
 
       {/* ── Escrow strip ─────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: escrowInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${escrowInfo.color}22` }}>
-        <Lock size={16} color={escrowInfo.color} style={{ flexShrink: 0 }} />
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: escrowInfo.color }}>{escrowInfo.label}</span>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: escrowInfo.color }}>{formatSGD(collab.agreed_rate)}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: paymentInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${paymentInfo.color}22` }}>
+        <Lock size={16} color={paymentInfo.color} style={{ flexShrink: 0 }} />
+        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color }}>{paymentInfo.label}</span>
+        <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: paymentInfo.color }}>{formatSGD(collab.agreed_rate)}</span>
       </div>
 
       {/* ── Two-column grid ──────────────────────────────── */}
@@ -108,7 +114,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
 
           {/* Creator: draft submission */}
-          {!isBrand && ['briefed', 'in_revision'].includes(collab.status) && (
+          {!isBrand && collab.payment_status === 'funded' && ['briefed', 'in_revision'].includes(collab.status) && (
             <DraftSubmitForm
               collabId={params.id}
               collabStatus={collab.status}
@@ -118,7 +124,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           )}
 
           {/* Creator: live post submission */}
-          {!isBrand && collab.status === 'draft_approved' && (
+          {!isBrand && collab.payment_status === 'funded' && collab.status === 'draft_approved' && (
             <CreatorLivePostForm
               collabId={params.id}
               brandName={brandName}
@@ -257,14 +263,14 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             platformFee={collab.platform_fee}
             creatorPayout={collab.creator_payout}
             creatorName={creatorName}
-            stripePaymentIntentId={collab.stripe_payment_intent_id}
+            paymentStatus={collab.payment_status}
             creatorHasConnect={creatorHasConnect}
             livePostUrl={livePost?.post_url || null}
             liveAutoReleaseAt={collab.live_auto_release_at || null}
           />
 
           {/* Brand: draft review panel */}
-          {isBrand && collab.status === 'draft_submitted' && (
+          {isBrand && collab.payment_status === 'funded' && collab.status === 'draft_submitted' && (
             <BrandReviewActions
               collabId={params.id}
               creatorName={creatorName}

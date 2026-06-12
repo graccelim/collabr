@@ -16,6 +16,7 @@ export async function GET(req: NextRequest) {
   const { data: expiringDrafts } = await supabase.from('collabs')
     .select('id, brand_id, draft_auto_approve_at, brand_profiles(user_id), campaigns(title)')
     .eq('status', 'draft_submitted')
+    .eq('payment_status', 'funded')
     .gt('draft_auto_approve_at', now.toISOString())
     .lt('draft_auto_approve_at', in6h)
 
@@ -37,6 +38,7 @@ export async function GET(req: NextRequest) {
   const { data: expiringLive } = await supabase.from('collabs')
     .select('id, live_auto_release_at, brand_profiles(user_id), campaigns(title), creator_profiles(users(display_name))')
     .eq('status', 'live_submitted')
+    .eq('payment_status', 'funded')
     .gt('live_auto_release_at', now.toISOString())
     .lt('live_auto_release_at', in12h)
 
@@ -48,7 +50,7 @@ export async function GET(req: NextRequest) {
       await sendNotification({
         userId: brandUserId,
         type: 'live_expiring',
-        title: `Payment auto-releases in <12h for ${creatorName}`,
+        title: `Automatic payment settlement starts in <12h for ${creatorName}`,
         body: 'Confirm the live post now to control the release.',
         payload: { collab_id: c.id },
       })

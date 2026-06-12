@@ -78,7 +78,7 @@ export const emails = {
     sendEmail({
       to: brandEmail,
       subject: `${creatorName} posted live — confirm to release payment (72h)`,
-      html: `<p>${creatorName} has posted live and submitted their link. Verify the post and confirm to release payment. You have 72 hours — after that it auto-releases.</p>
+      html: `<p>${creatorName} has posted live and submitted their link. Verify the post and confirm to settle payment. You have 72 hours — after that Collabr automatically attempts capture and creator payout.</p>
 <p><a href="${APP_URL}/collabs/${collabId}">Confirm live post →</a></p>`,
     }),
 

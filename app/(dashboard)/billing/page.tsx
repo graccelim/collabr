@@ -15,6 +15,7 @@ export default async function BillingPage() {
     .select('*, campaigns(title), creator_profiles(users(display_name))')
     .eq('brand_id', brand!.id)
     .eq('status', 'completed')
+    .in('payment_status', ['paid', 'manual_exception'])
     .order('created_at', { ascending: false })
 
   const totalSpend = (collabs || []).reduce((sum, c) => sum + (c.agreed_rate || 0), 0)
@@ -82,7 +83,7 @@ export default async function BillingPage() {
         <h2 className="text-sm font-medium text-gray-900 mb-3">Payment history</h2>
         {(!collabs || collabs.length === 0) ? (
           <div className="card text-center py-8">
-            <p className="text-sm text-gray-500">No completed collabs yet.</p>
+            <p className="text-sm text-gray-500">No settled payments yet.</p>
           </div>
         ) : (
           <div className="space-y-2">

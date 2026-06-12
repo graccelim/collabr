@@ -15,6 +15,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const creatorUserId = (collab.creator_profiles as any)?.user_id
   if (creatorUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (collab.payment_status !== 'funded') {
+    return NextResponse.json({ error: 'Brand payment must be verified as funded before draft work begins.' }, { status: 409 })
+  }
 
   if (!['briefed','in_revision','draft_approved'].includes(collab.status) &&
       collab.status !== 'briefed' && collab.status !== 'in_revision') {

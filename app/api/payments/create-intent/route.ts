@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
+import { persistIntentTruth } from '@/lib/payments'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -25,12 +26,17 @@ export async function POST(req: NextRequest) {
   const { data: brand } = await admin.from('brand_profiles')
     .select('stripe_customer_id').eq('id', collab.brand_id).single()
 
-  // Return existing intent if one was already created
+  // Return and synchronize an existing intent instead of treating its ID as funding.
   if (collab.stripe_payment_intent_id) {
     const existing = await stripe.paymentIntents.retrieve(collab.stripe_payment_intent_id)
-    if (existing.status === 'requires_payment_method' || existing.status === 'requires_confirmation') {
+    const paymentStatus = await persistIntentTruth(admin, collab_id, existing)
+    if (paymentStatus === 'funded') {
+      return NextResponse.json({ payment_status: paymentStatus })
+    }
+    if (existing.client_secret && ['unfunded', 'authorizing'].includes(paymentStatus)) {
       return NextResponse.json({ client_secret: existing.client_secret })
     }
+    return NextResponse.json({ error: `Payment is already ${paymentStatus}` }, { status: 409 })
   }
 
   // Get or create Stripe customer for brand
@@ -60,10 +66,16 @@ export async function POST(req: NextRequest) {
       platform_fee: String(collab.platform_fee),
     },
     description: `collabr. escrow — collab ${collab_id}`,
+  }, {
+    idempotencyKey: `collab:${collab_id}:payment-intent`,
   })
 
   await admin.from('collabs')
-    .update({ stripe_payment_intent_id: intent.id }).eq('id', collab_id)
+    .update({
+      stripe_payment_intent_id: intent.id,
+      payment_status: 'authorizing',
+      payment_failure_reason: null,
+    }).eq('id', collab_id)
 
   return NextResponse.json({ client_secret: intent.client_secret })
 }

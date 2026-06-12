@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
   const { data: collabs } = await supabase.from('collabs')
     .select('id, creator_id, brand_id, creator_profiles(user_id), brand_profiles(user_id)')
     .eq('status', 'draft_submitted')
+    .eq('payment_status', 'funded')
     .lt('draft_auto_approve_at', new Date().toISOString())
 
   if (!collabs?.length) return NextResponse.json({ processed: 0 })

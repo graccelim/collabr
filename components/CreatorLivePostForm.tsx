@@ -127,7 +127,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
           <Lock size={15} color="var(--safe)" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 12.5, color: 'var(--safe-deep)', lineHeight: 1.5, margin: 0 }}>
             Once {brandName} confirms, <strong>{formatSGD(creatorPayout)}</strong> releases to you.
-            If they don't respond, it <strong>auto-releases in 72 hours</strong>.
+            If they don't respond, Stripe settlement is <strong>attempted automatically in 72 hours</strong>. You are marked paid only after transfer succeeds.
           </p>
         </div>
       </form>

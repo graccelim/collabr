@@ -21,6 +21,7 @@ export default async function EarningsPage({
     .select('*, campaigns(title), brand_profiles(company_name)')
     .eq('creator_id', creator!.id)
     .eq('status', 'completed')
+    .in('payment_status', ['paid', 'manual_exception'])
     .order('created_at', { ascending: false })
 
   const connectComplete = searchParams.connect === 'complete'
@@ -64,7 +65,7 @@ export default async function EarningsPage({
           ))}
           {(!collabs || collabs.length === 0) && (
             <div className="card text-center py-8">
-              <p className="text-gray-500 text-sm">No completed collabs yet.</p>
+            <p className="text-gray-500 text-sm">No paid collabs yet.</p>
             </div>
           )}
         </div>

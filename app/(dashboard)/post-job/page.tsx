@@ -295,7 +295,7 @@ export default function PostJobPage() {
 
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: 12.5, color: 'var(--ink-faint-solid)', lineHeight: 1.4 }}>
               <Info size={13} style={{ flexShrink: 0, marginTop: 1 }} />
-              You only pay when you select creators. Funds stay in escrow until you confirm posts.
+              After selecting a creator, you authorize the agreed amount. Draft work begins only after Stripe verifies the funds are held.
             </div>
           </div>
         </div>

@@ -41,7 +41,16 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
         return
       }
       if (cancelled) return
-      const { client_secret } = await res.json()
+      const { client_secret, payment_status } = await res.json()
+      if (payment_status === 'funded') {
+        onSuccess()
+        return
+      }
+      if (!client_secret) {
+        if (!cancelled) toast.error('Could not initialise payment')
+        setPrAvailable(false)
+        return
+      }
 
       // Build Payment Request (Apple Pay / Google Pay)
       const paymentRequest = stripe.paymentRequest({
@@ -75,7 +84,7 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
 
       paymentRequest.on('paymentmethod', async (ev) => {
         setPaying(true)
-        const { error: confirmError } = await stripe.confirmCardPayment(
+        const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(
           client_secret,
           { payment_method: ev.paymentMethod.id },
           { handleActions: false }
@@ -87,7 +96,15 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
           return
         }
         ev.complete('success')
-        toast.success('Payment held — funds release when you confirm the live post')
+        if (paymentIntent?.status === 'requires_action') {
+          const { error: actionError } = await stripe.confirmCardPayment(client_secret)
+          if (actionError) {
+            toast.error(actionError.message || 'Payment authentication failed')
+            setPaying(false)
+            return
+          }
+        }
+        toast.success('Payment authorized — verifying funded status')
         onSuccess()
         setPaying(false)
       })

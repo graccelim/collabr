@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { stripe } from '@/lib/stripe'
+import { cancelOrRefundPayment } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -24,19 +24,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Cannot cancel at this stage' }, { status: 400 })
   }
 
-  // Release any held payment
-  if (collab.stripe_payment_intent_id) {
-    try {
-      const intent = await stripe.paymentIntents.retrieve(collab.stripe_payment_intent_id)
-      if (intent.status === 'requires_capture') {
-        await stripe.paymentIntents.cancel(collab.stripe_payment_intent_id)
-      }
-    } catch (e) {
-      console.error('[CANCEL] Stripe cancel failed:', e)
-    }
+  const admin = createAdminClient()
+  const settlement = await cancelOrRefundPayment(admin, collab)
+  if (!settlement.ok) {
+    return NextResponse.json({
+      error: 'Payment cancellation/refund failed. The collab was not cancelled.',
+    }, { status: 502 })
   }
 
-  const admin = createAdminClient()
   await admin.from('collabs').update({ status: 'cancelled' }).eq('id', params.id)
 
   const otherUserId = user.id === brandUserId ? creatorUserId : brandUserId

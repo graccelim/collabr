@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { emails } from '@/lib/email'
 import { formatSGD } from '@/lib/utils'
-import { stripe } from '@/lib/stripe'
+import { captureTransferAndComplete } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -20,42 +20,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (collab.status !== 'live_submitted') return NextResponse.json({ error: 'No live post to confirm' }, { status: 400 })
   const admin = createAdminClient()
 
-  // Capture the held funds from the escrow PaymentIntent
-  if (collab.stripe_payment_intent_id) {
-    try {
-      const intent = await stripe.paymentIntents.retrieve(collab.stripe_payment_intent_id)
-      if (intent.status === 'requires_capture') {
-        await stripe.paymentIntents.capture(collab.stripe_payment_intent_id)
-      }
-    } catch (e) {
-      console.error('[STRIPE CAPTURE ERROR]', e)
-      return NextResponse.json({ error: 'Payment capture failed' }, { status: 500 })
-    }
-  } else {
-    console.warn(`[PAYMENT] No payment intent for collab ${params.id} — skipping capture`)
+  const settlement = await captureTransferAndComplete(admin, collab)
+  if (!settlement.ok) {
+    return NextResponse.json({
+      error: settlement.paymentStatus === 'transfer_failed'
+        ? 'Payment captured, but creator payout failed. Support must retry the payout.'
+        : 'Payment capture failed. The collab was not completed.',
+    }, { status: 502 })
   }
 
-  // Confirm live post and mark collab completed
+  // Payment and payout succeeded; record live confirmation.
   await admin.from('live_posts')
     .update({ confirmed_at: new Date().toISOString() })
     .eq('collab_id', params.id).is('confirmed_at', null)
-  await admin.from('collabs')
-    .update({ status: 'completed', live_auto_release_at: null })
-    .eq('id', params.id)
-
-  // Update creator lifetime stats
-  const { data: creator } = await admin.from('creator_profiles')
-    .select('collabs_completed, total_earned').eq('id', collab.creator_id).single()
-  if (creator) {
-    await admin.from('creator_profiles').update({
-      collabs_completed: (creator.collabs_completed || 0) + 1,
-      total_earned: (creator.total_earned || 0) + collab.creator_payout,
-    }).eq('id', collab.creator_id)
-  }
 
   const creatorUserId = (collab.creator_profiles as any)?.user_id
   const creatorEmail = (collab.creator_profiles as any)?.users?.email
-  if (creatorUserId) {
+  if (settlement.completed && creatorUserId) {
     await sendNotification({
       userId: creatorUserId,
       type: 'payment_released',
@@ -63,7 +44,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       payload: { collab_id: params.id },
     })
   }
-  if (creatorEmail) await emails.paymentReleased(creatorEmail, formatSGD(collab.creator_payout))
+  if (settlement.completed && creatorEmail) await emails.paymentReleased(creatorEmail, formatSGD(collab.creator_payout))
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, already_completed: !settlement.completed })
 }

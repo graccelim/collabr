@@ -14,7 +14,7 @@ interface Props {
   platformFee: number
   creatorPayout: number
   creatorName: string
-  stripePaymentIntentId: string | null
+  paymentStatus: string
   creatorHasConnect: boolean
   livePostUrl: string | null
   liveAutoReleaseAt: string | null
@@ -22,10 +22,11 @@ interface Props {
 
 export default function CollabActions({
   collabId, collabStatus, isBrand, agreedRate, platformFee, creatorPayout,
-  creatorName, stripePaymentIntentId, creatorHasConnect, livePostUrl, liveAutoReleaseAt,
+  creatorName, paymentStatus, creatorHasConnect, livePostUrl, liveAutoReleaseAt,
 }: Props) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
+  const settlementAvailable = ['funded', 'capture_failed', 'captured', 'transfer_pending', 'transfer_failed', 'paid', 'manual_exception'].includes(paymentStatus)
 
   async function confirmLive() {
     setConfirming(true)
@@ -43,7 +44,7 @@ export default function CollabActions({
   }
 
   // ── Brand: needs to pay ──────────────────────────────────────
-  if (isBrand && collabStatus === 'briefed' && !stripePaymentIntentId) {
+  if (isBrand && collabStatus === 'briefed' && ['unfunded', 'authorizing'].includes(paymentStatus)) {
     if (!creatorHasConnect) {
       return (
         <div className="card" style={{ padding: 20 }}>
@@ -93,7 +94,7 @@ export default function CollabActions({
           />
 
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.4 }}>
-            Charged today · held securely · refundable if the deal falls through
+            Your card is authorized first. Work cannot begin until funding is verified.
           </p>
         </div>
 
@@ -112,7 +113,7 @@ export default function CollabActions({
   }
 
   // ── Brand: paid, waiting on creator ─────────────────────────
-  if (isBrand && collabStatus === 'briefed' && stripePaymentIntentId) {
+  if (isBrand && collabStatus === 'briefed' && paymentStatus === 'funded') {
     return (
       <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--safe-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -131,7 +132,7 @@ export default function CollabActions({
   }
 
   // ── Brand: live post ready to confirm ───────────────────────
-  if (isBrand && collabStatus === 'live_submitted') {
+  if (isBrand && collabStatus === 'live_submitted' && settlementAvailable) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         <div className="card" style={{ padding: 20 }}>
@@ -173,10 +174,12 @@ export default function CollabActions({
             disabled={confirming}
           >
             <Lock size={18} />
-            {confirming ? 'Releasing…' : `Release ${formatSGD(creatorPayout)} to ${creatorName.split(' ')[0]}`}
+            {confirming ? 'Settling payment…' : paymentStatus === 'transfer_failed'
+              ? 'Retry creator payout'
+              : `Release ${formatSGD(creatorPayout)} to ${creatorName.split(' ')[0]}`}
           </button>
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '10px 0 0' }}>
-            This can't be undone. Funds arrive instantly.
+            The collab completes only after Stripe confirms capture and creator transfer.
           </p>
         </div>
 
@@ -184,7 +187,7 @@ export default function CollabActions({
         <div style={{ padding: '13px 15px', background: 'var(--warn-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(217,119,6,.15)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <Clock size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 13, color: 'var(--warn-deep)', lineHeight: 1.5, margin: 0 }}>
-            <strong>Auto-releases in 72 hours</strong> after the post went live — even if you don't click. Spot a problem?{' '}
+            <strong>Settlement is attempted automatically in 72 hours</strong> after the post went live. Spot a problem?{' '}
             <a href="#dispute-section" style={{ textDecoration: 'underline', color: 'var(--warn-deep)' }}>Raise a dispute</a> before then.
           </p>
         </div>
@@ -193,7 +196,7 @@ export default function CollabActions({
   }
 
   // ── Creator: live post awaiting confirmation ─────────────────
-  if (!isBrand && collabStatus === 'live_submitted') {
+  if (!isBrand && collabStatus === 'live_submitted' && settlementAvailable) {
     return (
       <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--warn-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -204,7 +207,7 @@ export default function CollabActions({
             Awaiting brand confirmation
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-            {formatSGD(creatorPayout)} auto-releases to you within 72 hours if the brand doesn't respond.
+            Stripe settlement is attempted within 72 hours if the brand doesn't respond. You are marked paid only after transfer succeeds.
           </p>
         </div>
       </div>
@@ -212,7 +215,7 @@ export default function CollabActions({
   }
 
   // ── Escrow secured (creator sees funded state) ───────────────
-  if (!isBrand && collabStatus === 'briefed' && stripePaymentIntentId) {
+  if (!isBrand && collabStatus === 'briefed' && paymentStatus === 'funded') {
     return (
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '12px 16px', background: 'var(--safe-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(22,163,74,.15)' }}>
         <Lock size={16} color="var(--safe)" style={{ flexShrink: 0 }} />
@@ -224,6 +227,32 @@ export default function CollabActions({
             Your payment is locked in — submit your draft to get started.
           </span>
         </div>
+      </div>
+    )
+  }
+
+  if (collabStatus === 'briefed' && ['authorizing', 'capture_pending'].includes(paymentStatus)) {
+    return (
+      <div className="card" style={{ padding: 18 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>
+          Payment authorization is being verified
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>
+          Draft work remains locked until Stripe confirms the funds are authorized.
+        </p>
+      </div>
+    )
+  }
+
+  if (['capture_failed', 'transfer_failed'].includes(paymentStatus)) {
+    return (
+      <div className="card" style={{ padding: 18, border: '1px solid rgba(220,38,38,.25)' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--danger)', marginBottom: 4 }}>
+          Payment action failed
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>
+          The collab has not been marked paid or completed. Retry the available action or contact support.
+        </p>
       </div>
     )
   }

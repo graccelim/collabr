@@ -1,8 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { formatSGD } from '@/lib/utils'
-import { stripe } from '@/lib/stripe'
+import { cancelOrRefundPayment, captureTransferAndComplete } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -15,6 +14,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const admin = createAdminClient()
   const { data: dispute } = await admin.from('disputes').select('*, collabs(*)').eq('id', params.id).single()
   if (!dispute) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (dispute.resolved_at) return NextResponse.json({ error: 'Dispute is already resolved' }, { status: 409 })
 
   const { outcome, split_percentage, platform_ruling } = await req.json()
   if (!['creator_wins', 'brand_wins', 'split', 'mutual'].includes(outcome)) {
@@ -25,45 +25,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const collab = dispute.collabs as any
-  const intentId = collab?.stripe_payment_intent_id
-
-  // Handle Stripe payment based on outcome
-  if (intentId) {
-    try {
-      const intent = await stripe.paymentIntents.retrieve(intentId)
-      if (intent.status === 'requires_capture') {
-        if (outcome === 'creator_wins') {
-          await stripe.paymentIntents.capture(intentId)
-        } else if (outcome === 'brand_wins' || outcome === 'mutual') {
-          await stripe.paymentIntents.cancel(intentId)
-        } else if (outcome === 'split' && split_percentage) {
-          const captureAmount = Math.round(collab.agreed_rate * (split_percentage / 100))
-          await stripe.paymentIntents.capture(intentId, { amount_to_capture: captureAmount })
-        }
-      }
-    } catch (e) {
-      console.error('[DISPUTE RESOLVE] Stripe error:', e)
+  let settlement
+  if (outcome === 'creator_wins') {
+    settlement = await captureTransferAndComplete(admin, collab)
+  } else if (outcome === 'split') {
+    const creatorShare = split_percentage || 0
+    settlement = await captureTransferAndComplete(admin, collab, {
+      captureAmount: Math.round(collab.agreed_rate * (creatorShare / 100)),
+      creatorPayout: Math.round(collab.creator_payout * (creatorShare / 100)),
+    })
+  } else {
+    settlement = await cancelOrRefundPayment(admin, collab)
+    if (settlement.ok) {
+      await admin.from('collabs').update({ status: 'cancelled' }).eq('id', collab.id)
     }
   }
 
-  // Update collab status
-  const collabStatus = outcome === 'creator_wins' || outcome === 'split' ? 'completed' : 'cancelled'
-  await admin.from('collabs').update({ status: collabStatus }).eq('id', collab.id)
-
-  // Update creator stats for wins
-  if ((outcome === 'creator_wins' || outcome === 'split') && collab.creator_id) {
-    const payoutAmount = outcome === 'creator_wins'
-      ? collab.creator_payout
-      : Math.round(collab.creator_payout * ((split_percentage || 50) / 100))
-
-    const { data: creator } = await admin.from('creator_profiles')
-      .select('collabs_completed, total_earned').eq('id', collab.creator_id).single()
-    if (creator) {
-      await admin.from('creator_profiles').update({
-        collabs_completed: (creator.collabs_completed || 0) + 1,
-        total_earned: (creator.total_earned || 0) + payoutAmount,
-      }).eq('id', collab.creator_id)
-    }
+  if (!settlement.ok) {
+    return NextResponse.json({
+      error: `Stripe settlement failed. Dispute remains unresolved: ${settlement.error}`,
+    }, { status: 502 })
   }
 
   await admin.from('disputes').update({

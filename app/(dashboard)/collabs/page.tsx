@@ -55,8 +55,24 @@ export default async function CollabsPage() {
     const initials = getInitials(counterparty)
     const statusLabel = COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label || c.status
     const badgeClass = STATUS_BADGE[c.status] || 'badge-neutral'
-    const escrowColor = ESCROW_COLOR[c.status] || 'var(--ink-faint-solid)'
-    const escrowFunded = c.stripe_payment_intent_id && c.status !== 'cancelled'
+    const paymentLabel: Record<string, string> = {
+      unfunded: 'Not funded',
+      authorizing: 'Authorizing',
+      funded: 'Funds held',
+      capture_pending: 'Capture pending',
+      captured: 'Captured',
+      transfer_pending: 'Payout pending',
+      paid: 'Creator paid',
+      manual_exception: 'Paid manually',
+      capture_failed: 'Capture failed',
+      transfer_failed: 'Payout failed',
+      refund_pending: 'Refund pending',
+      refund_failed: 'Refund failed',
+      refunded: 'Refunded',
+      cancelled: 'Payment cancelled',
+    }
+    const paymentSafe = ['funded', 'paid', 'manual_exception'].includes(c.payment_status)
+    const escrowColor = paymentSafe ? 'var(--safe)' : ESCROW_COLOR[c.status] || 'var(--ink-faint-solid)'
 
     return (
       <Link href={`/collabs/${c.id}`} style={{ textDecoration: 'none' }}>
@@ -75,7 +91,7 @@ export default async function CollabsPage() {
               <span className={`badge ${badgeClass}`}>{statusLabel}</span>
               <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: escrowColor }}>
                 <Lock size={12} />
-                <span style={{ fontWeight: 600 }}>{formatSGD(c.agreed_rate)}</span>
+                <span style={{ fontWeight: 600 }}>{paymentLabel[c.payment_status] || 'Payment unknown'} · {formatSGD(c.agreed_rate)}</span>
               </div>
             </div>
           </div>

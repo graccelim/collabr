@@ -109,7 +109,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <p className="text-xs font-medium text-blue-700 mb-1">Secured payment</p>
           <p className="text-xs text-blue-600">
-            Payment is held in escrow when your collab begins. Funds are released to you once the brand confirms your post is live — you're protected throughout.
+            Draft work begins only after Stripe verifies the brand&apos;s payment authorization. You are marked paid only after capture and transfer succeed.
           </p>
         </div>
       )}

@@ -85,7 +85,8 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0
   const pendingReview   = collabs?.filter(c => c.status === 'draft_submitted').length || 0
-  const inEscrow        = collabs?.reduce((sum, c) => sum + (c.agreed_rate || 0), 0) || 0
+  const inEscrow        = collabs?.filter(c => c.payment_status === 'funded')
+    .reduce((sum, c) => sum + (c.agreed_rate || 0), 0) || 0
   const livePosts       = collabs?.filter(c => c.status === 'live_submitted').length || 0
 
   return (
@@ -128,7 +129,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16 }} className="pc-grid">
         <StatTile icon={Briefcase} label="Active campaigns" value={String(activeCampaigns)} sub="accepting applicants" tone="ink" />
         <StatTile icon={Users}     label="Drafts to review"  value={String(pendingReview)}   sub="awaiting your feedback" tone="accent" />
-        <StatTile icon={Lock}      label="In escrow"          value={formatSGD(inEscrow)}     sub="held safely" tone="money" />
+        <StatTile icon={Lock}      label="Funds authorized"   value={formatSGD(inEscrow)}     sub="verified and held" tone="money" />
         <StatTile icon={Send}      label="Live posts"          value={String(livePosts)}       sub="submitted this period" tone="accent" />
       </div>
 
