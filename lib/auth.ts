@@ -35,12 +35,16 @@ export async function getProfile(userId: string) {
   if (!user) return null
   if (user.role === 'brand') {
     const { data: brand } = await supabase
-      .from('brand_profiles').select('*').eq('user_id', userId).single()
+      .from('brand_profiles')
+      .select('id, user_id, company_name, industry, website, logo_url, plan, created_at')
+      .eq('user_id', userId).single()
     return { ...user, profile: brand }
   }
   if (user.role === 'creator') {
     const { data: creator } = await supabase
-      .from('creator_profiles').select('*').eq('user_id', userId).single()
+      .from('creator_profiles')
+      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+      .eq('user_id', userId).single()
     return { ...user, profile: creator }
   }
   return user

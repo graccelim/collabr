@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { stripe } from '@/lib/stripe'
@@ -36,7 +36,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
   }
 
-  await supabase.from('collabs').update({ status: 'cancelled' }).eq('id', params.id)
+  const admin = createAdminClient()
+  await admin.from('collabs').update({ status: 'cancelled' }).eq('id', params.id)
 
   const otherUserId = user.id === brandUserId ? creatorUserId : brandUserId
   if (otherUserId) {

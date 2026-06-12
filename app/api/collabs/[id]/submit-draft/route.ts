@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { emails } from '@/lib/email'
@@ -23,13 +23,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const body = await req.json()
   const autoApproveAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
+  const admin = createAdminClient()
 
   // Create submission record
   const { data: lastSub } = await supabase.from('submissions')
     .select('version').eq('collab_id', params.id).order('version', { ascending: false }).limit(1).single()
   const version = (lastSub?.version || 0) + 1
 
-  await supabase.from('submissions').insert({
+  await admin.from('submissions').insert({
     collab_id: params.id,
     version,
     file_url: body.file_url,
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   })
 
   // Update collab status
-  await supabase.from('collabs').update({
+  await admin.from('collabs').update({
     status: 'draft_submitted',
     draft_auto_approve_at: autoApproveAt,
   }).eq('id', params.id)

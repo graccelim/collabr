@@ -14,7 +14,9 @@ export async function PATCH(req: NextRequest) {
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   const { data, error } = await supabase.from('creator_profiles')
-    .update(updates).eq('user_id', user.id).select().single()
+    .update(updates).eq('user_id', user.id)
+    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+    .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (body.display_name) {

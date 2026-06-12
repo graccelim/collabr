@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 
@@ -11,15 +11,19 @@ export async function POST(req: NextRequest) {
   if (!collab_id) return NextResponse.json({ error: 'collab_id required' }, { status: 400 })
 
   const { data: collab } = await supabase.from('collabs')
-    .select('*, brand_profiles(user_id, stripe_customer_id, plan)')
+    .select('*, brand_profiles(user_id, plan)')
     .eq('id', collab_id).single()
   if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  const brand = collab.brand_profiles as any
-  if (brand?.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  const visibleBrand = collab.brand_profiles as any
+  if (visibleBrand?.user_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (!['briefed'].includes(collab.status)) {
     return NextResponse.json({ error: 'Payment already processed for this collab' }, { status: 400 })
   }
+
+  const admin = createAdminClient()
+  const { data: brand } = await admin.from('brand_profiles')
+    .select('stripe_customer_id').eq('id', collab.brand_id).single()
 
   // Return existing intent if one was already created
   if (collab.stripe_payment_intent_id) {
@@ -40,7 +44,7 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: user.id },
     })
     customerId = customer.id
-    await supabase.from('brand_profiles')
+    await admin.from('brand_profiles')
       .update({ stripe_customer_id: customerId }).eq('user_id', user.id)
   }
 
@@ -58,7 +62,7 @@ export async function POST(req: NextRequest) {
     description: `collabr. escrow — collab ${collab_id}`,
   })
 
-  await supabase.from('collabs')
+  await admin.from('collabs')
     .update({ stripe_payment_intent_id: intent.id }).eq('id', collab_id)
 
   return NextResponse.json({ client_secret: intent.client_secret })

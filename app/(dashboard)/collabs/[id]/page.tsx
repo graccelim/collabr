@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
 import { formatSGD, COLLAB_STATUSES, relativeTime, getInitials } from '@/lib/utils'
 import CollabActions from '@/components/CollabActions'
@@ -30,7 +30,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     .select(`
       *,
       campaigns(title, brief, deliverable_types),
-      creator_profiles(id, bio, rating_avg, rating_count, stripe_connect_id, users(display_name, email, avatar_url)),
+      creator_profiles(id, bio, rating_avg, rating_count, users(display_name, avatar_url)),
       brand_profiles(id, company_name, user_id)
     `)
     .eq('id', params.id).single()
@@ -42,6 +42,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
     return <p className="text-sm" style={{ color: 'var(--danger)' }}>You don't have access to this collab.</p>
   }
+  const admin = createAdminClient()
+  const { data: connectProfile } = await admin.from('creator_profiles')
+    .select('stripe_connect_id').eq('id', collab.creator_id).single()
 
   const { data: submissions } = await supabase.from('submissions')
     .select('*').eq('collab_id', params.id).order('version', { ascending: false })
@@ -57,7 +60,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
 
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
   const brandName = (collab.brand_profiles as any)?.company_name || 'Brand'
-  const creatorHasConnect = !!(collab.creator_profiles as any)?.stripe_connect_id
+  const creatorHasConnect = !!connectProfile?.stripe_connect_id
   const latestSubmission = submissions?.[0] ?? null
   const latestFeedback = latestSubmission?.brand_feedback ?? null
 

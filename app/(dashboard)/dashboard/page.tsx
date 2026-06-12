@@ -67,7 +67,9 @@ export default async function DashboardPage() {
 
 async function BrandDashboard({ userId }: { userId: string }) {
   const supabase = createClient()
-  const { data: brand } = await supabase.from('brand_profiles').select('*').eq('user_id', userId).single()
+  const { data: brand } = await supabase.from('brand_profiles')
+    .select('id, user_id, company_name, industry, website, logo_url, plan, created_at')
+    .eq('user_id', userId).single()
   if (!brand) return (
     <div className="card" style={{ textAlign: 'center', padding: 48 }}>
       <p style={{ color: 'var(--ink-soft)', marginBottom: 16 }}>Complete your brand profile to get started.</p>
@@ -78,7 +80,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
   const { data: campaigns } = await supabase.from('campaigns')
     .select('*').eq('brand_id', brand.id).order('created_at', { ascending: false }).limit(5)
   const { data: collabs } = await supabase.from('collabs')
-    .select('*, campaigns(title), creator_profiles(*, users(display_name))')
+    .select('*, campaigns(title), creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name))')
     .eq('brand_id', brand.id).neq('status', 'completed').neq('status', 'cancelled').limit(6)
 
   const activeCampaigns = campaigns?.filter(c => c.status === 'active').length || 0
@@ -177,7 +179,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
 async function CreatorDashboard({ userId }: { userId: string }) {
   const supabase = createClient()
-  const { data: creator } = await supabase.from('creator_profiles').select('*').eq('user_id', userId).single()
+  const { data: creator } = await supabase.from('creator_profiles')
+    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+    .eq('user_id', userId).single()
   if (!creator) return (
     <div className="card" style={{ textAlign: 'center', padding: 48 }}>
       <p style={{ color: 'var(--ink-soft)', marginBottom: 16 }}>Complete your creator profile to get started.</p>

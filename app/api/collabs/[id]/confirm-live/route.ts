@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { emails } from '@/lib/email'
@@ -11,13 +11,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: collab } = await supabase.from('collabs')
-    .select('*, creator_profiles(id, user_id, stripe_connect_id, users(email)), brand_profiles(user_id)')
+    .select('*, creator_profiles(id, user_id, users(email)), brand_profiles(user_id)')
     .eq('id', params.id).single()
   if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   if (collab.status !== 'live_submitted') return NextResponse.json({ error: 'No live post to confirm' }, { status: 400 })
+  const admin = createAdminClient()
 
   // Capture the held funds from the escrow PaymentIntent
   if (collab.stripe_payment_intent_id) {
@@ -35,18 +36,18 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   // Confirm live post and mark collab completed
-  await supabase.from('live_posts')
+  await admin.from('live_posts')
     .update({ confirmed_at: new Date().toISOString() })
     .eq('collab_id', params.id).is('confirmed_at', null)
-  await supabase.from('collabs')
+  await admin.from('collabs')
     .update({ status: 'completed', live_auto_release_at: null })
     .eq('id', params.id)
 
   // Update creator lifetime stats
-  const { data: creator } = await supabase.from('creator_profiles')
+  const { data: creator } = await admin.from('creator_profiles')
     .select('collabs_completed, total_earned').eq('id', collab.creator_id).single()
   if (creator) {
-    await supabase.from('creator_profiles').update({
+    await admin.from('creator_profiles').update({
       collabs_completed: (creator.collabs_completed || 0) + 1,
       total_earned: (creator.total_earned || 0) + collab.creator_payout,
     }).eq('id', collab.creator_id)

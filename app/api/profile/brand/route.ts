@@ -14,7 +14,9 @@ export async function PATCH(req: NextRequest) {
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
   const { data, error } = await supabase.from('brand_profiles')
-    .update(updates).eq('user_id', user.id).select().single()
+    .update(updates).eq('user_id', user.id)
+    .select('id, user_id, company_name, industry, website, logo_url, plan, created_at')
+    .single()
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   // Also update display_name on users table if provided

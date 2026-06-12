@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
@@ -12,7 +12,11 @@ export default async function EarningsPage({
   const supabase = createClient()
 
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('*').eq('user_id', user.id).single()
+    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+    .eq('user_id', user.id).single()
+  const admin = createAdminClient()
+  const { data: connectProfile } = await admin.from('creator_profiles')
+    .select('stripe_connect_id').eq('user_id', user.id).single()
   const { data: collabs } = await supabase.from('collabs')
     .select('*, campaigns(title), brand_profiles(company_name)')
     .eq('creator_id', creator!.id)
@@ -39,7 +43,7 @@ export default async function EarningsPage({
 
       {/* Stripe Connect onboarding */}
       <ConnectOnboarding
-        hasConnectId={!!creator?.stripe_connect_id}
+        hasConnectId={!!connectProfile?.stripe_connect_id}
         justCompleted={connectComplete}
         needsRefresh={connectRefresh}
       />

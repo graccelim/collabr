@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { computeFee } from '@/lib/utils'
@@ -22,7 +22,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const brandUserId = (application.campaigns as any)?.brand_profiles?.user_id
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-  await supabase.from('applications').update({ status }).eq('id', params.id)
+  const admin = createAdminClient()
+  await admin.from('applications').update({ status }).eq('id', params.id)
 
   const creatorUserId = (application.creator_profiles as any)?.user_id
   const creatorId = (application.creator_profiles as any)?.id
@@ -38,7 +39,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     const brandId = (application.campaigns as any)?.brand_id
     const campaignId = (application.campaigns as any)?.id
 
-    const { data: newCollab, error: collabErr } = await supabase.from('collabs').insert({
+    const { data: newCollab, error: collabErr } = await admin.from('collabs').insert({
       application_id: params.id,
       campaign_id: campaignId,
       creator_id: creatorId,

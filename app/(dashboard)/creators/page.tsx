@@ -8,7 +8,7 @@ export default async function CreatorsPage() {
   const supabase = createClient()
 
   const { data: creators } = await supabase.from('creator_profiles')
-    .select('*, users(display_name, avatar_url)')
+    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url)')
     .order('is_verified', { ascending: false })
     .order('boost_active_until', { ascending: false, nullsFirst: false })
     .order('rating_avg', { ascending: false })

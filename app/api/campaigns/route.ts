@@ -42,7 +42,8 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json()
-  const { data, error } = await supabase.from('campaigns').insert({
+  const admin = createAdminClient()
+  const { data, error } = await admin.from('campaigns').insert({
     brand_id: brand.id,
     title: body.title,
     brief: body.brief,

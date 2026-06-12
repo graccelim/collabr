@@ -20,7 +20,9 @@ export default function ProfilePage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('creator_profiles').select('*').eq('user_id', user.id).single()
+      const { data } = await supabase.from('creator_profiles')
+        .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+        .eq('user_id', user.id).single()
       if (data) {
         setProfile(data)
         setBio(data.bio || '')

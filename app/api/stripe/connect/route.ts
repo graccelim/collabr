@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 
@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'creator') return NextResponse.json({ error: 'Creators only' }, { status: 403 })
 
-  const { data: creator } = await supabase.from('creator_profiles')
+  const admin = createAdminClient()
+  const { data: creator } = await admin.from('creator_profiles')
     .select('id, stripe_connect_id').eq('user_id', user.id).single()
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
 
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: user.id, creator_id: creator.id },
     })
     accountId = account.id
-    await supabase.from('creator_profiles')
+    await admin.from('creator_profiles')
       .update({ stripe_connect_id: accountId }).eq('id', creator.id)
   }
 
@@ -50,7 +51,8 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: creator } = await supabase.from('creator_profiles')
+  const admin = createAdminClient()
+  const { data: creator } = await admin.from('creator_profiles')
     .select('stripe_connect_id').eq('user_id', user.id).single()
 
   if (!creator?.stripe_connect_id) return NextResponse.json({ status: 'not_connected' })

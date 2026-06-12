@@ -8,7 +8,8 @@ export default async function BillingPage() {
   const supabase = createClient()
 
   const { data: brand } = await supabase.from('brand_profiles')
-    .select('*').eq('user_id', user.id).single()
+    .select('id, user_id, company_name, industry, website, logo_url, plan, created_at')
+    .eq('user_id', user.id).single()
 
   const { data: collabs } = await supabase.from('collabs')
     .select('*, campaigns(title), creator_profiles(users(display_name))')

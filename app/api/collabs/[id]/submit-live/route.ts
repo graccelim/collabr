@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { emails } from '@/lib/email'
@@ -19,11 +19,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const body = await req.json()
   const autoReleaseAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
+  const admin = createAdminClient()
 
-  await supabase.from('live_posts').insert({
+  await admin.from('live_posts').insert({
     collab_id: params.id, post_url: body.post_url, screenshot_url: body.screenshot_url || null
   })
-  await supabase.from('collabs').update({ status: 'live_submitted', live_auto_release_at: autoReleaseAt }).eq('id', params.id)
+  await admin.from('collabs').update({ status: 'live_submitted', live_auto_release_at: autoReleaseAt }).eq('id', params.id)
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
   const brandEmail = (collab.brand_profiles as any)?.users?.email

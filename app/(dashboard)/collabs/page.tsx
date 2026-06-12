@@ -33,7 +33,7 @@ export default async function CollabsPage() {
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
 
   const isBrand = profile?.role === 'brand'
-  let query = supabase.from('collabs').select('*, campaigns(title), creator_profiles(*, users(display_name)), brand_profiles(company_name), stripe_payment_intent_id')
+  let query = supabase.from('collabs').select('*, campaigns(title), creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name)), brand_profiles(company_name), stripe_payment_intent_id')
 
   if (isBrand) {
     const { data: brand } = await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single()

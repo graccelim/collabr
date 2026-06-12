@@ -8,7 +8,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   const supabase = createClient()
 
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('*, users(display_name, email, avatar_url)')
+    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url)')
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
 

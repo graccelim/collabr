@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 async function getAuthedBrand(supabase: ReturnType<typeof createClient>, userId: string, campaignId: string) {
@@ -31,7 +31,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
 
-  const { data, error: updateErr } = await supabase.from('campaigns')
+  const admin = createAdminClient()
+  const { data, error: updateErr } = await admin.from('campaigns')
     .update(updates).eq('id', params.id).select().single()
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
   return NextResponse.json(data)
@@ -45,6 +46,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const { error, status } = await getAuthedBrand(supabase, user.id, params.id)
   if (error) return NextResponse.json({ error }, { status })
 
-  await supabase.from('campaigns').update({ status: 'closed' }).eq('id', params.id)
+  const admin = createAdminClient()
+  await admin.from('campaigns').update({ status: 'closed' }).eq('id', params.id)
   return NextResponse.json({ success: true })
 }

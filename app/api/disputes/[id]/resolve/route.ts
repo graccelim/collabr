@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { formatSGD } from '@/lib/utils'
@@ -12,7 +12,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
   if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
 
-  const { data: dispute } = await supabase.from('disputes').select('*, collabs(*)').eq('id', params.id).single()
+  const admin = createAdminClient()
+  const { data: dispute } = await admin.from('disputes').select('*, collabs(*)').eq('id', params.id).single()
   if (!dispute) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
   const { outcome, split_percentage, platform_ruling } = await req.json()
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   // Update collab status
   const collabStatus = outcome === 'creator_wins' || outcome === 'split' ? 'completed' : 'cancelled'
-  await supabase.from('collabs').update({ status: collabStatus }).eq('id', collab.id)
+  await admin.from('collabs').update({ status: collabStatus }).eq('id', collab.id)
 
   // Update creator stats for wins
   if ((outcome === 'creator_wins' || outcome === 'split') && collab.creator_id) {
@@ -55,17 +56,17 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       ? collab.creator_payout
       : Math.round(collab.creator_payout * ((split_percentage || 50) / 100))
 
-    const { data: creator } = await supabase.from('creator_profiles')
+    const { data: creator } = await admin.from('creator_profiles')
       .select('collabs_completed, total_earned').eq('id', collab.creator_id).single()
     if (creator) {
-      await supabase.from('creator_profiles').update({
+      await admin.from('creator_profiles').update({
         collabs_completed: (creator.collabs_completed || 0) + 1,
         total_earned: (creator.total_earned || 0) + payoutAmount,
       }).eq('id', collab.creator_id)
     }
   }
 
-  await supabase.from('disputes').update({
+  await admin.from('disputes').update({
     outcome,
     split_percentage: split_percentage || null,
     platform_ruling: platform_ruling || null,
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }).eq('id', params.id)
 
   // Notify both parties
-  const { data: collabFull } = await supabase.from('collabs')
+  const { data: collabFull } = await admin.from('collabs')
     .select('creator_profiles(user_id), brand_profiles(user_id)')
     .eq('id', collab.id).single()
 

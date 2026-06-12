@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -31,7 +31,8 @@ export async function POST(req: NextRequest) {
     // For now activate immediately once Stripe is wired for subscriptions
   }
 
-  await supabase.from('creator_profiles')
+  const admin = createAdminClient()
+  await admin.from('creator_profiles')
     .update({ boost_active_until: boostUntil }).eq('id', creator.id)
 
   return NextResponse.json({ success: true, boost_active_until: boostUntil, type })

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 
@@ -13,8 +13,9 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const isBoosted = creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
+  const admin = createAdminClient()
 
-  const { data, error } = await supabase.from('applications').insert({
+  const { data, error } = await admin.from('applications').insert({
     campaign_id: body.campaign_id,
     creator_id: creator.id,
     pitch: body.pitch,

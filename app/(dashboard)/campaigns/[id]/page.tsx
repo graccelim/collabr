@@ -16,7 +16,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   if (!campaign) return <p className="text-sm text-red-500">Campaign not found.</p>
 
   const { data: applications } = await supabase.from('applications')
-    .select('*, creator_profiles(*, users(display_name, email, avatar_url))')
+    .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
     .eq('campaign_id', params.id)
     .order('is_boosted', { ascending: false })
     .order('created_at', { ascending: true })

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { emails } from '@/lib/email'
@@ -28,8 +28,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Reason must be at least 20 characters' }, { status: 400 })
   }
 
-  await supabase.from('collabs').update({ status: 'disputed' }).eq('id', params.id)
-  await supabase.from('disputes').insert({
+  const admin = createAdminClient()
+  await admin.from('collabs').update({ status: 'disputed' }).eq('id', params.id)
+  await admin.from('disputes').insert({
     collab_id: params.id,
     raised_by: isBrand ? 'brand' : 'creator',
     reason,
