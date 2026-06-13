@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { Check } from 'lucide-react'
 
 interface Props {
   inviteId: string
@@ -40,11 +41,12 @@ export default function InviteActions({ inviteId }: Props) {
 
   return (
     <div style={{ display: 'flex', gap: 8 }}>
-      <button className="btn-primary btn-sm" disabled={!!busy} onClick={() => respond('accept')}>
-        {busy === 'accept' ? 'Accepting…' : 'Accept'}
-      </button>
-      <button className="btn-secondary btn-sm" disabled={!!busy} onClick={() => respond('decline')}>
+      <button className="btn-ghost btn-sm" disabled={!!busy} onClick={() => respond('decline')}>
         {busy === 'decline' ? 'Declining…' : 'Decline'}
+      </button>
+      <button className="btn-success btn-sm" disabled={!!busy} onClick={() => respond('accept')}>
+        <Check size={14} />
+        {busy === 'accept' ? 'Accepting…' : 'Accept invite'}
       </button>
     </div>
   )

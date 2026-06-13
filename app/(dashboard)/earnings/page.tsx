@@ -3,7 +3,27 @@ import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
 import EmptyState from '@/components/EmptyState'
-import { Wallet } from 'lucide-react'
+import type { LucideProps } from 'lucide-react'
+import { Wallet, TrendingUp, Shield, CheckCircle2 } from 'lucide-react'
+
+// Stat tile (Collabr Redesign): mono value, micro label, tone-tinted icon.
+// `money` tone is reserved for secured / escrow figures.
+function Stat({ label, value, icon: Icon, sub, tone = 'neutral' }: {
+  label: string; value: string; icon: React.ComponentType<Partial<LucideProps>>
+  sub?: string; tone?: 'neutral' | 'money'
+}) {
+  const color = tone === 'money' ? 'var(--money)' : 'var(--ink-faint-solid)'
+  return (
+    <div className="card" style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span className="micro">{label}</span>
+        <Icon size={16} style={{ color, opacity: 0.85 }} />
+      </div>
+      <span className="mono-num" style={{ fontSize: 24, fontWeight: 600, letterSpacing: '-0.02em', color: tone === 'money' ? 'var(--money-deep)' : 'var(--ink)' }}>{value}</span>
+      {sub && <span className="micro" style={{ color: tone === 'money' ? 'var(--money)' : 'var(--ink-faint-solid)' }}>{sub}</span>}
+    </div>
+  )
+}
 
 export default async function EarningsPage({
   searchParams,
@@ -26,22 +46,38 @@ export default async function EarningsPage({
     .in('payment_status', ['paid', 'manual_exception'])
     .order('created_at', { ascending: false })
 
+  // Active escrow secured for this creator — money held but not yet released.
+  const { data: secured } = await supabase.from('collabs')
+    .select('creator_payout')
+    .eq('creator_id', creator!.id)
+    .eq('payment_status', 'funded')
+    .not('status', 'in', '(completed,cancelled)')
+  const inEscrow = (secured || []).reduce((sum, c) => sum + (c.creator_payout || 0), 0)
+  const escrowCount = (secured || []).length
+
   const connectComplete = searchParams.connect === 'complete'
   const connectRefresh = searchParams.connect === 'refresh'
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-semibold text-gray-900">Earnings</h1>
+      <div>
+        <div className="eyebrow" style={{ marginBottom: 7 }}>Money</div>
+        <h1 style={{ fontSize: 28 }}>Earnings</h1>
+        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+          Every dollar you&rsquo;ve secured, released and withdrawn.
+        </p>
+      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="card">
-          <div className="text-2xl font-semibold text-gray-900">{formatSGD(creator?.total_earned || 0)}</div>
-          <div className="text-xs text-gray-500 mt-1">Total earned</div>
-        </div>
-        <div className="card">
-          <div className="text-2xl font-semibold text-gray-900">{creator?.collabs_completed || 0}</div>
-          <div className="text-xs text-gray-500 mt-1">Completed collabs</div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+        <Stat label="Lifetime earned" value={formatSGD(creator?.total_earned || 0)} icon={TrendingUp} />
+        <Stat
+          label="In escrow for you"
+          value={formatSGD(inEscrow)}
+          icon={Shield}
+          tone="money"
+          sub={escrowCount > 0 ? `From ${escrowCount} active collab${escrowCount > 1 ? 's' : ''}` : undefined}
+        />
+        <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
 
       {/* Stripe Connect onboarding */}
@@ -69,10 +105,12 @@ export default async function EarningsPage({
             <EmptyState
               icon={Wallet}
               tone="money"
-              title="Your first payout lands here"
-              body="Once a brand confirms your live post, escrow releases and Stripe transfers your earnings — payment is guaranteed before you start work."
-              actionHref="/jobs"
-              actionLabel="Browse campaigns"
+              title="Your first payout is on its way"
+              body={inEscrow > 0
+                ? `${formatSGD(inEscrow)} is secured in escrow — it lands here the moment the brand confirms your live post.`
+                : 'Once a brand confirms your live post, escrow releases and Stripe transfers your earnings — payment is guaranteed before you start work.'}
+              actionHref={inEscrow > 0 ? '/collabs' : '/jobs'}
+              actionLabel={inEscrow > 0 ? 'Open active collab' : 'Browse campaigns'}
             />
           )}
         </div>

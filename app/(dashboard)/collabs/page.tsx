@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow'
 import EmptyState from '@/components/EmptyState'
-import { ChevronRight, MessageSquare } from 'lucide-react'
+import { ChevronRight, Briefcase } from 'lucide-react'
 
 export default async function CollabsPage() {
   const user = await requireAuth()
@@ -129,14 +129,11 @@ export default async function CollabsPage() {
 
       {(!collabs || collabs.length === 0) && (
         <EmptyState
-          icon={MessageSquare}
-          title="Your first collaboration starts here"
+          icon={Briefcase}
+          title={isBrand ? 'Ready when you are' : 'No collabs yet'}
           body={isBrand
-            ? "Accept a creator on one of your campaigns and fund escrow — your active collabs and their progress will light up here."
-            : 'Apply to open campaigns or accept an invite. Once a brand selects you, your collab appears here with payment secured.'}
-          steps={isBrand
-            ? ['Post a campaign', 'Pick a creator', 'Fund escrow']
-            : ['Browse campaigns', 'Apply or accept an invite', 'Get paid via escrow']}
+            ? 'Accept a creator on one of your campaigns and fund escrow — your active collabs and their progress will light up here.'
+            : 'When a brand accepts you, the collab opens here with your payment already secured in escrow. Apply to a campaign to get started.'}
           actionHref={isBrand ? '/campaigns' : '/jobs'}
           actionLabel={isBrand ? 'Go to campaigns' : 'Browse campaigns'}
         />

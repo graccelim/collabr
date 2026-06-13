@@ -3,7 +3,7 @@ import { requireCreator } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD } from '@/lib/utils'
 import EmptyState from '@/components/EmptyState'
-import { FileText } from 'lucide-react'
+import { Send } from 'lucide-react'
 
 const STATUS_COLORS: Record<string, string> = {
   pending: 'badge-gray',
@@ -40,14 +40,19 @@ export default async function ApplicationsPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-semibold text-gray-900">My applications</h1>
+      <div>
+        <div className="eyebrow" style={{ marginBottom: 7 }}>Outbound</div>
+        <h1 style={{ fontSize: 28 }}>My applications</h1>
+        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+          Track every pitch and where it stands.
+        </p>
+      </div>
 
       {(!applications || applications.length === 0) && (
         <EmptyState
-          icon={FileText}
-          title="Let's land your first paid collab"
-          body="Apply to open campaigns and track every application here — you'll see the moment you're shortlisted or selected."
-          steps={['Browse campaigns', 'Send a pitch', 'Get selected']}
+          icon={Send}
+          title="Your pitches will track here"
+          body="Apply to open campaigns and watch each application here — you'll see the moment you're shortlisted or selected."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />

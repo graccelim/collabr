@@ -7,7 +7,9 @@ import ReviewForm from '@/components/ReviewForm'
 import BrandReviewActions from '@/components/BrandReviewActions'
 import CreatorLivePostForm from '@/components/CreatorLivePostForm'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
+import EscrowTimeline from '@/components/EscrowTimeline'
 import EmptyState from '@/components/EmptyState'
+import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert } from 'lucide-react'
 
 const PAYMENT_TRUTH: Record<string, { label: string; color: string; bg: string }> = {
@@ -127,7 +129,12 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         </div>
       </div>
 
-      {/* ── Escrow strip ─────────────────────────────────── */}
+      {/* ── Signature escrow timeline (hero) ─────────────── */}
+      <div style={{ marginBottom: 14 }}>
+        <EscrowTimeline current={escrowStep(collab.status, collab.payment_status)} amount={formatSGD(collab.agreed_rate)} />
+      </div>
+
+      {/* ── Escrow status strip ──────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: paymentInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${paymentInfo.color}22` }}>
         <Lock size={16} color={paymentInfo.color} style={{ flexShrink: 0 }} />
         <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color }}>{paymentInfo.label}</span>

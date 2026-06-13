@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD } from '@/lib/utils'
-import { ArrowRight, Calendar, Users } from 'lucide-react'
+import EmptyState from '@/components/EmptyState'
+import { ArrowRight, Calendar, Users, Compass } from 'lucide-react'
 
 export default async function JobsPage() {
   await requireCreator()
@@ -17,9 +18,10 @@ export default async function JobsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 880, margin: '0 auto' }}>
       {/* Header */}
       <div>
+        <div className="eyebrow" style={{ marginBottom: 7 }}>Opportunities</div>
         <h1 style={{ fontSize: 28 }}>Browse campaigns</h1>
-        <p style={{ color: 'var(--ink-soft)', marginTop: 4, fontSize: 15 }}>
-          {campaigns?.length || 0} open campaign{campaigns?.length !== 1 ? 's' : ''} right now
+        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+          {campaigns?.length || 0} open campaign{campaigns?.length !== 1 ? 's' : ''} that fit your niche right now.
         </p>
       </div>
 
@@ -110,13 +112,13 @@ export default async function JobsPage() {
           })}
         </div>
       ) : (
-        <div className="card" style={{ textAlign: 'center', padding: 56 }}>
-          <div style={{ fontSize: 36, marginBottom: 14 }}>🔍</div>
-          <h3 style={{ marginBottom: 8 }}>No campaigns right now</h3>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 14.5 }}>
-            Check back soon — new campaigns are posted regularly.
-          </p>
-        </div>
+        <EmptyState
+          icon={Compass}
+          title="Fresh campaigns drop here daily"
+          body="New briefs from brands hiring now are posted regularly. Check back soon — or polish your profile so you're ready to apply the moment one fits."
+          actionHref="/profile"
+          actionLabel="Complete your profile"
+        />
       )}
     </div>
   )

@@ -103,7 +103,7 @@ export default function OnboardingForm({ role, initial }: Props) {
           <div className="flex flex-wrap gap-2">
             {CREATOR_NICHES.map(n => (
               <button key={n} type="button" onClick={() => setNiche(n)}
-                className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${niche === n ? 'bg-teal-400 text-white border-teal-400' : 'border-border text-gray-600 hover:border-teal-300'}`}>
+                className={`chip${niche === n ? ' on' : ''}`}>
                 {NICHE_LABELS[n]}
               </button>
             ))}

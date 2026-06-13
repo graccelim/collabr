@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { formatSGD, relativeTime, getInitials } from '@/lib/utils'
 import InviteActions from '@/components/InviteActions'
 import EmptyState from '@/components/EmptyState'
-import { Send, Mail } from 'lucide-react'
+import { Send, Mail, Zap, Shield } from 'lucide-react'
 
 const STATUS_BADGE: Record<string, string> = {
   pending: 'badge-warn',
@@ -122,21 +122,35 @@ export default async function InvitesPage() {
           <p className="eyebrow">Pending · {pending.length}</p>
           {pending.map(inv => {
             const brandP = inv.brand_profiles as any
+            const brandName = brandP?.company_name || 'A brand'
             return (
               <div key={inv.id} className="card space-y-3">
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-                  <div>
-                    <p style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>
-                      {brandP?.company_name || 'A brand'} invited you to &ldquo;{(inv.campaigns as any)?.title || 'a campaign'}&rdquo;
-                    </p>
-                    <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 2 }}>{relativeTime(inv.created_at)}</p>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 13 }}>
+                  {/* brand avatar (square) */}
+                  <div style={{
+                    width: 48, height: 48, borderRadius: 'var(--radius-sm)', flexShrink: 0, overflow: 'hidden',
+                    background: 'var(--paper-2)', border: '1px solid var(--line)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 700, fontSize: 15, color: 'var(--ink-soft)',
+                  }}>
+                    {brandP?.logo_url
+                      ? <img src={brandP.logo_url} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      : getInitials(brandName)}
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '.06em' }}>Offer</div>
-                    <div style={{ fontSize: 17, fontWeight: 650, color: 'var(--safe-deep)' }} className="mono-num">
-                      {formatSGD(inv.proposed_rate)}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <p style={{ fontSize: 14, fontWeight: 560, color: 'var(--ink)' }}>{brandName} invited you</p>
+                      <span className="badge badge-warn"><Zap size={11} /> New</span>
                     </div>
+                    <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
+                      {(inv.campaigns as any)?.title || 'a campaign'} · {relativeTime(inv.created_at)}
+                    </p>
                   </div>
+                  {/* escrow offer pill */}
+                  <span className="badge badge-money" style={{ flexShrink: 0, height: 28, paddingInline: 11, fontSize: 14, fontWeight: 600 }}>
+                    <Shield size={13} />
+                    <span className="mono-num">{formatSGD(inv.proposed_rate)}</span>
+                  </span>
                 </div>
                 {inv.message && (
                   <p style={{
@@ -146,7 +160,12 @@ export default async function InvitesPage() {
                     &ldquo;{inv.message}&rdquo;
                   </p>
                 )}
-                <InviteActions inviteId={inv.id} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', borderTop: '1px solid var(--line)', paddingTop: 13 }}>
+                  <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+                    If you accept, {brandName} funds escrow immediately.
+                  </span>
+                  <InviteActions inviteId={inv.id} />
+                </div>
               </div>
             )
           })}

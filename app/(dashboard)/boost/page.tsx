@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { Zap, Star, TrendingUp, BadgeCheck, Eye } from 'lucide-react'
 
 export default function BoostPage() {
   const supabase = createClient()
@@ -40,67 +41,92 @@ export default function BoostPage() {
     setLoading(null)
   }
 
+  const BENEFITS: { label: string; icon: typeof Zap }[] = [
+    { label: 'Top of every applicant list', icon: TrendingUp },
+    { label: 'A “Boosted” badge on your profile', icon: BadgeCheck },
+    { label: 'Brands notice you first', icon: Eye },
+    { label: 'No limit on applications', icon: Zap },
+  ]
+
   return (
-    <div className="max-w-lg space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold text-gray-900">Boost</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Stand out to brands and get selected faster</p>
+    <div style={{ maxWidth: 720, margin: '0 auto' }}>
+      {/* hero */}
+      <div style={{ textAlign: 'center', marginBottom: 30 }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 'var(--radius)', background: 'var(--accent)', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px', boxShadow: 'var(--shadow)',
+        }}>
+          <Zap size={26} />
+        </div>
+        <h1 style={{ fontSize: 28 }}>Get picked first with Boost</h1>
+        <p style={{ color: 'var(--ink-soft)', fontSize: 15, maxWidth: 460, margin: '8px auto 0', lineHeight: 1.55 }}>
+          Boosted creators sit at the top of every brand&rsquo;s applicant list and wear a badge brands trust.
+        </p>
       </div>
 
       {/* Active status */}
       {!fetching && isActive && (
-        <div className="card bg-purple-50 border-purple-200">
-          <p className="text-sm font-medium text-purple-700">Boost is active</p>
-          <p className="text-xs text-purple-500 mt-1">{daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining</p>
-          <p className="text-xs text-purple-400 mt-0.5">
-            Expires {new Date(boostUntil!).toLocaleDateString('en-SG')}
+        <div className="card" style={{ background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)', marginBottom: 28 }}>
+          <p style={{ fontSize: 14, fontWeight: 560, color: 'var(--accent-deep)' }}>Boost is active</p>
+          <p style={{ fontSize: 13, color: 'var(--accent)', marginTop: 3 }}>
+            {daysLeft} day{daysLeft !== 1 ? 's' : ''} remaining · expires {new Date(boostUntil!).toLocaleDateString('en-SG')}
           </p>
         </div>
       )}
 
-      {/* What boost does */}
-      <div className="card space-y-2">
-        <h2 className="text-sm font-medium text-gray-900">What Boost does</h2>
-        <ul className="space-y-1.5 text-sm text-gray-600">
-          <li className="flex gap-2"><span className="text-purple-500">→</span> Your application appears at the top of every brand's applicant list</li>
-          <li className="flex gap-2"><span className="text-purple-500">→</span> A "Boosted" badge appears on your profile and applications</li>
-          <li className="flex gap-2"><span className="text-purple-500">→</span> Brands notice boosted creators first — especially useful during launch campaigns</li>
-          <li className="flex gap-2"><span className="text-purple-500">→</span> No limit on how many campaigns you can apply to while boosted</li>
-        </ul>
-      </div>
-
       {/* Pricing options */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card flex flex-col">
-          <div className="flex-1">
-            <p className="text-xs text-gray-500 mb-1">Per application</p>
-            <p className="text-2xl font-semibold text-gray-900">S$4</p>
-            <p className="text-xs text-gray-500 mt-1">7 days of priority placement</p>
-            <p className="text-xs text-gray-400 mt-3">Best if you have a specific campaign in mind right now.</p>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+        {([
+          { type: 'per_app' as const, t: 'Per application', price: 'S$4', unit: '7 days priority', note: 'Best for one campaign you really want.', best: false },
+          { type: 'monthly' as const, t: 'Monthly', price: 'S$20', unit: '30 days priority', note: "Best if you're actively applying to several.", best: true },
+        ]).map(p => (
+          <div key={p.type} className="card" style={{
+            padding: 24, position: 'relative', display: 'flex', flexDirection: 'column',
+            border: p.best ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+            boxShadow: p.best ? 'var(--shadow)' : 'var(--shadow-sm)',
+          }}>
+            {p.best && (
+              <div style={{ position: 'absolute', top: -11, left: 24 }}>
+                <span className="badge" style={{ background: 'var(--accent)', color: '#fff' }}>
+                  <Star size={12} /> Best value
+                </span>
+              </div>
+            )}
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>{p.t}</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+              <span className="mono-num" style={{ fontSize: 36, fontWeight: 600 }}>{p.price}</span>
+              <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>· {p.unit}</span>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '10px 0 18px', lineHeight: 1.5, flex: 1 }}>{p.note}</p>
+            <button
+              onClick={() => purchase(p.type)}
+              disabled={!!loading}
+              className={p.best ? 'btn-primary btn-block' : 'btn-secondary btn-block'}
+            >{loading === p.type ? 'Activating…' : `Boost — ${p.price}`}</button>
           </div>
-          <button
-            onClick={() => purchase('per_app')}
-            disabled={!!loading}
-            className="btn-secondary mt-4 text-sm"
-          >{loading === 'per_app' ? 'Activating…' : 'Buy — S$4'}</button>
-        </div>
+        ))}
+      </div>
 
-        <div className="card flex flex-col border-purple-300 bg-purple-50/30">
-          <div className="flex-1">
-            <p className="text-xs text-purple-600 mb-1 font-medium">Monthly · Best value</p>
-            <p className="text-2xl font-semibold text-gray-900">S$20</p>
-            <p className="text-xs text-gray-500 mt-1">30 days of priority placement</p>
-            <p className="text-xs text-gray-400 mt-3">Best if you're actively looking for multiple collabs.</p>
-          </div>
-          <button
-            onClick={() => purchase('monthly')}
-            disabled={!!loading}
-            className="btn-primary mt-4 text-sm"
-          >{loading === 'monthly' ? 'Activating…' : 'Buy — S$20/mo'}</button>
+      {/* What boost does */}
+      <div className="card" style={{ padding: 22 }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, marginBottom: 14 }}>What Boost does</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          {BENEFITS.map(({ label, icon: Icon }) => (
+            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 30, height: 30, borderRadius: 'var(--radius-sm)', flexShrink: 0,
+                background: 'var(--accent-tint)', color: 'var(--accent)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon size={16} />
+              </div>
+              <span style={{ fontSize: 13, color: 'var(--ink)' }}>{label}</span>
+            </div>
+          ))}
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', textAlign: 'center', marginTop: 20 }}>
         During beta, boosts are activated instantly. Card payment will be required from v1.0.
       </p>
     </div>

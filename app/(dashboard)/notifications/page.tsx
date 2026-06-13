@@ -4,28 +4,46 @@ import { relativeTime } from '@/lib/utils'
 import Link from 'next/link'
 import MarkNotificationsRead from '@/components/MarkNotificationsRead'
 import EmptyState from '@/components/EmptyState'
-import { Bell } from 'lucide-react'
+import type { LucideProps } from 'lucide-react'
+import {
+  Bell, Inbox, PartyPopper, Star, X, FileText, CheckCircle2,
+  Pencil, Globe, Banknote, AlertTriangle, Scale, Clock, Mail, Handshake,
+} from 'lucide-react'
 
-const TYPE_ICONS: Record<string, string> = {
-  new_application: '📩',
-  application_selected: '🎉',
-  application_shortlisted: '📋',
-  application_rejected: '—',
-  draft_submitted: '📄',
-  draft_approved: '✅',
-  draft_auto_approved: '✅',
-  revision_requested: '✏️',
-  draft_rejected: '✗',
-  live_submitted: '🌐',
-  payment_released: '💸',
-  collab_cancelled: '✗',
-  dispute_raised: '⚠️',
-  dispute_resolved: '⚖️',
-  draft_expiring: '⏰',
-  live_expiring: '⏰',
-  invite_received: '💌',
-  invite_accepted: '🤝',
-  invite_declined: '—',
+type Icon = React.ComponentType<Partial<LucideProps>>
+type Tone = 'accent' | 'money' | 'warn' | 'danger' | 'neutral'
+
+// Each notification type maps to a stroke icon + a semantic tone tile.
+// Green (money) is reserved for secured/paid moments only.
+const TYPE_META: Record<string, { icon: Icon; tone: Tone }> = {
+  new_application:         { icon: Inbox,        tone: 'accent' },
+  application_selected:    { icon: PartyPopper,  tone: 'money' },
+  application_shortlisted: { icon: Star,         tone: 'accent' },
+  application_rejected:    { icon: X,            tone: 'neutral' },
+  draft_submitted:         { icon: FileText,     tone: 'accent' },
+  draft_approved:          { icon: CheckCircle2, tone: 'money' },
+  draft_auto_approved:     { icon: CheckCircle2, tone: 'money' },
+  revision_requested:      { icon: Pencil,       tone: 'warn' },
+  draft_rejected:          { icon: X,            tone: 'danger' },
+  live_submitted:          { icon: Globe,        tone: 'accent' },
+  payment_released:        { icon: Banknote,     tone: 'money' },
+  collab_cancelled:        { icon: X,            tone: 'neutral' },
+  dispute_raised:          { icon: AlertTriangle,tone: 'danger' },
+  dispute_resolved:        { icon: Scale,        tone: 'accent' },
+  draft_expiring:          { icon: Clock,        tone: 'warn' },
+  live_expiring:           { icon: Clock,        tone: 'warn' },
+  invite_received:         { icon: Mail,         tone: 'accent' },
+  invite_accepted:         { icon: Handshake,    tone: 'money' },
+  invite_declined:         { icon: X,            tone: 'neutral' },
+}
+
+const TONE_BG: Record<Tone, string> = {
+  accent: 'var(--accent-tint)', money: 'var(--money-tint)', warn: 'var(--warn-tint)',
+  danger: 'var(--danger-tint)', neutral: 'var(--paper-2)',
+}
+const TONE_FG: Record<Tone, string> = {
+  accent: 'var(--accent)', money: 'var(--money)', warn: 'var(--warn)',
+  danger: 'var(--danger)', neutral: 'var(--ink-faint-solid)',
 }
 
 export default async function NotificationsPage() {
@@ -37,9 +55,15 @@ export default async function NotificationsPage() {
     .order('created_at', { ascending: false }).limit(50)
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-gray-900">Notifications</h1>
+    <div style={{ maxWidth: 640, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+        <div>
+          <div className="eyebrow" style={{ marginBottom: 7 }}>Activity</div>
+          <h1 style={{ fontSize: 28 }}>Notifications</h1>
+          <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+            Applications, drafts, approvals and payments — as they happen.
+          </p>
+        </div>
         {notifications && notifications.some(n => !n.read) && (
           <MarkNotificationsRead userId={user.id} />
         )}
@@ -48,15 +72,14 @@ export default async function NotificationsPage() {
       {(!notifications || notifications.length === 0) ? (
         <EmptyState
           icon={Bell}
-          title="No notifications yet"
-          body="Workflow updates — applications, drafts, approvals and payments — will appear here as they happen."
+          title="You're all caught up"
+          body="Workflow updates — applications, drafts, approvals and payments — appear here as they happen."
         />
       ) : (
-        <div className="space-y-1">
+        <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
           {notifications.map(n => {
-            const icon = TYPE_ICONS[n.type] || '🔔'
-            // Deep link: collab first, then campaign (brand events), then the
-            // creator's applications list for application updates.
+            const meta = TYPE_META[n.type] || { icon: Bell, tone: 'neutral' as Tone }
+            const Icon = meta.icon
             const payload = (n.payload as any) || {}
             const href: string | null = payload.collab_id
               ? `/collabs/${payload.collab_id}`
@@ -67,20 +90,31 @@ export default async function NotificationsPage() {
                   : payload.application_id
                     ? '/applications'
                     : null
+
             const content = (
-              <div className={`card flex gap-3 items-start transition-colors ${!n.read ? 'border-purple-200 bg-purple-50/30' : ''}`}>
-                <span className="text-lg mt-0.5 shrink-0">{icon}</span>
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm ${!n.read ? 'font-medium text-gray-900' : 'text-gray-700'}`}>{n.title}</p>
-                  {n.body && <p className="text-xs text-gray-500 mt-0.5">{n.body}</p>}
-                  <p className="text-xs text-gray-400 mt-1">{relativeTime(n.created_at)}</p>
+              <div style={{
+                display: 'flex', gap: 13, alignItems: 'flex-start',
+                padding: '15px 18px',
+                background: !n.read ? 'var(--accent-tint-2)' : 'transparent',
+              }}>
+                <span style={{
+                  width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0,
+                  background: TONE_BG[meta.tone], color: TONE_FG[meta.tone],
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Icon size={17} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: 14, fontWeight: !n.read ? 560 : 480, color: 'var(--ink)', lineHeight: 1.45 }}>{n.title}</p>
+                  {n.body && <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2, lineHeight: 1.45 }}>{n.body}</p>}
+                  <p className="micro" style={{ marginTop: 5 }}>{relativeTime(n.created_at)}</p>
                 </div>
-                {!n.read && <div className="w-2 h-2 rounded-full bg-purple-500 mt-1.5 shrink-0" />}
+                {!n.read && <div style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--accent)', marginTop: 6, flexShrink: 0 }} />}
               </div>
             )
 
             return href
-              ? <Link key={n.id} href={href} className="block hover:opacity-90">{content}</Link>
+              ? <Link key={n.id} href={href} style={{ display: 'block', textDecoration: 'none' }}>{content}</Link>
               : <div key={n.id}>{content}</div>
           })}
         </div>
