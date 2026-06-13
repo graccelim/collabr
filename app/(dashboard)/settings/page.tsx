@@ -102,7 +102,7 @@ export default function SettingsPage() {
   }) : null
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="max-w-lg mx-auto space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
 
       {/* Account */}

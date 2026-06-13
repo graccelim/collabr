@@ -39,7 +39,7 @@ export default async function ApplicationsPage() {
   const past = (applications || []).filter(a => a.status === 'rejected')
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">My applications</h1>
 
       {(!applications || applications.length === 0) && (

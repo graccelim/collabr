@@ -1,6 +1,6 @@
 export default function CampaignsLoading() {
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div className="skel" style={{ width: 130, height: 22, borderRadius: 6 }} />
         <div className="skel" style={{ width: 90, height: 34, borderRadius: 8 }} />

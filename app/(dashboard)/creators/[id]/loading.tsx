@@ -1,6 +1,6 @@
 export default function CreatorProfileLoading() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="skel" style={{ width: 70, height: 12, borderRadius: 4 }} />
       <div className="card">
         <div style={{ display: 'flex', gap: 16 }}>

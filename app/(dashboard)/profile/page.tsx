@@ -178,7 +178,7 @@ export default function ProfilePage() {
   })
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <div className="flex items-center gap-2 flex-wrap">
           <h1 className="text-xl font-semibold text-gray-900">My profile</h1>
@@ -338,7 +338,7 @@ export default function ProfilePage() {
           </div>
         ))}
 
-        <form onSubmit={addSocial} className="grid grid-cols-[110px_1fr_1fr_auto] gap-2 items-center">
+        <form onSubmit={addSocial} className="grid grid-cols-2 sm:grid-cols-[110px_1fr_1fr_auto] gap-2 items-center">
           <select className="input" value={newPlatform}
             onChange={e => setNewPlatform(e.target.value as SocialPlatform)}>
             {SOCIAL_PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}

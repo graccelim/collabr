@@ -50,7 +50,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   const selected = applications?.filter(a => a.status === 'selected').length || 0
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -68,7 +68,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Total', value: total },
           { label: 'Pending', value: pending },

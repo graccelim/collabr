@@ -29,7 +29,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   const brand = campaign.brand_profiles as any
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Link href="/jobs" className="text-xs text-gray-400 hover:text-gray-600">← Browse campaigns</Link>
 
       {/* Brand + title */}

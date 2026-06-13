@@ -1,6 +1,6 @@
 export default function EarningsLoading() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="skel" style={{ width: 110, height: 22, borderRadius: 6 }} />
       <div className="grid grid-cols-2 gap-4">
         {[...Array(2)].map((_, i) => (

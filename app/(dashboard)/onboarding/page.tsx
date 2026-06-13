@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
     if (creator?.onboarding_completed_at) redirect('/dashboard')
 
     return (
-      <div className="max-w-2xl space-y-6">
+      <div className="max-w-2xl mx-auto space-y-6">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Finish setting up</h1>
           <p className="text-sm text-gray-500 mt-0.5">
@@ -37,7 +37,7 @@ export default async function OnboardingPage() {
   if (brand?.onboarding_completed_at) redirect('/dashboard')
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Finish setting up</h1>
         <p className="text-sm text-gray-500 mt-0.5">

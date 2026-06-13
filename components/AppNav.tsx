@@ -68,9 +68,13 @@ interface AppNavProps {
   initials: string
   /** Resolved plan label for brands, e.g. "Pro Beta" — empty hides the badge. */
   planLabel?: string
+  /** Pending invites awaiting the creator's response. */
+  inviteBadge?: number
+  /** Unread notifications for the signed-in user. */
+  notificationBadge?: number
 }
 
-export function AppNav({ role, displayName, email, initials, planLabel }: AppNavProps) {
+export function AppNav({ role, displayName, email, initials, planLabel, inviteBadge = 0, notificationBadge = 0 }: AppNavProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const isBrand = role === 'brand'
@@ -112,13 +116,19 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
           {!collapsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
               <Link href="/" style={{
+                display: 'flex', alignItems: 'center', gap: 8,
                 fontFamily: 'var(--font-display)',
-                fontWeight: 700,
+                fontWeight: 600,
                 fontSize: 16.5,
                 letterSpacing: '-0.03em',
                 color: 'var(--ink)',
               }}>
-                collabr<span style={{ color: 'var(--creator)' }}>.</span>
+                <span style={{
+                  width: 26, height: 26, borderRadius: 8, background: 'var(--ink)',
+                  color: '#fff', display: 'inline-flex', alignItems: 'center',
+                  justifyContent: 'center', fontWeight: 700, fontSize: 15, flexShrink: 0,
+                }}>c</span>
+                collabr<span style={{ color: 'var(--accent)' }}>.</span>
               </Link>
               {/* plan badge lives in the beta card below — keep the logo row calm */}
             </div>
@@ -158,11 +168,12 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
         }}>
           {!collapsed && (
             <div style={{
-              fontSize: 10.5, fontWeight: 600, letterSpacing: '.07em',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 10.5, fontWeight: 500, letterSpacing: '.1em',
               textTransform: 'uppercase', color: 'var(--ink-faint-solid)',
-              padding: '6px 8px 6px',
+              padding: '6px 8px 8px',
             }}>
-              {isBrand ? 'Brand workspace' : 'Creator workspace'}
+              {isBrand ? 'Brand workspace' : 'Creator studio'}
             </div>
           )}
           {nav.map(item => {
@@ -176,17 +187,18 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 9,
+                  gap: 11,
                   justifyContent: collapsed ? 'center' : 'flex-start',
-                  borderRadius: 7,
-                  padding: collapsed ? '8px 0' : '6px 8px',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: collapsed ? '9px 0' : '8px 10px',
                   background: on ? 'var(--accent-tint)' : 'transparent',
                   color: on ? 'var(--accent-deep)' : 'var(--ink-soft)',
-                  fontWeight: on ? 600 : 500,
-                  fontSize: 13,
+                  fontWeight: on ? 560 : 480,
+                  fontSize: 13.5,
                   transition: 'background .13s ease, color .13s ease',
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
+                  position: 'relative',
                 }}
                 onMouseEnter={e => {
                   if (!on) (e.currentTarget as HTMLElement).style.background = 'var(--paper-2)'
@@ -197,6 +209,25 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
               >
                 <NavIcon size={16} style={{ opacity: on ? 1 : .75 }} />
                 {!collapsed && item.label}
+                {(() => {
+                  const count = item.href === '/invites' ? inviteBadge
+                    : item.href === '/notifications' ? notificationBadge : 0
+                  if (!count) return null
+                  return collapsed ? (
+                    <span style={{
+                      position: 'absolute', top: 6, right: 10,
+                      width: 7, height: 7, borderRadius: 99,
+                      background: 'var(--warn)', border: '1.5px solid var(--surface)',
+                    }} />
+                  ) : (
+                    <span style={{
+                      marginLeft: 'auto', minWidth: 18, height: 18, padding: '0 5px',
+                      borderRadius: 99, background: 'var(--warn)', color: '#fff',
+                      fontSize: 11, fontWeight: 600,
+                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    }}>{count > 9 ? '9+' : count}</span>
+                  )
+                })()}
                 {!collapsed && item.pro && (
                   <span style={{
                     marginLeft: 'auto',

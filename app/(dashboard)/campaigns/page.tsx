@@ -12,7 +12,7 @@ export default async function CampaignsPage() {
     .select('*').eq('brand_id', brand!.id).order('created_at', { ascending: false })
 
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold text-gray-900">Campaigns</h1>
         <Link href="/post-job" className="btn-primary">Post new</Link>

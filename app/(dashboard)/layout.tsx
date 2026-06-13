@@ -18,10 +18,19 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Trust & onboarding state for the banner (admins are exempt).
   let onboardingComplete = true
   let planLabel = ''
+  let inviteBadge = 0
   if (role === 'creator') {
     const { data: creator } = await supabase.from('creator_profiles')
-      .select('onboarding_completed_at').eq('user_id', user.id).single()
+      .select('id, onboarding_completed_at').eq('user_id', user.id).single()
     onboardingComplete = Boolean(creator?.onboarding_completed_at)
+    // Unread badge: invites awaiting this creator's response (read-only count;
+    // RLS party policy scopes the rows to their own invites).
+    if (creator) {
+      const { count } = await supabase.from('campaign_invites')
+        .select('*', { count: 'exact', head: true })
+        .eq('creator_id', creator.id).eq('status', 'pending')
+      inviteBadge = count || 0
+    }
   } else if (role === 'brand') {
     // Admin client: subscription columns are not client-readable (RLS rows on
     // brand_profiles are public, so a column grant would leak billing state).
@@ -36,6 +45,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
 
+  // Unread badge: notifications (read-only count; RLS scopes to own rows).
+  const { count: unreadCount } = await supabase.from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', user.id).eq('read', false)
+  const notificationBadge = unreadCount || 0
+
   return (
     <div style={{
       display: 'flex',
@@ -48,6 +63,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
         email={profile.email || ''}
         initials={initials}
         planLabel={planLabel}
+        inviteBadge={inviteBadge}
+        notificationBadge={notificationBadge}
       />
       <main
         className="main-content"

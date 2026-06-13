@@ -70,7 +70,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     .reduce((sum: number, p: any) => sum + (p.followers || 0), 0)
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <Link href="/creators" className="text-xs text-gray-400 hover:text-gray-600">← Creators</Link>
 
       {/* Profile header */}
@@ -154,9 +154,9 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
         ]
         return (
-          <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: 0, overflow: 'hidden' }}>
+          <div className="card grid grid-cols-2 sm:grid-cols-4" style={{ padding: 0, overflow: 'hidden' }}>
             {stats.map(([k, v, ctx], i) => (
-              <div key={k} style={{ padding: '16px 18px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
+              <div key={k} className={`${i > 0 ? 'sm:border-l' : ''} ${i >= 2 ? 'border-t sm:border-t-0' : ''} ${i % 2 === 1 ? 'border-l' : ''} border-border`} style={{ padding: '16px 18px' }}>
                 <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
                 <div className="mono-num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>{v}</div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>

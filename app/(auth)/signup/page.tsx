@@ -3,12 +3,69 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ArrowRight, Loader2, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
+import AuthShell from '@/components/AuthShell'
 import {
   CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
+
+const PLATFORM_LABEL: Record<SocialPlatform, string> = {
+  instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube',
+}
+
+/* Field wrapper per design: label · optional tag · hint */
+function Field({ label, hint, optional, children }: {
+  label: string; hint?: string; optional?: boolean; children: React.ReactNode
+}) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+      <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+        <span style={{ fontSize: 13, fontWeight: 550, color: 'var(--ink)' }}>{label}</span>
+        {optional && <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>optional</span>}
+      </span>
+      {children}
+      {hint && <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', lineHeight: 1.4 }}>{hint}</span>}
+    </div>
+  )
+}
+
+/* Composite social input: platform prefix · @handle · followers (mono) */
+function SocialInput({ platform, handle, followers, onHandle, onFollowers }: {
+  platform: string
+  handle: string
+  followers?: string
+  onHandle: (v: string) => void
+  onFollowers?: (v: string) => void
+}) {
+  return (
+    <div style={{
+      display: 'flex', border: '1px solid var(--line-strong)', borderRadius: 'var(--radius-sm)',
+      overflow: 'hidden', height: 42, background: 'var(--surface)',
+    }}>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 7, padding: '0 12px',
+        background: 'var(--surface-2)', borderRight: '1px solid var(--line)',
+        minWidth: 104, flexShrink: 0,
+      }}>
+        <span style={{
+          width: 20, height: 20, borderRadius: 6, background: 'var(--accent-tint)',
+          color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center',
+          justifyContent: 'center', fontSize: 10, fontWeight: 600,
+        }}>{platform.slice(0, 2).toUpperCase()}</span>
+        <span style={{ fontSize: 13, fontWeight: 530 }}>{platform}</span>
+      </div>
+      <input placeholder="@handle" value={handle} onChange={e => onHandle(e.target.value)}
+        style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 14, fontFamily: 'var(--font-body)', minWidth: 0 }} />
+      {onFollowers && (
+        <input placeholder="Followers" value={followers} onChange={e => onFollowers(e.target.value)}
+          inputMode="numeric"
+          style={{ width: 88, border: 'none', borderLeft: '1px solid var(--line)', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 13, fontFamily: 'var(--font-mono)' }} />
+      )}
+    </div>
+  )
+}
 
 function SignupForm() {
   const router = useRouter()
@@ -22,7 +79,7 @@ function SignupForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const isBrand = role === 'brand'
 
-  // Creator onboarding fields
+  // Creator onboarding fields (single niche — matches our schema)
   const [niche, setNiche] = useState<CreatorNiche | ''>('')
   const [handles, setHandles] = useState<Record<SocialPlatform, { handle: string; followers: string }>>({
     instagram: { handle: '', followers: '' },
@@ -33,7 +90,7 @@ function SignupForm() {
   // Brand onboarding fields
   const [industry, setIndustry] = useState('')
   const [website, setWebsite] = useState('')
-  const [socialUrl, setSocialUrl] = useState('')
+  const [brandSocial, setBrandSocial] = useState('') // Instagram handle → social_url
 
   function setHandle(p: SocialPlatform, field: 'handle' | 'followers', val: string) {
     setHandles(prev => ({ ...prev, [p]: { ...prev[p], [field]: val } }))
@@ -47,14 +104,18 @@ function SignupForm() {
     let payload: Record<string, unknown> = { email, password, name, role }
     if (isBrand) {
       if (!industry) { toast.error('Pick your industry'); return }
-      if (!website.trim() && !socialUrl.trim()) {
-        toast.error('Add a website or a social account link'); return
+      const socialHandle = normalizeHandle(brandSocial)
+      const socialUrl = socialHandle ? `https://instagram.com/${socialHandle}` : null
+      if (!website.trim() && !socialUrl) {
+        toast.error('Add a website or a brand social'); return
       }
       payload = {
         ...payload,
         industry,
-        website: website.trim() || null,
-        social_url: socialUrl.trim() || null,
+        website: website.trim()
+          ? (website.trim().startsWith('http') ? website.trim() : `https://${website.trim()}`)
+          : null,
+        social_url: socialUrl,
       }
     } else {
       if (!niche) { toast.error('Pick your niche'); return }
@@ -86,305 +147,124 @@ function SignupForm() {
     }
     router.push('/dashboard')
     router.refresh()
-    // status stays 'success' — component unmounts when dashboard loads
   }
 
-  const brandBullets = [
-    'Free to post during beta — you pay only your creator’s rate',
-    'Your money stays in escrow until you confirm',
-    'Pick from real, vetted creators',
-  ]
-  const creatorBullets = [
-    'Free to join — a 12% platform fee applies only when you get paid',
-    'Get paid automatically once you post',
-    'Only campaigns that fit your niche',
-  ]
+  const busy = status !== 'idle'
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      background: 'var(--paper)',
-    }}>
-      {/* Left branded rail — graphite, role marked by accent only */}
-      <div style={{
-        width: 400, flexShrink: 0,
-        padding: '48px 40px',
-        background: 'linear-gradient(165deg, #16171D, #101116)',
-        color: '#fff',
-        display: 'flex', flexDirection: 'column',
-        position: 'relative', overflow: 'hidden',
-      }}
-        className="sidebar-desktop"
-      >
-        {/* Big letter watermark */}
-        <div style={{
-          position: 'absolute', top: '-6%', right: '-8%',
-          fontFamily: 'var(--font-display)', fontWeight: 800,
-          fontSize: 300, lineHeight: .8,
-          color: 'rgba(255,255,255,.04)',
-          pointerEvents: 'none', userSelect: 'none',
-        }}>{isBrand ? 'B' : 'C'}</div>
+    <AuthShell>
+      <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Create your account</h1>
+      <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 22 }}>
+        {isBrand ? 'Post a campaign and find the right creators.' : 'Set up your studio and start earning.'}
+      </p>
 
-        <Link href="/" style={{
-          fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19,
-          letterSpacing: '-0.03em',
-          color: '#fff',
-          position: 'relative',
-        }}>
-          collabr<span style={{ color: '#9DB3F0' }}>.</span>
-        </Link>
-
-        <div style={{ marginTop: 'auto', position: 'relative' }}>
-          <span className="badge" style={{
-            background: 'rgba(255,255,255,.1)',
-            color: '#9DB3F0',
-            border: '1px solid rgba(255,255,255,.12)',
-            marginBottom: 20,
+      {/* role toggle */}
+      <div style={{ display: 'flex', background: 'var(--paper-2)', padding: 4, borderRadius: 'var(--radius)', gap: 3, marginBottom: 26 }}>
+        {([['creator', "I'm a creator", Star], ['brand', "I'm a brand", Megaphone]] as const).map(([r, lbl, Ic]) => (
+          <button key={r} type="button" onClick={() => setRole(r)} style={{
+            flex: 1, height: 44, border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 540,
+            background: role === r ? 'var(--surface)' : 'transparent',
+            color: role === r ? 'var(--ink)' : 'var(--ink-faint-solid)',
+            boxShadow: role === r ? 'var(--shadow-sm)' : 'none', transition: 'all .15s',
           }}>
-            {isBrand ? 'Brand account' : 'Creator account'}
-          </span>
-          <h2 style={{
-            fontSize: 28, color: '#fff',
-            lineHeight: 1.15, marginBottom: 24, fontWeight: 600,
-            letterSpacing: '-0.02em',
-          }}>
-            {isBrand
-              ? "Let's get your first campaign live."
-              : "Let's start earning from your content."}
-          </h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 13 }}>
-            {(isBrand ? brandBullets : creatorBullets).map(t => (
-              <div key={t} style={{
-                display: 'flex', alignItems: 'flex-start', gap: 10,
-                fontSize: 13.5,
-                color: 'rgba(255,255,255,.75)',
-              }}>
-                <ShieldCheck size={16} style={{
-                  flexShrink: 0, marginTop: 1,
-                  color: '#6FCFB2', /* escrow green = money is safe */
-                }} />
-                {t}
-              </div>
-            ))}
-          </div>
-        </div>
+            <Ic size={16} /> {lbl}
+          </button>
+        ))}
       </div>
 
-      {/* Right form */}
-      <div style={{
-        flex: 1, minWidth: 0,
-        display: 'grid', placeItems: 'start center',
-        padding: '48px 32px 64px',
-        overflowY: 'auto',
-      }}>
-        <div style={{ width: '100%', maxWidth: 460 }}>
-          {/* Role toggle */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 10 }}>
-              I am a…
-            </div>
-            <div style={{
-              display: 'inline-flex',
-              background: 'var(--paper-2)',
-              borderRadius: 'var(--radius-pill)',
-              padding: 4, gap: 4,
-            }}>
-              {(['creator', 'brand'] as const).map(r => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  style={{
-                    border: 0,
-                    background: role === r ? 'var(--surface)' : 'transparent',
-                    color: role === r ? 'var(--ink)' : 'var(--ink-soft)',
-                    fontWeight: 600, fontSize: 14,
-                    padding: '8px 20px',
-                    borderRadius: 'var(--radius-pill)',
-                    cursor: 'pointer',
-                    boxShadow: role === r ? 'var(--shadow-sm)' : 'none',
-                    transition: 'all .15s ease',
-                  }}
-                >
-                  {r === 'creator' ? "I'm a creator" : "I'm a brand"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <h2 style={{ fontSize: 26, marginBottom: 6 }}>Create your account</h2>
-          <p style={{ color: 'var(--ink-soft)', fontSize: 15, marginBottom: 28 }}>
-            {isBrand ? 'Tell us about your business.' : 'Tell us about you and your channels.'}
-          </p>
-
-          <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-            <div>
-              <label className="label">{isBrand ? 'Company name' : 'Your name'}</label>
-              <input
-                className="input"
-                value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder={isBrand ? 'Glow Works Pte Ltd' : 'Sara Reyes'}
-                required
-              />
-            </div>
-            <div>
-              <label className="label">Email</label>
-              <input
-                className="input"
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div>
-              <label className="label">Password</label>
-              <input
-                className="input"
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                minLength={8}
-                required
-                autoComplete="new-password"
-              />
-            </div>
-
-            {isBrand ? (
-              <>
-                <div>
-                  <label className="label">Industry</label>
-                  <select
-                    className="input"
-                    value={industry}
-                    onChange={e => setIndustry(e.target.value)}
-                    required
-                  >
+      <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        {isBrand ? (
+          <>
+            <Field label="Company name">
+              <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Glow Works Pte Ltd" required disabled={busy} />
+            </Field>
+            <Field label="Work email">
+              <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" required disabled={busy} autoComplete="email" />
+            </Field>
+            <Field label="Password" hint="At least 8 characters.">
+              <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
+            </Field>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 170 }}>
+                <Field label="Industry">
+                  <select className="input" value={industry} onChange={e => setIndustry(e.target.value)} required disabled={busy}>
                     <option value="">Select industry</option>
-                    {BRAND_INDUSTRIES.map(i => (
-                      <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>
-                    ))}
+                    {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
                   </select>
-                </div>
-                <div>
-                  <label className="label">Website</label>
-                  <input
-                    className="input"
-                    type="url"
-                    value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    placeholder="https://yourcompany.com"
-                  />
-                </div>
-                <div>
-                  <label className="label">Social account link</label>
-                  <input
-                    className="input"
-                    type="url"
-                    value={socialUrl}
-                    onChange={e => setSocialUrl(e.target.value)}
-                    placeholder="https://instagram.com/yourbrand"
-                  />
-                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 6 }}>
-                    A website or a social account is required
-                  </p>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label className="label">Your niche</label>
-                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
-                    Pick your main niche — we use this to match you
-                  </p>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {CREATOR_NICHES.map(n => (
-                      <button
-                        key={n}
-                        type="button"
-                        onClick={() => setNiche(n)}
-                        className={`chip${niche === n ? ' on' : ''}`}
-                      >
-                        {NICHE_LABELS[n]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="label">Social accounts</label>
-                  <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 10 }}>
-                    Connect at least one — this is what brands see
-                  </p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {SOCIAL_PLATFORMS.map(p => (
-                      <div key={p} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                        <input
-                          className="input"
-                          value={handles[p].handle}
-                          onChange={e => setHandle(p, 'handle', e.target.value)}
-                          placeholder={`${p} @handle`}
-                        />
-                        <input
-                          className="input"
-                          type="number"
-                          min="0"
-                          value={handles[p].followers}
-                          onChange={e => setHandle(p, 'followers', e.target.value)}
-                          placeholder="Followers (optional)"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+                </Field>
+              </div>
+              <div style={{ flex: 1, minWidth: 170 }}>
+                <Field label="Website" optional>
+                  <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com" disabled={busy} />
+                </Field>
+              </div>
+            </div>
+            <Field label="Brand social" optional hint="Helps creators trust you faster. A website or a social is required.">
+              <SocialInput platform="Instagram" handle={brandSocial} onHandle={setBrandSocial} />
+            </Field>
+          </>
+        ) : (
+          <>
+            <Field label="Full name">
+              <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Grace Lim" required disabled={busy} />
+            </Field>
+            <Field label="Email">
+              <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required disabled={busy} autoComplete="email" />
+            </Field>
+            <Field label="Password" hint="At least 8 characters.">
+              <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
+            </Field>
+            <Field label="Your niche" hint="Pick what you make — we match you to the right campaigns.">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {CREATOR_NICHES.map(n => (
+                  <button key={n} type="button" onClick={() => setNiche(n)} className={`chip${niche === n ? ' on' : ''}`}>
+                    {NICHE_LABELS[n]}
+                  </button>
+                ))}
+              </div>
+            </Field>
+            <Field label="Connect your socials" hint="Add at least one — this is what brands see.">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {SOCIAL_PLATFORMS.map(p => (
+                  <SocialInput key={p} platform={PLATFORM_LABEL[p]}
+                    handle={handles[p].handle} followers={handles[p].followers}
+                    onHandle={v => setHandle(p, 'handle', v)}
+                    onFollowers={v => setHandle(p, 'followers', v)} />
+                ))}
+              </div>
+            </Field>
+          </>
+        )}
 
-            <label style={{
-              display: 'flex', gap: 10, alignItems: 'flex-start',
-              cursor: 'pointer', fontSize: 13.5, color: 'var(--ink-soft)',
-            }}>
-              <input
-                type="checkbox"
-                checked={agree}
-                onChange={e => setAgree(e.target.checked)}
-                style={{ width: 17, height: 17, marginTop: 2, accentColor: 'var(--accent)', flexShrink: 0 }}
-              />
-              <span>
-                I agree to collabr&apos;s terms and understand payments are protected by escrow.
-                A 12% platform fee applies to creator payouts. We&apos;ll give 30 days&apos; notice before any pricing changes.
-              </span>
-            </label>
+        <label style={{ display: 'flex', gap: 10, alignItems: 'flex-start', cursor: 'pointer' }}>
+          <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}
+            style={{ width: 17, height: 17, marginTop: 1, accentColor: 'var(--accent)', flexShrink: 0 }} />
+          <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+            I agree to collabr&rsquo;s terms.{' '}
+            {isBrand
+              ? 'Payments are protected by escrow; you fund a collab only when you accept a creator.'
+              : 'A 12% platform fee applies to payouts.'}
+          </span>
+        </label>
 
-            <button
-              type="submit"
-              className="btn btn-primary btn-block btn-lg"
-              disabled={status !== 'idle' || !agree}
-              style={{ marginTop: 4, gap: 8 }}
-            >
-              {status === 'success' ? (
-                <><Loader2 size={17} className="animate-spin" /> Taking you to dashboard…</>
-              ) : status === 'loading' ? (
-                <><Loader2 size={17} className="animate-spin" /> Creating account…</>
-              ) : (
-                <><span>Create {isBrand ? 'brand' : 'creator'} account</span><ArrowRight size={17} /></>
-              )}
-            </button>
+        <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy || !agree}>
+          {status === 'success' ? (
+            <><Loader2 size={17} className="animate-spin" /> Taking you in…</>
+          ) : status === 'loading' ? (
+            <><Loader2 size={17} className="animate-spin" /> Creating account…</>
+          ) : (
+            <>Create {role} account <ArrowRight size={17} /></>
+          )}
+        </button>
+      </form>
 
-            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-              Already have an account?{' '}
-              <Link href="/login" style={{ color: 'var(--accent-deep)', fontWeight: 600 }}>
-                Log in
-              </Link>
-            </p>
-          </form>
-        </div>
-      </div>
-    </div>
+      <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
+        Already have an account?{' '}
+        <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 530 }}>Sign in</Link>
+      </p>
+    </AuthShell>
   )
 }
 

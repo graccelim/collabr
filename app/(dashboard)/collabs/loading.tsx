@@ -1,6 +1,6 @@
 export default function CollabsLoading() {
   return (
-    <div style={{ maxWidth: 720 }}>
+    <div style={{ maxWidth: 780, margin: '0 auto' }}>
       <div className="skel" style={{ width: 110, height: 24, borderRadius: 6, marginBottom: 28 }} />
       <div className="skel" style={{ width: 80, height: 12, borderRadius: 4, marginBottom: 12 }} />
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

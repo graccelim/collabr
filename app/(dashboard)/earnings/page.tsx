@@ -30,7 +30,7 @@ export default async function EarningsPage({
   const connectRefresh = searchParams.connect === 'refresh'
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Earnings</h1>
 
       <div className="grid grid-cols-2 gap-4">

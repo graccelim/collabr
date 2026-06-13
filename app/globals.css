@@ -432,6 +432,24 @@
 }
 
 /* ============================================================
+   AUTH SHELL — dark brand rail (hidden on mobile)
+   ============================================================ */
+.auth-rail {
+  width: 44%;
+  max-width: 600px;
+  flex: 0 0 auto;
+  background: var(--brand);
+  color: var(--brand-ink);
+  padding: 44px 52px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+@media (max-width: 880px) {
+  .auth-rail { display: none; }
+}
+
+/* ============================================================
    SCROLLBAR
    ============================================================ */
 .scroll-y { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; }

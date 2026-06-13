@@ -1,6 +1,6 @@
 export default function JobsLoading() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 880, margin: '0 auto' }}>
       <div>
         <div className="skel" style={{ width: 230, height: 26, borderRadius: 6 }} />
         <div className="skel" style={{ width: 170, height: 14, borderRadius: 4, marginTop: 8 }} />

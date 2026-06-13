@@ -100,7 +100,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   const canDispute = ['draft_submitted', 'in_revision', 'draft_approved', 'live_submitted'].includes(collab.status)
 
   return (
-    <div style={{ maxWidth: 960 }}>
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
       {/* ── Deal header ───────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16, flexWrap: 'wrap' }}>

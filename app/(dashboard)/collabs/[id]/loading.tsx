@@ -1,6 +1,6 @@
 export default function CollabDetailLoading() {
   return (
-    <div style={{ maxWidth: 960 }}>
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
       {/* Deal header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>

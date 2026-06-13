@@ -1,6 +1,6 @@
 export default function ApplicationsLoading() {
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="skel" style={{ width: 150, height: 22, borderRadius: 6 }} />
       <div className="skel" style={{ width: 80, height: 13, borderRadius: 4 }} />
       <div className="space-y-2">

@@ -101,7 +101,7 @@ export default async function CollabsPage() {
   }
 
   return (
-    <div style={{ maxWidth: 780 }}>
+    <div style={{ maxWidth: 780, margin: '0 auto' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em' }}>Collaborations</h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8 }}>

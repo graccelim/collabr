@@ -41,7 +41,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   const plan = resolvePlan(brand)
   if (!plan.isPro) {
     return (
-      <div className="max-w-4xl space-y-5">
+      <div className="max-w-4xl mx-auto space-y-5">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Browse creators</h1>
         </div>
@@ -162,7 +162,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   }
 
   return (
-    <div className="max-w-4xl space-y-5">
+    <div className="max-w-4xl mx-auto space-y-5">
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Browse creators</h1>
         <p className="text-sm text-gray-500 mt-0.5">

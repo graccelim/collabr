@@ -14,7 +14,7 @@ export default async function JobsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 28, maxWidth: 880, margin: '0 auto' }}>
       {/* Header */}
       <div>
         <h1 style={{ fontSize: 28 }}>Browse campaigns</h1>
