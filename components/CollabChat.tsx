@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { Send, ShieldAlert, Lock } from 'lucide-react'
+import { Send, Lock } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 
 interface Message {
@@ -62,14 +62,17 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
       setSending(false)
       return
     }
+    if (data.blocked) {
+      // Not delivered — contact info detected. Keep the draft so they can edit.
+      toast.error(
+        "Not sent — phone numbers, emails and handles can't be shared in chat. Keep deals on collabr so escrow protects you.",
+        { duration: 6000 },
+      )
+      setSending(false)
+      return
+    }
     setMessages(m => [...m, data.message])
     setDraft('')
-    if (data.flagged) {
-      toast(
-        'Heads up — sharing contact details or moving off collabr may get your account reviewed. Escrow only protects on-platform deals.',
-        { icon: '⚠️', duration: 6000 },
-      )
-    }
     setSending(false)
   }
 
@@ -113,16 +116,9 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
                 }}>
                   {m.body}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {m.flagged && (
-                    <span className="micro" style={{ color: 'var(--warn)', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <ShieldAlert size={11} /> Flagged for review
-                    </span>
-                  )}
-                  <span className="micro">
-                    {mine ? 'You' : getInitials(counterpartName)} · {new Date(m.created_at).toLocaleTimeString('en-SG', { hour: 'numeric', minute: '2-digit' })}
-                  </span>
-                </div>
+                <span className="micro">
+                  {mine ? 'You' : getInitials(counterpartName)} · {new Date(m.created_at).toLocaleTimeString('en-SG', { hour: 'numeric', minute: '2-digit' })}
+                </span>
               </div>
             )
           })
@@ -150,7 +146,7 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
           </button>
         </div>
         <p className="micro" style={{ lineHeight: 1.4 }}>
-          Keep deals on collabr — escrow only protects on-platform payments. Sharing phone numbers, emails or handles is flagged for review.
+          Keep deals on collabr — escrow only protects on-platform payments. Phone numbers, emails and handles can&rsquo;t be sent here.
         </p>
       </form>
     </div>

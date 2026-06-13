@@ -25,9 +25,12 @@ export async function GET(_req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // Flagged messages are never delivered to the thread — they're held in the
+  // moderation queue only, so contact info never reaches the other party.
   const { data: messages } = await supabase.from('collab_messages')
     .select('id, sender_id, body, flagged, flag_reasons, created_at')
     .eq('collab_id', params.id)
+    .eq('flagged', false)
     .order('created_at', { ascending: true })
 
   return NextResponse.json({ messages: messages || [] })
@@ -51,7 +54,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { flagged, reasons } = detectContactInfo(body)
 
   // Insert via admin client: collab_messages has no client insert policy by
-  // design, keeping the moderation columns server-controlled.
+  // design, keeping the moderation columns server-controlled. Flagged messages
+  // are stored (for the admin review queue) but NOT delivered to the thread —
+  // the sender is told it wasn't sent, so contact info never reaches the other
+  // party. Only clean messages are returned to the chat.
   const { data: message, error } = await createAdminClient().from('collab_messages')
     .insert({ collab_id: params.id, sender_id: user.id, body, flagged, flag_reasons: reasons })
     .select('id, sender_id, body, flagged, flag_reasons, created_at')
@@ -59,5 +65,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ message, flagged, reasons })
+  if (flagged) return NextResponse.json({ blocked: true, reasons })
+  return NextResponse.json({ message })
 }
