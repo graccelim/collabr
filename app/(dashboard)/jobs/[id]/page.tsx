@@ -6,7 +6,6 @@ import { computeFit, bestFollowers } from '@/lib/fit'
 import Link from 'next/link'
 import { ChevronLeft, Shield, CheckCircle2 } from 'lucide-react'
 import ApplyForm from '@/components/ApplyForm'
-import EmptyState from '@/components/EmptyState'
 
 function nicheLabel(tag: string): string {
   return NICHE_LABELS[tag as CreatorNiche] ?? tag
@@ -157,31 +156,38 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             </div>
           </div>
 
-          {/* Apply or sent state */}
-          {existing ? (
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-              <EmptyState
-                icon={CheckCircle2}
-                tone="money"
-                title={
-                  existing.status === 'selected'
-                    ? 'You were selected!'
-                    : existing.status === 'shortlisted'
-                      ? 'You’ve been shortlisted'
-                      : `Application sent to ${brandName}`
-                }
-                body={
-                  existing.status === 'selected'
-                    ? 'A collab has been created. Once the brand funds escrow, you can start on the draft.'
-                    : existing.status === 'shortlisted'
-                      ? 'The brand is interested. You’ll be notified the moment you’re selected.'
-                      : 'Your full profile went with it. Most brands reply within 36 hours — you’ll be notified the moment they do.'
-                }
-                actionHref={existing.status === 'selected' ? '/collabs' : '/applications'}
-                actionLabel={existing.status === 'selected' ? 'View your collab' : 'Track applications'}
-              />
-            </div>
-          ) : (
+          {/* Apply or sent state — compact status card (not a full-page medallion) */}
+          {existing ? (() => {
+            const selected = existing.status === 'selected'
+            const shortlisted = existing.status === 'shortlisted'
+            const tone = selected ? 'money' : 'accent'
+            const tile = tone === 'money' ? 'var(--money-tint)' : 'var(--accent-tint)'
+            const ink = tone === 'money' ? 'var(--money)' : 'var(--accent-deep)'
+            const title = selected ? 'You were selected!' : shortlisted ? 'You’re shortlisted' : `Application sent to ${brandName}`
+            const body = selected
+              ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
+              : shortlisted
+                ? 'The brand is interested — you’ll be notified the moment you’re selected.'
+                : 'Most brands reply within 36 hours. We’ll notify you the moment they do.'
+            return (
+              <div className="card" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <span style={{ width: 42, height: 42, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: tile, color: ink, display: 'grid', placeItems: 'center' }}>
+                  <CheckCircle2 size={22} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 16, fontWeight: 600, color: 'var(--ink)' }}>{title}</div>
+                  <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>{body}</p>
+                  <Link
+                    href={selected ? '/collabs' : '/applications'}
+                    className={selected ? 'btn-money btn-sm' : 'btn-secondary btn-sm'}
+                    style={{ marginTop: 14 }}
+                  >
+                    {selected ? 'View your collab' : 'Track applications'}
+                  </Link>
+                </div>
+              </div>
+            )
+          })() : (
             <ApplyForm campaignId={params.id} creatorId={creator!.id} isPaid={isPaid} brandName={brandName} />
           )}
         </div>

@@ -72,6 +72,11 @@
   --accent-ink:   #FFFFFF;
   /* legible accent on dark/navy surfaces (navy is too dark to read there) */
   --accent-on-dark: #9CA2D6;
+  /* fit/match — a bright, friendly violet, distinct from navy accent and the
+     reserved escrow green. Used for "% match" pills only. */
+  --match:      #5B53E0;
+  --match-soft: #ECEBFC;
+  --match-ink:  #3F38B5;
 
   /* shape */
   --radius:      14px;
@@ -262,6 +267,7 @@
     white-space: nowrap; line-height: 1.4;
   }
   .badge-accent  { background: var(--accent-tint);  color: var(--accent-deep); }
+  .badge-match   { background: var(--match-soft);   color: var(--match-ink); }
   .badge-money   { background: var(--money-tint);   color: var(--money-deep); }
   .badge-pending { background: var(--pending-tint); color: var(--pending); }
   .badge-danger  { background: var(--danger-tint);  color: var(--danger); }

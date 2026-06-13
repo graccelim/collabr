@@ -7,7 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion'
 import { computeFit, bestFollowers } from '@/lib/fit'
 import EmptyState from '@/components/EmptyState'
-import { ArrowRight, Megaphone, Compass, Mail, Send } from 'lucide-react'
+import { ArrowRight, Megaphone, Compass, Mail, Send, Sparkles } from 'lucide-react'
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
 // one attention row, a quiet hairline list, a profile-completion nudge.
@@ -485,7 +485,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
                     <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.brand} · <span className="mono-num">{m.pay}</span></span>
                   </span>
                 </span>
-                <span className="badge badge-accent" style={{ flexShrink: 0 }}>{m.pct}% match</span>
+                <span className="badge badge-match" style={{ flexShrink: 0, gap: 4 }}><Sparkles size={11} /> {m.pct}% match</span>
               </Link>
             ))}
           </div>

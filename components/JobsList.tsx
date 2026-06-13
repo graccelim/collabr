@@ -114,7 +114,7 @@ export default function JobsList({
             <Link
               key={c.id}
               href={`/jobs/${c.id}`}
-              className="card card-hover"
+              className="card hover-lift"
               style={{
                 padding: 20,
                 textDecoration: 'none',
@@ -127,9 +127,10 @@ export default function JobsList({
                   {/* Brand avatar */}
                   <div style={{
                     width: 46, height: 46, borderRadius: 'var(--radius-sm)',
-                    background: 'var(--paper-2)', border: '1px solid var(--line)',
+                    background: 'linear-gradient(140deg, var(--accent-tint), color-mix(in srgb, var(--accent) 16%, #fff))',
+                    boxShadow: 'inset 0 0 0 1px var(--line)',
                     display: 'grid', placeItems: 'center', flexShrink: 0, overflow: 'hidden',
-                    fontSize: 14, fontWeight: 700, color: 'var(--ink-soft)',
+                    fontSize: 14, fontWeight: 700, color: 'var(--accent-deep)',
                   }}>
                     {c.brand_logo
                       ? <img src={c.brand_logo} alt={c.brand_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -153,13 +154,8 @@ export default function JobsList({
                     )}
                   </div>
                 </div>
-                {/* Match pill */}
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                  padding: '4px 9px', borderRadius: 'var(--radius-pill)',
-                  background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                  fontSize: 12, fontWeight: 600,
-                }}>
+                {/* Match pill — bright violet, distinct from the navy accent */}
+                <span className="badge badge-match" style={{ flexShrink: 0, gap: 5 }}>
                   <Sparkles size={12} />
                   {fit.pct}% match
                 </span>

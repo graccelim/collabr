@@ -18,11 +18,26 @@ export interface CollabRowData {
 }
 
 const FILTERS = [
-  { key: 'all', label: 'All' },
-  { key: 'needs', label: 'Needs you' },
-  { key: 'progress', label: 'In progress' },
-  { key: 'completed', label: 'Completed' },
+  { key: 'all', label: 'All', dot: null, softBg: 'var(--ink)', softFg: '#fff' },
+  { key: 'needs', label: 'Needs you', dot: 'var(--warn)', softBg: 'var(--warn-tint)', softFg: 'var(--warn-deep)' },
+  { key: 'progress', label: 'In progress', dot: 'var(--accent)', softBg: 'var(--accent-tint)', softFg: 'var(--accent-deep)' },
+  { key: 'completed', label: 'Completed', dot: 'var(--money)', softBg: 'var(--money-tint)', softFg: 'var(--money-deep)' },
 ] as const
+
+// 5-step escrow as cute rounded segments — green where money-secured steps are
+// cleared, grey ahead. Friendlier than a single progress bar.
+function MiniSteps({ step }: { step: number }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center' }}>
+      {[0, 1, 2, 3, 4].map(i => (
+        <span key={i} style={{
+          width: 10, height: 5, borderRadius: 99,
+          background: i < step ? 'var(--money)' : 'var(--surface-3, #E1E4EA)',
+        }} />
+      ))}
+    </span>
+  )
+}
 
 /**
  * Collabs list with the prototype's status-filter chips (All / Needs you /
@@ -37,11 +52,24 @@ export default function CollabsList({ rows }: { rows: CollabRowData[] }) {
   return (
     <>
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-        {FILTERS.map(f => (
-          <button key={f.key} type="button" onClick={() => setFilter(f.key)} className={`chip${filter === f.key ? ' on' : ''}`}>
-            {f.label}{f.key !== 'all' || rows.length ? ` · ${count(f.key)}` : ''}
-          </button>
-        ))}
+        {FILTERS.map(f => {
+          const on = filter === f.key
+          return (
+            <button key={f.key} type="button" onClick={() => setFilter(f.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                height: 32, padding: '0 13px', borderRadius: 999, cursor: 'pointer',
+                fontSize: 13, fontWeight: 540, fontFamily: 'var(--font-body)',
+                background: on ? f.softBg : 'var(--surface)',
+                color: on ? f.softFg : 'var(--ink-soft)',
+                border: `1px solid ${on ? 'transparent' : 'var(--line-strong)'}`,
+                transition: 'all .14s ease',
+              }}>
+              {f.dot && <span style={{ width: 7, height: 7, borderRadius: 99, background: f.dot, flexShrink: 0 }} />}
+              {f.label} · {count(f.key)}
+            </button>
+          )
+        })}
       </div>
 
       <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -65,8 +93,8 @@ export default function CollabsList({ rows }: { rows: CollabRowData[] }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 7 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9 }} title={`Escrow step ${r.step} of 5`}>
-                  <div className="mini-escrow-track"><div className="mini-escrow-fill" style={{ width: `${(r.step / 5) * 100}%` }} /></div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={`Escrow step ${r.step} of 5`}>
+                  <MiniSteps step={r.step} />
                   <span className="mono-num" style={{ fontSize: 11, color: 'var(--ink-faint-solid)', letterSpacing: '0.02em' }}>{r.step}/5</span>
                 </div>
                 <span style={{ fontSize: 12.5, fontWeight: 500, color: r.statusColor }}>{r.statusLabel}</span>

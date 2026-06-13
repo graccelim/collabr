@@ -104,7 +104,14 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
           )}
         </IconButton>
 
-        <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
+        {/* CTA — brands keep "Post a campaign" everywhere; creators' "Find
+            campaigns" is redundant with the Browse tab on mobile, so hide it
+            there to declutter next to the account avatar. */}
+        <motion.div
+          className={isBrand ? '' : 'hidden md:block'}
+          whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
           <Link href={ctaHref} className="btn-primary" style={{ height: 38, paddingInline: 16 }}>
             <CtaIcon size={16} />
             <span className="hidden sm:inline">{ctaLabel}</span>
