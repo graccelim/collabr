@@ -1,5 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, getUserRow } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow'
@@ -9,7 +9,7 @@ import { ChevronRight, Briefcase } from 'lucide-react'
 export default async function CollabsPage() {
   const user = await requireAuth()
   const supabase = createClient()
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  const profile = await getUserRow()
 
   const isBrand = profile?.role === 'brand'
 

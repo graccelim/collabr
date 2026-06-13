@@ -1,29 +1,48 @@
+import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
-export async function requireAuth() {
+// ── Per-request memoized auth + profile ──────────────────────────────────────
+// `supabase.auth.getUser()` is a NETWORK round-trip to the auth server (it
+// re-validates the JWT), and the same goes for the `users` profile read. Both
+// were being repeated several times per request — middleware, the dashboard
+// layout, each page's role guard, and again inside pages. React `cache()`
+// dedupes them to a single call per request render, so the layout, guards and
+// page all share one getUser + one profile fetch.
+
+export const getAuthUser = cache(async () => {
   const supabase = createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) redirect('/login')
+  const { data: { user } } = await supabase.auth.getUser()
+  return user
+})
+
+/** The signed-in user's `users` row (role, display_name, email, …) — memoized. */
+export const getUserRow = cache(async () => {
+  const user = await getAuthUser()
+  if (!user) return null
+  const supabase = createClient()
+  const { data } = await supabase.from('users').select('*').eq('id', user.id).single()
+  return data
+})
+
+export async function requireAuth() {
+  const user = await getAuthUser()
+  if (!user) redirect('/login')
   return user
 }
 
 export async function requireBrand() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/login')
-  const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+  const profile = await getUserRow()
   if (profile?.role !== 'brand') redirect('/dashboard')
   return user
 }
 
 export async function requireCreator() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getAuthUser()
   if (!user) redirect('/login')
-  const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+  const profile = await getUserRow()
   if (profile?.role !== 'creator') redirect('/dashboard')
   return user
 }

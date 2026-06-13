@@ -1,5 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, getUserRow } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD, relativeTime, getInitials } from '@/lib/utils'
 import InviteActions from '@/components/InviteActions'
@@ -16,7 +16,7 @@ const STATUS_BADGE: Record<string, string> = {
 export default async function InvitesPage() {
   const user = await requireAuth()
   const supabase = createClient()
-  const { data: account } = await supabase.from('users').select('role').eq('id', user.id).single()
+  const account = await getUserRow()
   const isBrand = account?.role === 'brand'
 
   // ── Brand: invites sent ─────────────────────────────────────────────────────

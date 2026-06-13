@@ -35,9 +35,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   const user = await requireCreator()
   const supabase = createClient()
 
-  const { data: campaign } = await supabase.from('campaigns')
-    .select('*, brand_profiles(company_name, company_description, logo_url, website, social_url, industry, completed_campaigns)')
-    .eq('id', params.id).eq('status', 'active').single()
+  // Campaign (by id) and creator profile (by user.id) are independent — batch.
+  const [{ data: campaign }, { data: creator }] = await Promise.all([
+    supabase.from('campaigns')
+      .select('*, brand_profiles(company_name, company_description, logo_url, website, social_url, industry, completed_campaigns)')
+      .eq('id', params.id).eq('status', 'active').single(),
+    supabase.from('creator_profiles')
+      .select('id, niche, niches').eq('user_id', user.id).single(),
+  ])
   if (!campaign) return (
     <div className="card text-center py-10">
       <p className="text-sm text-gray-500">Campaign not found or no longer active.</p>
@@ -45,15 +50,14 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     </div>
   )
 
-  const { data: creator } = await supabase.from('creator_profiles')
-    .select('id, niche, niches').eq('user_id', user.id).single()
-
-  const { data: socials } = await supabase.from('social_accounts')
-    .select('follower_count').eq('creator_id', creator!.id)
-
-  // Check if already applied
-  const { data: existing } = await supabase.from('applications')
-    .select('id, status').eq('campaign_id', params.id).eq('creator_id', creator!.id).maybeSingle()
+  // Both depend only on creator.id (+ params.id) — batch.
+  const [{ data: socials }, { data: existing }] = await Promise.all([
+    supabase.from('social_accounts')
+      .select('follower_count').eq('creator_id', creator!.id),
+    // Check if already applied
+    supabase.from('applications')
+      .select('id, status').eq('campaign_id', params.id).eq('creator_id', creator!.id).maybeSingle(),
+  ])
 
   const brand = campaign.brand_profiles as { company_name: string | null; logo_url: string | null } | null
   const brandName = brand?.company_name || 'Brand'

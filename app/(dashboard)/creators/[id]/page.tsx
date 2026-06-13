@@ -1,5 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, getUserRow } from '@/lib/auth'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
@@ -22,15 +22,28 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
 
-  // Trust signals: connected socials + email verification status
-  const { data: socialAccounts } = await supabase.from('social_accounts')
-    .select('*').eq('creator_id', params.id)
-    .order('is_primary', { ascending: false }).order('created_at')
-  const { data: emailVerified } = await supabase
-    .rpc('user_email_verified', { p_user_id: creator.user_id })
+  // Independent reads — connected socials, email verification, brand reviews,
+  // and the memoized current-user row — issued concurrently.
+  const [
+    { data: socialAccounts },
+    { data: emailVerified },
+    { data: brandReviews },
+    viewer,
+  ] = await Promise.all([
+    supabase.from('social_accounts')
+      .select('*').eq('creator_id', params.id)
+      .order('is_primary', { ascending: false }).order('created_at'),
+    supabase.rpc('user_email_verified', { p_user_id: creator.user_id }),
+    supabase.from('reviews')
+      .select('*, collabs!inner(id, creator_id, campaigns(title))')
+      .eq('reviewer_type', 'brand')
+      .eq('collabs.creator_id', params.id)
+      .order('created_at', { ascending: false })
+      .limit(10),
+    getUserRow(),
+  ])
 
   // Brand viewer: saved state + invitable campaigns (active, paid).
-  const { data: viewer } = await supabase.from('users').select('role').eq('id', user.id).single()
   const isBrandViewer = viewer?.role === 'brand'
   let isSaved = false
   let viewerIsPro = false
@@ -57,13 +70,6 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         .map(i => i.campaign_id).filter((id): id is string => Boolean(id))
     }
   }
-
-  const { data: brandReviews } = await supabase.from('reviews')
-    .select('*, collabs!inner(id, creator_id, campaigns(title))')
-    .eq('reviewer_type', 'brand')
-    .eq('collabs.creator_id', params.id)
-    .order('created_at', { ascending: false })
-    .limit(10)
 
   const name = (creator.users as any)?.display_name || 'Creator'
   const avatar = (creator.users as any)?.avatar_url

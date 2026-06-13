@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { getAuthUser, getUserRow } from '@/lib/auth'
 import Link from 'next/link'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { deriveWorkflow, actorLabel } from '@/lib/workflow'
@@ -95,10 +96,10 @@ function CompletionNudge({ href, label, done, total }: { href: string; label: st
 }
 
 export default async function DashboardPage() {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Memoized — reuses the layout's getUser + profile read (no extra round-trips).
+  const user = await getAuthUser()
   if (!user) redirect('/login')
-  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
+  const profile = await getUserRow()
   if (!profile) redirect('/signup')
 
   if (profile.role === 'brand') return <BrandDashboard userId={user.id} />
@@ -122,14 +123,15 @@ async function BrandDashboard({ userId }: { userId: string }) {
     />
   )
 
-  const { data: campaigns } = await supabase.from('campaigns')
-    .select('id, status').eq('brand_id', brand.id)
-  // Admin client: creator display identity is RLS own-row-only for session
-  // clients; scoped to this brand's own collabs.
-  const { data: collabs } = await createAdminClient().from('collabs')
-    .select('*, campaigns(title), creator_profiles(users(display_name))')
-    .eq('brand_id', brand.id).neq('status', 'completed').neq('status', 'cancelled')
-    .order('created_at', { ascending: false }).limit(6)
+  // Independent reads — run concurrently. Admin client: creator display
+  // identity is RLS own-row-only for session clients; scoped to this brand.
+  const [{ data: campaigns }, { data: collabs }] = await Promise.all([
+    supabase.from('campaigns').select('id, status').eq('brand_id', brand.id),
+    createAdminClient().from('collabs')
+      .select('*, campaigns(title), creator_profiles(users(display_name))')
+      .eq('brand_id', brand.id).neq('status', 'completed').neq('status', 'cancelled')
+      .order('created_at', { ascending: false }).limit(6),
+  ])
 
   const pendingReview = collabs?.filter(c => c.status === 'draft_submitted').length || 0
   const liveToConfirm = collabs?.filter(c => c.status === 'live_submitted').length || 0
@@ -232,27 +234,35 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
     />
   )
 
-  const { data: collabs } = await supabase.from('collabs')
-    .select('*, campaigns(title), brand_profiles(company_name)')
-    .eq('creator_id', creator.id).neq('status', 'completed').neq('status', 'cancelled')
-    .order('created_at', { ascending: false }).limit(6)
-  const { data: socials } = await supabase.from('social_accounts')
-    .select('follower_count').eq('creator_id', creator.id)
+  // Everything below depends only on the creator id (or user id), not on each
+  // other — fetch concurrently instead of in a 5-deep waterfall. Admin client
+  // for the connect id (RLS hides it from session clients).
+  const [
+    { data: collabs },
+    { data: socials },
+    { data: connectProfile },
+    { data: invites },
+    { data: openApps },
+    { data: openCampaigns },
+  ] = await Promise.all([
+    supabase.from('collabs')
+      .select('*, campaigns(title), brand_profiles(company_name)')
+      .eq('creator_id', creator.id).neq('status', 'completed').neq('status', 'cancelled')
+      .order('created_at', { ascending: false }).limit(6),
+    supabase.from('social_accounts').select('follower_count').eq('creator_id', creator.id),
+    createAdminClient().from('creator_profiles').select('stripe_connect_id').eq('id', creator.id).single(),
+    supabase.from('campaign_invites')
+      .select('id, created_at, campaigns(title), brand_profiles(company_name)')
+      .eq('creator_id', creator.id).eq('status', 'pending')
+      .order('created_at', { ascending: false }).limit(4),
+    supabase.from('applications').select('id, campaign_id, status').eq('creator_id', creator.id).neq('status', 'rejected'),
+    supabase.from('campaigns')
+      .select('id, title, comp_type, budget_min, budget_max, niche_tags, min_followers, brand_profiles(company_name)')
+      .eq('status', 'active').order('created_at', { ascending: false }).limit(12),
+  ])
+
   const socialsCount = socials?.length || 0
-
-  // Payout nudge: only when no Stripe Connect account yet. RLS hides the
-  // connect id from session clients, so read it with the admin client.
-  const { data: connectProfile } = await createAdminClient().from('creator_profiles')
-    .select('stripe_connect_id').eq('id', creator.id).single()
   const needsPayoutSetup = !connectProfile?.stripe_connect_id
-
-  // "Happening now": real pending invites + outbound application count.
-  const { data: invites } = await supabase.from('campaign_invites')
-    .select('id, created_at, campaigns(title), brand_profiles(company_name)')
-    .eq('creator_id', creator.id).eq('status', 'pending')
-    .order('created_at', { ascending: false }).limit(4)
-  const { data: openApps } = await supabase.from('applications')
-    .select('id, campaign_id, status').eq('creator_id', creator.id).neq('status', 'rejected')
   const appliedCampaignIds = new Set((openApps || []).map(a => a.campaign_id))
   const outboundCount = (openApps || []).length
 
@@ -260,10 +270,6 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
   // ranked by a real computeFit score on niche + reach.
   const creatorFollowers = bestFollowers(socials || [])
   const creatorNiches = [creator.niche, ...((creator.niches as string[] | null) || [])]
-  const { data: openCampaigns } = await supabase.from('campaigns')
-    .select('id, title, comp_type, budget_min, budget_max, niche_tags, min_followers, brand_profiles(company_name)')
-    .eq('status', 'active')
-    .order('created_at', { ascending: false }).limit(12)
   const matched = (openCampaigns || [])
     .filter(c => !appliedCampaignIds.has(c.id))
     .map(c => {

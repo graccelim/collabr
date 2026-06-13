@@ -1,5 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { requireAuth, getUserRow } from '@/lib/auth'
 import { formatSGD, COLLAB_STATUSES, relativeTime, getInitials } from '@/lib/utils'
 import CollabActions from '@/components/CollabActions'
 import DraftSubmitForm from '@/components/DraftSubmitForm'
@@ -34,7 +34,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   const user = await requireAuth()
   const supabase = createClient()
 
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
+  const profile = await getUserRow()
   const isBrand = profile?.role === 'brand'
 
   // Admin client: counterparty display identity is RLS own-row-only for
@@ -64,7 +64,20 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   }
 
   const brandUserId = (collab.brand_profiles as any)?.user_id
-  const { data: creatorProfile } = await supabase.from('creator_profiles').select('user_id').eq('id', collab.creator_id).single()
+  const admin = createAdminClient()
+  const [
+    { data: creatorProfile },
+    { data: connectProfile },
+    { data: submissions },
+    { data: livePost },
+    { data: existingReview },
+  ] = await Promise.all([
+    supabase.from('creator_profiles').select('user_id').eq('id', collab.creator_id).single(),
+    admin.from('creator_profiles').select('stripe_connect_id').eq('id', collab.creator_id).single(),
+    supabase.from('submissions').select('*').eq('collab_id', params.id).order('version', { ascending: false }),
+    supabase.from('live_posts').select('*').eq('collab_id', params.id).maybeSingle(),
+    supabase.from('reviews').select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle(),
+  ])
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
     return (
       <div style={{ maxWidth: 560, margin: '40px auto' }}>
@@ -78,19 +91,6 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       </div>
     )
   }
-  const admin = createAdminClient()
-  const { data: connectProfile } = await admin.from('creator_profiles')
-    .select('stripe_connect_id').eq('id', collab.creator_id).single()
-
-  const { data: submissions } = await supabase.from('submissions')
-    .select('*').eq('collab_id', params.id).order('version', { ascending: false })
-
-  const { data: livePost } = await supabase.from('live_posts')
-    .select('*').eq('collab_id', params.id).maybeSingle()
-
-  const { data: existingReview } = await supabase.from('reviews')
-    .select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle()
-
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]
   const paymentInfo = PAYMENT_TRUTH[collab.payment_status] ?? PAYMENT_TRUTH.unfunded
 

@@ -9,16 +9,18 @@ export default async function JobsPage() {
   const user = await requireCreator()
   const supabase = createClient()
 
-  const { data: campaigns } = await supabase.from('campaigns')
-    .select('*, brand_profiles(company_name, logo_url)')
-    .eq('status', 'active')
-    .order('is_featured', { ascending: false })
-    .order('created_at', { ascending: false })
-
-  // Load the signed-in creator's niche + social follower counts once, so the
-  // browse list can compute a real fit score per campaign client-side.
-  const { data: creator } = await supabase.from('creator_profiles')
-    .select('id, niche, niches').eq('user_id', user.id).single()
+  // The active campaign list (by status) and the signed-in creator's profile
+  // (by user.id) are independent — batch them. The creator's niche + social
+  // follower counts let the browse list compute a real fit score per campaign.
+  const [{ data: campaigns }, { data: creator }] = await Promise.all([
+    supabase.from('campaigns')
+      .select('*, brand_profiles(company_name, logo_url)')
+      .eq('status', 'active')
+      .order('is_featured', { ascending: false })
+      .order('created_at', { ascending: false }),
+    supabase.from('creator_profiles')
+      .select('id, niche, niches').eq('user_id', user.id).single(),
+  ])
 
   const { data: socials } = await supabase.from('social_accounts')
     .select('follower_count').eq('creator_id', creator?.id ?? '')

@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
+import { getAuthUser, getUserRow } from '@/lib/auth'
 import { AppNav } from '@/components/AppNav'
 import TopBar from '@/components/TopBar'
 import PageTransition from '@/components/PageTransition'
@@ -8,49 +9,47 @@ import TrustBanners from '@/components/TrustBanners'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Memoized (react cache): the page's own guard reuses these same results, so
+  // there's only one getUser + one profile read for the whole request.
+  const user = await getAuthUser()
   if (!user) redirect('/login')
-
-  const { data: profile } = await supabase.from('users').select('*').eq('id', user.id).single()
+  const profile = await getUserRow()
   if (!profile) redirect('/signup')
 
   const role = profile.role as 'brand' | 'creator'
+  const supabase = createClient()
 
-  // Trust & onboarding state for the banner (admins are exempt).
-  let onboardingComplete = true
-  let planLabel = ''
-  let inviteBadge = 0
-  if (role === 'creator') {
-    const { data: creator } = await supabase.from('creator_profiles')
-      .select('id, onboarding_completed_at').eq('user_id', user.id).single()
-    onboardingComplete = Boolean(creator?.onboarding_completed_at)
-    // Unread badge: invites awaiting this creator's response (read-only count;
-    // RLS party policy scopes the rows to their own invites).
-    if (creator) {
-      const { count } = await supabase.from('campaign_invites')
-        .select('*', { count: 'exact', head: true })
-        .eq('creator_id', creator.id).eq('status', 'pending')
-      inviteBadge = count || 0
-    }
-  } else if (role === 'brand') {
-    // Admin client: subscription columns are not client-readable (RLS rows on
-    // brand_profiles are public, so a column grant would leak billing state).
-    const { data: brand } = await createAdminClient().from('brand_profiles')
-      .select(`onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
-    onboardingComplete = Boolean(brand?.onboarding_completed_at)
-    // Quiet plan badge — "Pro Beta" during beta, "Pro" when subscribed.
-    const plan = resolvePlan(brand)
-    planLabel = plan.isPro ? plan.label : ''
-  }
+  // Role-specific trust/plan state + the notification badge are independent of
+  // each other — run them concurrently instead of one waterfall.
+  const [roleState, { count: unreadCount }] = await Promise.all([
+    role === 'creator'
+      ? (async () => {
+          const { data: creator } = await supabase.from('creator_profiles')
+            .select('id, onboarding_completed_at').eq('user_id', user.id).single()
+          // Invites awaiting this creator (RLS party policy scopes the rows).
+          const { count } = creator
+            ? await supabase.from('campaign_invites')
+                .select('*', { count: 'exact', head: true })
+                .eq('creator_id', creator.id).eq('status', 'pending')
+            : { count: 0 }
+          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '' }
+        })()
+      : (async () => {
+          // Admin client: subscription columns are not client-readable.
+          const { data: brand } = await createAdminClient().from('brand_profiles')
+            .select(`onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+          const plan = resolvePlan(brand)
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '' }
+        })(),
+    supabase.from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', user.id).eq('read', false),
+  ])
+
+  const { onboardingComplete, planLabel, inviteBadge } = roleState
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
-
-  // Unread badge: notifications (read-only count; RLS scopes to own rows).
-  const { count: unreadCount } = await supabase.from('notifications')
-    .select('*', { count: 'exact', head: true })
-    .eq('user_id', user.id).eq('read', false)
   const notificationBadge = unreadCount || 0
 
   return (

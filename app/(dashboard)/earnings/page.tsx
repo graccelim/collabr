@@ -33,25 +33,30 @@ export default async function EarningsPage({
   const user = await requireCreator()
   const supabase = createClient()
 
-  const { data: creator } = await supabase.from('creator_profiles')
-    .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
-    .eq('user_id', user.id).single()
   const admin = createAdminClient()
-  const { data: connectProfile } = await admin.from('creator_profiles')
-    .select('stripe_connect_id').eq('user_id', user.id).single()
-  const { data: collabs } = await supabase.from('collabs')
-    .select('*, campaigns(title), brand_profiles(company_name)')
-    .eq('creator_id', creator!.id)
-    .eq('status', 'completed')
-    .in('payment_status', ['paid', 'manual_exception'])
-    .order('created_at', { ascending: false })
-
-  // Active escrow secured for this creator — money held but not yet released.
-  const { data: secured } = await supabase.from('collabs')
-    .select('creator_payout')
-    .eq('creator_id', creator!.id)
-    .eq('payment_status', 'funded')
-    .not('status', 'in', '(completed,cancelled)')
+  // creator profile + Connect status both key off user.id — fetch concurrently.
+  const [{ data: creator }, { data: connectProfile }] = await Promise.all([
+    supabase.from('creator_profiles')
+      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+      .eq('user_id', user.id).single(),
+    admin.from('creator_profiles')
+      .select('stripe_connect_id').eq('user_id', user.id).single(),
+  ])
+  // Payout history + active escrow both key off creator.id — fetch concurrently.
+  const [{ data: collabs }, { data: secured }] = await Promise.all([
+    supabase.from('collabs')
+      .select('*, campaigns(title), brand_profiles(company_name)')
+      .eq('creator_id', creator!.id)
+      .eq('status', 'completed')
+      .in('payment_status', ['paid', 'manual_exception'])
+      .order('created_at', { ascending: false }),
+    // Active escrow secured for this creator — money held but not yet released.
+    supabase.from('collabs')
+      .select('creator_payout')
+      .eq('creator_id', creator!.id)
+      .eq('payment_status', 'funded')
+      .not('status', 'in', '(completed,cancelled)'),
+  ])
   const inEscrow = (secured || []).reduce((sum, c) => sum + (c.creator_payout || 0), 0)
   const escrowCount = (secured || []).length
 

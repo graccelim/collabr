@@ -137,16 +137,22 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   const socialsByCreator: Record<string, SocialAccount[]> = {}
   let savedSet = new Set<string>()
   if (pageIds.length > 0) {
-    const { data: socials } = await supabase.from('social_accounts')
-      .select('*').in('creator_id', pageIds)
-      .order('is_primary', { ascending: false })
-      .order('follower_count', { ascending: false, nullsFirst: false })
+    // Primary socials and saved-state are independent — fetch concurrently.
+    const [{ data: socials }, savedRes] = await Promise.all([
+      supabase.from('social_accounts')
+        .select('*').in('creator_id', pageIds)
+        .order('is_primary', { ascending: false })
+        .order('follower_count', { ascending: false, nullsFirst: false }),
+      brand
+        ? admin.from('saved_creators')
+            .select('creator_id').eq('brand_id', brand.id).in('creator_id', pageIds)
+        : Promise.resolve({ data: [] as { creator_id: string }[] }),
+    ])
     for (const s of (socials || []) as SocialAccount[]) {
       (socialsByCreator[s.creator_id] ||= []).push(s)
     }
     if (brand) {
-      const { data: saved } = await admin.from('saved_creators')
-        .select('creator_id').eq('brand_id', brand.id).in('creator_id', pageIds)
+      const { data: saved } = savedRes
       savedSet = new Set((saved || []).map(s => s.creator_id))
     }
   }

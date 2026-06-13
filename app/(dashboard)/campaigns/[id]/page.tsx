@@ -31,18 +31,20 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     )
   }
 
-  // Admin client: applicant identity (users join) is RLS own-row-only for
-  // session clients. Campaign ownership was verified above; emails excluded.
-  const { data: applications } = await createAdminClient().from('applications')
-    .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
-    .eq('campaign_id', params.id)
-    .order('is_boosted', { ascending: false })
-    .order('created_at', { ascending: true })
-
-  // Admin client: collabs are party-scoped for session clients; this brand owns
-  // the campaign verified above. Used for the "spots filled" count.
-  const { data: collabs } = await createAdminClient().from('collabs')
-    .select('status').eq('campaign_id', params.id)
+  // Applicants and collabs are independent reads — issued concurrently.
+  // Admin client: applicant identity (users join) is RLS own-row-only and
+  // collabs are party-scoped for session clients. Campaign ownership was
+  // verified above; emails excluded. Used for the applicant list and the
+  // "spots filled" count respectively.
+  const [{ data: applications }, { data: collabs }] = await Promise.all([
+    createAdminClient().from('applications')
+      .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
+      .eq('campaign_id', params.id)
+      .order('is_boosted', { ascending: false })
+      .order('created_at', { ascending: true }),
+    createAdminClient().from('collabs')
+      .select('status').eq('campaign_id', params.id),
+  ])
   const spotsFilled = (collabs || []).filter(c => c.status !== 'cancelled').length
 
   // Resolved plan: every brand is Pro while in beta.

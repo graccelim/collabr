@@ -15,24 +15,25 @@ export default async function CampaignsPage() {
 
   const campaignIds = (campaigns || []).map(c => c.id)
 
-  // Applications (count + a few applicant names per campaign). Admin client:
-  // applicant display identity is RLS own-row-only for session clients; scoped
-  // to this brand's own campaigns. Ordered so boosted/recent applicants surface.
-  const { data: applications } = campaignIds.length
-    ? await createAdminClient().from('applications')
-        .select('campaign_id, created_at, is_boosted, creator_profiles(users(display_name))')
-        .in('campaign_id', campaignIds)
-        .order('is_boosted', { ascending: false })
-        .order('created_at', { ascending: false })
-    : { data: [] as any[] }
-
-  // Funded escrow + filled spots per campaign. Admin client: collabs are
-  // party-scoped for session clients; this brand owns these campaigns.
-  const { data: collabs } = campaignIds.length
-    ? await createAdminClient().from('collabs')
-        .select('campaign_id, agreed_rate, payment_status, status')
-        .in('campaign_id', campaignIds)
-    : { data: [] as any[] }
+  // Applications (count + a few applicant names per campaign) and funded
+  // escrow / filled spots per campaign — independent reads, issued concurrently.
+  // Admin client: applicant display identity and collabs are RLS-restricted for
+  // session clients; both scoped to this brand's own campaigns. Applications
+  // ordered so boosted/recent applicants surface.
+  const [{ data: applications }, { data: collabs }] = await Promise.all([
+    campaignIds.length
+      ? createAdminClient().from('applications')
+          .select('campaign_id, created_at, is_boosted, creator_profiles(users(display_name))')
+          .in('campaign_id', campaignIds)
+          .order('is_boosted', { ascending: false })
+          .order('created_at', { ascending: false })
+      : Promise.resolve({ data: [] as any[] }),
+    campaignIds.length
+      ? createAdminClient().from('collabs')
+          .select('campaign_id, agreed_rate, payment_status, status')
+          .in('campaign_id', campaignIds)
+      : Promise.resolve({ data: [] as any[] }),
+  ])
 
   const applicantCount = new Map<string, number>()
   const applicantNames = new Map<string, string[]>()
