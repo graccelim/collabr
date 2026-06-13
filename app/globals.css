@@ -535,6 +535,11 @@
 
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
+
+  /* Escrow timeline: drop the per-step notes on mobile (too wordy) and tighten
+     the step labels so the 5 steps read cleanly. Web keeps the full version. */
+  .escrow-note { display: none !important; }
+  .escrow-step-label { font-size: 10.5px !important; line-height: 1.2; }
 }
 
 @media (min-width: 769px) {

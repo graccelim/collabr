@@ -7,7 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion'
 import { computeFit, bestFollowers } from '@/lib/fit'
 import EmptyState from '@/components/EmptyState'
-import { ArrowRight, Megaphone, Compass } from 'lucide-react'
+import { ArrowRight, Megaphone, Compass, Mail, Send } from 'lucide-react'
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
 // one attention row, a quiet hairline list, a profile-completion nudge.
@@ -56,20 +56,25 @@ function QuietRow({ href, name, sub, status, statusColor, amount }: {
       width: '100%', textDecoration: 'none',
       padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
     }}>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
         <span style={{
-          width: 38, height: 38, borderRadius: '50%', flexShrink: 0,
-          background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13,
+          width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+          background: 'linear-gradient(140deg, var(--accent-tint), color-mix(in srgb, var(--accent) 16%, #fff))',
+          color: 'var(--accent-deep)', boxShadow: 'inset 0 0 0 1px var(--line)',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13.5,
         }}>{getInitials(name)}</span>
         <span style={{ minWidth: 0 }}>
-          <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{name}</span>
+          <span style={{ display: 'block', fontSize: 14.5, fontWeight: 560, color: 'var(--ink)' }}>{name}</span>
           <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{sub}</span>
         </span>
       </span>
-      <span style={{ display: 'flex', alignItems: 'center', gap: 22, flexShrink: 0 }}>
-        <span style={{ fontSize: 13, color: statusColor }}>{status}</span>
-        <span className="mono-num" style={{ fontSize: 14, color: 'var(--ink-soft)', minWidth: 56, textAlign: 'right' }}>{formatSGD(amount)}</span>
+      <span style={{ display: 'flex', alignItems: 'center', gap: 14, flexShrink: 0 }}>
+        <span style={{
+          fontSize: 12, fontWeight: 600, color: statusColor,
+          background: statusColor === 'var(--warn)' ? 'var(--warn-tint)' : 'var(--surface-2)',
+          padding: '4px 10px', borderRadius: 999, whiteSpace: 'nowrap',
+        }}>{status}</span>
+        <span className="mono-num" style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', minWidth: 60, textAlign: 'right' }}>{formatSGD(amount)}</span>
       </span>
     </Link>
   )
@@ -417,28 +422,38 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
               return (
                 <Link key={inv.id} href="/invites" className="quiet-row" style={{
                   width: '100%', textDecoration: 'none',
-                  padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                  padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
                 }}>
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{company} invited you</span>
-                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{campaignTitle}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
+                    <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: 'var(--warn-tint)', color: 'var(--warn)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Mail size={17} />
+                    </span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 14.5, fontWeight: 560, color: 'var(--ink)' }}>{company} invited you</span>
+                      <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{campaignTitle}</span>
+                    </span>
                   </span>
-                  <span style={{ fontSize: 13, color: 'var(--warn)', flexShrink: 0 }}>New invite</span>
+                  <span className="badge badge-warn" style={{ flexShrink: 0 }}>New invite</span>
                 </Link>
               )
             })}
             {outboundCount > 0 && (
               <Link href="/applications" className="quiet-row" style={{
                 width: '100%', textDecoration: 'none',
-                padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
               }}>
-                <span style={{ minWidth: 0 }}>
-                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>
-                    {outboundCount} application{outboundCount > 1 ? 's' : ''} out
+                <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
+                  <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Send size={16} />
                   </span>
-                  <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)' }}>Awaiting reply</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 560, color: 'var(--ink)' }}>
+                      {outboundCount} application{outboundCount > 1 ? 's' : ''} out
+                    </span>
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)' }}>Awaiting reply</span>
+                  </span>
                 </span>
-                <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)', flexShrink: 0 }}>Track</span>
+                <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)', flexShrink: 0, fontWeight: 530 }}>Track</span>
               </Link>
             )}
           </div>
@@ -458,21 +473,19 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
                 width: '100%', textDecoration: 'none',
                 padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
               }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
                   <span style={{
-                    width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-                    background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13,
+                    width: 40, height: 40, borderRadius: 'var(--radius-sm)', flexShrink: 0,
+                    background: 'linear-gradient(140deg, var(--accent-tint), color-mix(in srgb, var(--accent) 16%, #fff))',
+                    color: 'var(--accent-deep)', boxShadow: 'inset 0 0 0 1px var(--line)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13.5,
                   }}>{getInitials(m.brand)}</span>
                   <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{m.title}</span>
-                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.brand}</span>
+                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 560, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.title}</span>
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.brand} · <span className="mono-num">{m.pay}</span></span>
                   </span>
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
-                  <span className="mono-num" style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>{m.pay}</span>
-                  <span style={{ fontSize: 13, color: 'var(--accent-deep)' }}>{m.pct}% match</span>
-                </span>
+                <span className="badge badge-accent" style={{ flexShrink: 0 }}>{m.pct}% match</span>
               </Link>
             ))}
           </div>

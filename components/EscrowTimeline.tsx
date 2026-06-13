@@ -66,10 +66,10 @@ export default function EscrowTimeline({ current = 1, amount }: { current?: numb
               }}>
                 {done ? <Check size={15} strokeWidth={2.4} /> : <StepIcon size={15} />}
               </div>
-              {/* labels */}
+              {/* labels — per-step notes hide on mobile to cut clutter */}
               <div style={{ textAlign: 'center', marginTop: 8 }}>
-                <div style={{ fontSize: 12, fontWeight: 540, color: labelColor }}>{s.label}</div>
-                <div className="micro" style={{ marginTop: 1 }}>{s.note}</div>
+                <div className="escrow-step-label" style={{ fontSize: 12, fontWeight: 540, color: labelColor }}>{s.label}</div>
+                <div className="micro escrow-note" style={{ marginTop: 1 }}>{s.note}</div>
               </div>
             </div>
           )

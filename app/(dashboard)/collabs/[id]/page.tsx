@@ -106,28 +106,22 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
 
       {/* ── Deal header ───────────────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 28, gap: 16, flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
-          {/* avatar */}
-          <div style={{ width: 48, height: 48, borderRadius: '50%', background: isBrand ? 'var(--creator-tint)' : 'var(--brand-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: isBrand ? 'var(--creator-deep)' : 'var(--ink)', flexShrink: 0 }}>
-            {getInitials(isBrand ? creatorName : brandName)}
-          </div>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, letterSpacing: '-0.025em', marginBottom: 3 }}>
-              {collab.campaigns?.title}
-            </h1>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>
-              {isBrand ? `with ${creatorName}` : `for ${brandName}`}
-            </p>
-          </div>
+      {/* Clean, single-row identity: avatar + title/counterpart + status badge.
+         The deal amount is the hero of the escrow card right below, so it isn't
+         repeated here (that cramped the mobile header). */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 24 }}>
+        <div style={{ width: 48, height: 48, borderRadius: '50%', background: isBrand ? 'var(--creator-tint)' : 'var(--brand-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: isBrand ? 'var(--creator-deep)' : 'var(--ink)', flexShrink: 0 }}>
+          {getInitials(isBrand ? creatorName : brandName)}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '.08em' }}>Deal value</div>
-            <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, letterSpacing: '-0.025em' }}>{formatSGD(collab.agreed_rate)}</div>
-          </div>
-          <span className={`badge badge-${status?.color || 'neutral'}`}>{status?.label || collab.status}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 className="display-face" style={{ fontSize: 22, lineHeight: 1.15, marginBottom: 4 }}>
+            {collab.campaigns?.title}
+          </h1>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>
+            {isBrand ? `with ${creatorName}` : `for ${brandName}`}
+          </p>
         </div>
+        <span className={`badge badge-${status?.color || 'neutral'}`} style={{ flexShrink: 0, marginTop: 4 }}>{status?.label || collab.status}</span>
       </div>
 
       {/* ── Signature escrow timeline (hero) ─────────────── */}
