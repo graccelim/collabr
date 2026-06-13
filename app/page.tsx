@@ -79,12 +79,9 @@ export default function HomePage() {
         </Link>
 
         {/* Centre medallion */}
-        <div className="split-medallion" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16, textAlign: 'center' }}>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 17, letterSpacing: '-0.04em', color: 'var(--ink)', lineHeight: 1 }}>
+        <div className="split-medallion" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, textAlign: 'center' }}>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 19, letterSpacing: '-0.04em', color: 'var(--ink)', lineHeight: 1 }}>
             collabr<span style={{ color: 'var(--creator)' }}>.</span>
-          </div>
-          <div style={{ fontSize: 9.5, fontWeight: 600, color: 'var(--ink-soft)', letterSpacing: '.06em', textTransform: 'uppercase', marginTop: 5, lineHeight: 1.3 }}>
-            trusted by<br />both sides
           </div>
         </div>
 

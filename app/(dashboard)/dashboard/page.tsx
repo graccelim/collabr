@@ -52,9 +52,9 @@ function QuietRow({ href, name, sub, status, statusColor, amount }: {
   href: string; name: string; sub: string; status: string; statusColor: string; amount: number
 }) {
   return (
-    <Link href={href} style={{
-      width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
-      padding: '17px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+    <Link href={href} className="quiet-row" style={{
+      width: '100%', textDecoration: 'none',
+      padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
     }}>
       <span style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
         <span style={{
@@ -194,11 +194,11 @@ async function BrandDashboard({ userId }: { userId: string }) {
           {pendingReview === 0 && liveToConfirm === 0 && <div style={{ marginBottom: 40 }} />}
 
           {/* active — quiet hairline list */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <span className="eyebrow">Active collaborations</span>
             <Link href="/campaigns" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All campaigns</Link>
           </div>
-          <div>
+          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {(collabs || []).map(c => {
               const name = (c.creator_profiles as any)?.users?.display_name || 'Creator'
               const view = deriveWorkflow({ status: c.status, paymentStatus: c.payment_status, isBrand: true, counterpartName: name })
@@ -385,11 +385,11 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           )}
           {needsYou.length === 0 && <div style={{ marginBottom: 40 }} />}
 
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <span className="eyebrow">Active collaborations</span>
             <Link href="/collabs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All collabs</Link>
           </div>
-          <div>
+          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {(collabs || []).map(c => {
               const name = (c.brand_profiles as any)?.company_name || 'Brand'
               const view = deriveWorkflow({ status: c.status, paymentStatus: c.payment_status, isBrand: false, counterpartName: name })
@@ -409,15 +409,15 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {/* Happening now — real pending invites + outbound application count */}
       {!happeningEmpty && (
         <div style={{ marginTop: isEmpty ? 40 : 48, marginBottom: 8 }}>
-          <span className="eyebrow" style={{ display: 'block', marginBottom: 4 }}>Happening now</span>
-          <div>
+          <span className="eyebrow" style={{ display: 'block', marginBottom: 12 }}>Happening now</span>
+          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {(invites || []).map(inv => {
               const company = (inv.brand_profiles as any)?.company_name || 'A brand'
               const campaignTitle = (inv.campaigns as any)?.title || 'a campaign'
               return (
-                <Link key={inv.id} href="/invites" style={{
-                  width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
-                  padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                <Link key={inv.id} href="/invites" className="quiet-row" style={{
+                  width: '100%', textDecoration: 'none',
+                  padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
                 }}>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{company} invited you</span>
@@ -428,9 +428,9 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
               )
             })}
             {outboundCount > 0 && (
-              <Link href="/applications" style={{
-                width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
-                padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              <Link href="/applications" className="quiet-row" style={{
+                width: '100%', textDecoration: 'none',
+                padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
               }}>
                 <span style={{ minWidth: 0 }}>
                   <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>
@@ -448,15 +448,15 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {/* Matched to you — real active campaigns ranked by computeFit */}
       {matched.length > 0 && (
         <div style={{ marginTop: happeningEmpty ? (isEmpty ? 40 : 48) : 40, marginBottom: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <span className="eyebrow">Matched to you</span>
             <Link href="/jobs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>Browse all</Link>
           </div>
-          <div>
+          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {matched.map(m => (
-              <Link key={m.id} href={`/jobs/${m.id}`} style={{
-                width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
-                padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              <Link key={m.id} href={`/jobs/${m.id}`} className="quiet-row" style={{
+                width: '100%', textDecoration: 'none',
+                padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
                   <span style={{

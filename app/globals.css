@@ -335,6 +335,10 @@
 
   .row-list > * + * { border-top: 1px solid var(--line); }
 
+  /* hairline rows inside cards get a quiet hover so they read as tappable */
+  .quiet-row, .collab-row { transition: background .12s ease; }
+  .quiet-row:hover, .collab-row:hover { background: var(--surface-2); }
+
   /* ---- Empty states (welcoming medallion handled in component) ---- */
   .empty-state {
     text-align: center;
