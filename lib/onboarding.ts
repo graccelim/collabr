@@ -52,6 +52,16 @@ export function normalizeHandle(raw: string): string {
   return raw.trim().replace(/^@+/, '').toLowerCase()
 }
 
+/**
+ * Accept bare domains the way people actually type them ("glow.sg") and
+ * normalize to a full URL; empty input → null.
+ */
+export function normalizeUrl(raw: string): string | null {
+  const t = raw.trim()
+  if (!t) return null
+  return /^https?:\/\//i.test(t) ? t : `https://${t}`
+}
+
 export const HANDLE_REGEX = /^[a-z0-9._-]{1,64}$/
 
 export function socialUrl(platform: SocialPlatform, handle: string): string {

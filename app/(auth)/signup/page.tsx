@@ -7,7 +7,7 @@ import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import {
   CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle, normalizeUrl,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 
@@ -106,17 +106,11 @@ function SignupForm() {
       if (!industry) { toast.error('Pick your industry'); return }
       const socialHandle = normalizeHandle(brandSocial)
       const socialUrl = socialHandle ? `https://instagram.com/${socialHandle}` : null
-      if (!website.trim() && !socialUrl) {
+      const websiteUrl = normalizeUrl(website)
+      if (!websiteUrl && !socialUrl) {
         toast.error('Add a website or a brand social'); return
       }
-      payload = {
-        ...payload,
-        industry,
-        website: website.trim()
-          ? (website.trim().startsWith('http') ? website.trim() : `https://${website.trim()}`)
-          : null,
-        social_url: socialUrl,
-      }
+      payload = { ...payload, industry, website: websiteUrl, social_url: socialUrl }
     } else {
       if (!niche) { toast.error('Pick your niche'); return }
       const socials = SOCIAL_PLATFORMS

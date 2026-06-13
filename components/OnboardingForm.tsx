@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import {
   CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeUrl,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 
@@ -63,15 +63,17 @@ export default function OnboardingForm({ role, initial }: Props) {
     } else {
       if (!companyName.trim()) { toast.error('Company name is required'); return }
       if (!industry) { toast.error('Pick your industry'); return }
-      if (!website.trim() && !socialUrl.trim()) {
+      const websiteUrl = normalizeUrl(website)
+      const social = normalizeUrl(socialUrl)
+      if (!websiteUrl && !social) {
         toast.error('Add a website or a social account link'); return
       }
       endpoint = '/api/onboarding/brand'
       payload = {
         company_name: companyName.trim(),
         industry,
-        website: website.trim() || null,
-        social_url: socialUrl.trim() || null,
+        website: websiteUrl,
+        social_url: social,
       }
     }
 
@@ -150,13 +152,13 @@ export default function OnboardingForm({ role, initial }: Props) {
         </div>
         <div>
           <label className="label">Website</label>
-          <input className="input" type="url" value={website}
-            onChange={e => setWebsite(e.target.value)} placeholder="https://yourcompany.com" />
+          <input className="input" type="text" inputMode="url" value={website}
+            onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com" />
         </div>
         <div>
           <label className="label">Social account link</label>
-          <input className="input" type="url" value={socialUrl}
-            onChange={e => setSocialUrl(e.target.value)} placeholder="https://instagram.com/yourbrand" />
+          <input className="input" type="text" inputMode="url" value={socialUrl}
+            onChange={e => setSocialUrl(e.target.value)} placeholder="instagram.com/yourbrand" />
           <p className="text-xs text-gray-400 mt-1">A website or a social account is required</p>
         </div>
       </div>

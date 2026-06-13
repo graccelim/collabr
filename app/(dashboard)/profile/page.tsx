@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
-  CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS,
+  CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS, normalizeUrl,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
@@ -90,9 +90,8 @@ export default function ProfilePage() {
   }
 
   function addPortfolioLink() {
-    const link = newPortfolioLink.trim()
+    const link = normalizeUrl(newPortfolioLink) || ''
     if (!link) return
-    if (!/^https?:\/\//.test(link)) { toast.error('Links must start with https://'); return }
     if (portfolioLinks.includes(link)) { toast.error('Link already added'); return }
     if (portfolioLinks.length >= 10) { toast.error('Up to 10 portfolio links'); return }
     setPortfolioLinks(p => [...p, link])
@@ -114,7 +113,7 @@ export default function ProfilePage() {
         niche: niche || null,
         location: location.trim() || null,
         portfolio_links: portfolioLinks,
-        media_kit_url: mediaKitUrl.trim() || null,
+        media_kit_url: normalizeUrl(mediaKitUrl),
         average_rate_sgd: parsedRate,
         availability_status: availability,
         display_name: displayName.trim() || null,
@@ -292,7 +291,7 @@ export default function ProfilePage() {
           </div>
         ))}
         <div className="flex gap-2">
-          <input className="input flex-1" type="url" value={newPortfolioLink}
+          <input className="input flex-1" type="text" inputMode="url" value={newPortfolioLink}
             onChange={e => setNewPortfolioLink(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addPortfolioLink() } }}
             placeholder="https://instagram.com/p/your-best-post" />
@@ -303,7 +302,7 @@ export default function ProfilePage() {
         </div>
         <div>
           <label className="label">Media kit (optional)</label>
-          <input className="input" type="url" value={mediaKitUrl}
+          <input className="input" type="text" inputMode="url" value={mediaKitUrl}
             onChange={e => setMediaKitUrl(e.target.value)}
             placeholder="https://drive.google.com/your-media-kit" />
         </div>

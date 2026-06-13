@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
-import { BRAND_INDUSTRIES, INDUSTRY_LABELS } from '@/lib/onboarding'
+import { BRAND_INDUSTRIES, INDUSTRY_LABELS, normalizeUrl } from '@/lib/onboarding'
 import { brandCompletion } from '@/lib/profile-completion'
 
 export default function SettingsPage() {
@@ -76,8 +76,8 @@ export default function SettingsPage() {
           company_name: companyName.trim(),
           company_description: companyDescription.trim() || null,
           industry: industry || null,
-          website: website.trim() || null,
-          social_url: socialUrl.trim() || null,
+          website: normalizeUrl(website),
+          social_url: normalizeUrl(socialUrl),
           logo_url: logoUrl.trim() || null,
           display_name: displayName.trim() || null,
         }),
@@ -199,8 +199,8 @@ export default function SettingsPage() {
               className="input"
               value={website}
               onChange={e => setWebsite(e.target.value)}
-              placeholder="https://yourcompany.com"
-              type="url"
+              placeholder="yourcompany.com"
+              type="text" inputMode="url"
             />
           </div>
 
@@ -210,8 +210,8 @@ export default function SettingsPage() {
               className="input"
               value={socialUrl}
               onChange={e => setSocialUrl(e.target.value)}
-              placeholder="https://instagram.com/yourbrand"
-              type="url"
+              placeholder="instagram.com/yourbrand"
+              type="text" inputMode="url"
             />
             <p className="text-xs text-gray-400 mt-1">A website or a social account is required</p>
           </div>
