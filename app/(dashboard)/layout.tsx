@@ -2,6 +2,8 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { getInitials } from '@/lib/utils'
 import { AppNav } from '@/components/AppNav'
+import TopBar from '@/components/TopBar'
+import PageTransition from '@/components/PageTransition'
 import TrustBanners from '@/components/TrustBanners'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 
@@ -73,11 +75,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
           minWidth: 0,
           overflowY: 'auto',
           maxHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
+        <TopBar role={role} notificationBadge={notificationBadge} />
         <div style={{
           maxWidth: 1080,
           margin: '0 auto',
+          width: '100%',
           padding: '24px 28px 64px',
         }}>
           {(role === 'brand' || role === 'creator') && (
@@ -87,7 +93,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               role={role}
             />
           )}
-          {children}
+          <PageTransition>{children}</PageTransition>
         </div>
       </main>
     </div>

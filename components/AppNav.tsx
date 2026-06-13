@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import type { LucideProps } from 'lucide-react'
 import {
@@ -92,7 +93,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
       <aside
         className="sidebar-desktop scroll-y"
         style={{
-          width: collapsed ? 64 : 224,
+          width: collapsed ? 64 : 244,
           flexShrink: 0,
           background: 'var(--surface)',
           borderRight: '1px solid var(--line)',
@@ -191,11 +192,11 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                   justifyContent: collapsed ? 'center' : 'flex-start',
                   borderRadius: 'var(--radius-sm)',
                   padding: collapsed ? '9px 0' : '8px 10px',
-                  background: on ? 'var(--accent-tint)' : 'transparent',
+                  background: 'transparent',
                   color: on ? 'var(--accent-deep)' : 'var(--ink-soft)',
                   fontWeight: on ? 560 : 480,
                   fontSize: 13.5,
-                  transition: 'background .13s ease, color .13s ease',
+                  transition: 'color .13s ease',
                   textDecoration: 'none',
                   whiteSpace: 'nowrap',
                   position: 'relative',
@@ -207,8 +208,21 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                   if (!on) (e.currentTarget as HTMLElement).style.background = 'transparent'
                 }}
               >
-                <NavIcon size={16} style={{ opacity: on ? 1 : .75 }} />
-                {!collapsed && item.label}
+                {on && (
+                  <motion.span
+                    layoutId="sidebar-active"
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--accent-tint)',
+                      zIndex: 0,
+                    }}
+                    transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                  />
+                )}
+                <NavIcon size={16} style={{ opacity: on ? 1 : .75, position: 'relative', zIndex: 1 }} />
+                {!collapsed && <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>}
                 {(() => {
                   const count = item.href === '/invites' ? inviteBadge
                     : item.href === '/notifications' ? notificationBadge : 0
@@ -223,14 +237,14 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                     <span style={{
                       marginLeft: 'auto', minWidth: 18, height: 18, padding: '0 5px',
                       borderRadius: 99, background: 'var(--warn)', color: '#fff',
-                      fontSize: 11, fontWeight: 600,
+                      fontSize: 11, fontWeight: 600, position: 'relative', zIndex: 1,
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     }}>{count > 9 ? '9+' : count}</span>
                   )
                 })()}
                 {!collapsed && item.pro && (
                   <span style={{
-                    marginLeft: 'auto',
+                    marginLeft: 'auto', position: 'relative', zIndex: 1,
                     fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em',
                     color: on ? 'var(--accent-deep)' : 'var(--ink-faint-solid)',
                     border: `1px solid ${on ? 'rgba(79,70,229,.25)' : 'var(--line)'}`,
