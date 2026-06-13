@@ -1,9 +1,35 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
-import { formatSGD } from '@/lib/utils'
-import { INDUSTRY_LABELS, type BrandIndustry } from '@/lib/onboarding'
+import { formatSGD, getInitials } from '@/lib/utils'
+import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { computeFit, bestFollowers } from '@/lib/fit'
 import Link from 'next/link'
+import { ChevronLeft, Shield, CheckCircle2 } from 'lucide-react'
 import ApplyForm from '@/components/ApplyForm'
+import EmptyState from '@/components/EmptyState'
+
+function nicheLabel(tag: string): string {
+  return NICHE_LABELS[tag as CreatorNiche] ?? tag
+}
+
+function FitRing({ pct }: { pct: number }) {
+  const size = 52, sw = 4
+  const r = (size - sw) / 2
+  const c = 2 * Math.PI * r
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--paper-2)" strokeWidth={sw} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--accent)" strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
+      </svg>
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 13.5, fontWeight: 600, color: 'var(--ink)',
+      }}>{pct}%</div>
+    </div>
+  )
+}
 
 export default async function JobDetailPage({ params }: { params: { id: string } }) {
   const user = await requireCreator()
@@ -20,163 +46,166 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   )
 
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('id').eq('user_id', user.id).single()
+    .select('id, niche, niches').eq('user_id', user.id).single()
+
+  const { data: socials } = await supabase.from('social_accounts')
+    .select('follower_count').eq('creator_id', creator!.id)
 
   // Check if already applied
   const { data: existing } = await supabase.from('applications')
     .select('id, status').eq('campaign_id', params.id).eq('creator_id', creator!.id).maybeSingle()
 
-  const brand = campaign.brand_profiles as any
+  const brand = campaign.brand_profiles as { company_name: string | null; logo_url: string | null } | null
+  const brandName = brand?.company_name || 'Brand'
+  const isPaid = campaign.comp_type !== 'barter'
+  const platform = typeof (campaign as { platform?: unknown }).platform === 'string'
+    ? (campaign as { platform: string }).platform
+    : null
+
+  // Real fit for THIS campaign against the signed-in creator.
+  const creatorNiches = [creator?.niche, ...((creator?.niches as string[] | null) ?? [])]
+    .filter((n): n is string => Boolean(n))
+  const fit = computeFit(
+    { niches: creatorNiches, followers: bestFollowers((socials ?? []) as { follower_count: number | null }[]) },
+    { niches: campaign.niche_tags ?? [], minFollowers: campaign.min_followers ?? 0 },
+  )
+  const primaryNiche = creatorNiches[0]
+  const fitExplain = fit.nicheMatch && primaryNiche
+    ? `Your ${nicheLabel(primaryNiche)} niche matches this brief.`
+    : fit.followersMet
+      ? 'Your reach clears this brief — a clear, specific pitch wins it.'
+      : 'A specific pitch about your audience can still win this brief.'
+
+  // Compensation display
+  const compValue = !isPaid
+    ? 'Barter'
+    : campaign.budget_min && campaign.budget_max
+      ? `${formatSGD(campaign.budget_min)}–${formatSGD(campaign.budget_max)}`
+      : campaign.budget_min ? formatSGD(campaign.budget_min)
+        : campaign.budget_max ? formatSGD(campaign.budget_max) : 'Paid'
+
+  const briefMeta: { label: string; value: string }[] = [
+    { label: 'Deliverable', value: campaign.deliverable_types?.[0] ?? '—' },
+    { label: 'Min followers', value: campaign.min_followers ? `${campaign.min_followers.toLocaleString()}+` : 'Any' },
+    { label: 'Due', value: campaign.deadline ? new Date(campaign.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Flexible' },
+    { label: 'Compensation', value: compValue },
+  ]
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/jobs" className="text-xs text-gray-400 hover:text-gray-600">← Browse campaigns</Link>
+    <div style={{ maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
+      <Link href="/jobs" style={{
+        display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+        color: 'var(--ink-faint-solid)', fontSize: 13, textDecoration: 'none',
+      }}>
+        <ChevronLeft size={15} /> Browse campaigns
+      </Link>
 
       {/* Brand + title */}
-      <div className="card">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-lg bg-surface border border-border flex items-center justify-center text-sm font-medium text-gray-500 shrink-0 overflow-hidden">
-            {brand?.logo_url
-              ? <img src={brand.logo_url} alt={brand.company_name || 'Brand'} className="w-12 h-12 object-cover" />
-              : brand?.company_name?.slice(0, 2).toUpperCase() || 'B'}
-          </div>
-          <div className="flex-1">
-            <p className="text-xs text-gray-500">{brand?.company_name}</p>
-            <h1 className="text-lg font-semibold text-gray-900 mt-0.5">{campaign.title}</h1>
-            <div className="flex gap-2 mt-2 flex-wrap">
-              {campaign.is_featured && <span className="badge badge-purple">Featured</span>}
-              {(campaign.comp_type === 'paid' || campaign.comp_type === 'both') && (
-                <span className="badge badge-teal">
-                  Paid {campaign.budget_min ? formatSGD(campaign.budget_min) : ''}
-                  {campaign.budget_max ? ` – ${formatSGD(campaign.budget_max)}` : ''}
-                </span>
-              )}
-              {(campaign.comp_type === 'barter' || campaign.comp_type === 'both') && (
-                <span className="badge badge-amber">Barter</span>
-              )}
-            </div>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+        <div style={{
+          width: 54, height: 54, borderRadius: 'var(--radius-sm)',
+          background: 'var(--paper-2)', border: '1px solid var(--line)',
+          display: 'grid', placeItems: 'center', flexShrink: 0, overflow: 'hidden',
+          fontSize: 16, fontWeight: 700, color: 'var(--ink-soft)',
+        }}>
+          {brand?.logo_url
+            ? <img src={brand.logo_url} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            : getInitials(brandName)}
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 24 }}>{campaign.title}</h1>
+          <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>
+            {brandName}{platform ? ` · ${platform}` : ''}
           </div>
         </div>
       </div>
 
-      {/* About the brand — trust signals */}
-      {brand && (
-        <div className="card space-y-2">
-          <h2 className="text-sm font-medium text-gray-900">About {brand.company_name}</h2>
-          <div className="flex gap-2 flex-wrap">
-            {brand.industry && (
-              <span className="badge badge-gray">
-                {INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}
-              </span>
-            )}
-            {(brand.completed_campaigns || 0) > 0 && (
-              <span className="badge badge-teal">
-                {brand.completed_campaigns} campaign{brand.completed_campaigns !== 1 ? 's' : ''} completed
-              </span>
-            )}
-          </div>
-          {brand.company_description ? (
-            <p className="text-sm text-gray-600 whitespace-pre-wrap">{brand.company_description}</p>
-          ) : (
-            <p className="text-xs text-gray-400">This brand hasn&apos;t added a description yet.</p>
-          )}
-          <div className="flex gap-3">
-            {brand.website && (
-              <a href={brand.website} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-purple-600 hover:text-purple-800">Website ↗</a>
-            )}
-            {brand.social_url && (
-              <a href={brand.social_url} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-purple-600 hover:text-purple-800">Social ↗</a>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Details */}
-      <div className="card space-y-3">
-        <h2 className="text-sm font-medium text-gray-900">Campaign brief</h2>
-        <p className="text-sm text-gray-600 whitespace-pre-wrap">{campaign.brief}</p>
-
-        {campaign.barter_detail && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <p className="text-xs font-medium text-amber-700 mb-1">Barter offer</p>
-            <p className="text-xs text-amber-600">{campaign.barter_detail}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Meta */}
-      <div className="grid grid-cols-2 gap-3">
-        {campaign.deliverable_types && campaign.deliverable_types.length > 0 && (
-          <div className="card">
-            <p className="text-xs text-gray-500 mb-1">Deliverables</p>
-            <div className="flex flex-wrap gap-1">
-              {campaign.deliverable_types.map((d: string) => (
-                <span key={d} className="badge badge-gray">{d}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        <div className="card">
-          <p className="text-xs text-gray-500 mb-1">Requirements</p>
-          <p className="text-xs text-gray-700">
-            Min {campaign.min_followers.toLocaleString()} followers
-          </p>
-          {campaign.deadline && (
-            <p className="text-xs text-gray-700 mt-1">
-              Due {new Date(campaign.deadline).toLocaleDateString('en-SG')}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'start' }}>
+        {/* Left column */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 18, minWidth: 0 }}>
+          {/* The brief */}
+          <div className="card" style={{ padding: 22 }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>The brief</div>
+            <p style={{ color: 'var(--ink)', margin: 0, fontSize: 15, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+              {campaign.brief}
             </p>
-          )}
-        </div>
-        {campaign.niche_tags && campaign.niche_tags.length > 0 && (
-          <div className="card">
-            <p className="text-xs text-gray-500 mb-1">Niches</p>
-            <div className="flex flex-wrap gap-1">
-              {campaign.niche_tags.map((t: string) => (
-                <span key={t} className="badge badge-gray">{t}</span>
+
+            {campaign.barter_detail && (
+              <div style={{
+                marginTop: 16, padding: 13, borderRadius: 'var(--radius-sm)',
+                background: 'var(--paper-2)', border: '1px solid var(--line)',
+              }}>
+                <div className="eyebrow" style={{ marginBottom: 4 }}>Barter offer</div>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>{campaign.barter_detail}</p>
+              </div>
+            )}
+
+            <div style={{
+              display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 14,
+              marginTop: 18, paddingTop: 18, borderTop: '1px solid var(--line)',
+            }}>
+              {briefMeta.map(m => (
+                <div key={m.label}>
+                  <div className="eyebrow" style={{ fontSize: 10 }}>{m.label}</div>
+                  <div style={{ fontSize: 14, fontWeight: 540, marginTop: 3, color: 'var(--ink)' }}>{m.value}</div>
+                </div>
               ))}
             </div>
           </div>
-        )}
-      </div>
 
-      {/* Escrow info */}
-      {campaign.comp_type !== 'barter' && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-          <p className="text-xs font-medium text-blue-700 mb-1">Secured payment</p>
-          <p className="text-xs text-blue-600">
-            Draft work begins only after Stripe verifies the brand&apos;s payment authorization. You are marked paid only after capture and transfer succeed.
-          </p>
-        </div>
-      )}
-
-      {/* Apply or status */}
-      {existing ? (
-        <div className={`card ${existing.status === 'selected' ? 'bg-teal-50 border-teal-200' : 'bg-surface'}`}>
-          <p className="text-sm font-medium text-gray-900">
-            {existing.status === 'selected'
-              ? '🎉 You were selected!'
-              : existing.status === 'shortlisted'
-                ? 'You’ve been shortlisted'
-                : 'Application submitted ✓'}
-          </p>
-          <p className="text-xs text-gray-500 mt-1">
-            {existing.status === 'selected'
-              ? 'A collab has been created. Once the brand funds escrow, you can start on the draft.'
-              : existing.status === 'shortlisted'
-                ? 'The brand is interested. You’ll be notified if you’re selected.'
-                : 'The brand is reviewing applications — you’ll be notified when you’re shortlisted or selected. Track it under Applications.'}
-          </p>
-          {existing.status === 'selected' ? (
-            <Link href="/collabs" className="btn-primary mt-3 inline-block text-sm">View your collab →</Link>
+          {/* Apply or sent state */}
+          {existing ? (
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+              <EmptyState
+                icon={CheckCircle2}
+                tone="money"
+                title={
+                  existing.status === 'selected'
+                    ? 'You were selected!'
+                    : existing.status === 'shortlisted'
+                      ? 'You’ve been shortlisted'
+                      : `Application sent to ${brandName}`
+                }
+                body={
+                  existing.status === 'selected'
+                    ? 'A collab has been created. Once the brand funds escrow, you can start on the draft.'
+                    : existing.status === 'shortlisted'
+                      ? 'The brand is interested. You’ll be notified the moment you’re selected.'
+                      : 'Your full profile went with it. Most brands reply within 36 hours — you’ll be notified the moment they do.'
+                }
+                actionHref={existing.status === 'selected' ? '/collabs' : '/applications'}
+                actionLabel={existing.status === 'selected' ? 'View your collab' : 'Track applications'}
+              />
+            </div>
           ) : (
-            <Link href="/applications" className="btn-secondary mt-3 inline-block text-sm">View my applications</Link>
+            <ApplyForm campaignId={params.id} creatorId={creator!.id} isPaid={isPaid} brandName={brandName} />
           )}
         </div>
-      ) : (
-        <ApplyForm campaignId={params.id} creatorId={creator!.id} isPaid={campaign.comp_type !== 'barter'} />
-      )}
+
+        {/* Sticky trust rail */}
+        <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {/* Payment protected */}
+          <div className="card" style={{ padding: 20, background: 'var(--money-tint)', borderColor: 'var(--money-tint)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
+              <Shield size={18} color="var(--money)" />
+              <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--money-deep)' }}>Your payment is protected</span>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--money-deep)', margin: 0, lineHeight: 1.55 }}>
+              If you’re selected, the brand funds escrow at your agreed rate <strong>before you create anything</strong>.
+              You’ll see the money locked in. Post the approved content and it releases automatically.
+            </p>
+          </div>
+
+          {/* Your fit */}
+          <div className="card" style={{ padding: 20 }}>
+            <div className="eyebrow" style={{ marginBottom: 12 }}>Your fit for this</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <FitRing pct={fit.pct} />
+              <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{fitExplain}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

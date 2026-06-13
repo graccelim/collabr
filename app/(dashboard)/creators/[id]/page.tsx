@@ -8,6 +8,7 @@ import InviteCreatorForm from '@/components/InviteCreatorForm'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
 import Link from 'next/link'
+import { ChevronLeft, BadgeCheck, MapPin, Shield, Lock, ExternalLink } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -65,61 +66,77 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     .limit(10)
 
   const name = (creator.users as any)?.display_name || 'Creator'
+  const avatar = (creator.users as any)?.avatar_url
   const isBoosted = creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
-  const totalFollowers = Object.values((creator.platforms as any) || {})
-    .reduce((sum: number, p: any) => sum + (p.followers || 0), 0)
+  const availability = creator.availability_status as AvailabilityStatus | null
+
+  const socials = (socialAccounts as SocialAccount[]) || []
+  const primarySocial = socials[0]
+  const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
+  const rate = creator.average_rate_sgd ?? creator.base_rate
+
+  const primaryNiche = creator.niche
+    ? NICHE_LABELS[creator.niche as CreatorNiche] || creator.niche
+    : creator.niches?.[0]
+
+  const portfolioLinks: string[] = creator.portfolio_links || []
+
+  const stats: [string, string, string][] = [
+    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'across connected accounts'],
+    ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
+    ['Collabs', String(creator.collabs_completed || 0), 'completed on collabr'],
+    ['Rating', creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—',
+      creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+  ]
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <Link href="/creators" className="text-xs text-gray-400 hover:text-gray-600">← Creators</Link>
+    <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
+      <Link href="/creators" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 24 }}>
+        <ChevronLeft size={15} /> Discover
+      </Link>
 
-      {/* Profile header */}
-      <div className="card">
-        <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 text-xl font-medium flex items-center justify-center shrink-0 overflow-hidden">
-            {(creator.users as any)?.avatar_url
-              ? <img src={(creator.users as any).avatar_url} alt={name} className="w-16 h-16 object-cover" />
-              : getInitials(name)
-            }
+      {/* identity */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 28, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', minWidth: 0 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+            background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontWeight: 600, fontSize: 24,
+          }}>
+            {avatar
+              ? <img src={avatar} alt={name} style={{ width: 72, height: 72, objectFit: 'cover' }} />
+              : getInitials(name)}
           </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg font-semibold text-gray-900">{name}</h1>
-              {creator.is_verified && <span className="badge badge-teal">Verified</span>}
-              {emailVerified === true && <span className="badge badge-teal">Email verified</span>}
-              {isBoosted && <span className="badge badge-purple">Boosted</span>}
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              <h1 className="h1" style={{ fontSize: 25, fontWeight: 600 }}>{name}</h1>
+              {creator.is_verified && <BadgeCheck size={19} style={{ color: 'var(--accent)' }} />}
+              {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }}>Boosted</span>}
             </div>
-            {creator.rating_count > 0 ? (
-              <p className="text-sm text-gray-500 mt-0.5">
-                {creator.rating_avg} ★ · {creator.rating_count} review{creator.rating_count !== 1 ? 's' : ''}
-              </p>
-            ) : (
-              <p className="text-sm text-gray-400 mt-0.5">No reviews yet</p>
-            )}
-            {creator.collabs_completed > 0 && (
-              <p className="text-xs text-gray-400">{creator.collabs_completed} collabs completed</p>
-            )}
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
+              {primarySocial && <span>@{primarySocial.handle}</span>}
               {creator.location && (
-                <span className="text-xs text-gray-400">📍 {creator.location}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <MapPin size={13} />{creator.location}
+                </span>
               )}
-              {creator.availability_status && (
-                <span className={`badge text-xs ${creator.availability_status === 'available' ? 'badge-teal' : creator.availability_status === 'limited' ? 'badge-amber' : 'badge-gray'}`}>
-                  {AVAILABILITY_LABELS[creator.availability_status as AvailabilityStatus] || creator.availability_status}
+              {primaryNiche && <span>{primaryNiche}</span>}
+              {emailVerified === true && <span>Email verified</span>}
+              {availability && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
+                  <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
+                  {AVAILABILITY_LABELS[availability]}
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {creator.bio && (
-          <p className="text-sm text-gray-600 mt-4 whitespace-pre-wrap">{creator.bio}</p>
-        )}
-
-        {/* Brand actions: save + invite (Pro — complimentary during beta) */}
+        {/* Brand actions: invite + save (Pro — complimentary during beta) */}
         {isBrandViewer && (
           viewerIsPro ? (
-            <div className="mt-4 pt-4 border-t border-border flex flex-wrap gap-2 items-start">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start', flexShrink: 0 }}>
               <InviteCreatorForm
                 creatorId={params.id}
                 creatorName={name}
@@ -129,157 +146,193 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
               <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
             </div>
           ) : (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-xs text-gray-500">
-                Inviting and saving creators is part of collabr Pro.{' '}
-                <Link href="/billing" className="font-medium" style={{ color: 'var(--accent-deep)' }}>
-                  Manage plan
-                </Link>
-              </p>
-            </div>
+            <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 240 }}>
+              Inviting and saving creators is part of collabr Pro.{' '}
+              <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
+            </p>
           )
         )}
       </div>
 
-      {/* Stat band — contained, with context lines (Collabr Redesign) */}
-      {(() => {
-        const totalFollowers = ((socialAccounts as SocialAccount[]) || [])
-          .reduce((sum, s) => sum + (s.follower_count || 0), 0)
-        const rate = creator.average_rate_sgd ?? creator.base_rate
-        const stats: [string, string, string][] = [
-          ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'across connected accounts'],
-          ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
-          ['Collabs', String(creator.collabs_completed || 0), 'completed on collabr'],
-          ['Rating', creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—',
-            creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
-        ]
-        return (
-          <div className="card grid grid-cols-2 sm:grid-cols-4" style={{ padding: 0, overflow: 'hidden' }}>
-            {stats.map(([k, v, ctx], i) => (
-              <div key={k} className={`${i > 0 ? 'sm:border-l' : ''} ${i >= 2 ? 'border-t sm:border-t-0' : ''} ${i % 2 === 1 ? 'border-l' : ''} border-border`} style={{ padding: '16px 18px' }}>
-                <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
-                <div className="mono-num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>{v}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
-              </div>
-            ))}
+      {/* stat band */}
+      <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, overflow: 'hidden', marginBottom: 36 }}>
+        {stats.map(([k, v, ctx], i) => (
+          <div key={k} style={{ padding: '18px 20px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
+            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
+            <div className="mono-num" style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>{v}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
           </div>
-        )
-      })()}
-
-      {/* Niche & rate */}
-      <div className="grid grid-cols-2 gap-3">
-        {(creator.niche || (creator.niches && creator.niches.length > 0)) && (
-          <div className="card">
-            <p className="text-xs text-gray-500 mb-2">Niche</p>
-            <div className="flex flex-wrap gap-1">
-              {creator.niche
-                ? <span className="badge badge-gray">{NICHE_LABELS[creator.niche as CreatorNiche] || creator.niche}</span>
-                : creator.niches!.map((n: string) => (
-                    <span key={n} className="badge badge-gray">{n}</span>
-                  ))}
-            </div>
-          </div>
-        )}
-        <div className="card">
-          <p className="text-xs text-gray-500 mb-1">Average rate</p>
-          <p className="text-lg font-semibold text-gray-900">
-            {(creator.average_rate_sgd ?? creator.base_rate) > 0
-              ? formatSGD(creator.average_rate_sgd ?? creator.base_rate)
-              : 'Negotiable'}
-          </p>
-        </div>
+        ))}
       </div>
 
-      {/* Portfolio & media kit */}
-      {((creator.portfolio_links && creator.portfolio_links.length > 0) || creator.media_kit_url) && (
-        <div className="card">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">Portfolio</h2>
-          <div className="space-y-2">
-            {(creator.portfolio_links || []).map((link: string) => (
-              <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                className="block text-sm text-purple-600 hover:text-purple-800 truncate">
-                {link}
-              </a>
-            ))}
-            {creator.media_kit_url && (
-              <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer"
-                className="inline-block text-sm font-medium text-purple-600 hover:text-purple-800 mt-1">
-                View media kit →
-              </a>
+      {/* two-column layout */}
+      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 290px', gap: 40, alignItems: 'start' }}>
+        {/* MAIN */}
+        <div>
+          {/* About */}
+          {creator.bio && (
+            <section style={{ marginBottom: 30 }}>
+              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>About</h2>
+              <p style={{ fontSize: 15, lineHeight: 1.65, color: 'var(--ink)', whiteSpace: 'pre-wrap', margin: 0 }}>{creator.bio}</p>
+            </section>
+          )}
+
+          {/* Niche tags (real, when multiple) */}
+          {creator.niches && creator.niches.length > 0 && (
+            <section style={{ marginBottom: 30 }}>
+              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Niches</h2>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                {creator.niches.map((n: string) => (
+                  <span key={n} className="badge badge-neutral">{NICHE_LABELS[n as CreatorNiche] || n}</span>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Recent work — real portfolio_links, or striped placeholders */}
+          <section style={{ marginBottom: 30 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <h2 className="h2" style={{ fontSize: 18 }}>Recent work</h2>
+              {creator.media_kit_url && (
+                <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer"
+                  style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  View media kit <ExternalLink size={12} />
+                </a>
+              )}
+            </div>
+            {portfolioLinks.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {portfolioLinks.map(link => (
+                  <a key={link} href={link} target="_blank" rel="noopener noreferrer"
+                    className="card card-hover"
+                    style={{ aspectRatio: '4/5', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 14, overflow: 'hidden' }}>
+                    <ExternalLink size={16} style={{ color: 'var(--accent)', marginBottom: 'auto' }} />
+                    <span style={{ fontSize: 12, color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {link.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+                {[0, 1, 2].map(i => (
+                  <div key={i} style={{
+                    aspectRatio: '4/5', borderRadius: 'var(--radius)', border: '1px solid var(--line)',
+                    background: 'repeating-linear-gradient(135deg, var(--paper-2), var(--paper-2) 8px, var(--surface-2) 8px, var(--surface-2) 16px)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', fontWeight: 500 }}>No preview</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Brand reviews — real */}
+          {brandReviews && brandReviews.length > 0 && (
+            <section style={{ marginBottom: 30 }}>
+              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Brand reviews</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {brandReviews.map(r => {
+                  const campaign = (r.collabs as any)?.campaigns
+                  return (
+                    <div key={r.id} className="card">
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: r.note ? 6 : 0 }}>
+                        <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>{campaign?.title || 'Collab'}</span>
+                        <span style={{ fontSize: 13, color: 'var(--warn)' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                      </div>
+                      {r.note && <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{r.note}</p>}
+                    </div>
+                  )
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* RAIL */}
+        <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* Typical rate */}
+          <div className="card" style={{ padding: 20 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Typical rate</span>
+              <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Negotiable</span>
+            </div>
+            <div className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
+              {rate > 0 ? formatSGD(rate) : 'Negotiable'}
+              {rate > 0 && <span style={{ fontSize: 14, color: 'var(--ink-faint-solid)', fontWeight: 400 }}> / post</span>}
+            </div>
+            <div style={{ display: 'flex', gap: 8, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', color: 'var(--ink-soft)' }}>
+              <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+              <span style={{ fontSize: 12.5, lineHeight: 1.5 }}>
+                Fund escrow once when they accept. It releases only after you approve the live post.
+              </span>
+            </div>
+          </div>
+
+          {/* Connected accounts */}
+          <div>
+            <div className="eyebrow" style={{ marginBottom: 4 }}>Connected accounts</div>
+            {socials.length > 0 ? (
+              <>
+                {socials.map(s => (
+                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderTop: '1px solid var(--line)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                      <div style={{
+                        width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+                        background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 600, fontSize: 11, textTransform: 'capitalize',
+                      }}>{s.platform[0].toUpperCase()}</div>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, color: 'var(--ink)', textTransform: 'capitalize', display: 'flex', alignItems: 'center', gap: 5 }}>
+                          {s.platform}
+                          {s.is_primary && <span style={{ fontSize: 9.5, color: 'var(--ink-faint-solid)' }}>Primary</span>}
+                        </div>
+                        {s.handle && <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.handle}</div>}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
+                      {s.follower_count != null && (
+                        <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>{s.follower_count.toLocaleString()}</span>
+                      )}
+                      {s.verification_status === 'verified' && <BadgeCheck size={14} style={{ color: 'var(--money)' }} />}
+                    </div>
+                  </div>
+                ))}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, color: 'var(--ink-faint-solid)' }}>
+                  <Lock size={12} />
+                  <span style={{ fontSize: 11 }}>Pulled from connected platform accounts</span>
+                </div>
+              </>
+            ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
+              // Legacy fallback for profiles created before normalized socials
+              Object.entries(creator.platforms as Record<string, { handle: string; followers: number; verified: boolean }>)
+                .map(([platform, info]) => (
+                  <div key={platform} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderTop: '1px solid var(--line)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <div style={{
+                        width: 26, height: 26, borderRadius: 7, flexShrink: 0,
+                        background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontWeight: 600, fontSize: 11,
+                      }}>{platform[0].toUpperCase()}</div>
+                      <div>
+                        <div style={{ fontSize: 13, color: 'var(--ink)', textTransform: 'capitalize' }}>{platform}</div>
+                        {info.handle && <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>@{info.handle}</div>}
+                      </div>
+                    </div>
+                    <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>{Number(info.followers || 0).toLocaleString()}</span>
+                  </div>
+                ))
+            ) : (
+              <div style={{ padding: '12px 0', borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+                This creator hasn&apos;t connected any social accounts yet.
+              </div>
             )}
           </div>
         </div>
-      )}
-
-      {/* Connected socials */}
-      {socialAccounts && socialAccounts.length > 0 ? (
-        <div className="card">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">Connected socials</h2>
-          <div className="space-y-2">
-            {(socialAccounts as SocialAccount[]).map(s => (
-              <div key={s.id} className="flex items-center justify-between">
-                <div>
-                  <span className="text-sm font-medium text-gray-700 capitalize">{s.platform}</span>
-                  <a href={s.url} target="_blank" rel="noopener noreferrer"
-                    className="text-xs text-gray-400 ml-2 hover:text-gray-600">@{s.handle}</a>
-                  {s.is_primary && <span className="badge badge-purple ml-2 text-xs">Primary</span>}
-                  {s.verification_status === 'verified' && <span className="badge badge-teal ml-2 text-xs">Verified</span>}
-                </div>
-                {s.follower_count != null && (
-                  <span className="text-sm font-medium text-gray-900">
-                    {s.follower_count.toLocaleString()} followers
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
-        // Legacy fallback for profiles created before normalized socials
-        <div className="card">
-          <h2 className="text-sm font-medium text-gray-900 mb-3">Platforms</h2>
-          <div className="space-y-2">
-            {Object.entries(creator.platforms as Record<string, { handle: string; followers: number; verified: boolean }>)
-              .map(([platform, info]) => (
-                <div key={platform} className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm font-medium text-gray-700 capitalize">{platform}</span>
-                    <span className="text-xs text-gray-400 ml-2">@{info.handle}</span>
-                  </div>
-                  <span className="text-sm font-medium text-gray-900">
-                    {Number(info.followers || 0).toLocaleString()} followers
-                  </span>
-                </div>
-              ))}
-          </div>
-        </div>
-      ) : (
-        <div className="card">
-          <h2 className="text-sm font-medium text-gray-900 mb-1">Connected socials</h2>
-          <p className="text-xs text-gray-400">This creator hasn&apos;t connected any social accounts yet.</p>
-        </div>
-      )}
-
-      {/* Reviews */}
-      {brandReviews && brandReviews.length > 0 && (
-        <div>
-          <h2 className="text-sm font-medium text-gray-900 mb-3">Brand reviews</h2>
-          <div className="space-y-3">
-            {brandReviews.map(r => {
-              const campaign = (r.collabs as any)?.campaigns
-              return (
-                <div key={r.id} className="card">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-gray-500">{campaign?.title || 'Collab'}</span>
-                    <span className="text-sm font-medium">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                  </div>
-                  {r.note && <p className="text-sm text-gray-600">{r.note}</p>}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
 }

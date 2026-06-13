@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion'
+import { computeFit, bestFollowers } from '@/lib/fit'
 import EmptyState from '@/components/EmptyState'
 import { ArrowRight, Megaphone, Compass } from 'lucide-react'
 
@@ -219,7 +220,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: string; displayName: string | null; avatarUrl: string | null }) {
   const supabase = createClient()
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('id, user_id, bio, niche, location, portfolio_links, base_rate, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned')
+    .select('id, user_id, bio, niche, niches, location, portfolio_links, base_rate, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned')
     .eq('user_id', userId).single()
   if (!creator) return (
     <EmptyState
@@ -235,8 +236,59 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
     .select('*, campaigns(title), brand_profiles(company_name)')
     .eq('creator_id', creator.id).neq('status', 'completed').neq('status', 'cancelled')
     .order('created_at', { ascending: false }).limit(6)
-  const { count: socialsCount } = await supabase.from('social_accounts')
-    .select('*', { count: 'exact', head: true }).eq('creator_id', creator.id)
+  const { data: socials } = await supabase.from('social_accounts')
+    .select('follower_count').eq('creator_id', creator.id)
+  const socialsCount = socials?.length || 0
+
+  // Payout nudge: only when no Stripe Connect account yet. RLS hides the
+  // connect id from session clients, so read it with the admin client.
+  const { data: connectProfile } = await createAdminClient().from('creator_profiles')
+    .select('stripe_connect_id').eq('id', creator.id).single()
+  const needsPayoutSetup = !connectProfile?.stripe_connect_id
+
+  // "Happening now": real pending invites + outbound application count.
+  const { data: invites } = await supabase.from('campaign_invites')
+    .select('id, created_at, campaigns(title), brand_profiles(company_name)')
+    .eq('creator_id', creator.id).eq('status', 'pending')
+    .order('created_at', { ascending: false }).limit(4)
+  const { data: openApps } = await supabase.from('applications')
+    .select('id, campaign_id, status').eq('creator_id', creator.id).neq('status', 'rejected')
+  const appliedCampaignIds = new Set((openApps || []).map(a => a.campaign_id))
+  const outboundCount = (openApps || []).length
+
+  // "Matched to you": up to 3 active campaigns the creator hasn't applied to,
+  // ranked by a real computeFit score on niche + reach.
+  const creatorFollowers = bestFollowers(socials || [])
+  const creatorNiches = [creator.niche, ...((creator.niches as string[] | null) || [])]
+  const { data: openCampaigns } = await supabase.from('campaigns')
+    .select('id, title, comp_type, budget_min, budget_max, niche_tags, min_followers, brand_profiles(company_name)')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false }).limit(12)
+  const matched = (openCampaigns || [])
+    .filter(c => !appliedCampaignIds.has(c.id))
+    .map(c => {
+      const fit = computeFit(
+        { niches: creatorNiches, followers: creatorFollowers },
+        { niches: (c.niche_tags as string[] | null) || [], minFollowers: c.min_followers || 0 },
+      )
+      const hasPay = c.comp_type === 'paid' || c.comp_type === 'both'
+      const pay = hasPay
+        ? c.budget_min
+          ? `${formatSGD(c.budget_min)}${c.budget_max ? `–${formatSGD(c.budget_max)}` : ''}`
+          : 'Paid'
+        : 'Barter'
+      return {
+        id: c.id,
+        title: c.title,
+        brand: (c.brand_profiles as any)?.company_name || 'A brand',
+        pay,
+        pct: fit.pct,
+      }
+    })
+    .sort((a, b) => b.pct - a.pct)
+    .slice(0, 3)
+
+  const happeningEmpty = (invites || []).length === 0 && outboundCount === 0
 
   const needsYou = (collabs || []).filter(c => {
     const v = deriveWorkflow({ status: c.status, paymentStatus: c.payment_status, isBrand: false, counterpartName: 'Brand' })
@@ -285,6 +337,24 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
         </div>
       </div>
 
+      {/* Connect-your-payout nudge — only when no Stripe Connect account yet */}
+      {needsPayoutSetup && (
+        <Link href="/earnings" style={{
+          width: '100%', textDecoration: 'none', marginBottom: 14,
+          background: 'var(--surface)', border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)', padding: '16px 18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 99, background: 'var(--accent)', flexShrink: 0 }} />
+            <span style={{ fontSize: 14.5, color: 'var(--ink)' }}>Connect your payout account so the money can reach you</span>
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--ink-soft)', fontSize: 13.5, fontWeight: 530, flexShrink: 0 }}>
+            Set up <ArrowRight size={15} />
+          </span>
+        </Link>
+      )}
+
       {isEmpty ? (
         <EmptyState
           icon={Compass}
@@ -324,6 +394,79 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
             })}
           </div>
         </>
+      )}
+
+      {/* Happening now — real pending invites + outbound application count */}
+      {!happeningEmpty && (
+        <div style={{ marginTop: isEmpty ? 40 : 48, marginBottom: 8 }}>
+          <span className="eyebrow" style={{ display: 'block', marginBottom: 4 }}>Happening now</span>
+          <div>
+            {(invites || []).map(inv => {
+              const company = (inv.brand_profiles as any)?.company_name || 'A brand'
+              const campaignTitle = (inv.campaigns as any)?.title || 'a campaign'
+              return (
+                <Link key={inv.id} href="/invites" style={{
+                  width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
+                  padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+                }}>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{company} invited you</span>
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{campaignTitle}</span>
+                  </span>
+                  <span style={{ fontSize: 13, color: 'var(--warn)', flexShrink: 0 }}>New invite</span>
+                </Link>
+              )
+            })}
+            {outboundCount > 0 && (
+              <Link href="/applications" style={{
+                width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
+                padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              }}>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>
+                    {outboundCount} application{outboundCount > 1 ? 's' : ''} out
+                  </span>
+                  <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)' }}>Awaiting reply</span>
+                </span>
+                <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)', flexShrink: 0 }}>Track</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Matched to you — real active campaigns ranked by computeFit */}
+      {matched.length > 0 && (
+        <div style={{ marginTop: happeningEmpty ? (isEmpty ? 40 : 48) : 40, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <span className="eyebrow">Matched to you</span>
+            <Link href="/jobs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>Browse all</Link>
+          </div>
+          <div>
+            {matched.map(m => (
+              <Link key={m.id} href={`/jobs/${m.id}`} style={{
+                width: '100%', textDecoration: 'none', borderTop: '1px solid var(--line)',
+                padding: '16px 2px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+              }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
+                  <span style={{
+                    width: 38, height: 38, borderRadius: 10, flexShrink: 0,
+                    background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 13,
+                  }}>{getInitials(m.brand)}</span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 14.5, fontWeight: 540, color: 'var(--ink)' }}>{m.title}</span>
+                    <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.brand}</span>
+                  </span>
+                </span>
+                <span style={{ display: 'flex', alignItems: 'center', gap: 18, flexShrink: 0 }}>
+                  <span className="mono-num" style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>{m.pay}</span>
+                  <span style={{ fontSize: 13, color: 'var(--accent-deep)' }}>{m.pct}% match</span>
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
       )}
 
       <CompletionNudge href="/profile" label="Finish your profile"

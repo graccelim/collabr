@@ -2,7 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { formatSGD } from '@/lib/utils'
+import { BadgeCheck, Shield, Zap, Check } from 'lucide-react'
+import { formatSGD, getInitials } from '@/lib/utils'
+import { computeFit } from '@/lib/fit'
 
 interface Application {
   id: string
@@ -22,19 +24,19 @@ interface Application {
   }
 }
 
+/** Campaign targeting passed in so we can compute a real creator↔campaign fit. */
+interface CampaignFit {
+  niche_tags?: string[] | null
+  min_followers?: number | null
+}
+
 interface Props {
   applications: Application[]
   campaignId: string
+  campaign?: CampaignFit
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'badge-gray',
-  shortlisted: 'badge-amber',
-  selected: 'badge-teal',
-  rejected: 'badge-gray',
-}
-
-export default function ApplicantList({ applications, campaignId }: Props) {
+export default function ApplicantList({ applications, campaignId, campaign }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [statuses, setStatuses] = useState<Record<string, string>>(
@@ -66,73 +68,114 @@ export default function ApplicantList({ applications, campaignId }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {applications.map(app => {
         const creator = app.creator_profiles
         const name = creator?.users?.display_name || 'Creator'
         const status = statuses[app.id]
-        const totalFollowers = Object.values(creator?.platforms || {})
-          .reduce((sum, p) => sum + (p.followers || 0), 0)
+        const platforms = Object.values(creator?.platforms || {})
+        const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0)
+
+        const fit = computeFit(
+          { niches: creator?.niches || [], followers: totalFollowers },
+          { niches: campaign?.niche_tags || [], minFollowers: campaign?.min_followers || 0 },
+        )
+
+        // Followers line: prefer real platform totals, else fall back to niches.
+        const sub = totalFollowers > 0
+          ? `${totalFollowers.toLocaleString()} followers`
+          : (creator?.niches && creator.niches.length > 0 ? creator.niches.join(' · ') : 'New creator')
+
+        const rateLabel = app.proposed_rate != null ? formatSGD(app.proposed_rate) : null
+        const isOpen = status === 'pending' || status === 'shortlisted'
 
         return (
-          <div key={app.id} className={`card ${app.is_boosted ? 'border-purple-300 bg-purple-50/30' : ''}`}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-sm font-medium text-gray-900">{name}</span>
-                  {app.is_boosted && <span className="badge badge-purple text-xs">Boosted</span>}
-                  {creator?.is_verified && <span className="badge badge-teal text-xs">Verified</span>}
-                  <span className={`badge text-xs ${STATUS_COLORS[status] || 'badge-gray'}`}>{status}</span>
-                </div>
-
-                {totalFollowers > 0 && (
-                  <p className="text-xs text-gray-500 mt-0.5">{totalFollowers.toLocaleString()} followers</p>
-                )}
-                {creator?.niches && creator.niches.length > 0 && (
-                  <div className="flex gap-1 flex-wrap mt-1">
-                    {creator.niches.map((n: string) => (
-                      <span key={n} className="badge badge-gray text-xs">{n}</span>
-                    ))}
+          <div key={app.id} className="card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start', minWidth: 0 }}>
+                <span style={{
+                  width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+                  background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 600, fontSize: 16,
+                }}>{getInitials(name)}</span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>
+                    {creator?.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />}
+                    {app.is_boosted && (
+                      <span className="badge badge-warn" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Zap size={11} /> Boosted
+                      </span>
+                    )}
+                    {status === 'selected' && <span className="badge badge-money">Selected</span>}
+                    {status === 'rejected' && <span className="badge badge-neutral">Passed</span>}
                   </div>
-                )}
-                {creator?.rating_count! > 0 && (
-                  <p className="text-xs text-gray-400 mt-1">{creator?.rating_avg} ★ ({creator?.rating_count} reviews)</p>
-                )}
+                  <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 1 }}>
+                    {sub}
+                    {creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
+                  </div>
+                </div>
+              </div>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
+                padding: '4px 9px', borderRadius: 99,
+                background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                fontSize: 12, fontWeight: 600,
+              }}>
+                {fit.pct}% fit
+              </span>
+            </div>
 
-                <p className="text-xs text-gray-600 mt-2 line-clamp-2">{app.pitch}</p>
+            <p style={{ margin: '13px 0', fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>
+              “{app.pitch}”
+            </p>
 
-                {app.proposed_rate && (
-                  <p className="text-xs font-medium text-teal-700 mt-1">Proposed: {formatSGD(app.proposed_rate)}</p>
-                )}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 14, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Their rate</span>
+                <span className="mono-num" style={{ fontSize: 15, fontWeight: 560, color: 'var(--ink)' }}>
+                  {rateLabel || '—'}
+                </span>
               </div>
 
-              {status === 'pending' || status === 'shortlisted' ? (
-                <div className="flex flex-col gap-1.5 shrink-0">
+              {isOpen && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   {status === 'pending' && (
                     <button
                       onClick={() => updateStatus(app.id, 'shortlisted')}
                       disabled={!!loading}
-                      className="btn-secondary text-xs px-3 py-1.5"
+                      className="btn-secondary"
+                      style={{ height: 32, fontSize: 13, padding: '0 13px' }}
                     >
                       {loading === `${app.id}-shortlisted` ? '…' : 'Shortlist'}
                     </button>
                   )}
                   <button
-                    onClick={() => updateStatus(app.id, 'selected')}
-                    disabled={!!loading}
-                    className="btn-primary text-xs px-3 py-1.5"
-                  >
-                    {loading === `${app.id}-selected` ? '…' : 'Select'}
-                  </button>
-                  <button
                     onClick={() => updateStatus(app.id, 'rejected')}
                     disabled={!!loading}
-                    className="text-xs text-gray-400 hover:text-red-500 text-center py-1"
+                    className="btn-ghost"
+                    style={{ height: 32, fontSize: 13, padding: '0 10px', color: 'var(--ink-faint-solid)' }}
                   >
                     {loading === `${app.id}-rejected` ? '…' : 'Pass'}
                   </button>
+                  <button
+                    onClick={() => updateStatus(app.id, 'selected')}
+                    disabled={!!loading}
+                    className="btn-primary"
+                    style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    <Shield size={14} />
+                    {loading === `${app.id}-selected` ? '…' : `Accept & fund${rateLabel ? ` ${rateLabel}` : ''}`}
+                  </button>
                 </div>
-              ) : null}
+              )}
+
+              {status === 'selected' && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
+                  <Check size={15} /> Selected · collab created
+                </span>
+              )}
             </div>
           </div>
         )

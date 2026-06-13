@@ -162,11 +162,12 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div style={{ maxWidth: 1140, margin: '0 auto' }} className="space-y-6">
+      {/* header */}
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">Browse creators</h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {total} creator{total !== 1 ? 's' : ''}{searchParams.saved === '1' ? ' saved' : ' on the platform'}
+        <h1 className="h1" style={{ fontSize: 24, fontWeight: 600 }}>Discover creators</h1>
+        <p style={{ marginTop: 6, fontSize: 14.5, color: 'var(--ink-soft)' }}>
+          {total} verified creator{total !== 1 ? 's' : ''}{searchParams.saved === '1' ? ' saved' : ' on collabr'} · browse, save a shortlist, and invite to your campaigns.
         </p>
       </div>
 
@@ -185,7 +186,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
           actionLabel={searchParams.saved === '1' ? 'Browse all creators' : 'Clear filters'}
         />
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {creators.map(c => {
             const name = (c.users as any)?.display_name || 'Creator'
             const avatar = (c.users as any)?.avatar_url
@@ -194,71 +195,86 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
             const rate = c.average_rate_sgd ?? c.base_rate
             const availability = (c.availability_status as AvailabilityStatus) || 'available'
             const isBoosted = c.boost_active_until && new Date(c.boost_active_until) > new Date()
+            const primaryNiche = c.niche
+              ? NICHE_LABELS[c.niche as CreatorNiche] || c.niche
+              : c.niches?.[0]
+            const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
 
             return (
-              <Link key={c.id} href={`/creators/${c.id}`} className="card card-hover" style={{ display: 'block' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <Link
+                key={c.id}
+                href={`/creators/${c.id}`}
+                className="card card-hover"
+                style={{ display: 'flex', flexDirection: 'column', padding: 18 }}
+              >
+                {/* top: avatar + save */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                   <div style={{
-                    width: 40, height: 40, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+                    width: 46, height: 46, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                     background: 'var(--accent-tint)', color: 'var(--accent-deep)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 600, fontSize: 13,
+                    fontWeight: 600, fontSize: 15,
                   }}>
                     {avatar
-                      ? <img src={avatar} alt={name} style={{ width: 40, height: 40, objectFit: 'cover' }} />
+                      ? <img src={avatar} alt={name} style={{ width: 46, height: 46, objectFit: 'cover' }} />
                       : getInitials(name)}
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {name}
-                      </span>
-                      {c.is_verified && <BadgeCheck size={14} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
-                    </div>
-                    <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 1 }}>
-                      {c.niche
-                        ? NICHE_LABELS[c.niche as CreatorNiche] || c.niche
-                        : c.niches?.[0] || '—'}
-                      {c.location ? ` · ${c.location}` : ''}
-                    </div>
                   </div>
                   <SaveCreatorButton creatorId={c.id} initialSaved={savedSet.has(c.id)} compact />
                 </div>
 
-                {primary && (
-                  <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ textTransform: 'capitalize', fontWeight: 500 }}>{primary.platform}</span>
-                    <span style={{ color: 'var(--ink-faint-solid)' }}>@{primary.handle}</span>
-                    {primary.follower_count != null && (
-                      <span style={{ marginLeft: 'auto', fontWeight: 600, color: 'var(--ink)' }}>
-                        {primary.follower_count.toLocaleString()}
-                      </span>
-                    )}
-                  </div>
-                )}
+                {/* name + verified + availability dot */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 13 }}>
+                  <span style={{ fontWeight: 600, fontSize: 15.5, letterSpacing: '-0.01em', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {name}
+                  </span>
+                  {c.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+                  {availability === 'available' && (
+                    <span title="Available" style={{ width: 6, height: 6, borderRadius: 99, background: 'var(--money)', flexShrink: 0, marginLeft: 2 }} />
+                  )}
+                </div>
 
+                {/* handle · niche */}
+                <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {primary ? `@${primary.handle}` : (c.location || 'collabr creator')}
+                  {primaryNiche ? ` · ${primaryNiche}` : ''}
+                </div>
+
+                {/* bio */}
                 <div style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                  marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--line)',
-                  fontSize: 12,
+                  fontSize: 13, marginTop: 11, color: 'var(--ink-soft)', lineHeight: 1.5,
+                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden', minHeight: 39,
                 }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--ink-soft)' }}>
+                  {c.bio || `${primaryNiche ? primaryNiche + ' creator' : 'Creator'}${c.location ? ` based in ${c.location}` : ''}.`}
+                </div>
+
+                {/* followers + rate */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+                  <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>
+                    {totalFollowers > 0
+                      ? <>{totalFollowers.toLocaleString()}<span style={{ color: 'var(--ink-faint-solid)' }}> followers</span></>
+                      : <span style={{ color: 'var(--ink-faint-solid)' }}>No socials yet</span>}
+                  </span>
+                  <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>
+                    {rate > 0 ? `from ${formatSGD(rate)}` : 'Negotiable'}
+                  </span>
+                </div>
+
+                {/* footer: rating / collabs + availability/boost badges */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ink-faint-solid)' }}>
                     {c.rating_count > 0
                       ? <><Star size={11} fill="currentColor" style={{ color: 'var(--warn)' }} /> {c.rating_avg} · {c.collabs_completed} collab{c.collabs_completed !== 1 ? 's' : ''}</>
                       : c.collabs_completed > 0
                         ? `${c.collabs_completed} collab${c.collabs_completed !== 1 ? 's' : ''}`
                         : 'New to collabr'}
                   </span>
-                  <span style={{ fontWeight: 600, color: 'var(--ink)' }}>
-                    {rate > 0 ? `from ${formatSGD(rate)}` : 'Negotiable'}
+                  <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                    {isBoosted && <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Boosted</span>}
+                    <span className={`badge ${availability === 'available' ? 'badge-safe' : availability === 'limited' ? 'badge-warn' : 'badge-neutral'}`} style={{ fontSize: 10.5 }}>
+                      {AVAILABILITY_LABELS[availability]}
+                    </span>
                   </span>
-                </div>
-
-                <div style={{ marginTop: 8, display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                  <span className={`badge ${availability === 'available' ? 'badge-safe' : availability === 'limited' ? 'badge-warn' : 'badge-neutral'}`} style={{ fontSize: 10.5 }}>
-                    {AVAILABILITY_LABELS[availability]}
-                  </span>
-                  {isBoosted && <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Boosted</span>}
                 </div>
               </Link>
             )

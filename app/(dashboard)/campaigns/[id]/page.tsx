@@ -5,7 +5,7 @@ import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
 import EmptyState from '@/components/EmptyState'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
-import { Inbox, SearchX } from 'lucide-react'
+import { ChevronLeft, Calendar, Users, DollarSign, Inbox, SearchX, Shield } from 'lucide-react'
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
   const user = await requireBrand()
@@ -39,96 +39,133 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     .order('is_boosted', { ascending: false })
     .order('created_at', { ascending: true })
 
+  // Admin client: collabs are party-scoped for session clients; this brand owns
+  // the campaign verified above. Used for the "spots filled" count.
+  const { data: collabs } = await createAdminClient().from('collabs')
+    .select('status').eq('campaign_id', params.id)
+  const spotsFilled = (collabs || []).filter(c => c.status !== 'cancelled').length
+
   // Resolved plan: every brand is Pro while in beta.
   const plan = resolvePlan(brand)
   const visibleApps = plan.isPro ? (applications || []) : (applications || []).slice(0, 5)
   const hiddenCount = (applications?.length || 0) - visibleApps.length
 
-  const total = applications?.length || 0
-  const pending = applications?.filter(a => a.status === 'pending').length || 0
-  const shortlisted = applications?.filter(a => a.status === 'shortlisted').length || 0
-  const selected = applications?.filter(a => a.status === 'selected').length || 0
+  const isActive = campaign.status === 'active'
+  const dueLabel = campaign.deadline
+    ? new Date(campaign.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
+    : null
+  const budgetLabel = campaign.budget_min
+    ? `${formatSGD(campaign.budget_min)}${campaign.budget_max ? `–${formatSGD(campaign.budget_max)}` : ''}`
+    : campaign.comp_type === 'barter' ? 'Barter' : '—'
+
+  const deliverable = (campaign.deliverable_types && campaign.deliverable_types.length > 0)
+    ? campaign.deliverable_types.join(', ')
+    : '—'
+  const platformsLabel = (campaign.niche_tags && campaign.niche_tags.length > 0)
+    ? campaign.niche_tags.join(', ')
+    : '—'
+  const minFollowersLabel = campaign.min_followers > 0
+    ? `${campaign.min_followers.toLocaleString()}+`
+    : 'Any'
+
+  const briefRows: [string, string][] = [
+    ['Deliverable', deliverable],
+    ['Niches', platformsLabel],
+    ['Min followers', minFollowersLabel],
+  ]
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
+    <div style={{ maxWidth: 880, margin: '0 auto' }}>
+      <Link
+        href="/campaigns"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--ink-faint-solid)', fontSize: 13, textDecoration: 'none', marginBottom: 18 }}
+      >
+        <ChevronLeft size={15} /> Campaigns
+      </Link>
+
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 8 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap', minWidth: 0 }}>
+          <h1 style={{ fontSize: 25 }}>{campaign.title}</h1>
+          <span className={`badge ${isActive ? 'badge-money' : campaign.status === 'draft' ? 'badge-neutral' : 'badge-accent'}`} style={{ textTransform: 'capitalize' }}>{campaign.status}</span>
+        </div>
+        <Link href={`/campaigns/${params.id}/edit`} className="btn-secondary" style={{ flexShrink: 0 }}>Edit</Link>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24, color: 'var(--ink-soft)', flexWrap: 'wrap' }}>
+        {dueLabel && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
+            <Calendar size={14} /> Due {dueLabel}
+          </span>
+        )}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
+          <Users size={14} /> {spotsFilled} of {campaign.creators_needed} spot{campaign.creators_needed > 1 ? 's' : ''} filled
+        </span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 13 }}>
+          <DollarSign size={14} /> {budgetLabel} per creator
+        </span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 28, alignItems: 'start' }} className="campaign-detail-grid">
+        {/* MAIN — applicants */}
         <div>
-          <Link href="/campaigns" className="text-xs text-gray-400 hover:text-gray-600">← Campaigns</Link>
-          <h1 className="text-xl font-semibold text-gray-900 mt-1">{campaign.title}</h1>
-          <div className="flex gap-2 mt-1 flex-wrap">
-            <span className={`badge ${campaign.status === 'active' ? 'badge-teal' : 'badge-gray'}`}>{campaign.status}</span>
-            <span className="badge badge-gray">{campaign.comp_type}</span>
-            {campaign.deadline && (
-              <span className="badge badge-gray">Due {new Date(campaign.deadline).toLocaleDateString('en-SG')}</span>
-            )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <h2 style={{ fontSize: 18 }}>Applicants</h2>
+            <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>{applications?.length || 0} total</span>
           </div>
-        </div>
-        <Link href={`/campaigns/${params.id}/edit`} className="btn-secondary text-sm">Edit</Link>
-      </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[
-          { label: 'Total', value: total },
-          { label: 'Pending', value: pending },
-          { label: 'Shortlisted', value: shortlisted },
-          { label: 'Selected', value: selected },
-        ].map(s => (
-          <div key={s.label} className="card text-center">
-            <p className="text-2xl font-semibold text-gray-900">{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Brief */}
-      <div className="card">
-        <h2 className="text-sm font-medium text-gray-900 mb-2">Brief</h2>
-        <p className="text-sm text-gray-600 whitespace-pre-wrap">{campaign.brief}</p>
-        {(campaign.budget_min || campaign.budget_max) && (
-          <p className="text-xs text-gray-500 mt-3">
-            Budget: {campaign.budget_min ? formatSGD(campaign.budget_min) : '—'}
-            {campaign.budget_max ? ` – ${formatSGD(campaign.budget_max)}` : ''}
-          </p>
-        )}
-        {campaign.barter_detail && (
-          <p className="text-xs text-gray-500 mt-1">Barter: {campaign.barter_detail}</p>
-        )}
-      </div>
-
-      {/* Applicants */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-medium text-gray-900">
-            Applicants ({applications?.length || 0})
-          </h2>
-          <span className="text-xs text-gray-400">{campaign.creators_needed} needed</span>
+          {(!applications || applications.length === 0) ? (
+            <EmptyState
+              icon={Inbox}
+              title="Applications are on the way"
+              body="Creators are browsing right now — most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
+              actionHref="/creators"
+              actionLabel="Invite creators"
+            />
+          ) : (
+            <>
+              <ApplicantList applications={visibleApps} campaignId={params.id} campaign={campaign} />
+              {hiddenCount > 0 && (
+                <div className="card" style={{ marginTop: 14, textAlign: 'center', background: 'var(--surface-2)' }}>
+                  <p style={{ fontSize: 14, fontWeight: 540, color: 'var(--ink)', marginBottom: 4 }}>
+                    {hiddenCount} more applicant{hiddenCount > 1 ? 's' : ''} available with Pro
+                  </p>
+                  <Link href="/billing" style={{ fontSize: 13, fontWeight: 540, color: 'var(--accent-deep)' }}>
+                    Manage plan →
+                  </Link>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        {(!applications || applications.length === 0) ? (
-          <EmptyState
-            icon={Inbox}
-            title="Applications are on the way"
-            body="Creators are browsing right now — most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
-            actionHref="/creators"
-            actionLabel="Invite creators"
-          />
-        ) : (
-          <>
-            <ApplicantList applications={visibleApps} campaignId={params.id} />
-            {hiddenCount > 0 && (
-              <div className="card mt-3 text-center" style={{ background: 'var(--surface-2)' }}>
-                <p className="text-sm font-medium text-gray-700 mb-1">
-                  {hiddenCount} more applicant{hiddenCount > 1 ? 's' : ''} available with Pro
-                </p>
-                <Link href="/billing" className="text-xs font-medium" style={{ color: 'var(--accent-deep)' }}>
-                  Manage plan →
-                </Link>
-              </div>
-            )}
-          </>
-        )}
+        {/* RAIL — brief + how accepting works */}
+        <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="card" style={{ padding: 20 }}>
+            <div className="eyebrow" style={{ marginBottom: 12 }}>The brief</div>
+            <p style={{ color: 'var(--ink)', margin: 0, fontSize: 14, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{campaign.brief}</p>
+            {(campaign.budget_min || campaign.budget_max) ? null : campaign.barter_detail ? (
+              <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 12 }}>Barter: {campaign.barter_detail}</p>
+            ) : null}
+            <div style={{ borderTop: '1px solid var(--line)', marginTop: 16, paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {briefRows.map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                  <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>{k}</span>
+                  <span style={{ fontSize: 13, color: 'var(--ink)', fontWeight: 530, textAlign: 'right' }}>{v}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 18, background: 'var(--money-tint)', border: '1px solid var(--money-tint)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+              <Shield size={16} style={{ color: 'var(--money-deep)' }} />
+              <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--money-deep)' }}>How accepting works</span>
+            </div>
+            <p style={{ fontSize: 12.5, color: 'var(--money-deep)', margin: 0, lineHeight: 1.5 }}>
+              Accept a creator → you fund escrow for their agreed rate → work begins. You only pay out when you approve the live post.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )

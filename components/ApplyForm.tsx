@@ -2,11 +2,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { Send } from 'lucide-react'
 
 interface Props {
   campaignId: string
   creatorId: string
   isPaid: boolean
+  brandName?: string
 }
 
 export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
@@ -42,45 +44,62 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-4">
-      <h2 className="text-sm font-medium text-gray-900">Apply for this campaign</h2>
+    <form onSubmit={submit} className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>Apply for this campaign</h2>
 
+      {/* Pitch */}
       <div>
-        <label className="label">Your pitch</label>
+        <label className="label" htmlFor="apply-pitch">Your pitch</label>
         <textarea
-          className="input min-h-[100px] resize-y"
+          id="apply-pitch"
+          className="textarea"
+          style={{ minHeight: 110 }}
           value={pitch}
           onChange={e => setPitch(e.target.value)}
-          placeholder="Tell the brand why you're the right fit. Be specific about your audience and past work."
+          placeholder="I post weekly content to a Singapore audience that actually buys…"
           required
         />
-        <p className="text-xs text-gray-400 mt-1">{pitch.length} / 500 characters</p>
+        <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
+          Be specific about your audience and a past result. Brands skim — lead with why you fit.
+        </p>
       </div>
 
+      {/* Rate */}
       {isPaid && (
         <div>
-          <label className="label">Your rate (S$) — optional</label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">S$</span>
+          <label className="label" htmlFor="apply-rate">Your rate (S$) — optional</label>
+          <div style={{ position: 'relative' }}>
+            <span style={{
+              position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+              color: 'var(--ink-faint-solid)', fontSize: 14, pointerEvents: 'none',
+            }}>S$</span>
             <input
+              id="apply-rate"
               type="number"
               min="0"
               step="1"
-              className="input pl-9"
+              className="input"
+              style={{ paddingLeft: 36 }}
               value={rate}
               onChange={e => setRate(e.target.value)}
               placeholder="Leave blank to negotiate"
             />
           </div>
+          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
+            Leave blank to negotiate. The brand funds escrow at your agreed rate.
+          </p>
         </div>
       )}
 
-      <button type="submit" className="btn-primary w-full justify-center" disabled={submitting}>
+      <button
+        type="submit"
+        className="btn-primary"
+        style={{ width: '100%', justifyContent: 'center', gap: 8 }}
+        disabled={submitting}
+      >
+        <Send size={16} />
         {submitting ? 'Sending…' : 'Send application'}
       </button>
-      <p className="text-xs text-gray-400 text-center">
-        Your collabr. profile will be shared with the brand.
-      </p>
     </form>
   )
 }

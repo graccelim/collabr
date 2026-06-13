@@ -9,6 +9,7 @@ import {
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import { creatorCompletion } from '@/lib/profile-completion'
 import { getInitials } from '@/lib/utils'
+import { Check } from 'lucide-react'
 import type { SocialAccount } from '@/types'
 
 export default function ProfilePage() {
@@ -179,23 +180,37 @@ export default function ProfilePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
+        <div className="eyebrow" style={{ marginBottom: 7 }}>You</div>
         <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-xl font-semibold text-gray-900">My profile</h1>
+          <h1 style={{ fontSize: 28 }}>My profile</h1>
           {emailVerified
             ? <span className="badge badge-teal">Email verified</span>
             : <span className="badge badge-gray">Email not verified</span>}
         </div>
-        <p className="text-sm text-gray-500 mt-0.5">{completion.score}% complete</p>
-        <div className="w-full bg-surface rounded-full h-1.5 mt-2">
-          <div className="bg-purple-600 h-1.5 rounded-full transition-all" style={{ width: `${completion.score}%` }} />
-        </div>
-        {completion.score < 100 && (
-          <div className="flex flex-wrap gap-1.5 mt-2">
-            {completion.items.filter(i => !i.done).map(i => (
-              <span key={i.key} className="badge badge-gray text-xs">+ {i.label}</span>
-            ))}
+        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+          Brands see this first. Make it easy to say yes.
+        </p>
+      </div>
+
+      {/* Completion — circular ring + missing-item pills */}
+      <div className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <CompletionRing pct={completion.score} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>
+            Your profile is {completion.score}% complete
           </div>
-        )}
+          {completion.score < 100 ? (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {completion.items.filter(i => !i.done).map(i => (
+                <span key={i.key} className="badge badge-neutral" style={{ fontSize: 12 }}>+ {i.label}</span>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
+              All set — brands see a complete profile.
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Photo + name */}
@@ -310,7 +325,12 @@ export default function ProfilePage() {
 
       {/* Social accounts */}
       <div className="card space-y-4">
-        <h2 className="text-sm font-medium text-gray-900">Social accounts</h2>
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h2 className="text-sm font-medium text-gray-900">Social accounts</h2>
+          <span className="badge badge-money" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+            <Check size={12} /> Counts verified live
+          </span>
+        </div>
         {socials.length === 0 && (
           <p className="text-xs text-gray-400">No accounts connected yet — add at least one to complete onboarding.</p>
         )}
@@ -356,6 +376,27 @@ export default function ProfilePage() {
       <button onClick={save} className="btn-primary" disabled={saving || avatarUploading}>
         {saving ? 'Saving…' : 'Save profile'}
       </button>
+    </div>
+  )
+}
+
+// Circular completion ring — mirrors the dashboard CompletionNudge SVG tokens.
+function CompletionRing({ pct }: { pct: number }) {
+  const size = 44, sw = 4
+  const r = (size - sw) / 2
+  const c = 2 * Math.PI * r
+  return (
+    <div style={{ position: 'relative', width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--paper-2)" strokeWidth={sw} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="var(--accent)" strokeWidth={sw}
+          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)}
+          style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.2,.7,.2,1)' }} />
+      </svg>
+      <div className="mono-num" style={{
+        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontSize: 11.5, fontWeight: 600, color: 'var(--ink)',
+      }}>{pct}%</div>
     </div>
   )
 }
