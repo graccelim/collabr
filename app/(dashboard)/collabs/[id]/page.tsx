@@ -8,6 +8,7 @@ import BrandReviewActions from '@/components/BrandReviewActions'
 import CreatorLivePostForm from '@/components/CreatorLivePostForm'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
 import EscrowTimeline from '@/components/EscrowTimeline'
+import CollabChat from '@/components/CollabChat'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert } from 'lucide-react'
@@ -178,6 +179,15 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
               </div>
             )}
           </div>
+
+          {/* Messages — on-platform chat (escrow stays in effect only here) */}
+          {!['cancelled'].includes(collab.status) && (
+            <CollabChat
+              collabId={params.id}
+              currentUserId={user.id}
+              counterpartName={isBrand ? creatorName : brandName}
+            />
+          )}
 
           {/* Financials */}
           <div className="card">
