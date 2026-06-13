@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Shield, ArrowRight } from 'lucide-react'
+import { Sparkles, Shield, ArrowRight, Check } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { computeFit } from '@/lib/fit'
@@ -21,6 +21,16 @@ export interface JobsListCampaign {
   platform: string | null
   brand_name: string
   brand_logo: string | null
+  /** The signed-in creator's application status for this campaign, if any. */
+  appliedStatus: 'pending' | 'shortlisted' | 'selected' | 'rejected' | null
+}
+
+// How an existing application renders in place of the Apply affordance.
+const APPLIED: Record<string, { label: string; cls: string }> = {
+  pending:     { label: 'Applied',      cls: 'badge-neutral' },
+  shortlisted: { label: 'Shortlisted',  cls: 'badge-match' },
+  selected:    { label: 'Selected',     cls: 'badge-money' },
+  rejected:    { label: 'Not selected', cls: 'badge-neutral' },
 }
 
 interface CreatorContext {
@@ -191,12 +201,19 @@ export default function JobsList({
                     <Shield size={11} />
                     Escrow-backed
                   </span>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 6,
-                    fontSize: 13, fontWeight: 540, color: 'var(--accent-deep)',
-                  }}>
-                    Apply <ArrowRight size={15} />
-                  </span>
+                  {c.appliedStatus ? (
+                    <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      {c.appliedStatus === 'selected' && <Check size={12} />}
+                      {APPLIED[c.appliedStatus].label}
+                    </span>
+                  ) : (
+                    <span style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      fontSize: 13, fontWeight: 540, color: 'var(--accent-deep)',
+                    }}>
+                      Apply <ArrowRight size={15} />
+                    </span>
+                  )}
                 </div>
               </div>
             </Link>

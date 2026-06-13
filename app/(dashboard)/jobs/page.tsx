@@ -22,8 +22,14 @@ export default async function JobsPage() {
       .select('id, niche, niches').eq('user_id', user.id).single(),
   ])
 
-  const { data: socials } = await supabase.from('social_accounts')
-    .select('follower_count').eq('creator_id', creator?.id ?? '')
+  // Social follower counts + the creator's existing applications (to mark cards
+  // already applied / selected) both key off the creator id — batch them.
+  const [{ data: socials }, { data: myApps }] = await Promise.all([
+    supabase.from('social_accounts').select('follower_count').eq('creator_id', creator?.id ?? ''),
+    supabase.from('applications').select('campaign_id, status').eq('creator_id', creator?.id ?? ''),
+  ])
+  const appStatusByCampaign = new Map<string, string>()
+  for (const a of myApps ?? []) appStatusByCampaign.set(a.campaign_id as string, a.status as string)
 
   const creatorContext = {
     niches: [creator?.niche, ...((creator?.niches as string[] | null) ?? [])]
@@ -52,6 +58,7 @@ export default async function JobsPage() {
       platform,
       brand_name: brand?.company_name || 'Brand',
       brand_logo: brand?.logo_url ?? null,
+      appliedStatus: (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ?? null,
     }
   })
 
