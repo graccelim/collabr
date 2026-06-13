@@ -83,19 +83,21 @@ function QuietRow({ href, name, sub, status, statusColor, amount }: {
 function CompletionNudge({ href, label, done, total }: { href: string; label: string; done: number; total: number }) {
   if (done >= total) return null
   const pct = (done / total) * 100
-  const r = 7, c = 2 * Math.PI * r
   return (
     <Link href={href} style={{
-      marginTop: 44, display: 'inline-flex', alignItems: 'center', gap: 8,
-      color: 'var(--ink-faint-solid)', fontSize: 13.5, textDecoration: 'none',
+      marginTop: 32, display: 'flex', alignItems: 'center', gap: 12,
+      padding: '13px 16px', borderRadius: 'var(--radius)',
+      background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)',
+      color: 'var(--accent-deep)', fontSize: 13.5, fontWeight: 540, textDecoration: 'none',
+      transition: 'filter .15s ease',
     }}>
-      <svg width={18} height={18} style={{ transform: 'rotate(-90deg)' }}>
-        <circle cx={9} cy={9} r={r} fill="none" stroke="var(--paper-2)" strokeWidth={2.5} />
-        <circle cx={9} cy={9} r={r} fill="none" stroke="var(--accent)" strokeWidth={2.5}
-          strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - pct / 100)} />
+      <svg width={22} height={22} style={{ transform: 'rotate(-90deg)', flexShrink: 0 }}>
+        <circle cx={11} cy={11} r={9} fill="none" stroke="var(--surface)" strokeWidth={3} />
+        <circle cx={11} cy={11} r={9} fill="none" stroke="var(--accent)" strokeWidth={3}
+          strokeLinecap="round" strokeDasharray={2 * Math.PI * 9} strokeDashoffset={2 * Math.PI * 9 * (1 - pct / 100)} />
       </svg>
-      {label} — {done} of {total} steps
-      <ArrowRight size={14} />
+      <span style={{ flex: 1 }}>{label} — {done} of {total} steps</span>
+      <ArrowRight size={16} />
     </Link>
   )
 }
@@ -200,7 +202,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
           {/* active — quiet hairline list */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow">Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Active collaborations</span>
             <Link href="/campaigns" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All campaigns</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -391,7 +393,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           {needsYou.length === 0 && <div style={{ marginBottom: 40 }} />}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow">Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Active collaborations</span>
             <Link href="/collabs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All collabs</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -414,7 +416,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {/* Happening now — real pending invites + outbound application count */}
       {!happeningEmpty && (
         <div style={{ marginTop: isEmpty ? 40 : 48, marginBottom: 8 }}>
-          <span className="eyebrow" style={{ display: 'block', marginBottom: 12 }}>Happening now</span>
+          <span className="eyebrow" style={{ display: 'block', marginBottom: 12, color: 'var(--warn)' }}>Happening now</span>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {(invites || []).map(inv => {
               const company = (inv.brand_profiles as any)?.company_name || 'A brand'
@@ -464,7 +466,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {matched.length > 0 && (
         <div style={{ marginTop: happeningEmpty ? (isEmpty ? 40 : 48) : 40, marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow">Matched to you</span>
+            <span className="eyebrow" style={{ color: 'var(--match)' }}>Matched to you</span>
             <Link href="/jobs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>Browse all</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
