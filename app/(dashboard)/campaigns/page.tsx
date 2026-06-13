@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
-import { formatSGD } from '@/lib/utils'
 import EmptyState from '@/components/EmptyState'
-import { Megaphone, ChevronRight, Plus } from 'lucide-react'
+import CampaignList from '@/components/CampaignList'
+import { Megaphone, Plus } from 'lucide-react'
 
 export default async function CampaignsPage() {
   const user = await requireBrand()
@@ -37,32 +37,7 @@ export default async function CampaignsPage() {
           actionLabel="Post your first campaign"
         />
       ) : (
-        <div className="row-list card" style={{ padding: 0, overflow: 'hidden' }}>
-          {campaigns.map(c => {
-            const budget = c.budget_min
-              ? `${formatSGD(c.budget_min)}${c.budget_max ? `–${formatSGD(c.budget_max)}` : ''}`
-              : c.comp_type === 'barter' ? 'Barter' : '—'
-            return (
-              <Link key={c.id} href={`/campaigns/${c.id}`}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-                  padding: '16px 18px', textDecoration: 'none',
-                }}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 4 }}>
-                    <span style={{ fontSize: 15, fontWeight: 560, color: 'var(--ink)' }}>{c.title}</span>
-                    <span className={`badge ${c.status === 'active' ? 'badge-money' : c.status === 'draft' ? 'badge-pending' : 'badge-neutral'}`}>{c.status}</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-                    <span className="mono-num">{budget}</span> per creator · {c.creators_needed} spot{c.creators_needed > 1 ? 's' : ''}
-                    {c.deadline ? ` · Due ${new Date(c.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })}` : ''}
-                  </div>
-                </div>
-                <ChevronRight size={18} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
-              </Link>
-            )
-          })}
-        </div>
+        <CampaignList campaigns={campaigns} />
       )}
     </div>
   )
