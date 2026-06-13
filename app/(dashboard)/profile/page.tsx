@@ -51,16 +51,18 @@ export default function ProfilePage() {
       setUserId(user.id)
       setEmailVerified(Boolean(user.email_confirmed_at))
 
-      const { data: account } = await supabase.from('users')
-        .select('display_name, avatar_url').eq('id', user.id).single()
+      // All three reads key off user.id and are independent — fetch concurrently.
+      const [{ data: account }, { data }] = await Promise.all([
+        supabase.from('users').select('display_name, avatar_url').eq('id', user.id).single(),
+        supabase.from('creator_profiles')
+          .select('bio, niche, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status')
+          .eq('user_id', user.id).single(),
+        loadSocials(),
+      ])
       if (account) {
         setDisplayName(account.display_name || '')
         setAvatarUrl(account.avatar_url || '')
       }
-
-      const { data } = await supabase.from('creator_profiles')
-        .select('bio, niche, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status')
-        .eq('user_id', user.id).single()
       if (data) {
         setBio(data.bio || '')
         setNiche((data.niche as CreatorNiche) || '')
@@ -70,7 +72,6 @@ export default function ProfilePage() {
         setMediaKitUrl(data.media_kit_url || '')
         setPortfolioLinks(data.portfolio_links || [])
       }
-      await loadSocials()
       setLoading(false)
     }
     load()
