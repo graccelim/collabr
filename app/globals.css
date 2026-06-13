@@ -468,7 +468,24 @@
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
   .split-medallion { width: 88px; height: 88px; }
-  .pc-grid         { grid-template-columns: 1fr !important; }
+
+  /* Stop iOS Safari from auto-zooming when a form control is focused: any
+     control under 16px triggers it, so force ≥16px on small screens. The
+     !important overrides the redesign's inline 14px inputs. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea, select, .input, .textarea, .select { font-size: 16px !important; }
+
+  /* Two-column "main + sticky rail" layouts collapse to one column, and any
+     sticky rail unsticks so it simply flows below the main content. */
+  .pc-grid, .resp-2col { grid-template-columns: 1fr !important; }
+  .pc-grid > *, .resp-2col > * { position: static !important; top: auto !important; }
+
+  /* Dense numeric stat rows wrap to two columns; card pairs / N-up stack. */
+  .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+  .resp-1col  { grid-template-columns: 1fr !important; }
+
+  /* Tighter gutters on phones. */
+  .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
 }
 
 @media (min-width: 769px) {

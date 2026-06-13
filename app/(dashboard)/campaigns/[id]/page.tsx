@@ -105,7 +105,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 28, alignItems: 'start' }} className="campaign-detail-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 28, alignItems: 'start' }} className="pc-grid">
         {/* MAIN — applicants */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>

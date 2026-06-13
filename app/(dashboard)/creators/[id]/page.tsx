@@ -155,7 +155,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
       </div>
 
       {/* stat band */}
-      <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, overflow: 'hidden', marginBottom: 36 }}>
+      <div className="card resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, overflow: 'hidden', marginBottom: 36 }}>
         {stats.map(([k, v, ctx], i) => (
           <div key={k} style={{ padding: '18px 20px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
             <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>

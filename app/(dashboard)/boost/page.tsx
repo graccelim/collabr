@@ -75,7 +75,7 @@ export default function BoostPage() {
       )}
 
       {/* Pricing options */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
+      <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 28 }}>
         {([
           { type: 'per_app' as const, t: 'Per application', price: 'S$4', unit: '7 days priority', note: 'Best for one campaign you really want.', best: false },
           { type: 'monthly' as const, t: 'Monthly', price: 'S$20', unit: '30 days priority', note: "Best if you're actively applying to several.", best: true },

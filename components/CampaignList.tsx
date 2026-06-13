@@ -95,7 +95,7 @@ export default function CampaignList({ campaigns }: { campaigns: CampaignRow[] }
                 <ChevronRight size={18} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+              <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
                 {stats.map(s => (
                   <div key={s.k}>
                     <div className="eyebrow" style={{ marginBottom: 4 }}>{s.k}</div>

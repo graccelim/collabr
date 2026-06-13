@@ -137,7 +137,7 @@ export default function HomePage() {
             Every dollar is held safely until both sides are happy. No surprises, no chargebacks.
           </p>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
           {[
             { stat: '100%', label: 'Funds held in escrow', sub: 'until content is confirmed' },
             { stat: '48h', label: 'Brand review window', sub: 'auto-approves if no response' },

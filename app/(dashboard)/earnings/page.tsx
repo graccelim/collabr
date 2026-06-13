@@ -68,7 +68,7 @@ export default async function EarningsPage({
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+      <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <Stat label="Lifetime earned" value={formatSGD(creator?.total_earned || 0)} icon={TrendingUp} />
         <Stat
           label="In escrow for you"

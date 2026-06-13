@@ -80,7 +80,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         }}
       >
         <TopBar role={role} notificationBadge={notificationBadge} />
-        <div style={{
+        <div className="dash-pad" style={{
           maxWidth: 1080,
           margin: '0 auto',
           width: '100%',
