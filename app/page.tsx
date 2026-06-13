@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Reveal, RevealItem } from '@/components/Reveal'
 
 function ShieldCheck() {
   return (
@@ -52,7 +53,7 @@ export default function HomePage() {
         {/* Brand side */}
         <Link href="/signup?role=brand" className="split-side split-side-brand" style={{ textDecoration: 'none' }}>
           <div className="split-watermark" style={{ color: 'rgba(255,255,255,.05)' }}>B</div>
-          <div style={{ position: 'relative', zIndex: 1, maxWidth: 460 }}>
+          <Reveal delay={0.05} style={{ position: 'relative', zIndex: 1, maxWidth: 460 }}>
             <span className="badge badge-ink" style={{ marginBottom: 20, background: 'rgba(255,255,255,.12)', color: '#fff' }}>
               For brands
             </span>
@@ -66,7 +67,7 @@ export default function HomePage() {
                 'Pick from real, vetted creators',
               ].map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, color: 'rgba(255,255,255,.8)', fontSize: 15 }}>
-                  <span style={{ color: 'var(--creator)', flexShrink: 0, marginTop: 1 }}><ShieldCheck /></span>
+                  <span style={{ color: 'var(--accent-on-dark)', flexShrink: 0, marginTop: 1 }}><ShieldCheck /></span>
                   {t}
                 </div>
               ))}
@@ -74,7 +75,7 @@ export default function HomePage() {
             <span className="btn btn-primary btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', gap: 8 }}>
               Post a campaign free <ArrowRight />
             </span>
-          </div>
+          </Reveal>
         </Link>
 
         {/* Centre medallion */}
@@ -90,7 +91,7 @@ export default function HomePage() {
         {/* Creator side */}
         <Link href="/signup?role=creator" className="split-side split-side-creator" style={{ textDecoration: 'none' }}>
           <div className="split-watermark" style={{ color: 'rgba(28,25,23,.06)' }}>C</div>
-          <div style={{ position: 'relative', zIndex: 1, maxWidth: 460, marginLeft: 'auto' }}>
+          <Reveal delay={0.12} style={{ position: 'relative', zIndex: 1, maxWidth: 460, marginLeft: 'auto' }}>
             <span className="badge" style={{ marginBottom: 20, background: 'rgba(28,25,23,.08)', color: 'var(--ink)' }}>
               For creators
             </span>
@@ -112,7 +113,7 @@ export default function HomePage() {
             <span className="btn btn-money btn-lg hover-lift" style={{ display: 'inline-flex', gap: 8 }}>
               Start earning <ArrowRight />
             </span>
-          </div>
+          </Reveal>
         </Link>
       </div>
 
@@ -123,42 +124,42 @@ export default function HomePage() {
         fontSize: 14, fontWeight: 600,
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
       }}>
-        <span style={{ color: 'var(--creator)' }}>✦</span>
+        <span style={{ color: 'var(--accent-on-dark)' }}>✦</span>
         Free during beta · Singapore · No credit card needed
-        <span style={{ color: 'var(--creator)' }}>✦</span>
+        <span style={{ color: 'var(--accent-on-dark)' }}>✦</span>
       </div>
 
       {/* ── Escrow trust section ── */}
       <section style={{ padding: '72px 40px', maxWidth: 960, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 52 }}>
+        <Reveal style={{ textAlign: 'center', marginBottom: 52 }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>Why escrow?</div>
-          <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Real money handled seriously.</h2>
+          <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Real money handled seriously.</h2>
           <p style={{ color: 'var(--ink-soft)', fontSize: 16, marginTop: 12, maxWidth: 540, margin: '12px auto 0' }}>
             Every dollar is held safely until both sides are happy. No surprises, no chargebacks.
           </p>
-        </div>
-        <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
+        </Reveal>
+        <Reveal stagger className="resp-1col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20 }}>
           {[
             { stat: '100%', label: 'Funds held in escrow', sub: 'until content is confirmed' },
             { stat: '48h', label: 'Brand review window', sub: 'auto-approves if no response' },
             { stat: '3 days', label: 'Dispute resolution', sub: 'platform mediates fairly' },
           ].map(({ stat, label, sub }) => (
-            <div key={stat} className="card" style={{ textAlign: 'center', padding: 28 }}>
-              <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 42, letterSpacing: '-0.03em', color: 'var(--ink)', lineHeight: 1 }}>{stat}</div>
+            <RevealItem key={stat} className="card" style={{ textAlign: 'center', padding: 28 }}>
+              <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 42, letterSpacing: '-0.03em', color: 'var(--ink)', lineHeight: 1 }}>{stat}</div>
               <div style={{ fontWeight: 700, fontSize: 15, color: 'var(--ink)', marginTop: 10 }}>{label}</div>
               <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>{sub}</div>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       {/* ── How it works ── */}
       <section style={{ background: 'var(--surface-2)', padding: '72px 40px' }}>
         <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <div style={{ textAlign: 'center', marginBottom: 52 }}>
+          <Reveal style={{ textAlign: 'center', marginBottom: 52 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>How it works</div>
-            <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Simple for both sides.</h2>
-          </div>
+            <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Simple for both sides.</h2>
+          </Reveal>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }} className="pc-grid">
             {/* Brand steps */}
             <div className="card" style={{ padding: 28 }}>
@@ -218,11 +219,11 @@ export default function HomePage() {
 
       {/* ── Feature grid ── */}
       <section style={{ padding: '72px 40px', maxWidth: 1000, margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <Reveal style={{ textAlign: 'center', marginBottom: 48 }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>Why collabr.</div>
-          <h2 style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Built around trust.</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }} className="pc-grid">
+          <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.5vw,40px)' }}>Built around trust.</h2>
+        </Reveal>
+        <Reveal stagger style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }} className="pc-grid">
           {[
             { icon: '🔒', title: 'Escrow protection',    body: 'Payment held safely until you approve the content. Neither side can lose.' },
             { icon: '✅', title: 'Verified stats',       body: 'Follower counts authenticated directly from platform APIs. No fakes.' },
@@ -231,13 +232,13 @@ export default function HomePage() {
             { icon: '📱', title: 'Apple & Google Pay',   body: 'One-tap mobile payments. Stripe-powered with bank-grade security.' },
             { icon: '⏱', title: 'Auto-approve safety',  body: '48-hour review window. Content auto-approves if brand doesn\'t respond.' },
           ].map(({ icon, title, body }) => (
-            <div key={title} className="card hover-lift" style={{ padding: 22 }}>
+            <RevealItem key={title} className="card hover-lift" style={{ padding: 22 }}>
               <div style={{ fontSize: 26, marginBottom: 10 }}>{icon}</div>
               <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>{title}</div>
               <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{body}</p>
-            </div>
+            </RevealItem>
           ))}
-        </div>
+        </Reveal>
       </section>
 
       {/* ── CTA ── */}
@@ -245,7 +246,8 @@ export default function HomePage() {
         background: 'var(--ink)', color: '#fff',
         padding: '80px 40px', textAlign: 'center',
       }}>
-        <h2 style={{ fontSize: 'clamp(28px,4vw,48px)', color: '#fff', marginBottom: 14 }}>
+        <Reveal>
+        <h2 className="display-face" style={{ fontSize: 'clamp(28px,4vw,48px)', color: '#fff', marginBottom: 14 }}>
           Ready to start?
         </h2>
         <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 16, marginBottom: 36 }}>
@@ -259,6 +261,7 @@ export default function HomePage() {
             I&apos;m a creator <ArrowRight />
           </Link>
         </div>
+        </Reveal>
       </section>
 
       {/* ── Footer ── */}
@@ -269,12 +272,12 @@ export default function HomePage() {
         flexWrap: 'wrap', gap: 8,
       }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.04em', color: '#fff' }}>
-          collabr<span style={{ color: 'var(--creator)' }}>.</span>
+          collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
         </span>
         <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>© 2025 collabr. · Singapore</span>
           <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Log in</Link>
-          <Link href="/signup" style={{ fontSize: 13, color: 'var(--creator)', fontWeight: 600 }}>Join free →</Link>
+          <Link href="/signup" style={{ fontSize: 13, color: 'var(--accent-on-dark)', fontWeight: 600 }}>Join free →</Link>
         </div>
       </footer>
     </div>

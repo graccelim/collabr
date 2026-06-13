@@ -150,8 +150,11 @@ async function BrandDashboard({ userId }: { userId: string }) {
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 36 : 44 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em' }}>{greeting()}, {brand.company_name}</h1>
-        <p style={{ fontSize: 15.5, color: 'var(--ink-soft)', marginTop: 8 }}>
+        <div className="eyebrow" style={{ marginBottom: 12 }}>Brand workspace</div>
+        <h1 className="display-face" style={{ fontSize: 'clamp(30px, 6vw, 40px)' }}>
+          {greeting()}, <span className="serif-i" style={{ color: 'var(--accent)' }}>{brand.company_name}</span>
+        </h1>
+        <p style={{ fontSize: 15.5, color: 'var(--ink-soft)', marginTop: 10 }}>
           {isEmpty ? 'Post your first campaign to start finding creators.' : statusLine}
         </p>
       </div>
@@ -309,10 +312,11 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 36 : 44 }}>
-        <h1 style={{ fontSize: 30, fontWeight: 600, letterSpacing: '-0.02em' }}>
-          {greeting()}{displayName ? `, ${displayName.split(' ')[0]}` : ''}
+        <div className="eyebrow" style={{ marginBottom: 12 }}>Creator studio</div>
+        <h1 className="display-face" style={{ fontSize: 'clamp(30px, 6vw, 40px)' }}>
+          {greeting()}{displayName ? <>, <span className="serif-i" style={{ color: 'var(--accent)' }}>{displayName.split(' ')[0]}</span></> : ''}
         </h1>
-        <p style={{ fontSize: 15.5, color: 'var(--ink-soft)', marginTop: 8 }}>
+        <p style={{ fontSize: 15.5, color: 'var(--ink-soft)', marginTop: 10 }}>
           {isEmpty
             ? 'Browse campaigns and land your first paid collab.'
             : needsYou.length > 0
