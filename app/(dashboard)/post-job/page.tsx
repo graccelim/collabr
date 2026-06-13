@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { ArrowRight, Shield, Eye } from 'lucide-react'
 import { INDUSTRY_LABELS, type BrandIndustry } from '@/lib/onboarding'
 import { getInitials } from '@/lib/utils'
+import DateField from '@/components/DateField'
 
 const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
 const DELIVERABLES = ['IG Reel','TikTok video','IG Post','IG Stories','YouTube review','Blog post','Unboxing video']
@@ -176,17 +177,14 @@ export default function PostJobPage() {
                   ))}
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                <div>
-                  <label className="label">Content deadline</label>
-                  <input className="input" type="date" value={form.deadline}
-                    onChange={e => setForm(f => ({ ...f, deadline: e.target.value }))} />
-                </div>
-                <div>
-                  <label className="label">Min followers</label>
-                  <input className="input" type="number" min="0" value={form.min_followers}
-                    onChange={e => setForm(f => ({ ...f, min_followers: e.target.value }))} />
-                </div>
+              <div>
+                <label className="label">Go live by</label>
+                <DateField value={form.deadline} onChange={iso => setForm(f => ({ ...f, deadline: iso }))} />
+              </div>
+              <div>
+                <label className="label">Min followers</label>
+                <input className="input" type="number" min="0" value={form.min_followers}
+                  onChange={e => setForm(f => ({ ...f, min_followers: e.target.value }))} />
               </div>
             </div>
           </div>

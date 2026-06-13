@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { Send, ShieldAlert, MessageSquare } from 'lucide-react'
+import { Send, ShieldAlert, Lock } from 'lucide-react'
 import { getInitials } from '@/lib/utils'
 
 interface Message {
@@ -75,10 +75,19 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
 
   return (
     <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-      <div style={{ padding: '14px 18px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <MessageSquare size={16} style={{ color: 'var(--ink-soft)' }} />
-        <h2 style={{ fontSize: 14, fontWeight: 600 }}>Messages</h2>
-        <span className="micro" style={{ marginLeft: 'auto' }}>with {counterpartName}</span>
+      <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', gap: 11 }}>
+        <span style={{
+          width: 34, height: 34, borderRadius: '50%', flexShrink: 0,
+          background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 12,
+        }}>{getInitials(counterpartName)}</span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{counterpartName}</div>
+          <div className="micro">Messages</div>
+        </div>
+        <span className="badge badge-money" style={{ flexShrink: 0 }}>
+          <Lock size={11} /> Protected chat
+        </span>
       </div>
 
       {/* thread */}

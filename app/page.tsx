@@ -53,7 +53,7 @@ export default function HomePage() {
         {/* Brand side */}
         <Link href="/signup?role=brand" className="split-side split-side-brand" style={{ textDecoration: 'none' }}>
           <div className="split-watermark" style={{ color: 'rgba(255,255,255,.05)' }}>B</div>
-          <Reveal delay={0.05} style={{ position: 'relative', zIndex: 1, maxWidth: 460 }}>
+          <Reveal immediate x={-48} duration={0.65} delay={0.08} style={{ position: 'relative', zIndex: 1, maxWidth: 460 }}>
             <span className="badge badge-ink" style={{ marginBottom: 20, background: 'rgba(255,255,255,.12)', color: '#fff' }}>
               For brands
             </span>
@@ -91,7 +91,7 @@ export default function HomePage() {
         {/* Creator side */}
         <Link href="/signup?role=creator" className="split-side split-side-creator" style={{ textDecoration: 'none' }}>
           <div className="split-watermark" style={{ color: 'rgba(28,25,23,.06)' }}>C</div>
-          <Reveal delay={0.12} style={{ position: 'relative', zIndex: 1, maxWidth: 460, marginLeft: 'auto' }}>
+          <Reveal immediate x={48} duration={0.65} delay={0.2} style={{ position: 'relative', zIndex: 1, maxWidth: 460, marginLeft: 'auto' }}>
             <span className="badge" style={{ marginBottom: 20, background: 'rgba(28,25,23,.08)', color: 'var(--ink)' }}>
               For creators
             </span>

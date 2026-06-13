@@ -10,19 +10,24 @@ const EASE = [0.2, 0.7, 0.2, 1] as const
  * animates it in. `stagger` cascades direct children for grids/lists.
  */
 export function Reveal({
-  children, y = 18, delay = 0, className, style, stagger = false,
+  children, y = 18, x = 0, delay = 0, duration = 0.5,
+  immediate = false, className, style, stagger = false,
 }: {
-  children: ReactNode; y?: number; delay?: number
+  children: ReactNode; y?: number; x?: number; delay?: number; duration?: number
+  /** Animate on mount (above-the-fold heroes) instead of on scroll-into-view. */
+  immediate?: boolean
   className?: string; style?: CSSProperties; stagger?: boolean
 }) {
+  // whileInView for below-the-fold; animate for immediate (on-load) entrances.
+  const trigger = immediate
+    ? { animate: 'show' as const }
+    : { whileInView: 'show' as const, viewport: { once: true, amount: 0.2 } }
+
   if (stagger) {
     return (
       <motion.div
-        className={className}
-        style={style}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, amount: 0.2 }}
+        className={className} style={style}
+        initial="hidden" {...trigger}
         variants={{ show: { transition: { staggerChildren: 0.07, delayChildren: delay } } }}
       >
         {children}
@@ -31,12 +36,12 @@ export function Reveal({
   }
   return (
     <motion.div
-      className={className}
-      style={style}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.5, ease: EASE, delay }}
+      className={className} style={style}
+      initial="hidden" {...trigger}
+      variants={{
+        hidden: { opacity: 0, y, x },
+        show: { opacity: 1, y: 0, x: 0, transition: { duration, ease: EASE, delay } },
+      }}
     >
       {children}
     </motion.div>

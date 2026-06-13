@@ -1,10 +1,10 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth, getUserRow } from '@/lib/auth'
-import Link from 'next/link'
-import { formatSGD, COLLAB_STATUSES, getInitials, relativeTime } from '@/lib/utils'
+import { formatSGD, COLLAB_STATUSES, getInitials } from '@/lib/utils'
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow'
 import EmptyState from '@/components/EmptyState'
-import { ChevronRight, Briefcase } from 'lucide-react'
+import CollabsList, { type CollabRowData } from '@/components/CollabsList'
+import { Briefcase } from 'lucide-react'
 
 export default async function CollabsPage() {
   const user = await requireAuth()
@@ -32,73 +32,29 @@ export default async function CollabsPage() {
         .order('created_at', { ascending: false })
     : { data: [] }
 
-  const active = collabs?.filter(c => !['completed', 'cancelled'].includes(c.status)) || []
-  const past = collabs?.filter(c => ['completed', 'cancelled'].includes(c.status)) || []
-
-  // Redesign row: counterparty-first, slim escrow track + n/5, mono amount.
-  const CollabRow = ({ c, dimmed = false }: { c: any; dimmed?: boolean }) => {
+  // Build display rows + filter bucket (Needs you / In progress / Completed)
+  // server-side; the chip filtering happens client-side in <CollabsList>.
+  const rows: CollabRowData[] = (collabs || []).map(c => {
     const counterparty = isBrand
       ? (c.creator_profiles as any)?.users?.display_name || 'Creator'
       : (c.brand_profiles as any)?.company_name || 'Brand'
-    const initials = getInitials(counterparty)
-
-    const view = deriveWorkflow({
-      status: c.status,
-      paymentStatus: c.payment_status,
-      isBrand,
-      counterpartName: counterparty,
-    })
+    const view = deriveWorkflow({ status: c.status, paymentStatus: c.payment_status, isBrand, counterpartName: counterparty })
     const turn = actorLabel(view, isBrand, counterparty)
-    const step = escrowStep(c.status, c.payment_status)
+    const done = ['completed', 'cancelled'].includes(c.status)
     const statusLabel = COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label || c.status
-    const statusColor = c.status === 'disputed' ? 'var(--danger)'
-      : turn.yourTurn ? 'var(--warn)'
-      : 'var(--ink-faint-solid)'
-
-    return (
-      <Link href={`/collabs/${c.id}`} style={{
-        textDecoration: 'none',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
-        padding: '17px 20px', background: 'var(--surface)',
-        opacity: dimmed ? 0.6 : 1, transition: 'background .12s ease',
-      }} className="collab-row">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-          <div style={{
-            width: 42, height: 42, borderRadius: '50%', flexShrink: 0,
-            background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 600, fontSize: 14,
-          }}>
-            {initials}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 550, color: 'var(--ink)' }}>{counterparty}</div>
-            <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              {c.campaigns?.title || 'Campaign'}
-            </div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 7 }}>
-            {/* slim escrow progress — green = money-secured steps cleared */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }} title={`Escrow step ${step} of 5`}>
-              <div className="mini-escrow-track">
-                <div className="mini-escrow-fill" style={{ width: `${(step / 5) * 100}%` }} />
-              </div>
-              <span className="mono-num" style={{ fontSize: 11, color: 'var(--ink-faint-solid)', letterSpacing: '0.02em' }}>{step}/5</span>
-            </div>
-            <span style={{ fontSize: 12.5, fontWeight: 500, color: statusColor }}>
-              {turn.yourTurn ? `${statusLabel} · your turn` : statusLabel}
-            </span>
-          </div>
-          <span className="mono-num" style={{ fontSize: 14.5, color: 'var(--ink)', fontWeight: 540, minWidth: 56, textAlign: 'right' }}>
-            {formatSGD(c.agreed_rate)}
-          </span>
-          <ChevronRight size={17} style={{ color: 'var(--ink-faint-solid)' }} />
-        </div>
-      </Link>
-    )
-  }
+    return {
+      id: c.id,
+      counterparty,
+      initials: getInitials(counterparty),
+      campaignTitle: c.campaigns?.title || 'Campaign',
+      step: escrowStep(c.status, c.payment_status),
+      statusLabel: turn.yourTurn ? `${statusLabel} · your turn` : statusLabel,
+      statusColor: c.status === 'disputed' ? 'var(--danger)' : turn.yourTurn ? 'var(--warn)' : 'var(--ink-faint-solid)',
+      amount: formatSGD(c.agreed_rate),
+      bucket: done ? 'completed' : turn.yourTurn ? 'needs' : 'progress',
+      dimmed: done,
+    }
+  })
 
   return (
     <div style={{ maxWidth: 780, margin: '0 auto' }}>
@@ -109,25 +65,9 @@ export default async function CollabsPage() {
         </p>
       </div>
 
-      {active.length > 0 && (
-        <div style={{ marginBottom: 32 }}>
-          <p className="eyebrow" style={{ marginBottom: 10 }}>Active · {active.length}</p>
-          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
-            {active.map(c => <CollabRow key={c.id} c={c} />)}
-          </div>
-        </div>
-      )}
-
-      {past.length > 0 && (
-        <div>
-          <p className="eyebrow" style={{ marginBottom: 10 }}>Past</p>
-          <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
-            {past.map(c => <CollabRow key={c.id} c={c} dimmed />)}
-          </div>
-        </div>
-      )}
-
-      {(!collabs || collabs.length === 0) && (
+      {rows.length > 0 ? (
+        <CollabsList rows={rows} />
+      ) : (
         <EmptyState
           icon={Briefcase}
           title={isBrand ? 'Ready when you are' : 'No collabs yet'}
