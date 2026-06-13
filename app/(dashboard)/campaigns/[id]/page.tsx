@@ -109,8 +109,10 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
         {(!applications || applications.length === 0) ? (
           <EmptyState
             icon={Inbox}
-            title="No applications yet"
-            body="Applications will appear here once creators start applying. Most active campaigns receive their first applications within 48 hours."
+            title="Applications are on the way"
+            body="Creators are browsing right now — most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
+            actionHref="/creators"
+            actionLabel="Invite creators"
           />
         ) : (
           <>

@@ -141,27 +141,30 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         )}
       </div>
 
-      {/* Completion statistics */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="card text-center">
-          <p className="text-xl font-semibold text-gray-900 mono-num">{creator.collabs_completed || 0}</p>
-          <p className="text-xs text-gray-500 mt-0.5">Collabs completed</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-xl font-semibold text-gray-900 mono-num">
-            {creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—'}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'No reviews yet'}
-          </p>
-        </div>
-        <div className="card text-center">
-          <p className="text-xl font-semibold text-gray-900 mono-num">
-            {new Date(creator.created_at).toLocaleDateString('en-SG', { month: 'short', year: 'numeric' })}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">Member since</p>
-        </div>
-      </div>
+      {/* Stat band — contained, with context lines (Collabr Redesign) */}
+      {(() => {
+        const totalFollowers = ((socialAccounts as SocialAccount[]) || [])
+          .reduce((sum, s) => sum + (s.follower_count || 0), 0)
+        const rate = creator.average_rate_sgd ?? creator.base_rate
+        const stats: [string, string, string][] = [
+          ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'across connected accounts'],
+          ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
+          ['Collabs', String(creator.collabs_completed || 0), 'completed on collabr'],
+          ['Rating', creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—',
+            creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+        ]
+        return (
+          <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', padding: 0, overflow: 'hidden' }}>
+            {stats.map(([k, v, ctx], i) => (
+              <div key={k} style={{ padding: '16px 18px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
+                <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
+                <div className="mono-num" style={{ fontSize: 20, fontWeight: 600, color: 'var(--ink)' }}>{v}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
+              </div>
+            ))}
+          </div>
+        )
+      })()}
 
       {/* Niche & rate */}
       <div className="grid grid-cols-2 gap-3">

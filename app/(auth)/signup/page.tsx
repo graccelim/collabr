@@ -110,7 +110,7 @@ function SignupForm() {
       <div style={{
         width: 400, flexShrink: 0,
         padding: '48px 40px',
-        background: 'linear-gradient(165deg, #17181C, #0E0F12)',
+        background: 'linear-gradient(165deg, #16171D, #101116)',
         color: '#fff',
         display: 'flex', flexDirection: 'column',
         position: 'relative', overflow: 'hidden',
@@ -132,13 +132,13 @@ function SignupForm() {
           color: '#fff',
           position: 'relative',
         }}>
-          collabr<span style={{ color: '#FDA4AF' }}>.</span>
+          collabr<span style={{ color: '#9DB3F0' }}>.</span>
         </Link>
 
         <div style={{ marginTop: 'auto', position: 'relative' }}>
           <span className="badge" style={{
             background: 'rgba(255,255,255,.1)',
-            color: isBrand ? '#A5B4FC' : '#FDA4AF',
+            color: '#9DB3F0',
             border: '1px solid rgba(255,255,255,.12)',
             marginBottom: 20,
           }}>
@@ -162,7 +162,7 @@ function SignupForm() {
               }}>
                 <ShieldCheck size={16} style={{
                   flexShrink: 0, marginTop: 1,
-                  color: isBrand ? '#A5B4FC' : '#FDA4AF',
+                  color: '#6FCFB2', /* escrow green = money is safe */
                 }} />
                 {t}
               </div>

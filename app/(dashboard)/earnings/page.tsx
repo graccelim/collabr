@@ -68,8 +68,9 @@ export default async function EarningsPage({
           {(!collabs || collabs.length === 0) && (
             <EmptyState
               icon={Wallet}
-              title="No payouts yet"
-              body="Payouts land here after a brand confirms your live post and Stripe transfers your earnings. Escrow guarantees payment once requirements are met."
+              tone="money"
+              title="Your first payout lands here"
+              body="Once a brand confirms your live post, escrow releases and Stripe transfers your earnings — payment is guaranteed before you start work."
               actionHref="/jobs"
               actionLabel="Browse campaigns"
             />

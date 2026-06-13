@@ -33,8 +33,9 @@ export default async function CampaignsPage() {
         {(!campaigns || campaigns.length === 0) && (
           <EmptyState
             icon={Briefcase}
-            title="No campaigns yet"
-            body="Post a campaign brief and creators will start applying — usually within 48 hours. Your money stays in escrow until you confirm the work."
+            title="Let's get your first campaign live"
+            body="Describe what you need and creators start applying — usually within 48 hours. Your money stays in escrow until you approve the work."
+            steps={['Post a campaign', 'Review applicants', 'Fund escrow']}
             actionHref="/post-job"
             actionLabel="Post your first campaign"
           />

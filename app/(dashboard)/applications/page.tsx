@@ -45,8 +45,9 @@ export default async function ApplicationsPage() {
       {(!applications || applications.length === 0) && (
         <EmptyState
           icon={FileText}
-          title="No applications yet"
-          body="Apply to open campaigns and track every application here — you'll see when you're shortlisted or selected."
+          title="Let's land your first paid collab"
+          body="Apply to open campaigns and track every application here — you'll see the moment you're shortlisted or selected."
+          steps={['Browse campaigns', 'Send a pitch', 'Get selected']}
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />

@@ -212,6 +212,26 @@ export function actorLabel(view: Pick<WorkflowView, 'actor' | 'frozen'>, isBrand
     : { label: `Waiting on ${counterpartName.split(' ')[0]}`, yourTurn: false }
 }
 
+/**
+ * 5-step escrow scale for the slim list progress track
+ * (Funded → In progress → Draft approved → Live → Released).
+ */
+export function escrowStep(status: string, paymentStatus: string): number {
+  const funded = !['unfunded', 'authorizing'].includes(paymentStatus)
+  const paid = ['paid', 'manual_exception'].includes(paymentStatus)
+  switch (status) {
+    case 'briefed': return funded ? 1 : 0
+    case 'draft_submitted':
+    case 'in_revision': return 2
+    case 'draft_approved': return 3
+    case 'live_submitted':
+    case 'live_confirmed': return 4
+    case 'completed': return paid ? 5 : 4
+    case 'disputed': return 2
+    default: return 0
+  }
+}
+
 /** Short absolute deadline like "Thu 12 Jun, 4:30 pm". */
 export function formatDeadline(iso: string): string {
   return new Date(iso).toLocaleString('en-SG', {

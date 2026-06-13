@@ -120,17 +120,7 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
               }}>
                 collabr<span style={{ color: 'var(--creator)' }}>.</span>
               </Link>
-              {planLabel && (
-                <span style={{
-                  fontSize: 9.5, fontWeight: 600, letterSpacing: '.05em',
-                  textTransform: 'uppercase',
-                  color: 'var(--accent-deep)', background: 'var(--accent-tint)',
-                  border: '1px solid rgba(79,70,229,.14)',
-                  padding: '1px 6px', borderRadius: 5, whiteSpace: 'nowrap',
-                }}>
-                  {planLabel}
-                </span>
-              )}
+              {/* plan badge lives in the beta card below — keep the logo row calm */}
             </div>
           )}
           <button
@@ -227,15 +217,16 @@ export function AppNav({ role, displayName, email, initials, planLabel }: AppNav
         {!collapsed && (
           <div style={{ padding: 10, borderTop: '1px solid var(--line)', flexShrink: 0 }}>
             <div style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--line)',
-              borderRadius: 8,
-              padding: '8px 10px',
+              background: 'var(--paper-2)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '10px 12px',
               marginBottom: 10,
             }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: 'var(--accent-deep)', letterSpacing: '.07em', textTransform: 'uppercase', marginBottom: 2 }}>Beta · Free</div>
-              <p style={{ fontSize: 11.5, color: 'var(--ink-soft)', lineHeight: 1.4, margin: 0 }}>
-                Pro features are free during beta. 30 days’ notice before pricing changes.
+              <span className="badge badge-accent" style={{ marginBottom: 6 }}>
+                {planLabel ? planLabel.toUpperCase() : 'BETA'}
+              </span>
+              <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', lineHeight: 1.45, margin: 0 }}>
+                All features free during beta. We&rsquo;ll give 30 days&rsquo; notice before pricing.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

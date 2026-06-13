@@ -110,8 +110,8 @@ export default async function InvitesPage() {
       {(!invites || invites.length === 0) && (
         <EmptyState
           icon={Mail}
-          title="No invites yet"
-          body="When a brand invites you to a campaign, it appears here. A complete profile with connected socials gets you discovered faster."
+          title="Brands will reach out right here"
+          body="When a brand invites you to a campaign, it lands here with their offer attached. A complete profile with connected socials gets you discovered faster."
           actionHref="/profile"
           actionLabel="Polish your profile"
         />
