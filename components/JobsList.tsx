@@ -26,10 +26,12 @@ export interface JobsListCampaign {
 }
 
 // How an existing application renders in place of the Apply affordance.
-const APPLIED: Record<string, { label: string; cls: string }> = {
+// Note: "Selected" must NOT be green — that reads as the escrow-backed badge
+// sitting right beside it. It gets a solid navy "won" pill instead.
+const APPLIED: Record<string, { label: string; cls: string; solid?: boolean }> = {
   pending:     { label: 'Applied',      cls: 'badge-neutral' },
   shortlisted: { label: 'Shortlisted',  cls: 'badge-match' },
-  selected:    { label: 'Selected',     cls: 'badge-money' },
+  selected:    { label: 'Selected',     cls: '', solid: true },
   rejected:    { label: 'Not selected', cls: 'badge-neutral' },
 }
 
@@ -202,7 +204,13 @@ export default function JobsList({
                     Escrow-backed
                   </span>
                   {c.appliedStatus ? (
-                    <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <span
+                      className={`badge ${APPLIED[c.appliedStatus].cls}`}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 4,
+                        ...(APPLIED[c.appliedStatus].solid ? { background: 'var(--accent)', color: '#fff' } : {}),
+                      }}
+                    >
                       {c.appliedStatus === 'selected' && <Check size={12} />}
                       {APPLIED[c.appliedStatus].label}
                     </span>

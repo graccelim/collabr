@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ShieldCheck, Search, Bell, Plus, Compass, LogOut } from 'lucide-react'
+import { Search, Bell, Plus, Compass, LogOut } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
@@ -57,15 +57,8 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         padding: '0 20px 0 24px',
       }}
     >
-      {/* left — escrow assurance + beta context */}
+      {/* left — quiet beta context (escrow lives at prime locations, not here) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-        <span
-          className="badge badge-money"
-          style={{ flexShrink: 0, paddingTop: 4, paddingBottom: 4 }}
-        >
-          <ShieldCheck size={13} />
-          Escrow protected
-        </span>
         <span
           className="hidden sm:inline"
           style={{

@@ -7,7 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion'
 import { computeFit, bestFollowers } from '@/lib/fit'
 import EmptyState from '@/components/EmptyState'
-import { ArrowRight, Megaphone, Compass, Mail, Send, Sparkles } from 'lucide-react'
+import { ArrowRight, Megaphone, Compass, Mail, Send, Sparkles, Briefcase, Zap } from 'lucide-react'
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
 // one attention row, a quiet hairline list, a profile-completion nudge.
@@ -85,7 +85,7 @@ function CompletionNudge({ href, label, done, total }: { href: string; label: st
   const pct = (done / total) * 100
   return (
     <Link href={href} style={{
-      marginTop: 32, display: 'flex', alignItems: 'center', gap: 12,
+      marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12,
       padding: '13px 16px', borderRadius: 'var(--radius)',
       background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)',
       color: 'var(--accent-deep)', fontSize: 13.5, fontWeight: 540, textDecoration: 'none',
@@ -176,6 +176,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
         />
       </div>
 
+      <CompletionNudge href="/settings" label="Finish your brand profile"
+        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
+
       {isEmpty ? (
         <EmptyState
           icon={Megaphone}
@@ -202,7 +205,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
           {/* active — quiet hairline list */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={13} /> Active collaborations</span>
             <Link href="/campaigns" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All campaigns</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -221,9 +224,6 @@ async function BrandDashboard({ userId }: { userId: string }) {
           </div>
         </>
       )}
-
-      <CompletionNudge href="/settings" label="Finish your brand profile"
-        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
     </div>
   )
 }
@@ -372,6 +372,9 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
         </Link>
       )}
 
+      <CompletionNudge href="/profile" label="Finish your profile"
+        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
+
       {isEmpty ? (
         <EmptyState
           icon={Compass}
@@ -393,7 +396,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           {needsYou.length === 0 && <div style={{ marginBottom: 40 }} />}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)' }}>Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={13} /> Active collaborations</span>
             <Link href="/collabs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All collabs</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -416,7 +419,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {/* Happening now — real pending invites + outbound application count */}
       {!happeningEmpty && (
         <div style={{ marginTop: isEmpty ? 40 : 48, marginBottom: 8 }}>
-          <span className="eyebrow" style={{ display: 'block', marginBottom: 12, color: 'var(--warn)' }}>Happening now</span>
+          <span className="eyebrow" style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, color: 'var(--warn)' }}><Zap size={13} /> Happening now</span>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
             {(invites || []).map(inv => {
               const company = (inv.brand_profiles as any)?.company_name || 'A brand'
@@ -445,7 +448,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
                 padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
               }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
-                  <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: 'var(--money-tint)', color: 'var(--money)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                     <Send size={16} />
                   </span>
                   <span style={{ minWidth: 0 }}>
@@ -455,7 +458,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
                     <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)' }}>Awaiting reply</span>
                   </span>
                 </span>
-                <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)', flexShrink: 0, fontWeight: 530 }}>Track</span>
+                <span className="badge badge-money" style={{ flexShrink: 0 }}>Active</span>
               </Link>
             )}
           </div>
@@ -466,7 +469,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
       {matched.length > 0 && (
         <div style={{ marginTop: happeningEmpty ? (isEmpty ? 40 : 48) : 40, marginBottom: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow" style={{ color: 'var(--match)' }}>Matched to you</span>
+            <span className="eyebrow" style={{ color: 'var(--match)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Sparkles size={13} /> Matched to you</span>
             <Link href="/jobs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>Browse all</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -493,9 +496,6 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           </div>
         </div>
       )}
-
-      <CompletionNudge href="/profile" label="Finish your profile"
-        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
     </div>
   )
 }
