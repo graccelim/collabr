@@ -57,21 +57,8 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         padding: '0 20px 0 24px',
       }}
     >
-      {/* left — quiet beta context (escrow lives at prime locations, not here) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, minWidth: 0 }}>
-        <span
-          className="hidden sm:inline"
-          style={{
-            fontSize: 13,
-            color: 'var(--ink-faint-solid)',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          Free during beta · Singapore · No card needed
-        </span>
-      </div>
+      {/* left — intentionally empty; controls live on the right */}
+      <div style={{ minWidth: 0 }} />
 
       {/* right — search / notifications / primary action */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>

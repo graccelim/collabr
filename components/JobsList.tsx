@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, Shield, ArrowRight, Check } from 'lucide-react'
+import { Sparkles, ArrowRight, Check } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { computeFit } from '@/lib/fit'
@@ -26,12 +26,10 @@ export interface JobsListCampaign {
 }
 
 // How an existing application renders in place of the Apply affordance.
-// Note: "Selected" must NOT be green — that reads as the escrow-backed badge
-// sitting right beside it. It gets a solid navy "won" pill instead.
-const APPLIED: Record<string, { label: string; cls: string; solid?: boolean }> = {
+const APPLIED: Record<string, { label: string; cls: string }> = {
   pending:     { label: 'Applied',      cls: 'badge-neutral' },
   shortlisted: { label: 'Shortlisted',  cls: 'badge-match' },
-  selected:    { label: 'Selected',     cls: '', solid: true },
+  selected:    { label: 'Selected',     cls: 'badge-money' },
   rejected:    { label: 'Not selected', cls: 'badge-neutral' },
 }
 
@@ -199,18 +197,8 @@ export default function JobsList({
                   ))}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span className="badge badge-money" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <Shield size={11} />
-                    Escrow-backed
-                  </span>
                   {c.appliedStatus ? (
-                    <span
-                      className={`badge ${APPLIED[c.appliedStatus].cls}`}
-                      style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 4,
-                        ...(APPLIED[c.appliedStatus].solid ? { background: 'var(--accent)', color: '#fff' } : {}),
-                      }}
-                    >
+                    <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       {c.appliedStatus === 'selected' && <Check size={12} />}
                       {APPLIED[c.appliedStatus].label}
                     </span>

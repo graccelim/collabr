@@ -7,7 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion'
 import { computeFit, bestFollowers } from '@/lib/fit'
 import EmptyState from '@/components/EmptyState'
-import { ArrowRight, Megaphone, Compass, Mail, Send, Sparkles, Briefcase, Zap } from 'lucide-react'
+import { ArrowRight, Megaphone, Compass, Mail, Send, Sparkles, Zap } from 'lucide-react'
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
 // one attention row, a quiet hairline list, a profile-completion nudge.
@@ -166,6 +166,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
         </p>
       </div>
 
+      <CompletionNudge href="/settings" label="Finish your brand profile"
+        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
+
       <div style={{ marginBottom: 14 }}>
         <MoneyPanel
           label="Held in escrow"
@@ -175,9 +178,6 @@ async function BrandDashboard({ userId }: { userId: string }) {
             : 'Nothing secured yet — you’ll fund escrow when you accept your first creator.'}
         />
       </div>
-
-      <CompletionNudge href="/settings" label="Finish your brand profile"
-        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
 
       {isEmpty ? (
         <EmptyState
@@ -205,7 +205,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
           {/* active — quiet hairline list */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={13} /> Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--money)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--money)', flexShrink: 0 }} /> Active collaborations</span>
             <Link href="/campaigns" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All campaigns</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
@@ -333,6 +333,9 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
         </p>
       </div>
 
+      <CompletionNudge href="/profile" label="Finish your profile"
+        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
+
       {/* earnings — the one dark anchor */}
       <div className="money-panel" style={{ marginBottom: 14 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
@@ -372,9 +375,6 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
         </Link>
       )}
 
-      <CompletionNudge href="/profile" label="Finish your profile"
-        done={completion.items.filter(i => i.done).length} total={completion.items.length} />
-
       {isEmpty ? (
         <EmptyState
           icon={Compass}
@@ -396,7 +396,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           {needsYou.length === 0 && <div style={{ marginBottom: 40 }} />}
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <span className="eyebrow" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><Briefcase size={13} /> Active collaborations</span>
+            <span className="eyebrow" style={{ color: 'var(--money)', display: 'inline-flex', alignItems: 'center', gap: 6 }}><span style={{ width: 7, height: 7, borderRadius: 99, background: 'var(--money)', flexShrink: 0 }} /> Active collaborations</span>
             <Link href="/collabs" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All collabs</Link>
           </div>
           <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
