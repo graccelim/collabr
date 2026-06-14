@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
+import { normalizeNicheTags } from '@/lib/niches'
 
 async function getAuthedBrand(supabase: ReturnType<typeof createClient>, userId: string, campaignId: string) {
   const { data: campaign } = await supabase.from('campaigns')
@@ -31,6 +32,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const allowed = ['title', 'brief', 'deliverable_types', 'comp_type', 'budget_min', 'budget_max',
     'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
+  // Normalize edited niche tags to canonical slugs (matching + trigger safety).
+  if (Array.isArray(updates.niche_tags)) {
+    updates.niche_tags = normalizeNicheTags(updates.niche_tags as string[])
+  }
 
   // Brands may only open/close campaigns. 'completed' feeds the public
   // completed_campaigns trust signal (Phase 6 trigger) and is reserved for

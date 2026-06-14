@@ -75,6 +75,7 @@ export async function POST(req: NextRequest) {
 
   const { error: updateErr } = await admin.from('creator_profiles').update({
     niche: parsed.data.niche,
+    niche_tags: [parsed.data.niche],   // keep multi-niche in sync (canonical slug)
     onboarding_completed_at: creator.onboarding_completed_at || new Date().toISOString(),
   }).eq('id', creator.id)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })

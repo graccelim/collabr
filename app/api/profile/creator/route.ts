@@ -37,6 +37,10 @@ export async function PATCH(req: NextRequest) {
   if (updates.average_rate_sgd !== undefined) {
     updates.base_rate = updates.average_rate_sgd ?? 0
   }
+  // Keep the multi-niche tags in sync with the primary niche (canonical slug).
+  if (updates.niche !== undefined && updates.niche) {
+    updates.niche_tags = [updates.niche]
+  }
 
   if (Object.keys(updates).length === 0 && !display_name) {
     return NextResponse.json({ error: 'Nothing to update' }, { status: 400 })

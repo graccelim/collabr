@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
@@ -46,5 +46,16 @@ export async function POST(req: NextRequest) {
 
   if (error?.code === '23505') return NextResponse.json({ error: 'You have already reviewed this collab' }, { status: 409 })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Event-triggered recompute: a brand review changes the creator's quality
+  // inputs. Non-blocking — nightly cron is the backstop.
+  if (userRow?.role === 'brand') {
+    const creatorUserId = (collab.creator_profiles as any)?.user_id
+    if (creatorUserId) {
+      const admin = createAdminClient()
+      const { data: cp } = await admin.from('creator_profiles').select('id').eq('user_id', creatorUserId).single()
+      if (cp) await admin.rpc('recompute_creator_scores', { p_creator_id: cp.id }).then(() => {}, () => {})
+    }
+  }
   return NextResponse.json(data, { status: 201 })
 }

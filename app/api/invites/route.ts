@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     creator_id: creator.id,
     proposed_rate: parsed.data.proposed_rate,
     message: parsed.data.message || null,
+    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   }).select().single()
 
   if (error) {

@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
+import { normalizeNiche, normalizeNicheTags } from '@/lib/niches'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
@@ -15,7 +16,8 @@ export async function GET(req: NextRequest) {
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (niche) query = query.contains('niche_tags', [niche])
+  const nicheSlug = niche ? normalizeNiche(niche) : null
+  if (nicheSlug) query = query.contains('niche_tags', [nicheSlug])
   if (type) query = query.eq('comp_type', type)
   if (minFollowers) query = query.gte('min_followers', parseInt(minFollowers))
 
@@ -80,7 +82,8 @@ export async function POST(req: NextRequest) {
     budget_min: body.budget_min || null,
     budget_max: body.budget_max || null,
     barter_detail: body.barter_detail || null,
-    niche_tags: body.niche_tags || [],
+    // Normalize to canonical slugs so matching is reliable + the DB trigger accepts them.
+    niche_tags: normalizeNicheTags(Array.isArray(body.niche_tags) ? body.niche_tags : []),
     min_followers: body.min_followers || 0,
     creators_needed: body.creators_needed || 1,
     deadline: body.deadline || null,
