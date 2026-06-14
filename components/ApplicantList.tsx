@@ -2,9 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { BadgeCheck, Shield, Zap, Check } from 'lucide-react'
+import { BadgeCheck, Shield, Zap, Check, Sparkles } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
-import { computeFit } from '@/lib/fit'
+import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
 interface Application {
   id: string
@@ -12,6 +12,10 @@ interface Application {
   proposed_rate: number | null
   status: string
   is_boosted: boolean
+  /** Honest creator↔campaign match (null when there's no credible fit to claim). */
+  match?: MatchResult | null
+  /** Boolean trust indicators (verified ownership, availability, etc). */
+  indicators?: CreatorIndicators | null
   creator_profiles?: {
     bio?: string | null
     niches?: string[] | null
@@ -35,6 +39,8 @@ interface Props {
   campaignId: string
   campaign?: CampaignFit
 }
+
+const OWNERSHIP_NOTE = 'Account ownership verified — follower counts are self-reported'
 
 export default function ApplicantList({ applications, campaignId, campaign }: Props) {
   const router = useRouter()
@@ -76,15 +82,21 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
         const platforms = Object.values(creator?.platforms || {})
         const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0)
 
-        const fit = computeFit(
-          { niches: creator?.niches || [], followers: totalFollowers },
-          { niches: campaign?.niche_tags || [], minFollowers: campaign?.min_followers || 0 },
-        )
+        const match = app.match
+        const indicators = app.indicators
+        // Honest label only when computeMatch found a credible niche fit.
+        const matchLabel = match?.label ?? null
+        const reasons = match?.reasons ?? []
+        const verified = indicators?.verified ?? creator?.is_verified ?? false
+        const isNew = indicators?.isNew ?? false
+        const showRating = indicators?.showRating ?? Boolean(creator?.rating_count)
 
-        // Followers line: prefer real platform totals, else fall back to niches.
+        // Followers line: prefer real platform totals (self-reported), else niches.
         const sub = totalFollowers > 0
-          ? `${totalFollowers.toLocaleString()} followers`
-          : (creator?.niches && creator.niches.length > 0 ? creator.niches.join(' · ') : 'New creator')
+          ? `${totalFollowers.toLocaleString()} followers (self-reported)`
+          : isNew
+            ? 'New creator'
+            : (creator?.niches && creator.niches.length > 0 ? creator.niches.join(' · ') : 'New creator')
 
         const rateLabel = app.proposed_rate != null ? formatSGD(app.proposed_rate) : null
         const isOpen = status === 'pending' || status === 'shortlisted'
@@ -102,7 +114,15 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>
-                    {creator?.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />}
+                    {verified && (
+                      <span className="badge badge-money" title={OWNERSHIP_NOTE} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <Shield size={11} /> Verified Account
+                      </span>
+                    )}
+                    {!verified && creator?.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />}
+                    {isNew && status !== 'selected' && status !== 'rejected' && (
+                      <span className="badge badge-neutral">New Creator</span>
+                    )}
                     {app.is_boosted && (
                       <span className="badge badge-warn" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <Zap size={11} /> Boosted
@@ -113,19 +133,31 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 1 }}>
                     {sub}
-                    {creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
+                    {showRating && creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
                   </div>
                 </div>
               </div>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0,
-                padding: '4px 9px', borderRadius: 99,
-                background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                fontSize: 12, fontWeight: 600,
-              }}>
-                {fit.pct}% fit
-              </span>
+              {matchLabel && (
+                <span className="badge badge-match" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                  <Sparkles size={11} /> {matchLabel}
+                </span>
+              )}
             </div>
+
+            {reasons.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
+                {reasons.map(r => (
+                  <span key={r} style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 5,
+                    padding: '3px 9px', borderRadius: 99,
+                    background: 'var(--surface-2)', color: 'var(--ink-soft)',
+                    fontSize: 12, fontWeight: 520,
+                  }}>
+                    <Check size={11} style={{ color: 'var(--money-deep)' }} /> {r}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <p style={{ margin: '13px 0', fontSize: 14, lineHeight: 1.5, color: 'var(--ink)' }}>
               “{app.pitch}”

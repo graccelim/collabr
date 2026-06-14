@@ -5,6 +5,8 @@ import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
 import EmptyState from '@/components/EmptyState'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
+import { computeMatch, creatorIndicators } from '@/lib/recommend'
+import { toCreatorSignals, toCampaignSignals, type ScoreRow } from '@/lib/discovery-data'
 import { ChevronLeft, Calendar, Users, DollarSign, Inbox, SearchX, Shield } from 'lucide-react'
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
@@ -38,7 +40,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // "spots filled" count respectively.
   const [{ data: applications }, { data: collabs }] = await Promise.all([
     createAdminClient().from('applications')
-      .select('*, creator_profiles(id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
+      .select('*, creator_profiles(id, user_id, bio, niche, niche_tags, niches, platforms, base_rate, average_rate_sgd, availability_status, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
       .eq('campaign_id', params.id)
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: true }),
@@ -47,10 +49,53 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   ])
   const spotsFilled = (collabs || []).filter(c => c.status !== 'cancelled').length
 
+  // Honest ranking inputs: socials (self-reported reach + ownership verification)
+  // and the creator_scores row are fetched via the admin client for the applicant
+  // creator profile ids, then mapped to ranking signals and passed down.
+  const creatorIds = (applications || [])
+    .map(a => a.creator_profiles?.id)
+    .filter((id): id is string => Boolean(id))
+  const socialsByCreator: Record<string, { follower_count: number | null; verification_status: string | null }[]> = {}
+  const scoreByCreator: Record<string, ScoreRow> = {}
+  if (creatorIds.length > 0) {
+    const admin = createAdminClient()
+    const [{ data: socials }, { data: scores }] = await Promise.all([
+      admin.from('social_accounts')
+        .select('creator_id, follower_count, verification_status').in('creator_id', creatorIds),
+      admin.from('creator_scores')
+        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded, verification_tier')
+        .in('creator_id', creatorIds),
+    ])
+    for (const s of (socials || []) as { creator_id: string; follower_count: number | null; verification_status: string | null }[]) {
+      (socialsByCreator[s.creator_id] ||= []).push({ follower_count: s.follower_count, verification_status: s.verification_status })
+    }
+    for (const sc of (scores || []) as (ScoreRow & { creator_id: string })[]) {
+      scoreByCreator[sc.creator_id] = sc
+    }
+  }
+
+  // Build the campaign signal once, compute each applicant's match, and rank by
+  // match score (best first). Boosted applicants get a small additive tie-break
+  // bump — they never leap above a clearly-better match.
+  const campaignSignals = toCampaignSignals(campaign)
+  const BOOST_TIEBREAK = 0.04
+  const rankedApplications = (applications || [])
+    .map(app => {
+      const creatorRow = app.creator_profiles
+      const creatorSignals = creatorRow
+        ? toCreatorSignals(creatorRow, socialsByCreator[creatorRow.id] || [], scoreByCreator[creatorRow.id] || null)
+        : null
+      const match = creatorSignals ? computeMatch(creatorSignals, campaignSignals) : null
+      const indicators = creatorSignals ? creatorIndicators(creatorSignals, campaignSignals) : null
+      const rankScore = (match?.score ?? 0) + (app.is_boosted ? BOOST_TIEBREAK : 0)
+      return { ...app, match, indicators, _rankScore: rankScore }
+    })
+    .sort((a, b) => b._rankScore - a._rankScore)
+
   // Resolved plan: every brand is Pro while in beta.
   const plan = resolvePlan(brand)
-  const visibleApps = plan.isPro ? (applications || []) : (applications || []).slice(0, 5)
-  const hiddenCount = (applications?.length || 0) - visibleApps.length
+  const visibleApps = plan.isPro ? rankedApplications : rankedApplications.slice(0, 5)
+  const hiddenCount = rankedApplications.length - visibleApps.length
 
   const isActive = campaign.status === 'active'
   const dueLabel = campaign.deadline

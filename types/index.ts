@@ -51,6 +51,12 @@ export interface SocialAccount {
   is_primary: boolean
   created_at: string
   updated_at: string
+  // Bio-code ownership verification (Phase 15)
+  verification_method?: 'bio_code' | 'oauth' | null
+  verification_code?: string | null
+  verification_code_expires_at?: string | null
+  verified_at?: string | null
+  verified_follower_count?: number | null
 }
 
 export interface CreatorProfile {

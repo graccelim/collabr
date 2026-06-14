@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { Sparkles, ArrowRight, Check } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
-import { computeFit } from '@/lib/fit'
 
 export interface JobsListCampaign {
   id: string
@@ -23,6 +22,10 @@ export interface JobsListCampaign {
   brand_logo: string | null
   /** The signed-in creator's application status for this campaign, if any. */
   appliedStatus: 'pending' | 'shortlisted' | 'selected' | 'rejected' | null
+  /** Honest tier label ("Best Match" / "Strong Fit" / "Good Fit") or null. */
+  matchLabel: string | null
+  /** Creator-facing reasons ("Matches your niche", …) rendered as a ✓ list. */
+  matchReasons: string[]
 }
 
 // How an existing application renders in place of the Apply affordance.
@@ -31,11 +34,6 @@ const APPLIED: Record<string, { label: string; cls: string }> = {
   shortlisted: { label: 'Shortlisted',  cls: 'badge-match' },
   selected:    { label: 'Selected',     cls: 'badge-money' },
   rejected:    { label: 'Not selected', cls: 'badge-neutral' },
-}
-
-interface CreatorContext {
-  niches: string[]
-  followers: number
 }
 
 function nicheLabel(tag: string): string {
@@ -60,10 +58,8 @@ function dueLabel(deadline: string | null): string {
 
 export default function JobsList({
   campaigns,
-  creator,
 }: {
   campaigns: JobsListCampaign[]
-  creator: CreatorContext
 }) {
   const [filter, setFilter] = useState<string>('__for_you')
 
@@ -74,23 +70,12 @@ export default function JobsList({
     return Array.from(set)
   }, [campaigns])
 
-  // Compute fit once per campaign (memoized) and sort by it.
-  const ranked = useMemo(() => {
-    return campaigns
-      .map(c => ({
-        c,
-        fit: computeFit(
-          { niches: creator.niches, followers: creator.followers },
-          { niches: c.niche_tags ?? [], minFollowers: c.min_followers },
-        ),
-      }))
-      .sort((a, b) => b.fit.pct - a.fit.pct)
-  }, [campaigns, creator])
-
+  // `campaigns` arrives already ranked best-first by the two-sided recommender
+  // (rankCampaignsForCreator) — preserve that order, only apply the niche chip.
   const visible = useMemo(() => {
-    if (filter === '__for_you') return ranked
-    return ranked.filter(({ c }) => c.niche_tags?.includes(filter))
-  }, [ranked, filter])
+    if (filter === '__for_you') return campaigns
+    return campaigns.filter(c => c.niche_tags?.includes(filter))
+  }, [campaigns, filter])
 
   return (
     <>
@@ -117,7 +102,7 @@ export default function JobsList({
 
       {/* Campaign cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {visible.map(({ c, fit }) => {
+        {visible.map((c) => {
           const pays = paysLabel(c)
           const deliverable = c.deliverable_types?.[0] ?? '—'
           return (
@@ -164,12 +149,30 @@ export default function JobsList({
                     )}
                   </div>
                 </div>
-                {/* Match pill — bright violet, distinct from the navy accent */}
-                <span className="badge badge-match" style={{ flexShrink: 0, gap: 5 }}>
-                  <Sparkles size={12} />
-                  {fit.pct}% match
-                </span>
+                {/* Honest fit tier — only shown when there's a credible match
+                    to claim. No numbers, ever. Null → no pill. */}
+                {c.matchLabel && (
+                  <span className="badge badge-match" style={{ flexShrink: 0, gap: 5 }}>
+                    <Sparkles size={12} />
+                    {c.matchLabel}
+                  </span>
+                )}
               </div>
+
+              {/* Why it fits — compact ✓ list of honest, categorical reasons. */}
+              {c.matchReasons.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 12 }}>
+                  {c.matchReasons.map(reason => (
+                    <span key={reason} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      fontSize: 12.5, color: 'var(--ink-soft)',
+                    }}>
+                      <Check size={13} style={{ color: 'var(--match)', flexShrink: 0 }} />
+                      {reason}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Bottom zone */}
               <div style={{

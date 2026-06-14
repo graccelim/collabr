@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import EmptyState from '@/components/EmptyState'
 import { Compass } from 'lucide-react'
-import { bestFollowers } from '@/lib/fit'
+import { rankCampaignsForCreator } from '@/lib/recommend'
+import { toCreatorSignals, toCampaignForCreator, type CreatorRow } from '@/lib/discovery-data'
 import JobsList, { type JobsListCampaign } from '@/components/JobsList'
 
 export default async function JobsPage() {
@@ -10,34 +11,53 @@ export default async function JobsPage() {
   const supabase = createClient()
 
   // The active campaign list (by status) and the signed-in creator's profile
-  // (by user.id) are independent — batch them. The creator's niche + social
-  // follower counts let the browse list compute a real fit score per campaign.
+  // (by user.id) are independent — batch them. The creator's niche, rate,
+  // availability and social follower counts feed the two-sided recommender so
+  // the browse list is ordered by real fit and labelled honestly.
   const [{ data: campaigns }, { data: creator }] = await Promise.all([
     supabase.from('campaigns')
-      .select('*, brand_profiles(company_name, logo_url)')
+      .select('*, brand_profiles(id, company_name, logo_url, completed_campaigns)')
       .eq('status', 'active')
       .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false }),
     supabase.from('creator_profiles')
-      .select('id, niche, niches').eq('user_id', user.id).single(),
+      .select('id, niche, niches, niche_tags, average_rate_sgd, base_rate, availability_status, collabs_completed, rating_avg, rating_count, boost_active_until')
+      .eq('user_id', user.id).single(),
   ])
 
-  // Social follower counts + the creator's existing applications (to mark cards
-  // already applied / selected) both key off the creator id — batch them.
-  const [{ data: socials }, { data: myApps }] = await Promise.all([
-    supabase.from('social_accounts').select('follower_count').eq('creator_id', creator?.id ?? ''),
+  // Social accounts (followers + verified ownership), the creator's existing
+  // applications, and the creator's score row all key off the creator id —
+  // batch them.
+  const [{ data: socials }, { data: myApps }, { data: scoreRow }] = await Promise.all([
+    supabase.from('social_accounts').select('follower_count, verification_status').eq('creator_id', creator?.id ?? ''),
     supabase.from('applications').select('campaign_id, status').eq('creator_id', creator?.id ?? ''),
+    supabase.from('creator_scores').select('*').eq('creator_id', creator?.id ?? '').maybeSingle(),
   ])
   const appStatusByCampaign = new Map<string, string>()
   for (const a of myApps ?? []) appStatusByCampaign.set(a.campaign_id as string, a.status as string)
 
-  const creatorContext = {
-    niches: [creator?.niche, ...((creator?.niches as string[] | null) ?? [])]
-      .filter((n): n is string => Boolean(n)),
-    followers: bestFollowers((socials ?? []) as { follower_count: number | null }[]),
-  }
+  // Build the creator's ranking signals once; reuse for every campaign.
+  const creatorRow: CreatorRow = (creator as CreatorRow | null) ?? { id: '' }
+  const creatorSignals = toCreatorSignals(
+    creatorRow,
+    (socials ?? []) as { follower_count: number | null; verification_status: string | null }[],
+    scoreRow,
+  )
 
-  const list: JobsListCampaign[] = (campaigns ?? []).map(c => {
+  // Rank active campaigns for this creator (best-first), then map each ranked
+  // entry to the card props the list renders. The recommender already orders by
+  // real fit, so we keep that order.
+  const ranked = rankCampaignsForCreator(
+    creatorSignals,
+    (campaigns ?? []).map(c => {
+      const brand = (c.brand_profiles as any) ?? null
+      return toCampaignForCreator(c, brand?.completed_campaigns ?? 0)
+    }),
+  )
+  const campaignById = new Map((campaigns ?? []).map(c => [c.id, c]))
+
+  const list: JobsListCampaign[] = ranked.map(r => {
+    const c = campaignById.get(r.campaign.id)!
     const brand = c.brand_profiles as { company_name: string | null; logo_url: string | null } | null
     // campaigns have no platform column; surface one only if present.
     const platform = typeof (c as { platform?: unknown }).platform === 'string'
@@ -59,6 +79,9 @@ export default async function JobsPage() {
       brand_name: brand?.company_name || 'Brand',
       brand_logo: brand?.logo_url ?? null,
       appliedStatus: (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ?? null,
+      // Honest fit signals from the recommender — tier label (or null) + reasons.
+      matchLabel: r.label,
+      matchReasons: r.reasons,
     }
   })
 
@@ -74,7 +97,7 @@ export default async function JobsPage() {
       </div>
 
       {list.length > 0 ? (
-        <JobsList campaigns={list} creator={creatorContext} />
+        <JobsList campaigns={list} />
       ) : (
         <EmptyState
           icon={Compass}

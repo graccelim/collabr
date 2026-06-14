@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel } from '@/lib/workflow';
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion';
-import { computeFit, bestFollowers } from '@/lib/fit';
+import { rankCampaignsForCreator } from '@/lib/recommend';
+import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import EmptyState from '@/components/EmptyState';
 import {
   ArrowRight,
@@ -14,6 +15,7 @@ import {
   Mail,
   Send,
   Sparkles,
+  Check,
   Zap,
 } from 'lucide-react';
 
@@ -522,7 +524,7 @@ async function CreatorDashboard({
   const { data: creator } = await supabase
     .from('creator_profiles')
     .select(
-      'id, user_id, bio, niche, niches, location, portfolio_links, base_rate, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned'
+      'id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, base_rate, average_rate_sgd, availability_status, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned'
     )
     .eq('user_id', userId)
     .single();
@@ -547,6 +549,7 @@ async function CreatorDashboard({
     { data: invites },
     { data: openApps },
     { data: openCampaigns },
+    { data: scoreRow },
   ] = await Promise.all([
     supabase
       .from('collabs')
@@ -558,7 +561,7 @@ async function CreatorDashboard({
       .limit(6),
     supabase
       .from('social_accounts')
-      .select('follower_count')
+      .select('follower_count, verification_status')
       .eq('creator_id', creator.id),
     createAdminClient()
       .from('creator_profiles')
@@ -580,11 +583,16 @@ async function CreatorDashboard({
     supabase
       .from('campaigns')
       .select(
-        'id, title, comp_type, budget_min, budget_max, niche_tags, min_followers, brand_profiles(company_name)'
+        'id, title, comp_type, budget_min, budget_max, niche_tags, min_followers, is_featured, created_at, brand_profiles(company_name, completed_campaigns)'
       )
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(12),
+    supabase
+      .from('creator_scores')
+      .select('*')
+      .eq('creator_id', creator.id)
+      .maybeSingle(),
   ]);
 
   const socialsCount = socials?.length || 0;
@@ -595,22 +603,30 @@ async function CreatorDashboard({
   const outboundCount = (openApps || []).length;
 
   // "Matched to you": up to 3 active campaigns the creator hasn't applied to,
-  // ranked by a real computeFit score on niche + reach.
-  const creatorFollowers = bestFollowers(socials || []);
-  const creatorNiches = [
-    creator.niche,
-    ...((creator.niches as string[] | null) || []),
-  ];
-  const matched = (openCampaigns || [])
-    .filter((c) => !appliedCampaignIds.has(c.id))
-    .map((c) => {
-      const fit = computeFit(
-        { niches: creatorNiches, followers: creatorFollowers },
-        {
-          niches: (c.niche_tags as string[] | null) || [],
-          minFollowers: c.min_followers || 0,
-        }
-      );
+  // ranked by the two-sided recommender. Shows an honest tier label + reasons —
+  // never a percentage or numeric score.
+  const creatorSignals = toCreatorSignals(
+    creator,
+    (socials || []) as {
+      follower_count: number | null;
+      verification_status: string | null;
+    }[],
+    scoreRow
+  );
+  const unappliedCampaigns = (openCampaigns || []).filter(
+    (c) => !appliedCampaignIds.has(c.id)
+  );
+  const campaignById = new Map(unappliedCampaigns.map((c) => [c.id, c]));
+  const matched = rankCampaignsForCreator(
+    creatorSignals,
+    unappliedCampaigns.map((c) => {
+      const brand = (c.brand_profiles as any) ?? null;
+      return toCampaignForCreator(c, brand?.completed_campaigns ?? 0);
+    })
+  )
+    .slice(0, 3)
+    .map((r) => {
+      const c = campaignById.get(r.campaign.id)!;
       const hasPay = c.comp_type === 'paid' || c.comp_type === 'both';
       const pay = hasPay
         ? c.budget_min
@@ -622,11 +638,11 @@ async function CreatorDashboard({
         title: c.title,
         brand: (c.brand_profiles as any)?.company_name || 'A brand',
         pay,
-        pct: fit.pct,
+        label: r.label,
+        // Keep it tight on the dashboard — 1–2 reasons.
+        reasons: r.reasons.slice(0, 2),
       };
-    })
-    .sort((a, b) => b.pct - a.pct)
-    .slice(0, 3);
+    });
 
   const happeningEmpty = (invites || []).length === 0 && outboundCount === 0;
 
@@ -1052,7 +1068,8 @@ async function CreatorDashboard({
         </div>
       )}
 
-      {/* Matched to you — real active campaigns ranked by computeFit */}
+      {/* Matched to you — active campaigns ranked by the two-sided recommender;
+          honest tier label + 1–2 reasons, never a percentage */}
       {matched.length > 0 && (
         <div
           style={{
@@ -1158,14 +1175,49 @@ async function CreatorDashboard({
                     >
                       {m.brand} · <span className="mono-num">{m.pay}</span>
                     </span>
+                    {m.reasons.length > 0 && (
+                      <span
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 10,
+                          marginTop: 5,
+                        }}
+                      >
+                        {m.reasons.map((reason) => (
+                          <span
+                            key={reason}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              fontSize: 12,
+                              color: 'var(--ink-soft)',
+                            }}
+                          >
+                            <Check
+                              size={12}
+                              style={{
+                                color: 'var(--match)',
+                                flexShrink: 0,
+                              }}
+                            />
+                            {reason}
+                          </span>
+                        ))}
+                      </span>
+                    )}
                   </span>
                 </span>
-                <span
-                  className="badge badge-match"
-                  style={{ flexShrink: 0, gap: 4 }}
-                >
-                  <Sparkles size={11} /> {m.pct}% match
-                </span>
+                {/* Honest tier label — only when there's a credible fit. */}
+                {m.label && (
+                  <span
+                    className="badge badge-match"
+                    style={{ flexShrink: 0, gap: 4 }}
+                  >
+                    <Sparkles size={11} /> {m.label}
+                  </span>
+                )}
               </Link>
             ))}
           </div>

@@ -167,6 +167,19 @@ export default function ProfilePage() {
     else await loadSocials()
   }
 
+  // Bio-code ownership verification (not follower verification).
+  async function requestVerification(id: string) {
+    const res = await fetch('/api/verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ social_account_id: id }),
+    })
+    const data = await res.json()
+    if (!res.ok) { toast.error(data.error || 'Could not start verification'); return }
+    toast.success('Add the code to your bio — our team will confirm ownership')
+    await loadSocials()
+  }
+
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
 
   const completion = creatorCompletion({
@@ -336,25 +349,43 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-400">No accounts connected yet — add at least one to complete onboarding.</p>
         )}
         {socials.map(s => (
-          <div key={s.id} className="flex items-center justify-between gap-2">
-            <div className="min-w-0">
-              <span className="text-sm font-medium text-gray-700 capitalize">{s.platform}</span>
-              <a href={s.url} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-gray-400 ml-2 hover:text-gray-600">@{s.handle}</a>
-              {s.is_primary && <span className="badge badge-purple ml-2 text-xs">Primary</span>}
-              {s.verification_status === 'verified' && <span className="badge badge-teal ml-2 text-xs">Verified</span>}
+          <div key={s.id} className="flex flex-col gap-2" style={{ paddingBottom: 4 }}>
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <span className="text-sm font-medium text-gray-700 capitalize">{s.platform}</span>
+                <a href={s.url} target="_blank" rel="noopener noreferrer"
+                  className="text-xs text-gray-400 ml-2 hover:text-gray-600">@{s.handle}</a>
+                {s.is_primary && <span className="badge badge-purple ml-2 text-xs">Primary</span>}
+                {s.verification_status === 'verified' && (
+                  <span className="badge badge-money ml-2 text-xs" title="Account ownership verified — follower counts are self-reported">
+                    Verified Account
+                  </span>
+                )}
+                {s.verification_status === 'pending' && <span className="badge badge-warn ml-2 text-xs">Pending review</span>}
+              </div>
+              <div className="flex items-center gap-3 shrink-0">
+                {s.follower_count != null && (
+                  <span className="text-xs text-gray-500" title="Self-reported">{s.follower_count.toLocaleString()} followers</span>
+                )}
+                {!s.is_primary && (
+                  <button type="button" onClick={() => makePrimary(s.id)}
+                    className="text-xs text-gray-400 hover:text-gray-600">Make primary</button>
+                )}
+                <button type="button" onClick={() => removeSocial(s.id)}
+                  className="text-xs text-red-400 hover:text-red-600">Remove</button>
+              </div>
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {s.follower_count != null && (
-                <span className="text-xs text-gray-500">{s.follower_count.toLocaleString()} followers</span>
-              )}
-              {!s.is_primary && (
-                <button type="button" onClick={() => makePrimary(s.id)}
-                  className="text-xs text-gray-400 hover:text-gray-600">Make primary</button>
-              )}
-              <button type="button" onClick={() => removeSocial(s.id)}
-                className="text-xs text-red-400 hover:text-red-600">Remove</button>
-            </div>
+            {s.verification_status === 'pending' && s.verification_code ? (
+              <p className="text-xs" style={{ color: 'var(--ink-soft)' }}>
+                Add this code to your {s.platform} bio so we can confirm ownership:{' '}
+                <span className="mono-num" style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{s.verification_code}</span>
+              </p>
+            ) : s.verification_status !== 'verified' && (
+              <button type="button" onClick={() => requestVerification(s.id)}
+                className="text-xs self-start" style={{ color: 'var(--accent-deep)', fontWeight: 540 }}>
+                Verify account ownership →
+              </button>
+            )}
           </div>
         ))}
 
@@ -371,7 +402,7 @@ export default function ProfilePage() {
             {addingSocial ? 'Adding…' : 'Add'}
           </button>
         </form>
-        <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower verification coming soon.</p>
+        <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Verifying confirms <strong>account ownership</strong> — follower counts stay self-reported until platform APIs are connected.</p>
       </div>
 
       <button onClick={save} className="btn-primary" disabled={saving || avatarUploading}>

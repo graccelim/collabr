@@ -7,8 +7,9 @@ import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
+import { hasVerifiedOwnership, VERIFICATION_NOTE } from '@/lib/discovery-data'
 import Link from 'next/link'
-import { ChevronLeft, BadgeCheck, MapPin, Shield, Lock, ExternalLink } from 'lucide-react'
+import { ChevronLeft, BadgeCheck, MapPin, Shield, Lock, ExternalLink, ShieldCheck } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -81,6 +82,12 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
   const rate = creator.average_rate_sgd ?? creator.base_rate
 
+  // Honest trust signals: ownership verified ≠ follower reach verified.
+  const verifiedOwnership = hasVerifiedOwnership(socials)
+  const completedCollabs = creator.collabs_completed || 0
+  const isNewCreator = completedCollabs === 0
+  const showRating = (creator.rating_count || 0) >= 1
+
   const primaryNiche = creator.niche
     ? NICHE_LABELS[creator.niche as CreatorNiche] || creator.niche
     : creator.niches?.[0]
@@ -88,11 +95,11 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   const portfolioLinks: string[] = creator.portfolio_links || []
 
   const stats: [string, string, string][] = [
-    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'across connected accounts'],
+    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'self-reported'],
     ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
-    ['Collabs', String(creator.collabs_completed || 0), 'completed on collabr'],
-    ['Rating', creator.rating_count > 0 ? `${creator.rating_avg} ★` : '—',
-      creator.rating_count > 0 ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+    ['Collabs', String(completedCollabs), 'completed on collabr'],
+    ['Rating', showRating ? `${creator.rating_avg} ★` : '—',
+      showRating ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
   ]
 
   return (
@@ -118,6 +125,13 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h1 className="h1" style={{ fontSize: 25, fontWeight: 600 }}>{name}</h1>
               {creator.is_verified && <BadgeCheck size={19} style={{ color: 'var(--accent)' }} />}
+              {verifiedOwnership && (
+                <span className="badge badge-money" title={VERIFICATION_NOTE}
+                  style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <ShieldCheck size={12} /> Verified Account
+                </span>
+              )}
+              {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
               {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }}>Boosted</span>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
@@ -300,15 +314,19 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
                       {s.follower_count != null && (
-                        <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>{s.follower_count.toLocaleString()}</span>
+                        <span className="mono-num" title="Self-reported follower count" style={{ fontSize: 13, color: 'var(--ink)' }}>{s.follower_count.toLocaleString()}</span>
                       )}
-                      {s.verification_status === 'verified' && <BadgeCheck size={14} style={{ color: 'var(--money)' }} />}
+                      {s.verification_status === 'verified' && (
+                        <span title={VERIFICATION_NOTE} style={{ display: 'inline-flex' }}>
+                          <ShieldCheck size={14} style={{ color: 'var(--money)' }} />
+                        </span>
+                      )}
                     </div>
                   </div>
                 ))}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, color: 'var(--ink-faint-solid)' }}>
                   <Lock size={12} />
-                  <span style={{ fontSize: 11 }}>Pulled from connected platform accounts</span>
+                  <span style={{ fontSize: 11 }}>Connected accounts · follower counts are self-reported</span>
                 </div>
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (

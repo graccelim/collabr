@@ -9,8 +9,10 @@ import CreatorFilters from '@/components/CreatorFilters'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import EmptyState from '@/components/EmptyState'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
-import { Users, Star, BadgeCheck, Sparkles } from 'lucide-react'
+import { Users, Star, BadgeCheck, Sparkles, ShieldCheck } from 'lucide-react'
 import type { SocialAccount } from '@/types'
+import { rankCreators, creatorIndicators } from '@/lib/recommend'
+import { toCreatorSignals, VERIFICATION_NOTE, type ScoreRow } from '@/lib/discovery-data'
 
 const PAGE_SIZE = 12
 
@@ -88,7 +90,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   // Admin client: creator profiles are public data, but the users join
   // (display name / avatar) is RLS-limited to own-row for session clients.
   let query = admin.from('creator_profiles')
-    .select('id, user_id, bio, niche, niches, location, average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)', { count: 'exact' })
+    .select('id, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)', { count: 'exact' })
 
   if (idFilter) {
     if (idFilter.length === 0) {
@@ -135,14 +137,19 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   // Primary social accounts + saved state for this page of results.
   const pageIds = (creators || []).map(c => c.id)
   const socialsByCreator: Record<string, SocialAccount[]> = {}
+  const scoreById: Record<string, ScoreRow> = {}
   let savedSet = new Set<string>()
   if (pageIds.length > 0) {
-    // Primary socials and saved-state are independent — fetch concurrently.
-    const [{ data: socials }, savedRes] = await Promise.all([
+    // Socials, internal scores, and saved-state are independent — fetch concurrently.
+    // social_accounts select('*') already includes follower_count + verification_status.
+    const [{ data: socials }, { data: scores }, savedRes] = await Promise.all([
       supabase.from('social_accounts')
         .select('*').in('creator_id', pageIds)
         .order('is_primary', { ascending: false })
         .order('follower_count', { ascending: false, nullsFirst: false }),
+      admin.from('creator_scores')
+        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded, verification_tier')
+        .in('creator_id', pageIds),
       brand
         ? admin.from('saved_creators')
             .select('creator_id').eq('brand_id', brand.id).in('creator_id', pageIds)
@@ -151,11 +158,29 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     for (const s of (socials || []) as SocialAccount[]) {
       (socialsByCreator[s.creator_id] ||= []).push(s)
     }
+    for (const sc of (scores || []) as (ScoreRow & { creator_id: string })[]) {
+      scoreById[sc.creator_id] = sc
+    }
     if (brand) {
       const { data: saved } = savedRes
       savedSet = new Set((saved || []).map(s => s.creator_id))
     }
   }
+
+  // Re-sort the page in memory by the recommendation engine's rankScore. The DB
+  // ordering above stays as a stable fallback; ranking has no campaign context
+  // on the standalone discovery page (null), so it leans on merit signals.
+  const rankOrder = new Map(
+    rankCreators(
+      (creators || []).map(c =>
+        toCreatorSignals(c as any, socialsByCreator[c.id] || [], scoreById[c.id] || null),
+      ),
+      null,
+    ).map((r, i) => [r.creator.id, i]),
+  )
+  const rankedCreators = [...(creators || [])].sort(
+    (a, b) => (rankOrder.get(a.id) ?? 0) - (rankOrder.get(b.id) ?? 0),
+  )
 
   function pageHref(p: number) {
     const entries = Object.entries(searchParams)
@@ -193,7 +218,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
         />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-          {creators.map(c => {
+          {rankedCreators.map(c => {
             const name = (c.users as any)?.display_name || 'Creator'
             const avatar = (c.users as any)?.avatar_url
             const socials = socialsByCreator[c.id] || []
@@ -205,6 +230,10 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
               ? NICHE_LABELS[c.niche as CreatorNiche] || c.niche
               : c.niches?.[0]
             const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
+
+            // Honest, categorical trust indicators (no numeric scores ever).
+            const signals = toCreatorSignals(c as any, socials, scoreById[c.id] || null)
+            const indicators = creatorIndicators(signals, null)
 
             return (
               <Link
@@ -239,6 +268,22 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
                   )}
                 </div>
 
+                {/* honest trust indicators */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
+                  {indicators.verified && (
+                    <span className="badge badge-money" title={VERIFICATION_NOTE}
+                      style={{ fontSize: 10.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      <ShieldCheck size={11} /> Verified Account
+                    </span>
+                  )}
+                  {indicators.available && (
+                    <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Available Now</span>
+                  )}
+                  {indicators.isNew && (
+                    <span className="badge badge-neutral" style={{ fontSize: 10.5 }}>New Creator</span>
+                  )}
+                </div>
+
                 {/* handle · niche */}
                 <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {primary ? `@${primary.handle}` : (c.location || 'collabr creator')}
@@ -256,9 +301,9 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
 
                 {/* followers + rate */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
-                  <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>
+                  <span className="mono-num" title="Self-reported follower count" style={{ fontSize: 13, color: 'var(--ink)' }}>
                     {totalFollowers > 0
-                      ? <>{totalFollowers.toLocaleString()}<span style={{ color: 'var(--ink-faint-solid)' }}> followers</span></>
+                      ? <>{totalFollowers.toLocaleString()}<span style={{ color: 'var(--ink-faint-solid)' }}> followers (self-reported)</span></>
                       : <span style={{ color: 'var(--ink-faint-solid)' }}>No socials yet</span>}
                   </span>
                   <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>
@@ -269,11 +314,11 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
                 {/* footer: rating / collabs + availability/boost badges */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 12 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: 'var(--ink-faint-solid)' }}>
-                    {c.rating_count > 0
-                      ? <><Star size={11} fill="currentColor" style={{ color: 'var(--warn)' }} /> {c.rating_avg} · {c.collabs_completed} collab{c.collabs_completed !== 1 ? 's' : ''}</>
-                      : c.collabs_completed > 0
-                        ? `${c.collabs_completed} collab${c.collabs_completed !== 1 ? 's' : ''}`
-                        : 'New to collabr'}
+                    {indicators.isNew
+                      ? 'New to collabr'
+                      : indicators.showRating
+                        ? <><Star size={11} fill="currentColor" style={{ color: 'var(--warn)' }} /> {signals.ratingAvg} · {indicators.completedCollabs} completed collab{indicators.completedCollabs !== 1 ? 's' : ''}</>
+                        : `${indicators.completedCollabs} completed collab${indicators.completedCollabs !== 1 ? 's' : ''}`}
                   </span>
                   <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                     {isBoosted && <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Boosted</span>}
