@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { computeFee } from '@/lib/utils'
 
 // Creator accepts or declines an invite. Acceptance converges into the
@@ -157,6 +158,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       payload: { invite_id: invite.id, collab_id: collabId },
       dedupeKey: `invite:${invite.id}:accepted`,
     })
+    if (collabId) await sendProductEmail({ userId: brandUserId, ...productEmails.inviteAccepted({ creatorName, collabId, inviteId: invite.id }) })
   }
 
   return NextResponse.json({ success: true, status: 'accepted', collab_id: collabId })

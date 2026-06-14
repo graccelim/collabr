@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
@@ -114,6 +115,7 @@ export async function POST(req: NextRequest) {
       payload: { invite_id: invite.id },
       dedupeKey: `invite:${invite.id}:received`,
     })
+    await sendProductEmail({ userId: creator.user_id, ...productEmails.inviteReceived({ brandName: brand.company_name || 'A brand', campaignTitle: campaign.title, inviteId: invite.id }) })
   }
 
   return NextResponse.json(invite, { status: 201 })

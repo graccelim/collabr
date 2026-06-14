@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { emails } from '@/lib/email'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { formatSGD } from '@/lib/utils'
 import { captureTransferAndComplete } from '@/lib/payments'
 
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: collab } = await supabase.from('collabs')
-    .select('*, creator_profiles(id, user_id, users(email)), brand_profiles(user_id)')
+    .select('*, creator_profiles(id, user_id, users(display_name, email)), brand_profiles(user_id)')
     .eq('id', params.id).single()
   if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -46,16 +46,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   const creatorUserId = (collab.creator_profiles as any)?.user_id
   const creatorEmail = (collab.creator_profiles as any)?.users?.email
+  const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'the creator'
+  const amount = formatSGD(collab.creator_payout)
   if (settlement.completed && creatorUserId) {
     await sendNotification({
       userId: creatorUserId,
       type: 'payment_released',
-      title: `${formatSGD(collab.creator_payout)} is on the way`,
+      title: `${amount} is on the way`,
       payload: { collab_id: params.id },
       dedupeKey: `collab:${params.id}:payment-released`,
     })
   }
-  if (settlement.completed && creatorEmail) await emails.paymentReleased(creatorEmail, formatSGD(collab.creator_payout))
+  if (settlement.completed) {
+    // Creator: payment released. Brand: collab completed.
+    await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: params.id }) })
+    await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: params.id }) })
+  }
 
   return NextResponse.json({ success: true, already_completed: !settlement.completed })
 }

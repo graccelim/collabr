@@ -1,7 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { emails } from '@/lib/email'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { formatSGD } from '@/lib/utils'
 import { captureTransferAndComplete } from '@/lib/payments'
 
@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
   const { data: collabs } = await supabase.from('collabs')
-    .select('*, creator_profiles(user_id, users(email)), brand_profiles(user_id)')
+    .select('*, creator_profiles(user_id, users(display_name, email)), brand_profiles(user_id)')
     .in('status', ['live_submitted', 'live_confirmed'])
     .in('payment_status', ['funded', 'capture_failed', 'captured', 'transfer_pending', 'transfer_failed', 'paid', 'manual_exception'])
     .or(`status.eq.live_confirmed,live_auto_release_at.lt.${new Date().toISOString()}`)
@@ -44,10 +44,16 @@ export async function GET(req: NextRequest) {
 
     const creatorUserId = (c.creator_profiles as any)?.user_id
     const creatorEmail = (c.creator_profiles as any)?.users?.email
+    const creatorName = (c.creator_profiles as any)?.users?.display_name || 'the creator'
+    const brandUserId = (c.brand_profiles as any)?.user_id
+    const amount = formatSGD(c.creator_payout)
     if (settlement.completed && creatorUserId) await sendNotification({ userId: creatorUserId, type: 'payment_released',
-      title: `${formatSGD(c.creator_payout)} transferred`, body: 'Automatic settlement succeeded after 72h.',
+      title: `${amount} transferred`, body: 'Automatic settlement succeeded after 72h.',
       payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payment-released` })
-    if (settlement.completed && creatorEmail) await emails.paymentReleased(creatorEmail, formatSGD(c.creator_payout))
+    if (settlement.completed) {
+      await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: c.id }) })
+      await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: c.id }) })
+    }
     processed++
   }
 

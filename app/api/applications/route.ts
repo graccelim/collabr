@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 const applicationSchema = z.object({
   campaign_id: z.string().uuid('Invalid campaign'),
@@ -106,15 +107,19 @@ export async function POST(req: NextRequest) {
 
   // Notify brand (campaign was fetched and validated above)
   const brandUserId = (campaign.brand_profiles as any)?.user_id
+  const campaignTitle = campaign.title || 'your campaign'
   if (brandUserId) {
     await sendNotification({
       userId: brandUserId,
       type: 'new_application',
-      title: `New application for "${campaign.title || 'your campaign'}"`,
+      title: `New application for "${campaignTitle}"`,
       body: 'Review the pitch and shortlist or select the creator.',
       payload: { application_id: data.id, campaign_id: body.campaign_id }
     })
+    // Email the brand (deduped) + send the creator a confirmation.
+    await sendProductEmail({ userId: brandUserId, ...productEmails.newApplication({ campaignTitle, applicationId: data.id, campaignId: body.campaign_id }) })
   }
+  await sendProductEmail({ to: user.email, ...productEmails.applicationSubmitted({ campaignTitle, applicationId: data.id }) })
 
   return NextResponse.json(data, { status: 201 })
 }

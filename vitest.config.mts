@@ -11,6 +11,6 @@ export default defineConfig({
     // Plan resolution reads BETA_FREE_PRO at call time; tests set it per-case.
     // Dummy Stripe key satisfies lib/stripe's module-load constructor; no
     // network calls are made in unit tests.
-    env: { BETA_FREE_PRO: 'true', STRIPE_SECRET_KEY: 'sk_test_dummy' },
+    env: { BETA_FREE_PRO: 'true', STRIPE_SECRET_KEY: 'sk_test_dummy', NEXT_PUBLIC_APP_URL: 'https://app.collabr.test' },
   },
 })

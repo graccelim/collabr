@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { emails } from '@/lib/email'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       payload: { collab_id: params.id },
       dedupeKey: `collab:${params.id}:draft:${(result as any)?.submission_version}:submitted` })
   }
-  if (brandEmail && created) await emails.draftSubmitted(brandEmail, creatorName, params.id)
+  if (brandEmail && created) await sendProductEmail({ to: brandEmail, ...productEmails.draftSubmitted({ creatorName, collabId: params.id, key: String((result as any)?.submission_version ?? 'v') }) })
 
   return NextResponse.json({
     success: true,

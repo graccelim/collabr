@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { computeFee } from '@/lib/utils'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -24,7 +25,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const creatorUserId = (application.creator_profiles as any)?.user_id
   const creatorId = (application.creator_profiles as any)?.id
-  const campaignTitle = (application.campaigns as any)?.title
+  const creatorEmail = (application.creator_profiles as any)?.users?.email
+  const campaignTitle = (application.campaigns as any)?.title || 'a campaign'
 
   let collabId: string | undefined
   let changed = false
@@ -57,14 +59,17 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     collabId = (selection as any)?.collab_id
     changed = (selection as any)?.created === true
 
-    if (changed) await sendNotification({
-      userId: creatorUserId,
-      type: 'application_selected',
-      title: `You've been selected for "${campaignTitle}"`,
-      body: 'Your collab has been created — escrow funding is the next step.',
-      payload: { application_id: params.id, campaign_id: campaignId, collab_id: collabId },
-      dedupeKey: `application:${params.id}:selected`,
-    })
+    if (changed) {
+      await sendNotification({
+        userId: creatorUserId,
+        type: 'application_selected',
+        title: `You've been selected for "${campaignTitle}"`,
+        body: 'Your collab has been created — escrow funding is the next step.',
+        payload: { application_id: params.id, campaign_id: campaignId, collab_id: collabId },
+        dedupeKey: `application:${params.id}:selected`,
+      })
+      await sendProductEmail({ to: creatorEmail, ...productEmails.applicationSelected({ campaignTitle, applicationId: params.id, collabId }) })
+    }
   } else {
     const { data: updated, error } = await admin.from('applications')
       .update({ status })
@@ -98,6 +103,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       payload: { application_id: params.id },
       dedupeKey: `application:${params.id}:rejected`,
     })
+    await sendProductEmail({ to: creatorEmail, ...productEmails.applicationRejected({ campaignTitle, applicationId: params.id }) })
   }
 
   return NextResponse.json({ success: true, status, changed, ...(collabId ? { collab_id: collabId } : {}) })

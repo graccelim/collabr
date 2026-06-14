@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { emails } from '@/lib/email'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -47,13 +47,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
       title: 'Draft approved — post live now!', payload: { collab_id: params.id },
       dedupeKey: `submission:${submissionId}:approved` })
-    if (creatorEmail && applied) await emails.draftApproved(creatorEmail, params.id)
+    if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.draftApproved({ collabId: params.id, key: String(submissionId) }) })
 
   } else if (decision === 'revision') {
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'revision_requested',
       title: 'Revision requested', body: feedback, payload: { collab_id: params.id },
       dedupeKey: `submission:${submissionId}:revision` })
-    if (creatorEmail && applied) await emails.revisionRequested(creatorEmail, params.id)
+    if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.revisionRequested({ collabId: params.id, key: String(submissionId) }) })
 
   } else if (decision === 'rejected') {
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_rejected',

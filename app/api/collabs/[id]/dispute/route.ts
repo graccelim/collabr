@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { emails } from '@/lib/email'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -55,8 +55,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     title: 'Dispute submitted — we will review within 3 business days', payload: { collab_id: params.id },
     dedupeKey: `dispute:${disputeId}:raised` })
 
-  if (otherEmail && created) await emails.disputeRaised(otherEmail, params.id)
-  if (raisingEmail && created) await emails.disputeRaised(raisingEmail, params.id)
+  if (created) {
+    if (otherEmail && otherUserId) await sendProductEmail({ to: otherEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: otherUserId }) })
+    if (raisingEmail) await sendProductEmail({ to: raisingEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: user.id }) })
+  }
 
   return NextResponse.json({ success: true, created, dispute_id: disputeId })
 }

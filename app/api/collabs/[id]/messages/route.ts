@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { detectContactInfo } from '@/lib/moderation'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 // Confirm the signed-in user is a party (creator or brand) of this collab.
 // The session client's RLS on collabs already scopes to own collabs, so a
@@ -41,7 +42,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  if (!(await assertParty(supabase, params.id, user.id))) {
+  const collab = await assertParty(supabase, params.id, user.id)
+  if (!collab) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -66,5 +68,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (flagged) return NextResponse.json({ blocked: true, reasons })
+
+  // Email the OTHER party that a new message arrived (deduped by message id).
+  const creatorUserId = (collab.creator_profiles as any)?.user_id
+  const brandUserId = (collab.brand_profiles as any)?.user_id
+  const recipientId = user.id === creatorUserId ? brandUserId : creatorUserId
+  if (recipientId) {
+    const { data: sender } = await createAdminClient().from('users').select('display_name').eq('id', user.id).single()
+    const fromName = sender?.display_name || 'Your collaborator'
+    await sendProductEmail({ userId: recipientId, ...productEmails.newMessage({ fromName, collabId: params.id, messageId: message.id, recipientId }) })
+  }
+
   return NextResponse.json({ message })
 }
