@@ -485,6 +485,9 @@
   box-shadow: var(--shadow);
   transition: transform .15s ease, box-shadow .15s ease;
 }
+/* Landing section rhythm — one consistent vertical step (mobile override above). */
+.lp-section { padding: 84px 40px; }
+.lp-narrow  { max-width: 1040px; margin: 0 auto; }
 
 /* ============================================================
    AUTH SHELL — dark brand rail (hidden on mobile)
@@ -519,10 +522,12 @@
   .sidebar-desktop { display: none !important; }
   .main-content    { padding-bottom: 80px !important; }
   .split-hero      { flex-direction: column; min-height: auto; }
-  .split-side      { min-height: 440px; padding: 40px 32px; }
+  .split-side      { min-height: 320px; padding: 32px 22px; }
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
-  .split-medallion { width: 88px; height: 88px; }
+  .split-medallion { width: 72px; height: 72px; }
+  /* Landing sections breathe less on phones (was 80px → endless scroll). */
+  .lp-section { padding: 52px 20px !important; }
 
   /* Stop iOS Safari from auto-zooming when a form control is focused: any
      control under 16px triggers it, so force ≥16px on small screens. The

@@ -13,6 +13,12 @@ import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert } from 'lucide-react'
 
+// Destination domain for an external draft link, so the brand sees where a
+// "View draft" actually points before clicking.
+function externalHost(url: string): string {
+  try { return new URL(url).hostname.replace(/^www\./, '') } catch { return 'external link' }
+}
+
 const PAYMENT_TRUTH: Record<string, { label: string; color: string; bg: string }> = {
   unfunded:         { label: 'Payment not funded', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
   authorizing:      { label: 'Payment authorization pending', color: 'var(--warn-deep)', bg: 'var(--warn-tint)' },
@@ -218,14 +224,27 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                         <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Note: </span>{s.creator_note}
                       </div>
                     )}
-                    {(s.storage_path || s.external_url || s.file_url) && (
+                    {/* Internal files open through the signed-URL route. External
+                        links show their destination domain so the viewer knows
+                        they're leaving collabr — no opaque redirect to phishing. */}
+                    {(s.storage_path || s.file_url) ? (
                       <div style={{ padding: '0 14px 10px' }}>
                         <a href={`/api/submissions/${s.id}/file`} target="_blank" rel="noopener noreferrer"
                           style={{ fontSize: 13, fontWeight: 600, color: 'var(--creator-deep)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                           View draft →
                         </a>
                       </div>
-                    )}
+                    ) : s.external_url ? (
+                      <div style={{ padding: '0 14px 10px' }}>
+                        <a href={s.external_url} target="_blank" rel="noopener noreferrer nofollow"
+                          style={{ fontSize: 13, fontWeight: 600, color: 'var(--creator-deep)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                          External link: {externalHost(s.external_url)} ↗
+                        </a>
+                        <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>
+                          Opens an external site in a new tab — verify the domain before continuing.
+                        </div>
+                      </div>
+                    ) : null}
                     {s.brand_feedback && (
                       <div style={{ margin: '0 14px 14px', padding: '12px 14px', background: 'var(--warn-tint)', borderRadius: 10 }}>
                         <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--warn-deep)', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 6 }}>

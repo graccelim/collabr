@@ -8,10 +8,13 @@ import {
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 
+const MAX_NICHES = 4
+
 interface Props {
   role: 'brand' | 'creator'
   initial: {
     niche?: string | null
+    niche_tags?: string[] | null
     company_name?: string | null
     industry?: string | null
     website?: string | null
@@ -23,8 +26,10 @@ export default function OnboardingForm({ role, initial }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
 
-  // Creator state
-  const [niche, setNiche] = useState<CreatorNiche | ''>((initial.niche as CreatorNiche) || '')
+  // Creator state — multi-niche, capped. First selected is the primary niche.
+  const [niches, setNiches] = useState<CreatorNiche[]>(
+    (initial.niche_tags?.length ? initial.niche_tags : initial.niche ? [initial.niche] : []) as CreatorNiche[]
+  )
   const [handles, setHandles] = useState<Record<SocialPlatform, { handle: string; followers: string }>>({
     instagram: { handle: '', followers: '' },
     tiktok: { handle: '', followers: '' },
@@ -41,6 +46,14 @@ export default function OnboardingForm({ role, initial }: Props) {
     setHandles(prev => ({ ...prev, [p]: { ...prev[p], [field]: val } }))
   }
 
+  function toggleNiche(n: CreatorNiche) {
+    setNiches(prev => {
+      if (prev.includes(n)) return prev.filter(x => x !== n)
+      if (prev.length >= MAX_NICHES) { toast.error(`Pick up to ${MAX_NICHES} niches`); return prev }
+      return [...prev, n]
+    })
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (saving) return
@@ -49,7 +62,7 @@ export default function OnboardingForm({ role, initial }: Props) {
     let payload: Record<string, unknown>
 
     if (role === 'creator') {
-      if (!niche) { toast.error('Pick your niche'); return }
+      if (niches.length === 0) { toast.error('Pick at least one niche'); return }
       const socials = SOCIAL_PLATFORMS
         .filter(p => handles[p].handle.trim())
         .map(p => ({
@@ -59,7 +72,7 @@ export default function OnboardingForm({ role, initial }: Props) {
         }))
       if (socials.length === 0) { toast.error('Connect at least one social account'); return }
       endpoint = '/api/onboarding/creator'
-      payload = { niche, socials }
+      payload = { niche: niches[0], niche_tags: niches, socials }
     } else {
       if (!companyName.trim()) { toast.error('Company name is required'); return }
       if (!industry) { toast.error('Pick your industry'); return }
@@ -98,12 +111,15 @@ export default function OnboardingForm({ role, initial }: Props) {
     return (
       <form onSubmit={submit} className="space-y-6">
         <div className="card space-y-3">
-          <h2 className="text-sm font-medium text-gray-900">Your niche</h2>
-          <p className="text-xs text-gray-400">Brands use this to find you</p>
+          <h2 className="text-sm font-medium text-gray-900">Your niches</h2>
+          <p className="text-xs text-gray-400">
+            Pick up to {MAX_NICHES} — brands use these to find you. Your first pick is your primary niche.
+            {' '}<span style={{ color: 'var(--ink-soft)' }}>{niches.length}/{MAX_NICHES} selected</span>
+          </p>
           <div className="flex flex-wrap gap-2">
             {CREATOR_NICHES.map(n => (
-              <button key={n} type="button" onClick={() => setNiche(n)}
-                className={`chip${niche === n ? ' on' : ''}`}>
+              <button key={n} type="button" onClick={() => toggleNiche(n)}
+                className={`chip${niches.includes(n) ? ' on' : ''}`}>
                 {NICHE_LABELS[n]}
               </button>
             ))}

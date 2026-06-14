@@ -37,10 +37,11 @@ export default async function EarningsPage({
   // creator profile + Connect status both key off user.id — fetch concurrently.
   const [{ data: creator }, { data: connectProfile }] = await Promise.all([
     supabase.from('creator_profiles')
-      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at')
+      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at')
       .eq('user_id', user.id).single(),
+    // total_earned is private (not client-readable) — read it via the service role.
     admin.from('creator_profiles')
-      .select('stripe_connect_id').eq('user_id', user.id).single(),
+      .select('stripe_connect_id, total_earned').eq('user_id', user.id).single(),
   ])
   // Payout history + active escrow both key off creator.id — fetch concurrently.
   const [{ data: collabs }, { data: secured }] = await Promise.all([
@@ -74,7 +75,7 @@ export default async function EarningsPage({
       </div>
 
       <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-        <Stat label="Lifetime earned" value={formatSGD(creator?.total_earned || 0)} icon={TrendingUp} />
+        <Stat label="Lifetime earned" value={formatSGD(connectProfile?.total_earned || 0)} icon={TrendingUp} />
         <Stat
           label="In escrow for you"
           value={formatSGD(inEscrow)}

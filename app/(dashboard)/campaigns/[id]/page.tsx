@@ -40,7 +40,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // "spots filled" count respectively.
   const [{ data: applications }, { data: collabs }] = await Promise.all([
     createAdminClient().from('applications')
-      .select('*, creator_profiles(id, user_id, bio, niche, niche_tags, niches, platforms, base_rate, average_rate_sgd, availability_status, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url))')
+      .select('*, creator_profiles(id, user_id, bio, niche, niche_tags, niches, platforms, base_rate, average_rate_sgd, availability_status, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url))')
       .eq('campaign_id', params.id)
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: true }),

@@ -524,7 +524,7 @@ async function CreatorDashboard({
   const { data: creator } = await supabase
     .from('creator_profiles')
     .select(
-      'id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, base_rate, average_rate_sgd, availability_status, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned'
+      'id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, base_rate, average_rate_sgd, availability_status, boost_active_until, rating_avg, rating_count, collabs_completed'
     )
     .eq('user_id', userId)
     .single();
@@ -565,7 +565,7 @@ async function CreatorDashboard({
       .eq('creator_id', creator.id),
     createAdminClient()
       .from('creator_profiles')
-      .select('stripe_connect_id')
+      .select('stripe_connect_id, total_earned')
       .eq('id', creator.id)
       .single(),
     supabase
@@ -776,7 +776,7 @@ async function CreatorDashboard({
           <div>
             <div className="money-label">Total earned</div>
             <div className="money-value">
-              {formatSGD(creator.total_earned || 0)}
+              {formatSGD(connectProfile?.total_earned || 0)}
             </div>
           </div>
           <div style={{ textAlign: 'right' }}>

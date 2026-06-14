@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { creatorProfileUpdateSchema, firstZodError } from '@/lib/profiles'
+import { normalizeNicheTags } from '@/lib/niches'
 
 const SELECT_COLUMNS =
   'id, user_id, bio, niche, niches, location, portfolio_links, media_kit_url, ' +
   'average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, ' +
-  'rating_avg, rating_count, collabs_completed, total_earned, onboarding_completed_at, created_at'
+  'rating_avg, rating_count, collabs_completed, onboarding_completed_at, created_at'
 
 export async function PATCH(req: NextRequest) {
   const supabase = createClient()
@@ -37,8 +38,13 @@ export async function PATCH(req: NextRequest) {
   if (updates.average_rate_sgd !== undefined) {
     updates.base_rate = updates.average_rate_sgd ?? 0
   }
-  // Keep the multi-niche tags in sync with the primary niche (canonical slug).
-  if (updates.niche !== undefined && updates.niche) {
+  // Multi-niche (capped + deduped). The primary niche is the first tag, kept in
+  // sync so legacy single-niche reads stay correct.
+  if (updates.niche_tags !== undefined) {
+    const tags = normalizeNicheTags(updates.niche_tags as string[]).slice(0, 4)
+    updates.niche_tags = tags
+    updates.niche = tags[0] ?? null
+  } else if (updates.niche !== undefined && updates.niche) {
     updates.niche_tags = [updates.niche]
   }
 

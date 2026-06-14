@@ -261,4 +261,16 @@ export function creatorIndicators(c: CreatorSignals, campaign: CampaignSignals |
   }
 }
 
+// ── Honest responsiveness standing (UI helper, NEVER a number) ──────────────
+// Mirrors the recompute rule: a response rate is only meaningful at ≥3 concluded
+// invites. Below that we say so plainly; above it we summarise categorically.
+// We never expose response_rate as a percentage.
+export function responseStanding(
+  sample: number | null | undefined,
+  shrunk: number | null | undefined,
+): { hasHistory: boolean; label: string } {
+  if ((sample ?? 0) < 3) return { hasHistory: false, label: 'Not enough response history yet' }
+  return { hasHistory: true, label: (shrunk ?? 0) >= 0.66 ? 'Usually responds to invites' : 'Responds to invites occasionally' }
+}
+
 export { nicheLabel }

@@ -15,7 +15,7 @@ export default async function OnboardingPage() {
 
   if (role === 'creator') {
     const { data: creator } = await supabase.from('creator_profiles')
-      .select('niche, onboarding_completed_at').eq('user_id', user.id).single()
+      .select('niche, niche_tags, onboarding_completed_at').eq('user_id', user.id).single()
     if (creator?.onboarding_completed_at) redirect('/dashboard')
 
     return (
@@ -23,10 +23,10 @@ export default async function OnboardingPage() {
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Finish setting up</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Pick your niche and connect a social account to start applying to campaigns.
+            Pick your niches and connect a social account to start applying to campaigns.
           </p>
         </div>
-        <OnboardingForm role="creator" initial={{ niche: creator?.niche }} />
+        <OnboardingForm role="creator" initial={{ niche: creator?.niche, niche_tags: creator?.niche_tags }} />
       </div>
     )
   }

@@ -29,6 +29,7 @@ const optionalText = (max: number, label: string) => z.preprocess(
 export const creatorProfileUpdateSchema = z.object({
   bio: optionalText(1000, 'Bio'),
   niche: z.enum(CREATOR_NICHES).nullish(),
+  niche_tags: z.array(z.enum(CREATOR_NICHES)).max(4, 'Pick up to 4 niches').optional(),
   location: optionalText(120, 'Location'),
   portfolio_links: z.array(
     z.string().trim().url('Each portfolio link must be a valid URL (include https://)').max(300)

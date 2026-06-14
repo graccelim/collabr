@@ -19,8 +19,17 @@ Every unchecked box is a silently-disabled safety system.
 - [ ] `009_creator_discovery.sql`
 - [ ] `010_monetization_architecture.sql` (idempotent — safe to re-run; the
       final revision REVOKES subscription-column grants)
+- [ ] `011_chat.sql`
+- [ ] `012_email_log.sql`
+- [ ] `013_niche_taxonomy.sql`
+- [ ] `014_creator_scores.sql`
+- [ ] `015_social_verification.sql`
+- [ ] `016_invite_expiry.sql`
+- [ ] `017_launch_hardening.sql` — revokes public `total_earned` + `verification_code`,
+      caps `niche_tags` at 4, adds `boost_purchases` + webhook `locked_at`, and
+      **creates the `avatars` bucket + owner-scoped policies**
 
-Rollbacks for 002–010 live in `supabase/rollbacks/` if a migration must be reversed.
+Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be reversed.
 
 ### Auth
 - [ ] **Authentication → Providers → Email → "Confirm email" is ON.**
@@ -30,12 +39,14 @@ Rollbacks for 002–010 live in `supabase/rollbacks/` if a migration must be rev
       password reset, `/earnings?connect=...` return).
 
 ### Storage (created by migrations — verify in dashboard)
-- [ ] `draft-submissions` — **private**, 500 MB limit, video/image MIME only
-- [ ] `brand-assets` — public, 2 MB, images
-- [ ] `avatars` — public, 2 MB, images
+- [ ] `draft-submissions` — **private**, 500 MB limit, video/image MIME only (006)
+- [ ] `brand-assets` — public, 2 MB, images (006)
+- [ ] `avatars` — **public**, created by migration **017** with owner-scoped
+      write. Verify a logged-in user can upload `<theirId>-*.jpg` but cannot
+      overwrite another user's object (path prefix is enforced by policy).
 - [ ] Spot-check policies on `storage.objects`: `draft_creator_upload`,
-      `brand_asset_owner_*`, `avatar_owner_*` and **nothing else** (006
-      deliberately drops all dashboard-created policies).
+      `brand_asset_owner_*`, and `avatars_public_read` / `avatars_owner_insert` /
+      `avatars_owner_update` / `avatars_owner_delete`.
 
 ### RLS verification (run as a signed-in NON-admin user via the browser console)
 - [ ] `supabase.from('brand_profiles').select('subscription_status').limit(1)`
@@ -44,6 +55,11 @@ Rollbacks for 002–010 live in `supabase/rollbacks/` if a migration must be rev
       → returns **no rows** (emails protected)
 - [ ] `supabase.from('collabs').select('*')` as a third party → no rows
 - [ ] `supabase.from('stripe_events').select('*')` → permission error
+- [ ] `supabase.from('creator_profiles').select('total_earned').limit(1)`
+      → **permission error** (lifetime earnings are server-only as of 017)
+- [ ] `supabase.from('social_accounts').select('verification_code').limit(1)`
+      → **permission error** (pending codes are server-only as of 017; the owner
+      reads their own code through `/api/socials`)
 
 ---
 
@@ -100,6 +116,15 @@ Rollbacks for 002–010 live in `supabase/rollbacks/` if a migration must be rev
 | `RESEND_API_KEY` | ⚠️ recommended | emails silently skip if missing |
 | `RESEND_FROM_EMAIL` | ⚠️ recommended | verified sender domain |
 | `STRIPE_PRO_PRICE_ID` | later | paid-mode launch day only |
+| `STRIPE_BOOST_PRICE_MONTHLY` | optional | Stripe **Price ID** for the S$20 / 30-day boost. Boost UI + ranking bump stay **hidden** until at least one boost Price is set. |
+| `STRIPE_BOOST_PRICE_PER_APP` | optional | Stripe **Price ID** for the S$4 / 7-day boost. |
+
+> **Creator Boost is fully gated.** With neither boost Price configured (the beta
+> default), the `/boost` page shows a "coming soon" state, the purchase API
+> returns 503, and no creator receives a ranking bump. Configure the Price IDs
+> only when you intend to sell paid placement; activation then happens **only**
+> through Stripe Checkout → `checkout.session.completed` (kind=boost), idempotent
+> via the `boost_purchases` table.
 
 ### Crons (vercel.json — verify they appear in the Vercel dashboard)
 - [ ] `auto-approve-drafts` — 48h draft auto-approval
@@ -125,5 +150,15 @@ Rollbacks for 002–010 live in `supabase/rollbacks/` if a migration must be rev
       Anything here needs a human the same day.
 - [ ] Create one admin user (`update users set role='admin' where id='…'`) and
       verify `/admin/disputes` loads.
-- [ ] Smoke-test after each deploy: `npm test` (64+ unit tests) is green in CI
+- [ ] Smoke-test after each deploy: `npm test` (110+ unit tests) is green in CI
       or locally before pushing.
+
+### Notes / known scaling limits (acceptable for beta)
+- **`recompute_creator_scores`** uses per-creator correlated subqueries. It runs
+  nightly (and on events) over the existing indexes (`idx_collabs_creator`,
+  `idx_campaign_invites_creator`, review joins) and is comfortably fast at beta
+  scale (hundreds of creators). Deliberately **not** re-architected into a queue
+  or materialized pipeline yet — revisit only past a few thousand creators.
+- **Creator Discovery** ranks the full candidate pool (capped at 300) in memory
+  before paginating, so the best matches land on page 1. If a single filter ever
+  matches more than 300 creators, the top 300 by DB order are ranked.

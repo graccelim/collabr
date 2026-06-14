@@ -82,7 +82,11 @@ export const socialAccountInputSchema = z.object({
 export type SocialAccountInput = z.infer<typeof socialAccountInputSchema>
 
 export const creatorOnboardingSchema = z.object({
-  niche: z.enum(CREATOR_NICHES),
+  // Primary niche is derived from the first tag; kept optional for compatibility.
+  niche: z.enum(CREATOR_NICHES).optional(),
+  niche_tags: z.array(z.enum(CREATOR_NICHES))
+    .min(1, 'Pick at least one niche')
+    .max(4, 'Pick up to 4 niches'),
   socials: z.array(socialAccountInputSchema).min(1, 'At least one social account is required').max(6),
 })
 

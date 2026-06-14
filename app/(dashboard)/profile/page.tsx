@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const [emailVerified, setEmailVerified] = useState(false)
 
   const [bio, setBio] = useState('')
-  const [niche, setNiche] = useState<CreatorNiche | ''>('')
+  const [niches, setNiches] = useState<CreatorNiche[]>([])
   const [location, setLocation] = useState('')
   const [rate, setRate] = useState('')
   const [availability, setAvailability] = useState<AvailabilityStatus>('available')
@@ -55,7 +55,7 @@ export default function ProfilePage() {
       const [{ data: account }, { data }] = await Promise.all([
         supabase.from('users').select('display_name, avatar_url').eq('id', user.id).single(),
         supabase.from('creator_profiles')
-          .select('bio, niche, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status')
+          .select('bio, niche, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status')
           .eq('user_id', user.id).single(),
         loadSocials(),
       ])
@@ -65,7 +65,9 @@ export default function ProfilePage() {
       }
       if (data) {
         setBio(data.bio || '')
-        setNiche((data.niche as CreatorNiche) || '')
+        setNiches(((data.niche_tags as CreatorNiche[])?.length
+          ? (data.niche_tags as CreatorNiche[])
+          : data.niche ? [data.niche as CreatorNiche] : []))
         setLocation(data.location || '')
         setRate(data.average_rate_sgd ? String(data.average_rate_sgd / 100) : '')
         setAvailability((data.availability_status as AvailabilityStatus) || 'available')
@@ -91,6 +93,14 @@ export default function ProfilePage() {
     setAvatarUploading(false)
   }
 
+  function toggleNiche(n: CreatorNiche) {
+    setNiches(prev => {
+      if (prev.includes(n)) return prev.filter(x => x !== n)
+      if (prev.length >= 4) { toast.error('Pick up to 4 niches'); return prev }
+      return [...prev, n]
+    })
+  }
+
   function addPortfolioLink() {
     const link = normalizeUrl(newPortfolioLink) || ''
     if (!link) return
@@ -112,7 +122,8 @@ export default function ProfilePage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         bio: bio.trim() || null,
-        niche: niche || null,
+        niche: niches[0] || null,
+        niche_tags: niches,
         location: location.trim() || null,
         portfolio_links: portfolioLinks,
         media_kit_url: normalizeUrl(mediaKitUrl),
@@ -184,7 +195,7 @@ export default function ProfilePage() {
 
   const completion = creatorCompletion({
     avatar_url: avatarUrl,
-    niche,
+    niche: niches[0] || '',
     bio,
     location,
     portfolio_links: portfolioLinks,
@@ -290,11 +301,15 @@ export default function ProfilePage() {
       </div>
 
       <div className="card space-y-3">
-        <h2 className="text-sm font-medium text-gray-900">Your niche</h2>
+        <h2 className="text-sm font-medium text-gray-900">Your niches</h2>
+        <p className="text-xs text-gray-400">
+          Pick up to 4. Your first pick is your primary niche.{' '}
+          <span style={{ color: 'var(--ink-soft)' }}>{niches.length}/4 selected</span>
+        </p>
         <div className="flex flex-wrap gap-2">
           {CREATOR_NICHES.map(n => (
-            <button key={n} type="button" onClick={() => setNiche(n)}
-              className={`chip${niche === n ? ' on' : ''}`}>
+            <button key={n} type="button" onClick={() => toggleNiche(n)}
+              className={`chip${niches.includes(n) ? ' on' : ''}`}>
               {NICHE_LABELS[n]}
             </button>
           ))}
@@ -341,8 +356,9 @@ export default function ProfilePage() {
       <div className="card space-y-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-sm font-medium text-gray-900">Social accounts</h2>
-          <span className="badge badge-money" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-            <Check size={12} /> Counts verified live
+          <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+            title="Verification confirms account ownership only. Follower counts are self-reported.">
+            <Check size={12} /> Ownership verification · counts self-reported
           </span>
         </div>
         {socials.length === 0 && (

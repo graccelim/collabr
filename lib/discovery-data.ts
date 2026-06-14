@@ -1,4 +1,5 @@
 import { bestFollowers } from '@/lib/fit'
+import { boostEnabled } from '@/lib/stripe'
 import type { CreatorSignals, CampaignSignals, CampaignForCreator } from '@/lib/recommend'
 
 // ── DB row → ranking signal mappers (server-only) ───────────────────────────
@@ -60,7 +61,8 @@ export function toCreatorSignals(creator: CreatorRow, socials: SocialRow[], scor
     reliabilityScore: score?.reliability_score ?? null,
     responseShrunk: score?.response_rate_shrunk != null ? Number(score.response_rate_shrunk) : null,
     responseSample: score?.invites_concluded ?? 0,
-    boostedUntil: creator.boost_active_until ?? null,
+    // Boost only influences ranking when the paid feature is configured.
+    boostedUntil: boostEnabled() ? (creator.boost_active_until ?? null) : null,
   }
 }
 

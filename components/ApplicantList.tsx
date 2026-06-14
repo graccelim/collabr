@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { BadgeCheck, Shield, Zap, Check, Sparkles } from 'lucide-react'
+import { Shield, Zap, Check, Sparkles } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
@@ -87,7 +87,9 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
         // Honest label only when computeMatch found a credible niche fit.
         const matchLabel = match?.label ?? null
         const reasons = match?.reasons ?? []
-        const verified = indicators?.verified ?? creator?.is_verified ?? false
+        // "Verified Account" reflects social OWNERSHIP only — never the stale
+        // creator_profiles.is_verified flag.
+        const verified = indicators?.verified ?? false
         const isNew = indicators?.isNew ?? false
         const showRating = indicators?.showRating ?? Boolean(creator?.rating_count)
 
@@ -119,13 +121,13 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
                         <Shield size={11} /> Verified Account
                       </span>
                     )}
-                    {!verified && creator?.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />}
                     {isNew && status !== 'selected' && status !== 'rejected' && (
                       <span className="badge badge-neutral">New Creator</span>
                     )}
                     {app.is_boosted && (
-                      <span className="badge badge-warn" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Zap size={11} /> Boosted
+                      <span className="badge badge-warn" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                        title="Sponsored placement — paid by the creator. It does not affect quality or trust signals.">
+                        <Zap size={11} /> Boosted · Sponsored
                       </span>
                     )}
                     {status === 'selected' && <span className="badge badge-money">Selected</span>}

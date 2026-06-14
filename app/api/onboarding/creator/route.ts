@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { creatorOnboardingSchema, socialUrl } from '@/lib/onboarding'
+import { normalizeNicheTags } from '@/lib/niches'
 
 // Completes onboarding for an existing creator account: sets the niche and
 // connects at least one social account, then marks onboarding complete.
@@ -73,9 +74,11 @@ export async function POST(req: NextRequest) {
     primaryAssigned = true
   }
 
+  // Multi-niche, capped + deduped. Primary niche = first tag.
+  const tags = normalizeNicheTags(parsed.data.niche_tags).slice(0, 4)
   const { error: updateErr } = await admin.from('creator_profiles').update({
-    niche: parsed.data.niche,
-    niche_tags: [parsed.data.niche],   // keep multi-niche in sync (canonical slug)
+    niche: tags[0] ?? null,
+    niche_tags: tags,
     onboarding_completed_at: creator.onboarding_completed_at || new Date().toISOString(),
   }).eq('id', creator.id)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })

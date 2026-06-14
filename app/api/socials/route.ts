@@ -17,7 +17,10 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
 
-  const { data, error } = await supabase.from('social_accounts')
+  // Read via the service role: verification_code is no longer client-readable
+  // (migration 017), but the OWNER may see their own pending code here since the
+  // query is scoped to their own creator.id.
+  const { data, error } = await createAdminClient().from('social_accounts')
     .select('*').eq('creator_id', creator.id)
     .order('is_primary', { ascending: false }).order('created_at')
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

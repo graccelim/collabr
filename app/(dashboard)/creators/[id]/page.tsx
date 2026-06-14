@@ -8,8 +8,10 @@ import InviteCreatorForm from '@/components/InviteCreatorForm'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
 import { hasVerifiedOwnership, VERIFICATION_NOTE } from '@/lib/discovery-data'
+import { responseStanding } from '@/lib/recommend'
+import { boostEnabled } from '@/lib/stripe'
 import Link from 'next/link'
-import { ChevronLeft, BadgeCheck, MapPin, Shield, Lock, ExternalLink, ShieldCheck } from 'lucide-react'
+import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -19,7 +21,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   // Admin client: public profile data, but the users join (display name /
   // avatar) is RLS-limited to own-row for session clients.
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, user_id, bio, niche, niches, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, total_earned, created_at, users(display_name, avatar_url)')
+    .select('id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
 
@@ -29,10 +31,12 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     { data: socialAccounts },
     { data: emailVerified },
     { data: brandReviews },
+    { data: scoreRow },
     viewer,
   ] = await Promise.all([
     supabase.from('social_accounts')
-      .select('*').eq('creator_id', params.id)
+      .select('id, creator_id, platform, handle, url, follower_count, verification_status, verification_method, verified_at, is_primary, created_at, updated_at')
+      .eq('creator_id', params.id)
       .order('is_primary', { ascending: false }).order('created_at'),
     supabase.rpc('user_email_verified', { p_user_id: creator.user_id }),
     supabase.from('reviews')
@@ -41,6 +45,10 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
       .eq('collabs.creator_id', params.id)
       .order('created_at', { ascending: false })
       .limit(10),
+    // Internal score row — ONLY for the categorical response standing below.
+    // Never rendered as a number; raw inputs stay server-side.
+    admin.from('creator_scores')
+      .select('invites_concluded, response_rate_shrunk').eq('creator_id', params.id).maybeSingle(),
     getUserRow(),
   ])
 
@@ -74,8 +82,15 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
 
   const name = (creator.users as any)?.display_name || 'Creator'
   const avatar = (creator.users as any)?.avatar_url
-  const isBoosted = creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
+  const isBoosted = boostEnabled() && creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
   const availability = creator.availability_status as AvailabilityStatus | null
+
+  // Honest, categorical responsiveness — "Not enough response history yet" until
+  // there's a real sample. Never a percentage.
+  const response = responseStanding(
+    (scoreRow as any)?.invites_concluded,
+    (scoreRow as any)?.response_rate_shrunk != null ? Number((scoreRow as any).response_rate_shrunk) : null,
+  )
 
   const socials = (socialAccounts as SocialAccount[]) || []
   const primarySocial = socials[0]
@@ -124,7 +139,8 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h1 className="h1" style={{ fontSize: 25, fontWeight: 600 }}>{name}</h1>
-              {creator.is_verified && <BadgeCheck size={19} style={{ color: 'var(--accent)' }} />}
+              {/* "Verified Account" = social OWNERSHIP only (never the stale
+                  creator_profiles.is_verified flag, and never reach/followers). */}
               {verifiedOwnership && (
                 <span className="badge badge-money" title={VERIFICATION_NOTE}
                   style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
@@ -132,7 +148,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
                 </span>
               )}
               {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
-              {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }}>Boosted</span>}
+              {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
               {primarySocial && <span>@{primarySocial.handle}</span>}
@@ -143,6 +159,10 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
               )}
               {primaryNiche && <span>{primaryNiche}</span>}
               {emailVerified === true && <span>Email verified</span>}
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                title="Categorical summary of invite responses — never a score.">
+                <Clock size={13} />{response.label}
+              </span>
               {availability && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
                   <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
@@ -197,17 +217,20 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             </section>
           )}
 
-          {/* Niche tags (real, when multiple) */}
-          {creator.niches && creator.niches.length > 0 && (
-            <section style={{ marginBottom: 30 }}>
-              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Niches</h2>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                {creator.niches.map((n: string) => (
-                  <span key={n} className="badge badge-neutral">{NICHE_LABELS[n as CreatorNiche] || n}</span>
-                ))}
-              </div>
-            </section>
-          )}
+          {/* Niches — canonical niche_tags, falling back to the legacy list */}
+          {(() => {
+            const tags = (creator.niche_tags?.length ? creator.niche_tags : creator.niches) || []
+            return tags.length > 0 ? (
+              <section style={{ marginBottom: 30 }}>
+                <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Niches</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {tags.map((n: string) => (
+                    <span key={n} className="badge badge-neutral">{NICHE_LABELS[n as CreatorNiche] || n}</span>
+                  ))}
+                </div>
+              </section>
+            ) : null
+          })()}
 
           {/* Recent work — real portfolio_links, or striped placeholders */}
           <section style={{ marginBottom: 30 }}>

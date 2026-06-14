@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { stripe } from '@/lib/stripe'
+import { stripe, BOOST_MAX_HORIZON_DAYS } from '@/lib/stripe'
 import { paymentStatusFromIntent } from '@/lib/payments'
 import Stripe from 'stripe'
 
@@ -70,6 +70,48 @@ async function applySubscriptionToBrand(
   }
 }
 
+// ── Phase 17: paid Boost activation ───────────────────────────────────────────
+// Activated ONLY here, after a Checkout payment succeeds. Idempotent via the
+// boost_purchases primary key (the Checkout session id) so duplicate deliveries
+// never double-extend. Extends from the later of (now, current expiry), capped.
+async function applyBoostFromSession(
+  supabase: ReturnType<typeof createAdminClient>,
+  session: Stripe.Checkout.Session
+) {
+  const creatorId = session.metadata?.creator_id
+  const boostType = session.metadata?.boost_type
+  const days = parseInt(session.metadata?.days || '0', 10)
+  if (!creatorId || !['monthly', 'per_app'].includes(boostType || '') || !days) {
+    console.error('[WEBHOOK] boost session missing metadata:', session.id)
+    return
+  }
+  if (session.payment_status !== 'paid') return // no payment, no boost
+
+  const { error: claimErr } = await supabase.from('boost_purchases').insert({
+    id: session.id,
+    creator_id: creatorId,
+    boost_type: boostType,
+    days,
+    amount: session.amount_total ?? null,
+  })
+  if (claimErr) {
+    if (claimErr.code === '23505') return // already activated for this session
+    throw claimErr
+  }
+
+  const { data: cp } = await supabase.from('creator_profiles')
+    .select('boost_active_until').eq('id', creatorId).single()
+  const nowMs = Date.now()
+  const baseMs = cp?.boost_active_until && new Date(cp.boost_active_until).getTime() > nowMs
+    ? new Date(cp.boost_active_until).getTime()
+    : nowMs
+  const capMs = nowMs + BOOST_MAX_HORIZON_DAYS * 86400000
+  const untilMs = Math.min(baseMs + days * 86400000, capMs)
+  await ensureWrite(supabase.from('creator_profiles')
+    .update({ boost_active_until: new Date(untilMs).toISOString() })
+    .eq('id', creatorId))
+}
+
 export async function POST(req: NextRequest) {
   const rawBody = await req.text()
   const signature = req.headers.get('stripe-signature')
@@ -87,15 +129,32 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createAdminClient()
+  const nowIso = new Date().toISOString()
+  // Insert-and-claim: the FIRST delivery inserts the row (and owns the lock).
   const { error: eventError } = await supabase.from('stripe_events').insert({
     id: event.id,
     event_type: event.type,
+    locked_at: nowIso,
   })
   if (eventError?.code === '23505') {
+    // The row already exists — another delivery beat us here.
     const { data: prior } = await supabase.from('stripe_events')
       .select('processed_at').eq('id', event.id).single()
     if (prior?.processed_at) {
       return NextResponse.json({ received: true, duplicate: true })
+    }
+    // Not processed yet. Only take over if the prior lock is STALE (the first
+    // attempt likely crashed). A fresh lock means a concurrent delivery is still
+    // in-flight, so we exit early and let it finish — no double processing.
+    const staleBefore = new Date(Date.now() - 60_000).toISOString()
+    const { data: claimed } = await supabase.from('stripe_events')
+      .update({ locked_at: nowIso })
+      .eq('id', event.id)
+      .is('processed_at', null)
+      .lt('locked_at', staleBefore)
+      .select('id')
+    if (!claimed || claimed.length === 0) {
+      return NextResponse.json({ received: true, in_flight: true })
     }
   } else if (eventError) {
     console.error('[WEBHOOK] Could not persist event:', eventError)
@@ -207,6 +266,8 @@ export async function POST(req: NextRequest) {
       if (session.mode === 'subscription' && typeof session.subscription === 'string') {
         const subscription = await stripe.subscriptions.retrieve(session.subscription)
         await applySubscriptionToBrand(supabase, subscription)
+      } else if (session.mode === 'payment' && session.metadata?.kind === 'boost') {
+        await applyBoostFromSession(supabase, session)
       }
       break
     }

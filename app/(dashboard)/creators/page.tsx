@@ -13,8 +13,12 @@ import { Users, Star, BadgeCheck, Sparkles, ShieldCheck } from 'lucide-react'
 import type { SocialAccount } from '@/types'
 import { rankCreators, creatorIndicators } from '@/lib/recommend'
 import { toCreatorSignals, VERIFICATION_NOTE, type ScoreRow } from '@/lib/discovery-data'
+import { boostEnabled } from '@/lib/stripe'
 
 const PAGE_SIZE = 12
+// Candidate pool we rank in memory before paginating. Comfortably covers beta
+// scale; if a filter ever matches more, the top CANDIDATE_CAP by DB order rank.
+const CANDIDATE_CAP = 300
 
 interface Search {
   platform?: string
@@ -86,6 +90,15 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     idFilter = idFilter ? idFilter.filter(id => savedIds.includes(id)) : savedIds
   }
 
+  // "Verified" means REAL account-ownership verification on ≥1 social — not the
+  // stale creator_profiles.is_verified flag (which nothing sets).
+  if (searchParams.verified === '1') {
+    const { data: vmatches } = await supabase.from('social_accounts')
+      .select('creator_id').eq('verification_status', 'verified').limit(5000)
+    const verifiedIds = Array.from(new Set((vmatches || []).map(m => m.creator_id)))
+    idFilter = idFilter ? idFilter.filter(id => verifiedIds.includes(id)) : verifiedIds
+  }
+
   // ── Main query ──────────────────────────────────────────────────────────────
   // Admin client: creator profiles are public data, but the users join
   // (display name / avatar) is RLS-limited to own-row for session clients.
@@ -101,7 +114,6 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   }
   if (searchParams.niche) query = query.eq('niche', searchParams.niche)
   if (searchParams.availability) query = query.eq('availability_status', searchParams.availability)
-  if (searchParams.verified === '1') query = query.eq('is_verified', true)
   if (searchParams.location) query = query.ilike('location', `%${searchParams.location}%`)
   const maxRate = parseInt(searchParams.maxRate || '', 10)
   if (maxRate > 0) query = query.lte('average_rate_sgd', maxRate * 100)
@@ -122,29 +134,29 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     case 'newest':
       query = query.order('created_at', { ascending: false })
       break
-    default: // most relevant
+    default: // most relevant — re-ranked in memory below; DB order is a fallback
       query = query
-        .order('is_verified', { ascending: false })
         .order('boost_active_until', { ascending: false, nullsFirst: false })
         .order('rating_avg', { ascending: false })
         .order('collabs_completed', { ascending: false })
   }
 
-  const { data: creators, count } = await query.range(from, from + PAGE_SIZE - 1)
-  const total = count || 0
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  // Fetch the whole candidate pool (capped), then rank BEFORE paginating so the
+  // best matches surface on page 1 — not stranded on a later DB-ordered page.
+  const { data: creators } = await query.limit(CANDIDATE_CAP)
 
-  // Primary social accounts + saved state for this page of results.
+  // Socials + internal scores for ALL candidates (ranking needs the full pool).
   const pageIds = (creators || []).map(c => c.id)
   const socialsByCreator: Record<string, SocialAccount[]> = {}
   const scoreById: Record<string, ScoreRow> = {}
   let savedSet = new Set<string>()
   if (pageIds.length > 0) {
     // Socials, internal scores, and saved-state are independent — fetch concurrently.
-    // social_accounts select('*') already includes follower_count + verification_status.
+    // Explicit columns — verification_code is not client-readable (migration 017).
     const [{ data: socials }, { data: scores }, savedRes] = await Promise.all([
       supabase.from('social_accounts')
-        .select('*').in('creator_id', pageIds)
+        .select('id, creator_id, platform, handle, url, follower_count, verification_status, verification_method, verified_at, is_primary, created_at, updated_at')
+        .in('creator_id', pageIds)
         .order('is_primary', { ascending: false })
         .order('follower_count', { ascending: false, nullsFirst: false }),
       admin.from('creator_scores')
@@ -182,6 +194,11 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     (a, b) => (rankOrder.get(a.id) ?? 0) - (rankOrder.get(b.id) ?? 0),
   )
 
+  // Paginate the ranked list (not the DB page) so page 1 = the best matches.
+  const total = rankedCreators.length
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const pageCreators = rankedCreators.slice(from, from + PAGE_SIZE)
+
   function pageHref(p: number) {
     const entries = Object.entries(searchParams)
       .filter((e): e is [string, string] => typeof e[1] === 'string' && e[1] !== '')
@@ -198,7 +215,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
       <div>
         <h1 className="h1" style={{ fontSize: 24, fontWeight: 600 }}>Discover creators</h1>
         <p style={{ marginTop: 6, fontSize: 14.5, color: 'var(--ink-soft)' }}>
-          {total} verified creator{total !== 1 ? 's' : ''}{searchParams.saved === '1' ? ' saved' : ' on collabr'} · browse, save a shortlist, and invite to your campaigns.
+          {total} creator{total !== 1 ? 's' : ''}{searchParams.saved === '1' ? ' saved' : ' on collabr'} · browse, save a shortlist, and invite to your campaigns.
         </p>
       </div>
 
@@ -218,14 +235,14 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
         />
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-          {rankedCreators.map(c => {
+          {pageCreators.map(c => {
             const name = (c.users as any)?.display_name || 'Creator'
             const avatar = (c.users as any)?.avatar_url
             const socials = socialsByCreator[c.id] || []
             const primary = socials[0]
             const rate = c.average_rate_sgd ?? c.base_rate
             const availability = (c.availability_status as AvailabilityStatus) || 'available'
-            const isBoosted = c.boost_active_until && new Date(c.boost_active_until) > new Date()
+            const isBoosted = boostEnabled() && c.boost_active_until && new Date(c.boost_active_until) > new Date()
             const primaryNiche = c.niche
               ? NICHE_LABELS[c.niche as CreatorNiche] || c.niche
               : c.niches?.[0]
@@ -262,7 +279,11 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
                   <span style={{ fontWeight: 600, fontSize: 15.5, letterSpacing: '-0.01em', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {name}
                   </span>
-                  {c.is_verified && <BadgeCheck size={15} style={{ color: 'var(--accent)', flexShrink: 0 }} />}
+                  {indicators.verified && (
+                    <span title="Account ownership verified" style={{ display: 'inline-flex', flexShrink: 0 }}>
+                      <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />
+                    </span>
+                  )}
                   {availability === 'available' && (
                     <span title="Available" style={{ width: 6, height: 6, borderRadius: 99, background: 'var(--money)', flexShrink: 0, marginLeft: 2 }} />
                   )}
@@ -321,7 +342,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
                         : `${indicators.completedCollabs} completed collab${indicators.completedCollabs !== 1 ? 's' : ''}`}
                   </span>
                   <span style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                    {isBoosted && <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Boosted</span>}
+                    {isBoosted && <span className="badge badge-accent" style={{ fontSize: 10.5 }} title="Sponsored placement">Boosted</span>}
                     <span className={`badge ${availability === 'available' ? 'badge-safe' : availability === 'limited' ? 'badge-warn' : 'badge-neutral'}`} style={{ fontSize: 10.5 }}>
                       {AVAILABILITY_LABELS[availability]}
                     </span>

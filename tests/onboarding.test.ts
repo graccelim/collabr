@@ -45,18 +45,18 @@ describe('handle normalization (duplicate-handle defense)', () => {
 })
 
 describe('creator onboarding requirements', () => {
-  it('requires a valid niche and at least one social', () => {
+  it('requires at least one valid niche and at least one social', () => {
     expect(creatorOnboardingSchema.safeParse({
-      niche: 'food',
+      niche_tags: ['food'],
       socials: [{ platform: 'tiktok', handle: 'sara' }],
     }).success).toBe(true)
 
     expect(creatorOnboardingSchema.safeParse({
-      niche: 'food', socials: [],
+      niche_tags: ['food'], socials: [],
     }).success).toBe(false)
 
     expect(creatorOnboardingSchema.safeParse({
-      niche: 'astronomy',
+      niche_tags: ['astronomy'],
       socials: [{ platform: 'tiktok', handle: 'sara' }],
     }).success).toBe(false)
   })
