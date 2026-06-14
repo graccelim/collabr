@@ -43,8 +43,14 @@ create table if not exists public.creator_scores (
   score_version int not null default 1
 );
 alter table public.creator_scores enable row level security;
+-- Own-row read only: a creator may read their own score row (for the creator's
+-- own ranked recommendations). Brand-facing surfaces read OTHER creators'
+-- scores via the service role (createAdminClient), so the sensitive raw inputs
+-- (disputes_lost, flagged_messages, …) are never world-readable.
 drop policy if exists "scores_public_read" on public.creator_scores;
-create policy "scores_public_read" on public.creator_scores for select using (true);
+drop policy if exists "scores_owner_read" on public.creator_scores;
+create policy "scores_owner_read" on public.creator_scores for select
+  using (creator_id in (select id from public.creator_profiles where user_id = auth.uid()));
 -- writes: service role only (recompute fn / event triggers) — no client policy.
 
 -- ── Recompute: all creators (p_creator_id null) or one ──────────────────────
