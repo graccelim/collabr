@@ -85,7 +85,7 @@ function CompletionNudge({ href, label, done, total }: { href: string; label: st
   const pct = (done / total) * 100
   return (
     <Link href={href} style={{
-      marginBottom: 28, display: 'flex', alignItems: 'center', gap: 12,
+      marginBottom: 14, display: 'flex', alignItems: 'center', gap: 12,
       padding: '13px 16px', borderRadius: 'var(--radius)',
       background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)',
       color: 'var(--accent-deep)', fontSize: 13.5, fontWeight: 540, textDecoration: 'none',
@@ -156,7 +156,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      <div style={{ marginTop: 8, marginBottom: isEmpty ? 36 : 44 }}>
+      <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>Brand workspace</div>
         <h1 className="display-face" style={{ fontSize: 'clamp(30px, 6vw, 40px)' }}>
           {greeting()}, <span className="serif-i" style={{ color: 'var(--accent)' }}>{brand.company_name}</span>
@@ -318,7 +318,7 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      <div style={{ marginTop: 8, marginBottom: isEmpty ? 36 : 44 }}>
+      <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>Creator studio</div>
         <h1 className="display-face" style={{ fontSize: 'clamp(30px, 6vw, 40px)' }}>
           {greeting()}{displayName ? <>, <span className="serif-i" style={{ color: 'var(--accent)' }}>{displayName.split(' ')[0]}</span></> : ''}
@@ -335,6 +335,24 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
 
       <CompletionNudge href="/profile" label="Finish your profile"
         done={completion.items.filter(i => i.done).length} total={completion.items.length} />
+
+      {/* Connect-your-payout nudge — sits with the profile nudge, above earnings */}
+      {needsPayoutSetup && (
+        <Link href="/earnings" style={{
+          width: '100%', textDecoration: 'none', marginBottom: 14,
+          background: 'var(--surface)', border: '1px solid var(--line)',
+          borderRadius: 'var(--radius)', padding: '14px 16px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
+        }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 99, background: 'var(--accent)', flexShrink: 0 }} />
+            <span style={{ fontSize: 14.5, color: 'var(--ink)' }}>Connect your payout account so the money can reach you</span>
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--ink-soft)', fontSize: 13.5, fontWeight: 530, flexShrink: 0 }}>
+            Set up <ArrowRight size={15} />
+          </span>
+        </Link>
+      )}
 
       {/* earnings — the one dark anchor */}
       <div className="money-panel" style={{ marginBottom: 14 }}>
@@ -356,24 +374,6 @@ async function CreatorDashboard({ userId, displayName, avatarUrl }: { userId: st
           {securedNow > 0 ? ' · escrowed funds release when your work is approved.' : ''}
         </div>
       </div>
-
-      {/* Connect-your-payout nudge — only when no Stripe Connect account yet */}
-      {needsPayoutSetup && (
-        <Link href="/earnings" style={{
-          width: '100%', textDecoration: 'none', marginBottom: 14,
-          background: 'var(--surface)', border: '1px solid var(--line)',
-          borderRadius: 'var(--radius)', padding: '16px 18px',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14,
-        }}>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 99, background: 'var(--accent)', flexShrink: 0 }} />
-            <span style={{ fontSize: 14.5, color: 'var(--ink)' }}>Connect your payout account so the money can reach you</span>
-          </span>
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--ink-soft)', fontSize: 13.5, fontWeight: 530, flexShrink: 0 }}>
-            Set up <ArrowRight size={15} />
-          </span>
-        </Link>
-      )}
 
       {isEmpty ? (
         <EmptyState
