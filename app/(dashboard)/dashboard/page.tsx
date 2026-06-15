@@ -8,6 +8,7 @@ import { brandCompletion, creatorCompletion } from '@/lib/profile-completion';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import EmptyState from '@/components/EmptyState';
+import ReputationSummary from '@/components/ReputationSummary';
 import {
   ArrowRight,
   Megaphone,
@@ -310,7 +311,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
   const { data: brand } = await supabase
     .from('brand_profiles')
     .select(
-      'id, user_id, company_name, company_description, industry, website, social_url, logo_url, created_at'
+      'id, user_id, company_name, company_description, industry, website, social_url, logo_url, created_at, rating_avg, rating_count, completed_campaigns'
     )
     .eq('user_id', userId)
     .single();
@@ -398,6 +399,19 @@ async function BrandDashboard({ userId }: { userId: string }) {
           }
         />
       </div>
+
+      {/* Your reputation — how creators see you, with a path to full reviews */}
+      <Link href={`/brands/${brand.id}`} className="card card-hover" style={{ display: 'block', padding: 18, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+          <div className="eyebrow">Your reputation</div>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>View profile &amp; reviews →</span>
+        </div>
+        <ReputationSummary
+          ratingAvg={(brand as any).rating_avg} ratingCount={(brand as any).rating_count} completed={(brand as any).completed_campaigns}
+          completedLabel="completed campaigns"
+          emptyBody="Reviews from creators appear after completed collaborations — revealed once you both submit, or after 7 days."
+        />
+      </Link>
 
       {isEmpty ? (
         <EmptyState
@@ -805,6 +819,18 @@ async function CreatorDashboard({
             : ''}
         </div>
       </div>
+
+      {/* Your reputation — how brands see you, with a path to full reviews */}
+      <Link href={`/creators/${creator.id}`} className="card card-hover" style={{ display: 'block', padding: 18, marginBottom: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
+          <div className="eyebrow">Your reputation</div>
+          <span style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>View profile &amp; reviews →</span>
+        </div>
+        <ReputationSummary
+          ratingAvg={creator.rating_avg} ratingCount={creator.rating_count} completed={creator.collabs_completed}
+          emptyBody="Reviews from brands appear after completed collaborations — revealed once you both submit, or after 7 days."
+        />
+      </Link>
 
       {isEmpty ? (
         <EmptyState

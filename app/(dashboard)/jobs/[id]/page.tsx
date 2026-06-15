@@ -177,7 +177,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             const title = selected ? 'You were selected!' : `Application sent to ${brandName}`
             const body = selected
               ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
-              : 'Most brands reply within 36 hours. We’ll notify you the moment they do.'
+              : 'Most brands reply within a few days. You’ll always get a definite answer — by the campaign deadline, or within 14 days.'
             return (
               <div className="card" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                 <span style={{ width: 42, height: 42, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: tile, color: ink, display: 'grid', placeItems: 'center' }}>

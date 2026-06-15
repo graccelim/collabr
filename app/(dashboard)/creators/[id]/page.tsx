@@ -11,6 +11,7 @@ import { hasVerifiedOwnership, VERIFICATION_NOTE } from '@/lib/discovery-data'
 import { responseStanding } from '@/lib/recommend'
 import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
+import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
 import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock } from 'lucide-react'
 
@@ -41,11 +42,11 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
       .order('is_primary', { ascending: false }).order('created_at'),
     supabase.rpc('user_email_verified', { p_user_id: creator.user_id }),
     supabase.from('reviews')
-      .select('*, collabs!inner(id, creator_id, campaigns(title))')
+      .select('id, rating, note, created_at, collabs!inner(id, creator_id, campaigns(title), brand_profiles(company_name))')
       .eq('reviewer_type', 'brand')
       .eq('collabs.creator_id', params.id)
       .order('created_at', { ascending: false })
-      .limit(10),
+      .limit(50),
     // Internal score row — ONLY for the categorical response standing below.
     // Never rendered as a number; raw inputs stay server-side.
     admin.from('creator_scores')
@@ -273,14 +274,31 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
           </section>
 
           {/* Brand reviews — revealed only; premium empty state for new creators */}
-          <ReviewList
-            heading="Brand reviews"
-            reviews={(brandReviews || []).map(r => ({
+          {(() => {
+            const items = (brandReviews || []).map(r => ({
               id: r.id, rating: r.rating, note: r.note,
               title: (r.collabs as any)?.campaigns?.title ?? null,
-            }))}
-            emptyBody="No reviews yet — feedback from brands appears after completed collaborations, revealed once both sides submit or after 7 days."
-          />
+              author: (r.collabs as any)?.brand_profiles?.company_name ?? null,
+              authorRole: 'brand' as const,
+              when: r.created_at,
+            }))
+            const dist = [0, 0, 0, 0, 0]
+            for (const r of items) if (r.rating >= 1 && r.rating <= 5) dist[r.rating - 1]++
+            return (
+              <>
+                {items.length > 0 && (
+                  <div style={{ marginBottom: 16 }}>
+                    <RatingSummaryCard avg={creator.rating_avg} count={creator.rating_count} distribution={dist} totalReviews={items.length} />
+                  </div>
+                )}
+                <ReviewList
+                  heading="Brand reviews"
+                  reviews={items}
+                  emptyBody="No reviews yet — feedback from brands appears after completed collaborations, revealed once both sides submit or after 7 days."
+                />
+              </>
+            )
+          })()}
         </div>
 
         {/* RAIL */}

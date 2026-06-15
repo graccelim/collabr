@@ -4,7 +4,7 @@ import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
 import EmptyState from '@/components/EmptyState'
-import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
+import { PLAN_COLUMNS } from '@/lib/plans'
 import { computeMatch, creatorIndicators } from '@/lib/recommend'
 import { toCreatorSignals, toCampaignSignals, type ScoreRow } from '@/lib/discovery-data'
 import { ChevronLeft, Calendar, Users, DollarSign, Inbox, SearchX, Shield } from 'lucide-react'
@@ -99,10 +99,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     })
     .sort((a, b) => b._rankScore - a._rankScore)
 
-  // Resolved plan: every brand is Pro while in beta.
-  const plan = resolvePlan(brand)
-  const visibleApps = plan.isPro ? rankedApplications : rankedApplications.slice(0, 5)
-  const hiddenCount = rankedApplications.length - visibleApps.length
+  // Every brand sees every applicant — visibility is never gated (fair to creators
+  // and required for honest auto-decline). Pro monetises via Discovery/invites/boost.
+  const visibleApps = rankedApplications
 
   const isActive = campaign.status === 'active'
   const dueLabel = campaign.deadline
@@ -177,17 +176,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
             />
           ) : (
             <>
-              <ApplicantList applications={visibleApps} campaignId={params.id} campaign={campaign} />
-              {hiddenCount > 0 && (
-                <div className="card" style={{ marginTop: 14, textAlign: 'center', background: 'var(--surface-2)' }}>
-                  <p style={{ fontSize: 14, fontWeight: 540, color: 'var(--ink)', marginBottom: 4 }}>
-                    {hiddenCount} more applicant{hiddenCount > 1 ? 's' : ''} available with Pro
-                  </p>
-                  <Link href="/billing" style={{ fontSize: 13, fontWeight: 540, color: 'var(--accent-deep)' }}>
-                    Manage plan →
-                  </Link>
-                </div>
-              )}
+              <ApplicantList applications={visibleApps} campaignId={params.id} campaign={campaign}
+                spotsLeft={Math.max(0, (campaign.creators_needed || 1) - spotsFilled)} />
             </>
           )}
         </div>

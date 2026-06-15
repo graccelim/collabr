@@ -3,6 +3,7 @@ import { requireAuth } from '@/lib/auth'
 import { getInitials, formatSGD } from '@/lib/utils'
 import ReputationSummary from '@/components/ReputationSummary'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
+import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
 import { ChevronLeft, Globe, Briefcase, ShieldCheck } from 'lucide-react'
 
@@ -21,11 +22,11 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
   // the double-blind reveal RLS is enforced (admin would bypass it).
   const [{ data: reviewRows }, { data: campaigns }] = await Promise.all([
     supabase.from('reviews')
-      .select('id, rating, note, collabs!inner(brand_id, campaigns(title))')
+      .select('id, rating, note, created_at, collabs!inner(brand_id, campaigns(title), creator_profiles(users(display_name)))')
       .eq('reviewer_type', 'creator')
       .eq('collabs.brand_id', params.id)
       .order('created_at', { ascending: false })
-      .limit(8),
+      .limit(50),
     admin.from('campaigns')
       .select('id, title, comp_type, budget_min, budget_max, niche_tags')
       .eq('brand_id', params.id).eq('status', 'active')
@@ -37,7 +38,12 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
   const reviews: ReviewItem[] = (reviewRows || []).map(r => ({
     id: r.id, rating: r.rating, note: r.note,
     title: (r.collabs as any)?.campaigns?.title ?? null,
+    author: (r.collabs as any)?.creator_profiles?.users?.display_name ?? null,
+    authorRole: 'creator' as const,
+    when: r.created_at,
   }))
+  const dist = [0, 0, 0, 0, 0]
+  for (const r of reviews) if (r.rating >= 1 && r.rating <= 5) dist[r.rating - 1]++
 
   return (
     <div className="screen-in" style={{ maxWidth: 760, margin: '0 auto' }}>
@@ -96,6 +102,11 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
       )}
 
       {/* Revealed reviews from creators */}
+      {reviews.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <RatingSummaryCard avg={brand.rating_avg} count={brand.rating_count} distribution={dist} totalReviews={reviews.length} />
+        </div>
+      )}
       <ReviewList
         reviews={reviews}
         heading="What creators say"

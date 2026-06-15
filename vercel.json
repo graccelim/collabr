@@ -6,6 +6,7 @@
     { "path": "/api/cron/expire-boosts",       "schedule": "0 0 * * *" },
     { "path": "/api/cron/update-ratings",      "schedule": "0 2 * * *" },
     { "path": "/api/cron/expire-invites",      "schedule": "0 1 * * *" },
+    { "path": "/api/cron/expire-applications", "schedule": "0 3 * * *" },
     { "path": "/api/cron/recompute-scores",    "schedule": "30 2 * * *" }
   ]
 }

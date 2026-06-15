@@ -16,7 +16,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Load application with campaign and brand ownership check
   const { data: application } = await supabase.from('applications')
-    .select('*, campaigns(id, brand_id, title, brand_profiles(user_id, plan)), creator_profiles(id, user_id, users(display_name, email))')
+    .select('*, campaigns(id, brand_id, title, creators_needed, brand_profiles(user_id, plan)), creator_profiles(id, user_id, users(display_name, email))')
     .eq('id', params.id).single()
   if (!application) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -69,6 +69,35 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         dedupeKey: `application:${params.id}:selected`,
       })
       await sendProductEmail({ to: creatorEmail, ...productEmails.applicationSelected({ campaignTitle, applicationId: params.id, collabId }) })
+
+      // Instant decline on fill: if this selection used the last slot, give every
+      // remaining applicant a definite answer now (don't make them wait for the cron).
+      const needed = (application.campaigns as any)?.creators_needed || 1
+      const { count: filledCount } = await admin.from('collabs')
+        .select('id', { count: 'exact', head: true })
+        .eq('campaign_id', campaignId).neq('status', 'cancelled')
+      if ((filledCount || 0) >= needed) {
+        const { data: leftover } = await admin.from('applications')
+          .select('id, creator_profiles(user_id, users(email))')
+          .eq('campaign_id', campaignId)
+          .in('status', ['pending', 'shortlisted'])
+        if (leftover && leftover.length > 0) {
+          await admin.from('applications').update({ status: 'rejected' })
+            .in('id', leftover.map(l => l.id)).in('status', ['pending', 'shortlisted'])
+          for (const l of leftover) {
+            const uid = (l.creator_profiles as any)?.user_id
+            const email = (l.creator_profiles as any)?.users?.email
+            if (uid) await sendNotification({
+              userId: uid, type: 'application_rejected',
+              title: `Application closed for "${campaignTitle}"`,
+              body: 'This campaign has been filled. Thanks for applying — new campaigns are posted regularly.',
+              payload: { application_id: l.id },
+              dedupeKey: `application:${l.id}:rejected`,
+            })
+            if (email) await sendProductEmail({ to: email, ...productEmails.applicationRejected({ campaignTitle, applicationId: l.id }) })
+          }
+        }
+      }
     }
   } else {
     const { data: updated, error } = await admin.from('applications')

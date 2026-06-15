@@ -547,6 +547,13 @@
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
 
+  /* Rating summary: stack the big-average and the bars on phones. */
+  .rep-summary { grid-template-columns: 1fr !important; gap: 16px !important; }
+  .rep-summary > div:first-child {
+    border-right: none !important; padding-right: 0 !important;
+    border-bottom: 1px solid var(--line); padding-bottom: 16px;
+  }
+
   /* Stop iOS Safari from auto-zooming when a form control is focused: any
      control under 16px triggers it, so force ≥16px on small screens. The
      !important overrides the redesign's inline 14px inputs. */

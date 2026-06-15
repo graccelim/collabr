@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Shield, Zap, Check, Sparkles, Bookmark } from 'lucide-react'
+import { Shield, Zap, Check, Sparkles, Bookmark, UserPlus, Search } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
@@ -43,16 +43,18 @@ interface Props {
   applications: Application[]
   campaignId: string
   campaign?: CampaignFit
+  spotsLeft?: number
 }
 
 const OWNERSHIP_NOTE = 'Account ownership verified — follower counts are self-reported'
 
-export default function ApplicantList({ applications, campaignId, campaign }: Props) {
+export default function ApplicantList({ applications, campaignId, campaign, spotsLeft = 0 }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [statuses, setStatuses] = useState<Record<string, string>>(
     Object.fromEntries(applications.map(a => [a.id, a.status]))
   )
+  const [filter, setFilter] = useState<'all' | 'saved' | 'passed'>('all')
 
   async function updateStatus(appId: string, status: string) {
     setLoading(`${appId}-${status}`)
@@ -87,9 +89,43 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
     }
   }
 
+  // Live triage buckets (reflect Save/Pass/Accept as they happen).
+  const savedCount = applications.filter(a => statuses[a.id] === 'shortlisted').length
+  const passedCount = applications.filter(a => statuses[a.id] === 'rejected').length
+  const filtered = applications.filter(a => {
+    const s = statuses[a.id]
+    if (filter === 'saved') return s === 'shortlisted'
+    if (filter === 'passed') return s === 'rejected'
+    return s !== 'rejected' // "all" = everyone still in the running
+  })
+  const showTabs = savedCount > 0 || passedCount > 0
+  const tabs: { key: 'all' | 'saved' | 'passed'; label: string; n: number }[] = [
+    { key: 'all', label: 'In the running', n: applications.length - passedCount },
+    { key: 'saved', label: 'Saved', n: savedCount },
+    { key: 'passed', label: 'Passed', n: passedCount },
+  ]
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {applications.map(app => {
+      {showTabs && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {tabs.map(t => (
+            <button key={t.key} type="button" onClick={() => setFilter(t.key)}
+              className={`chip${filter === t.key ? ' on' : ''}`}>
+              {t.label}{t.n > 0 ? ` · ${t.n}` : ''}
+            </button>
+          ))}
+        </div>
+      )}
+      {filtered.length === 0 ? (
+        <div className="card" style={{ padding: 18, fontSize: 13.5, color: 'var(--ink-soft)' }}>
+          {filter === 'saved'
+            ? 'No saved applicants yet — tap Save on an applicant to compare your favourites here.'
+            : filter === 'passed'
+              ? 'No passed applicants.'
+              : 'No active applicants right now.'}
+        </div>
+      ) : filtered.map(app => {
         const creator = app.creator_profiles
         const name = creator?.users?.display_name || 'Creator'
         const status = statuses[app.id]
@@ -258,6 +294,25 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
           </div>
         )
       })}
+
+      {/* Sparse state — keep the page productive: invite creators directly. */}
+      {filter === 'all' && spotsLeft > 0 && (applications.length - passedCount) <= 2 && (
+        <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)' }}>
+          <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: '#fff', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+            <UserPlus size={20} />
+          </div>
+          <div style={{ flex: 1, minWidth: 200 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Want more to choose from?</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.45, marginTop: 2 }}>
+              Don&rsquo;t wait on applications — invite creators that fit this campaign directly. New applicants also appear here automatically.
+            </div>
+          </div>
+          <Link href="/creators" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Search size={15} /> Browse creators
+          </Link>
+        </div>
+      )}
     </div>
   )
 }
+
