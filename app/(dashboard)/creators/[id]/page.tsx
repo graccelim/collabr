@@ -13,7 +13,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock, Pencil } from 'lucide-react'
+import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -134,14 +134,15 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         </Link>
       )}
 
-      {/* identity — colourful header band */}
+      {/* identity — colourful header band with a soft glow */}
       <div style={{
-        position: 'relative', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 26,
-        background: 'linear-gradient(135deg, var(--accent-tint) 0%, var(--paper-2) 55%, var(--creator-tint) 100%)',
+        position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 26,
+        background: 'linear-gradient(135deg, var(--accent-tint) 0%, #fff 52%, var(--creator-tint) 100%)',
         border: '1px solid var(--line)',
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap',
       }}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', minWidth: 0 }}>
+        <div aria-hidden style={{ position: 'absolute', top: -70, right: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.18), transparent 65%)', pointerEvents: 'none' }} />
+        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', minWidth: 0, position: 'relative', zIndex: 1 }}>
           <div style={{
             width: 76, height: 76, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
             background: '#fff', color: 'var(--accent-deep)',
@@ -265,44 +266,44 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             ) : null
           })()}
 
-          {/* Recent work — real portfolio_links, or striped placeholders */}
-          <section style={{ marginBottom: 30 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <h2 className="h2" style={{ fontSize: 18 }}>Recent work</h2>
-              {creator.media_kit_url && (
-                <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer"
-                  style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  View media kit <ExternalLink size={12} />
-                </a>
-              )}
-            </div>
-            {portfolioLinks.length > 0 ? (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {portfolioLinks.map(link => (
-                  <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                    className="card card-hover"
-                    style={{ aspectRatio: '4/5', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', padding: 14, overflow: 'hidden' }}>
-                    <ExternalLink size={16} style={{ color: 'var(--accent)', marginBottom: 'auto' }} />
-                    <span style={{ fontSize: 12, color: 'var(--ink-soft)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {link.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+          {/* Portfolio & links — clean link rows (no image previews) */}
+          {(portfolioLinks.length > 0 || creator.media_kit_url) && (
+            <section style={{ marginBottom: 30 }}>
+              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Portfolio &amp; links</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+                {creator.media_kit_url && (
+                  <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer"
+                    className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, textDecoration: 'none' }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+                      <FileText size={16} />
                     </span>
+                    <span style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>Media kit</span>
+                    <ExternalLink size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
                   </a>
-                ))}
+                )}
+                {portfolioLinks.map((link, i) => {
+                  const tints = [
+                    { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)' },
+                    { bg: 'var(--money-tint)', fg: 'var(--money-deep)' },
+                    { bg: 'var(--warn-tint)', fg: 'var(--warn-deep)' },
+                    { bg: 'var(--creator-tint)', fg: 'var(--creator-deep)' },
+                  ][i % 4]
+                  return (
+                    <a key={link} href={link} target="_blank" rel="noopener noreferrer"
+                      className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, textDecoration: 'none' }}>
+                      <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: tints.bg, color: tints.fg, display: 'grid', placeItems: 'center' }}>
+                        <LinkIcon size={15} />
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0, fontWeight: 500, fontSize: 13.5, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {link.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+                      </span>
+                      <ExternalLink size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
+                    </a>
+                  )
+                })}
               </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                {[0, 1, 2].map(i => (
-                  <div key={i} style={{
-                    aspectRatio: '4/5', borderRadius: 'var(--radius)', border: '1px solid var(--line)',
-                    background: 'repeating-linear-gradient(135deg, var(--paper-2), var(--paper-2) 8px, var(--surface-2) 8px, var(--surface-2) 16px)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', fontWeight: 500 }}>No preview</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+            </section>
+          )}
 
           {/* Brand reviews — revealed only; premium empty state for new creators */}
           {(() => {

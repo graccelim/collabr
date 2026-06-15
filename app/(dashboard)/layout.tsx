@@ -79,7 +79,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           flexDirection: 'column',
         }}
       >
-        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} />
+        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} profileHref={profileHref} />
         <div className="dash-pad" style={{
           maxWidth: 1080,
           margin: '0 auto',

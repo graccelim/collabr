@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { BRAND_INDUSTRIES, INDUSTRY_LABELS, normalizeUrl } from '@/lib/onboarding'
@@ -7,6 +8,7 @@ import { brandCompletion } from '@/lib/profile-completion'
 
 export default function SettingsPage() {
   const supabase = createClient()
+  const router = useRouter()
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const [role, setRole] = useState<'brand' | 'creator' | null>(null)
@@ -90,8 +92,10 @@ export default function SettingsPage() {
       await supabase.from('users').update({ display_name: displayName }).eq('id', userId)
     }
 
-    toast.success('Settings saved')
-    setSaving(false)
+    toast.success('Saved')
+    // Brands: return to the public profile creators see.
+    if (role === 'brand' && brandId) router.push(`/brands/${brandId}`)
+    else setSaving(false)
   }
 
   const completion = role === 'brand' ? brandCompletion({
@@ -124,15 +128,6 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Edit-mode helper: jump to the public view creators see */}
-      {role === 'brand' && brandId && (
-        <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>You&rsquo;re editing — creators see your public profile &amp; reviews.</span>
-          <a href={`/brands/${brandId}`} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
-            View public profile →
-          </a>
-        </div>
-      )}
 
       {/* Brand profile — only shown for brand users */}
       {role === 'brand' && (

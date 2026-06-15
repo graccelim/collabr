@@ -22,45 +22,50 @@ interface NavItem {
   pro?: boolean
 }
 
+// Profile + Notifications sit in a quick-access row at the TOP of the nav
+// (desktop sidebar + mobile top bar). Profile resolves to the user's own
+// public profile via the /__profile__ sentinel.
+const TOP_NAV: NavItem[] = [
+  { href: '/__profile__',   label: 'Profile',       icon: User },
+  { href: '/notifications', label: 'Notifications', icon: Bell },
+]
+
 const BRAND_NAV: NavItem[] = [
-  { href: '/dashboard',     label: 'Overview',     icon: LayoutGrid, exact: true },
-  { href: '/campaigns',     label: 'Campaigns',    icon: Briefcase },
-  { href: '/collabs',       label: 'Collabs',      icon: Link2 },
-  { href: '/creators',      label: 'Creators',     icon: Users, pro: true },
-  { href: '/invites',       label: 'Invites',      icon: Mail,  pro: true },
-  { href: '/notifications', label: 'Notifications',icon: Bell },
-  { href: '/__profile__',   label: 'Profile',      icon: User },
-  { href: '/billing',       label: 'Billing',      icon: CreditCard },
-  { href: '/settings',      label: 'Settings',     icon: Settings },
+  { href: '/dashboard',     label: 'Overview',          icon: LayoutGrid, exact: true },
+  { href: '/campaigns',     label: 'Your campaigns',    icon: Briefcase },
+  { href: '/collabs',       label: 'Collabs',           icon: Link2 },
+  { href: '/creators',      label: 'Discover creators', icon: Users, pro: true },
+  { href: '/invites',       label: 'Your invitations',  icon: Mail,  pro: true },
+  { href: '/billing',       label: 'Billing',           icon: CreditCard },
 ]
 
 // Decluttered: Settings folds into Profile (Profile = public view + edit + account),
 // and Boost lives inside Earnings (boost → earn more) rather than its own item.
 const CREATOR_NAV: NavItem[] = [
-  { href: '/dashboard',     label: 'Overview',     icon: LayoutGrid, exact: true },
-  { href: '/jobs',          label: 'Browse',       icon: Compass },
-  { href: '/applications',  label: 'Applications', icon: FileText },
-  { href: '/invites',       label: 'Invites',      icon: Mail },
-  { href: '/collabs',       label: 'Collabs',      icon: Link2 },
-  { href: '/earnings',      label: 'Earnings',     icon: Wallet },
-  { href: '/__profile__',   label: 'Profile',      icon: User },
-  { href: '/notifications', label: 'Notifications',icon: Bell },
+  { href: '/dashboard',     label: 'Overview',           icon: LayoutGrid, exact: true },
+  { href: '/jobs',          label: 'Discover campaigns', icon: Compass },
+  { href: '/invites',       label: 'Invites',            icon: Mail },
+  { href: '/collabs',       label: 'Collabs',            icon: Link2 },
+  { href: '/applications',  label: 'Applications',       icon: FileText },
+  { href: '/earnings',      label: 'Earnings',           icon: Wallet },
 ]
 
+// Mobile bottom bar — Profile + Notifications live in the top bar, so these are
+// the core sections only.
 const BRAND_TABS: NavItem[] = [
-  { href: '/dashboard', label: 'Overview',   icon: LayoutGrid, exact: true },
-  { href: '/campaigns', label: 'Campaigns',  icon: Briefcase },
-  { href: '/collabs',   label: 'Collabs',    icon: Link2 },
-  { href: '/creators',  label: 'Creators',   icon: Users },
-  { href: '/settings',  label: 'More',       icon: Settings },
+  { href: '/dashboard', label: 'Overview',  icon: LayoutGrid, exact: true },
+  { href: '/campaigns', label: 'Campaigns', icon: Briefcase },
+  { href: '/collabs',   label: 'Collabs',   icon: Link2 },
+  { href: '/creators',  label: 'Creators',  icon: Users },
+  { href: '/billing',   label: 'Billing',   icon: CreditCard },
 ]
 
 const CREATOR_TABS: NavItem[] = [
-  { href: '/dashboard',    label: 'Home',         icon: LayoutGrid, exact: true },
-  { href: '/jobs',         label: 'Browse',        icon: Compass },
-  { href: '/applications', label: 'Applications', icon: FileText },
-  { href: '/collabs',      label: 'Collabs',      icon: Link2 },
-  { href: '/earnings',     label: 'Earnings',     icon: Wallet },
+  { href: '/dashboard',    label: 'Overview',  icon: LayoutGrid, exact: true },
+  { href: '/jobs',         label: 'Discover',  icon: Compass },
+  { href: '/invites',      label: 'Invites',   icon: Mail },
+  { href: '/collabs',      label: 'Collabs',   icon: Link2 },
+  { href: '/earnings',     label: 'Earnings',  icon: Wallet },
 ]
 
 interface AppNavProps {
@@ -83,14 +88,61 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
   const [collapsed, setCollapsed] = useState(false)
   const isBrand = role === 'brand'
   const fallbackProfile = isBrand ? '/settings' : '/profile'
-  const nav = (isBrand ? BRAND_NAV : CREATOR_NAV).map(i =>
+  const topNav = TOP_NAV.map(i =>
     i.href === '/__profile__' ? { ...i, href: profileHref || fallbackProfile } : i
   )
+  const nav = isBrand ? BRAND_NAV : CREATOR_NAV
   const tabs = isBrand ? BRAND_TABS : CREATOR_TABS
 
   function isActive(item: NavItem) {
     if (item.exact) return pathname === item.href
     return pathname.startsWith(item.href)
+  }
+
+  const renderItem = (item: NavItem) => {
+    const on = isActive(item)
+    const NavIcon = item.icon
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        title={collapsed ? item.label : undefined}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 11,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          borderRadius: 'var(--radius-sm)',
+          padding: collapsed ? '9px 0' : '8px 10px',
+          background: 'transparent',
+          color: on ? 'var(--accent-deep)' : 'var(--ink-soft)',
+          fontWeight: on ? 560 : 480, fontSize: 13.5,
+          transition: 'color .13s ease', textDecoration: 'none',
+          whiteSpace: 'nowrap', position: 'relative',
+        }}
+        onMouseEnter={e => { if (!on) (e.currentTarget as HTMLElement).style.background = 'var(--paper-2)' }}
+        onMouseLeave={e => { if (!on) (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+      >
+        {on && (
+          <motion.span layoutId="sidebar-active"
+            style={{ position: 'absolute', inset: 0, borderRadius: 'var(--radius-sm)', background: 'var(--accent-tint)', zIndex: 0 }}
+            transition={{ type: 'spring', stiffness: 520, damping: 40 }} />
+        )}
+        <NavIcon size={16} style={{ opacity: on ? 1 : .75, position: 'relative', zIndex: 1 }} />
+        {!collapsed && <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>}
+        {(() => {
+          const count = item.href === '/invites' ? inviteBadge
+            : item.href === '/notifications' ? notificationBadge : 0
+          if (!count) return null
+          return collapsed ? (
+            <span style={{ position: 'absolute', top: 6, right: 10, width: 7, height: 7, borderRadius: 99, background: 'var(--warn)', border: '1.5px solid var(--surface)' }} />
+          ) : (
+            <span style={{ marginLeft: 'auto', minWidth: 18, height: 18, padding: '0 5px', borderRadius: 99, background: 'var(--warn)', color: '#fff', fontSize: 11, fontWeight: 600, position: 'relative', zIndex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>{count > 9 ? '9+' : count}</span>
+          )
+        })()}
+        {!collapsed && item.pro && (
+          <span style={{ marginLeft: 'auto', position: 'relative', zIndex: 1, fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em', color: on ? 'var(--accent-deep)' : 'var(--ink-faint-solid)', border: `1px solid ${on ? 'rgba(79,70,229,.25)' : 'var(--line)'}`, padding: '0px 4px', borderRadius: 4, lineHeight: '12px' }}>PRO</span>
+        )}
+      </Link>
+    )
   }
 
   return (
@@ -173,95 +225,22 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
           display: 'flex', flexDirection: 'column', gap: 1,
           overflowY: 'auto',
         }}>
+          {/* Quick access — Profile + Notifications at the top */}
+          {topNav.map(renderItem)}
+          {!collapsed && (
+            <div style={{ height: 1, background: 'var(--line)', margin: '8px 8px' }} />
+          )}
           {!collapsed && (
             <div style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 10.5, fontWeight: 500, letterSpacing: '.1em',
               textTransform: 'uppercase', color: 'var(--ink-faint-solid)',
-              padding: '6px 8px 8px',
+              padding: '2px 8px 8px',
             }}>
               {isBrand ? 'Brand workspace' : 'Creator studio'}
             </div>
           )}
-          {nav.map(item => {
-            const on = isActive(item)
-            const NavIcon = item.icon
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                title={collapsed ? item.label : undefined}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 11,
-                  justifyContent: collapsed ? 'center' : 'flex-start',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: collapsed ? '9px 0' : '8px 10px',
-                  background: 'transparent',
-                  color: on ? 'var(--accent-deep)' : 'var(--ink-soft)',
-                  fontWeight: on ? 560 : 480,
-                  fontSize: 13.5,
-                  transition: 'color .13s ease',
-                  textDecoration: 'none',
-                  whiteSpace: 'nowrap',
-                  position: 'relative',
-                }}
-                onMouseEnter={e => {
-                  if (!on) (e.currentTarget as HTMLElement).style.background = 'var(--paper-2)'
-                }}
-                onMouseLeave={e => {
-                  if (!on) (e.currentTarget as HTMLElement).style.background = 'transparent'
-                }}
-              >
-                {on && (
-                  <motion.span
-                    layoutId="sidebar-active"
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'var(--accent-tint)',
-                      zIndex: 0,
-                    }}
-                    transition={{ type: 'spring', stiffness: 520, damping: 40 }}
-                  />
-                )}
-                <NavIcon size={16} style={{ opacity: on ? 1 : .75, position: 'relative', zIndex: 1 }} />
-                {!collapsed && <span style={{ position: 'relative', zIndex: 1 }}>{item.label}</span>}
-                {(() => {
-                  const count = item.href === '/invites' ? inviteBadge
-                    : item.href === '/notifications' ? notificationBadge : 0
-                  if (!count) return null
-                  return collapsed ? (
-                    <span style={{
-                      position: 'absolute', top: 6, right: 10,
-                      width: 7, height: 7, borderRadius: 99,
-                      background: 'var(--warn)', border: '1.5px solid var(--surface)',
-                    }} />
-                  ) : (
-                    <span style={{
-                      marginLeft: 'auto', minWidth: 18, height: 18, padding: '0 5px',
-                      borderRadius: 99, background: 'var(--warn)', color: '#fff',
-                      fontSize: 11, fontWeight: 600, position: 'relative', zIndex: 1,
-                      display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    }}>{count > 9 ? '9+' : count}</span>
-                  )
-                })()}
-                {!collapsed && item.pro && (
-                  <span style={{
-                    marginLeft: 'auto', position: 'relative', zIndex: 1,
-                    fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em',
-                    color: on ? 'var(--accent-deep)' : 'var(--ink-faint-solid)',
-                    border: `1px solid ${on ? 'rgba(79,70,229,.25)' : 'var(--line)'}`,
-                    padding: '0px 4px', borderRadius: 4, lineHeight: '12px',
-                  }}>
-                    PRO
-                  </span>
-                )}
-              </Link>
-            )
-          })}
+          {nav.map(renderItem)}
         </nav>
 
         {/* Beta notice + user */}

@@ -173,10 +173,10 @@ export default function JobsList({
                   {c.matchReasons.map(reason => (
                     <span key={reason} style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
-                      fontSize: 12, color: 'var(--match-ink)', fontWeight: 500,
-                      background: 'var(--match-soft)', padding: '4px 10px', borderRadius: 99,
+                      fontSize: 12, color: '#B5430E', fontWeight: 500,
+                      background: 'rgba(255,138,76,.12)', padding: '4px 10px', borderRadius: 99,
                     }}>
-                      <Check size={12} style={{ color: 'var(--match)', flexShrink: 0 }} />
+                      <Check size={12} style={{ color: '#F97316', flexShrink: 0 }} />
                       {reason}
                     </span>
                   ))}

@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
@@ -14,6 +15,7 @@ import type { SocialAccount } from '@/types'
 
 export default function ProfilePage() {
   const supabase = createClient()
+  const router = useRouter()
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -135,9 +137,11 @@ export default function ProfilePage() {
       }),
     })
     const data = await res.json()
-    if (!res.ok) toast.error(data.error || 'Could not save profile')
-    else toast.success('Profile saved')
-    setSaving(false)
+    if (!res.ok) { toast.error(data.error || 'Could not save profile'); setSaving(false); return }
+    toast.success('Profile saved')
+    // Return to the public profile — the view brands actually see.
+    if (creatorId) router.push(`/creators/${creatorId}`)
+    else setSaving(false)
   }
 
   async function addSocial(e: React.FormEvent) {
@@ -240,20 +244,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Edit-mode helper: jump to the public view or account settings */}
-      <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-        <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>You&rsquo;re editing — brands see your public profile &amp; reviews.</span>
-        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
-          {creatorId && (
-            <a href={`/creators/${creatorId}`} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
-              View public profile →
-            </a>
-          )}
-          <a href="/settings" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
-            Account settings →
-          </a>
-        </div>
-      </div>
 
       {/* Photo + name */}
       <div className="card space-y-4">

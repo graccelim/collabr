@@ -58,39 +58,43 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
         </Link>
       )}
 
-      {/* Identity — colourful header band */}
-      <div style={{
-        borderRadius: 'var(--radius-lg)', padding: 22, marginBottom: 24, border: '1px solid var(--line)',
-        background: 'linear-gradient(135deg, var(--accent-tint) 0%, var(--paper-2) 55%, var(--creator-tint) 100%)',
-        display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap',
-      }}>
+      {/* Identity — cover hero with a soft glow + overlapping mark */}
+      <div className="card" style={{ position: 'relative', overflow: 'hidden', padding: 0, marginBottom: 24 }}>
         <div style={{
-          width: 64, height: 64, borderRadius: 'var(--radius-sm)', flexShrink: 0, overflow: 'hidden',
-          background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)',
-          display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 20, color: 'var(--accent-deep)',
+          height: 104, position: 'relative',
+          background: 'radial-gradient(120% 160% at 12% -20%, var(--accent) 0%, #2a2f63 36%, var(--creator) 78%, #0A0C22 100%)',
         }}>
-          {brand.logo_url
-            ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-            : getInitials(name)}
+          <div aria-hidden style={{ position: 'absolute', top: -40, right: -20, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.35), transparent 65%)' }} />
+          {isOwner && (
+            <Link href="/settings" className="btn" style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.16)', color: '#fff', backdropFilter: 'blur(6px)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13 }}>
+              <Pencil size={14} /> Edit profile
+            </Link>
+          )}
         </div>
-        <div style={{ minWidth: 0 }}>
-          <h1 className="h1" style={{ fontSize: 25, fontWeight: 600 }}>{name}</h1>
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 5, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-            {brand.industry && <span>{brand.industry}</span>}
-            {memberSince && <span>Member since {memberSince}</span>}
-            {brand.website && (
-              <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-deep)' }}>
-                <Globe size={13} /> Website
-              </a>
-            )}
+        <div style={{ padding: '0 24px 22px', marginTop: -34, display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{
+            width: 76, height: 76, borderRadius: 16, flexShrink: 0, overflow: 'hidden',
+            background: '#fff', boxShadow: '0 0 0 4px #fff, var(--shadow)',
+            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 26, color: 'var(--accent-deep)',
+          }}>
+            {brand.logo_url
+              ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              : getInitials(name)}
+          </div>
+          <div style={{ minWidth: 0, paddingBottom: 4 }}>
+            <h1 className="h1" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 5, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+              {brand.industry && <span className="badge badge-neutral" style={{ fontSize: 11 }}>{brand.industry}</span>}
+              {memberSince && <span>Member since {memberSince}</span>}
+              {brand.website && (
+                <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: 'var(--accent-deep)', fontWeight: 600 }}>
+                  <Globe size={13} /> Website
+                </a>
+              )}
+            </div>
           </div>
         </div>
-        {isOwner && (
-          <Link href="/settings" className="btn-primary" style={{ marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Pencil size={15} /> Edit profile
-          </Link>
-        )}
       </div>
 
       {/* Reputation summary (premium empty state for new brands) */}
@@ -139,12 +143,14 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
                 ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
                 : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
               return (
-                <Link key={c.id} href={`/jobs/${c.id}`} className="card card-hover" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 16 }}>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                    <Briefcase size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
+                <Link key={c.id} href={`/jobs/${c.id}`} className="card card-hover" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 14 }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+                      <Briefcase size={16} />
+                    </span>
                     <span style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
                   </span>
-                  <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink-soft)', flexShrink: 0 }}>{budget}</span>
+                  <span className="badge badge-money" style={{ flexShrink: 0, fontSize: 12 }}>{budget}</span>
                 </Link>
               )
             })}

@@ -91,10 +91,10 @@ export default async function JobsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 880, margin: '0 auto' }}>
       {/* Header */}
       <div>
-        <div className="eyebrow" style={{ marginBottom: 7 }}>Opportunities</div>
-        <h1 style={{ fontSize: 28 }}>Browse campaigns</h1>
+        <div className="eyebrow" style={{ marginBottom: 7 }}>Curated for you</div>
+        <h1 style={{ fontSize: 28 }}>Campaigns picked for you</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          Ranked by fit with your niche, audience and rate — not just newest.
+          A shortlist matched to your niche, audience and rate — your strongest fits, first.
         </p>
       </div>
 

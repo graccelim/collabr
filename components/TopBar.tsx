@@ -12,6 +12,8 @@ interface Props {
   displayName?: string
   email?: string
   initials?: string
+  /** The user's own public profile (Profile link target). */
+  profileHref?: string
 }
 
 /**
@@ -20,8 +22,28 @@ interface Props {
  * workspace action on the right. Sticks under the scroll container with a
  * blurred canvas backdrop. Framer drives the icon-button + CTA micro-presses.
  */
-export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '' }: Props) {
+export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', profileHref }: Props) {
   const isBrand = role === 'brand'
+  // Full mobile nav (the sidebar is hidden ≤768px) — same sections, same order.
+  const menuSections = isBrand
+    ? [
+        { href: '/dashboard', label: 'Overview' },
+        { href: '/campaigns', label: 'Your campaigns' },
+        { href: '/collabs', label: 'Collabs' },
+        { href: '/creators', label: 'Discover creators' },
+        { href: '/invites', label: 'Your invitations' },
+        { href: '/billing', label: 'Billing' },
+        { href: '/notifications', label: 'Notifications' },
+      ]
+    : [
+        { href: '/dashboard', label: 'Overview' },
+        { href: '/jobs', label: 'Discover campaigns' },
+        { href: '/invites', label: 'Invites' },
+        { href: '/collabs', label: 'Collabs' },
+        { href: '/applications', label: 'Applications' },
+        { href: '/earnings', label: 'Earnings' },
+        { href: '/notifications', label: 'Notifications' },
+      ]
   const searchHref = isBrand ? '/creators' : '/jobs'
   const ctaHref = isBrand ? '/post-job' : '/jobs'
   const ctaLabel = isBrand ? 'Post a campaign' : 'Find campaigns'
@@ -129,10 +151,18 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{displayName || 'Account'}</div>
                   {email && <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email}</div>}
                 </div>
-                <Link href={isBrand ? '/settings' : '/profile'} onClick={() => setMenuOpen(false)}
-                  style={{ display: 'block', padding: '9px 10px', fontSize: 13.5, color: 'var(--ink)', borderRadius: 'var(--radius-sm)', textDecoration: 'none' }}>
-                  {isBrand ? 'Brand profile' : 'My profile'}
+                <Link href={profileHref || (isBrand ? '/settings' : '/profile')} onClick={() => setMenuOpen(false)}
+                  style={{ display: 'block', padding: '9px 10px', fontSize: 13.5, fontWeight: 600, color: 'var(--accent-deep)', borderRadius: 'var(--radius-sm)', textDecoration: 'none' }}>
+                  My profile
                 </Link>
+                <div style={{ height: 1, background: 'var(--line)', margin: '6px 0' }} />
+                {menuSections.map(s => (
+                  <Link key={s.href} href={s.href} onClick={() => setMenuOpen(false)}
+                    style={{ display: 'block', padding: '8px 10px', fontSize: 13.5, color: 'var(--ink)', borderRadius: 'var(--radius-sm)', textDecoration: 'none' }}>
+                    {s.label}
+                  </Link>
+                ))}
+                <div style={{ height: 1, background: 'var(--line)', margin: '6px 0' }} />
                 <form action="/api/auth/signout" method="POST">
                   <button type="submit"
                     style={{
