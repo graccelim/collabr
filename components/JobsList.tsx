@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, Check } from 'lucide-react'
+import { Sparkles, ArrowRight, Check, Target, Wallet, ShieldCheck, CircleCheck, Building2, Award } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
@@ -36,6 +36,18 @@ export function matchClass(label: string | null): string {
   if (label === 'Best Match') return 'badge-match-best'
   if (label === 'Good Fit') return 'badge-match-good'
   return 'badge-match-strong' // Strong Fit + any default
+}
+
+// Colour-code each "why it fits" reason by what it means.
+export function reasonStyle(reason: string): { bg: string; fg: string; Icon: typeof Check } {
+  const r = reason.toLowerCase()
+  if (r.includes('niche')) return { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)', Icon: Target }
+  if (r.includes('rate') || r.includes('budget')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: Wallet }
+  if (r.includes('verified')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: ShieldCheck }
+  if (r.includes('available')) return { bg: '#E6F4FB', fg: '#0E6F9E', Icon: CircleCheck }
+  if (r.includes('brand')) return { bg: 'var(--warn-tint)', fg: 'var(--warn-deep)', Icon: Building2 }
+  if (r.includes('complet') || r.includes('collaborat')) return { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)', Icon: Award }
+  return { bg: 'var(--paper-2)', fg: 'var(--ink-soft)', Icon: Check }
 }
 
 // How an existing application renders in place of the Apply affordance.
@@ -177,16 +189,19 @@ export default function JobsList({
               {/* Why it fits — compact ✓ list of honest, categorical reasons. */}
               {c.matchReasons.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
-                  {c.matchReasons.map(reason => (
-                    <span key={reason} style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 5,
-                      fontSize: 12, color: 'var(--accent-deep)', fontWeight: 500,
-                      background: 'var(--accent-tint)', padding: '4px 10px', borderRadius: 99,
-                    }}>
-                      <Check size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
-                      {reason}
-                    </span>
-                  ))}
+                  {c.matchReasons.map(reason => {
+                    const rs = reasonStyle(reason)
+                    return (
+                      <span key={reason} style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 5,
+                        fontSize: 12, color: rs.fg, fontWeight: 500,
+                        background: rs.bg, padding: '4px 10px', borderRadius: 99,
+                      }}>
+                        <rs.Icon size={12} style={{ flexShrink: 0 }} />
+                        {reason}
+                      </span>
+                    )
+                  })}
                 </div>
               )}
 

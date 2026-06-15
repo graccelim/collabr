@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Shield, Zap, Check, Sparkles, Bookmark, UserPlus, Search } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
-import { matchClass } from '@/components/JobsList'
+import { matchClass, reasonStyle } from '@/components/JobsList'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
 interface Application {
@@ -208,16 +208,19 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
 
             {reasons.length > 0 && (
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
-                {reasons.map(r => (
-                  <span key={r} style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 5,
-                    padding: '3px 9px', borderRadius: 99,
-                    background: 'var(--surface-2)', color: 'var(--ink-soft)',
-                    fontSize: 12, fontWeight: 520,
-                  }}>
-                    <Check size={11} style={{ color: 'var(--money-deep)' }} /> {r}
-                  </span>
-                ))}
+                {reasons.map(r => {
+                  const rs = reasonStyle(r)
+                  return (
+                    <span key={r} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 5,
+                      padding: '4px 10px', borderRadius: 99,
+                      background: rs.bg, color: rs.fg,
+                      fontSize: 12, fontWeight: 520,
+                    }}>
+                      <rs.Icon size={11} style={{ flexShrink: 0 }} /> {r}
+                    </span>
+                  )
+                })}
               </div>
             )}
 

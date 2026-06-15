@@ -1,4 +1,5 @@
 import { MessageSquare } from 'lucide-react'
+import Link from 'next/link'
 import { relativeTime, getInitials } from '@/lib/utils'
 
 export interface ReviewItem {
@@ -23,11 +24,14 @@ export default function ReviewList({
   reviews, heading = 'Reviews',
   emptyTitle = 'No reviews yet',
   emptyBody = 'Feedback appears after completed collaborations — revealed once both sides submit, or after 7 days.',
+  ctaHref, ctaLabel,
 }: {
   reviews: ReviewItem[]
   heading?: string
   emptyTitle?: string
   emptyBody?: string
+  ctaHref?: string
+  ctaLabel?: string
 }) {
   return (
     <section style={{ marginBottom: 30 }}>
@@ -41,14 +45,17 @@ export default function ReviewList({
       </div>
 
       {reviews.length === 0 ? (
-        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 13, padding: 18 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+        <div className="card" style={{ display: 'flex', alignItems: 'center', gap: 14, padding: 18, flexWrap: 'wrap' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
             <MessageSquare size={18} />
           </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{emptyTitle}</div>
+          <div style={{ flex: 1, minWidth: 180 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>{emptyTitle}</div>
             <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginTop: 1 }}>{emptyBody}</div>
           </div>
+          {ctaHref && ctaLabel && (
+            <Link href={ctaHref} className="btn-primary" style={{ flexShrink: 0 }}>{ctaLabel}</Link>
+          )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

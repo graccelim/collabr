@@ -1,13 +1,16 @@
 import { Star, Users, CheckCircle2, Sparkles } from 'lucide-react'
+import Link from 'next/link'
 
 /**
  * Level-2 reputation block — a calm trust summary used on profiles (public and
  * "how you appear to others"). Shows earned signals only; for a brand-new
  * account it shows a premium, non-suspicious empty state instead of zeros.
+ * Pass ctaHref/ctaLabel for an owner-facing call to action.
  */
 export default function ReputationSummary({
   ratingAvg, ratingCount, completed, completedLabel = 'completed collaborations',
   emptyTitle = 'New to collabr', emptyBody = 'Reputation is built through completed collaborations. Reviews appear once both sides submit, or after 7 days.',
+  ctaHref, ctaLabel,
 }: {
   ratingAvg?: number | null
   ratingCount?: number | null     // distinct collaborators
@@ -15,6 +18,8 @@ export default function ReputationSummary({
   completedLabel?: string
   emptyTitle?: string
   emptyBody?: string
+  ctaHref?: string
+  ctaLabel?: string
 }) {
   const collaborators = ratingCount || 0
   const done = completed || 0
@@ -22,18 +27,21 @@ export default function ReputationSummary({
 
   if (!hasReputation) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
         <div style={{
-          width: 38, height: 38, borderRadius: 10, flexShrink: 0,
-          background: 'var(--surface-2)', color: 'var(--ink-soft)',
+          width: 40, height: 40, borderRadius: 11, flexShrink: 0,
+          background: 'var(--accent-tint)', color: 'var(--accent-deep)',
           display: 'grid', placeItems: 'center',
         }}>
           <Sparkles size={18} />
         </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{emptyTitle}</div>
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>{emptyTitle}</div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.45, marginTop: 1 }}>{emptyBody}</div>
         </div>
+        {ctaHref && ctaLabel && (
+          <Link href={ctaHref} className="btn-primary" style={{ flexShrink: 0 }}>{ctaLabel}</Link>
+        )}
       </div>
     )
   }

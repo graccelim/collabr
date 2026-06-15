@@ -75,8 +75,10 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
           {/* avatar overlaps the cover; name + meta sit BELOW it on the surface */}
           <div style={{
             width: 84, height: 84, borderRadius: 18, flexShrink: 0, overflow: 'hidden', marginTop: -42,
-            background: '#fff', boxShadow: '0 0 0 4px #fff, var(--shadow)',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28, color: 'var(--accent-deep)',
+            background: brand.logo_url ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
+            color: '#fff',
+            boxShadow: '0 0 0 4px #fff, var(--shadow)',
+            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 30, letterSpacing: '-0.02em',
           }}>
             {brand.logo_url
               ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -108,7 +110,12 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
           ratingCount={brand.rating_count}
           completed={brand.completed_campaigns}
           completedLabel="completed campaigns"
-          emptyBody="This brand is building its reputation on collabr. Reviews from creators appear after completed collaborations."
+          emptyTitle={isOwner ? `Welcome to collabr, ${name}` : 'New to collabr'}
+          emptyBody={isOwner
+            ? 'Post a campaign and complete your first collab — reviews from creators build your reputation right here.'
+            : 'Reviews from creators appear after completed collaborations.'}
+          ctaHref={isOwner ? '/post-job' : undefined}
+          ctaLabel={isOwner ? 'Post a campaign' : undefined}
         />
       </div>
 
@@ -131,7 +138,12 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
       <ReviewList
         reviews={reviews}
         heading="What creators say"
-        emptyBody="No reviews yet — feedback from creators appears after completed collaborations, revealed once both sides submit or after 7 days."
+        emptyTitle={isOwner ? 'No reviews yet — let’s change that' : 'No reviews yet'}
+        emptyBody={isOwner
+          ? 'Run your first collaboration and creators’ reviews will show up here, building the trust that wins you better creators.'
+          : 'Reviews from creators appear after completed collaborations, revealed once both sides submit or after 7 days.'}
+        ctaHref={isOwner ? '/post-job' : undefined}
+        ctaLabel={isOwner ? 'Post a campaign' : undefined}
       />
 
       {/* Active campaigns */}

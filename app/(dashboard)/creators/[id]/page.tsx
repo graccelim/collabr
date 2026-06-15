@@ -152,8 +152,9 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             {/* avatar overlaps the cover; identity sits below on the surface */}
             <div style={{
               width: 84, height: 84, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', marginTop: -42,
-              background: '#fff', color: 'var(--accent-deep)',
-              display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28,
+              background: avatar ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
+              color: '#fff',
+              display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 30, letterSpacing: '-0.02em',
               boxShadow: '0 0 0 4px #fff, var(--shadow)',
             }}>
               {avatar
@@ -324,7 +325,12 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
                 <ReviewList
                   heading="Brand reviews"
                   reviews={items}
-                  emptyBody="No reviews yet — feedback from brands appears after completed collaborations, revealed once both sides submit or after 7 days."
+                  emptyTitle={isOwner ? 'No reviews yet — let’s get you started' : 'No reviews yet'}
+                  emptyBody={isOwner
+                    ? 'Apply to campaigns and land your first collab — brands’ reviews will appear here and help you win more work.'
+                    : 'Reviews from brands appear after completed collaborations, revealed once both sides submit or after 7 days.'}
+                  ctaHref={isOwner ? '/jobs' : undefined}
+                  ctaLabel={isOwner ? 'Discover campaigns' : undefined}
                 />
               </>
             )
