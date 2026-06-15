@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Shield, Zap, Check, Sparkles } from 'lucide-react'
@@ -17,6 +18,7 @@ interface Application {
   /** Boolean trust indicators (verified ownership, availability, etc). */
   indicators?: CreatorIndicators | null
   creator_profiles?: {
+    id?: string
     bio?: string | null
     niches?: string[] | null
     platforms?: Record<string, { handle: string; followers: number; verified: boolean }> | null
@@ -115,7 +117,10 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
                 }}>{getInitials(name)}</span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>
+                    {creator?.id
+                      ? <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
+                          style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</Link>
+                      : <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>}
                     {verified && (
                       <span className="badge badge-money" title={OWNERSHIP_NOTE} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                         <Shield size={11} /> Verified Account
@@ -137,6 +142,12 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
                     {sub}
                     {showRating && creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
                   </div>
+                  {creator?.id && (
+                    <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
+                      style={{ display: 'inline-block', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', marginTop: 5 }}>
+                      View full profile →
+                    </Link>
+                  )}
                 </div>
               </div>
               {matchLabel && (
