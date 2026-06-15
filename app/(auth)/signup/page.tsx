@@ -52,6 +52,8 @@ function SignupForm() {
   // Brand onboarding fields
   const [industry, setIndustry] = useState('')
   const [website, setWebsite] = useState('')
+  const [brandAbout, setBrandAbout] = useState('')
+  const [brandLocation, setBrandLocation] = useState('')
   // Brand's single social profile — platform dropdown + username → social_url.
   const [brandSocialPlatform, setBrandSocialPlatform] = useState<SocialPlatform>('instagram')
   const [brandSocialUsername, setBrandSocialUsername] = useState('')
@@ -78,7 +80,11 @@ function SignupForm() {
       if (!websiteUrl && !social) {
         toast.error('Add a website, social profile, or Google Maps link'); return
       }
-      payload = { ...payload, industry, website: websiteUrl, social_url: social }
+      payload = {
+        ...payload, industry, website: websiteUrl, social_url: social,
+        company_description: brandAbout.trim() || null,
+        location: brandLocation.trim() || null,
+      }
     } else {
       if (niches.length === 0) { toast.error('Pick at least one niche'); return }
       // Row order preserved → first profile becomes primary server-side.
@@ -149,11 +155,24 @@ function SignupForm() {
             <Field label="Password" hint="At least 8 characters.">
               <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
             </Field>
-            <Field label="Industry">
-              <select className="input" value={industry} onChange={e => setIndustry(e.target.value)} required disabled={busy}>
-                <option value="">Select industry</option>
-                {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
-              </select>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 170 }}>
+                <Field label="Industry">
+                  <select className="input" value={industry} onChange={e => setIndustry(e.target.value)} required disabled={busy}>
+                    <option value="">Select industry</option>
+                    {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
+                  </select>
+                </Field>
+              </div>
+              <div style={{ flex: 1, minWidth: 170 }}>
+                <Field label="Location" optional>
+                  <input className="input" value={brandLocation} onChange={e => setBrandLocation(e.target.value)} placeholder="Singapore" disabled={busy} maxLength={120} />
+                </Field>
+              </div>
+            </div>
+            <Field label="About" optional hint="A line or two about your brand — creators see this on your profile.">
+              <textarea className="textarea" value={brandAbout} onChange={e => setBrandAbout(e.target.value)}
+                placeholder="We're a neighbourhood kopitiam in Tiong Bahru serving…" disabled={busy} maxLength={2000} style={{ minHeight: 72 }} />
             </Field>
             <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing — a website or a social below is required.">
               <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />

@@ -5,7 +5,9 @@ import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
-import { socialIcon } from '@/components/SocialIcon'
+import { socialIcon, socialTint } from '@/components/SocialIcon'
+import { chipColor } from '@/lib/niches'
+import ProfileBackButton from '@/components/ProfileBackButton'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
 import { responseStanding } from '@/lib/recommend'
@@ -13,17 +15,10 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { ChevronLeft, MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
+import { MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
-  // Where "back" returns to. Defaults to Discover, but a `from` param (e.g. set
-  // when arriving from a campaign's applicant list) routes back there instead.
-  const safeFrom = searchParams.from && searchParams.from.startsWith('/') && !searchParams.from.startsWith('//')
-    ? searchParams.from : null
-  const backHref = safeFrom || '/creators'
-  const backLabel = safeFrom?.startsWith('/campaigns/') ? 'Back to applicants'
-    : safeFrom?.startsWith('/collabs/') ? 'Back to collab' : 'Discover'
   const supabase = createClient()
   const admin = createAdminClient()
 
@@ -118,6 +113,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     : creator.niches?.[0]
 
   const portfolioLinks: string[] = creator.portfolio_links || []
+  const memberSince = creator.created_at ? new Date(creator.created_at).getFullYear() : null
 
   const stats: [string, string, string][] = [
     ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'self-reported'],
@@ -134,9 +130,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           <ShieldCheck size={13} /> This is how brands see you
         </div>
       ) : (
-        <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 28 }}>
-          <ChevronLeft size={15} /> {backLabel}
-        </Link>
+        <ProfileBackButton from={searchParams.from} fallback="/creators" />
       )}
 
       {/* identity — airy hero (no boxy card), hairline divider below */}
@@ -167,6 +161,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </span>
               )}
               {primaryNiche && <span>{primaryNiche}</span>}
+              {memberSince && <span>Member since {memberSince}</span>}
               {emailVerified === true && <span>Email verified</span>}
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
                 title="Categorical summary of invite responses — never a score.">
@@ -208,14 +203,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         )}
       </div>
 
-      {/* stat strip — clean, borderless, hairline dividers (no coloured bars) */}
-      <div className="resp-stats" style={{
-        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 40,
-        borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '20px 0',
-      }}>
-        {stats.map(([k, v, ctx], i) => (
-          <div key={k} style={{ padding: i === 0 ? '0 22px 0 2px' : '0 22px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
-            <div className="mono-num" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}>{v}</div>
+      {/* stat strip — clean, borderless, reflows to 2-up on phones */}
+      <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 40 }}>
+        {stats.map(([k, v, ctx]) => (
+          <div key={k}>
+            <div className="mono-num profile-stat-val">{v}</div>
             <div className="eyebrow" style={{ fontSize: 10, marginTop: 7 }}>{k}</div>
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{ctx}</div>
           </div>
@@ -241,9 +233,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               <section style={{ marginBottom: 30 }}>
                 <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Niches</h2>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {tags.map((n: string) => (
-                    <span key={n} className="badge badge-neutral">{NICHE_LABELS[n as CreatorNiche] || n}</span>
-                  ))}
+                  {tags.map((n: string) => {
+                    const c = chipColor(n)
+                    return <span key={n} className="badge" style={{ background: c.bg, color: c.fg, fontWeight: 600 }}>{NICHE_LABELS[n as CreatorNiche] || n}</span>
+                  })}
                 </div>
               </section>
             ) : null
@@ -349,13 +342,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {socials.map(s => {
                     const Icon = socialIcon(s.platform)
+                    const tint = socialTint(s.platform)
                     return (
                       <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
                         className="card card-hover"
                         style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
                         <span style={{
                           width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center',
-                          background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                          background: tint.bg, color: tint.fg,
                         }}>
                           <Icon size={16} />
                         </span>

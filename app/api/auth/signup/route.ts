@@ -22,7 +22,10 @@ const creatorSignupSchema = baseSchema.extend({
 const brandSignupSchema = baseSchema.extend({
   role: z.literal('brand'),
 }).and(
-  brandOnboardingFields.omit({ company_name: true }).refine(requireWebsiteOrSocial, {
+  brandOnboardingFields.omit({ company_name: true }).extend({
+    company_description: z.string().trim().max(2000).optional().nullable(),
+    location: z.string().trim().max(120).optional().nullable(),
+  }).refine(requireWebsiteOrSocial, {
     message: 'A website or a social account link is required',
     path: ['website'],
   })
@@ -117,6 +120,8 @@ export async function POST(req: NextRequest) {
       user_id: data.user.id,
       company_name: name,
       industry: parsed.data.industry,
+      company_description: parsed.data.company_description || null,
+      location: parsed.data.location || null,
       website: parsed.data.website || null,
       social_url: parsed.data.social_url || null,
       onboarding_completed_at: new Date().toISOString(),

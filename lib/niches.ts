@@ -95,3 +95,23 @@ export function nicheOverlap(creatorSlugs: string[], campaignSlugs: string[]): n
   const union = new Set(a.concat(b)).size
   return union === 0 ? 0 : inter / union
 }
+
+// ── Chip colour coding ──────────────────────────────────────────────────────
+// Deterministic colour for a niche / industry chip so the same label always
+// reads the same colour across the app (profiles, cards, signup).
+const CHIP_PALETTE: { bg: string; fg: string }[] = [
+  { bg: 'rgba(249,115,22,.13)', fg: '#C2410C' }, // orange
+  { bg: '#EDE9FE',              fg: '#6D28D9' }, // violet
+  { bg: 'var(--money-tint)',    fg: 'var(--money-deep)' }, // green
+  { bg: '#FCE7F3',              fg: '#BE185D' }, // pink
+  { bg: '#E0F2FE',              fg: '#0369A1' }, // sky
+  { bg: 'var(--warn-tint)',     fg: 'var(--warn-deep)' }, // amber
+  { bg: 'var(--accent-tint)',   fg: 'var(--accent-deep)' }, // indigo
+  { bg: '#CCFBF1',              fg: '#0F766E' }, // teal
+]
+
+export function chipColor(key: string): { bg: string; fg: string } {
+  let h = 0
+  for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) >>> 0
+  return CHIP_PALETTE[h % CHIP_PALETTE.length]
+}

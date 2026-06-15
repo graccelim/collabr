@@ -4,7 +4,7 @@ import {
   SOCIAL_PLATFORMS, SOCIAL_LABELS, socialUrlPrefix,
   type SocialPlatform,
 } from '@/lib/onboarding'
-import { socialIcon } from '@/components/SocialIcon'
+import { socialIcon, socialTint } from '@/components/SocialIcon'
 
 // One repeatable social-profile row. `username` is what the creator types — a
 // bare username for most platforms (we prepend the domain), or a pasted profile
@@ -48,11 +48,12 @@ export default function SocialProfileBuilder({
       <div className="space-y-3">
         {rows.map((row, i) => {
           const Icon = socialIcon(row.platform)
+          const tint = socialTint(row.platform)
           const isXhs = row.platform === 'xiaohongshu'
           return (
             <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
               <div className="flex items-center gap-2">
-                <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--surface-2)', color: 'var(--ink-soft)' }}>
+                <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: tint.bg, color: tint.fg }}>
                   <Icon size={15} />
                 </span>
                 <select className="input" style={{ flex: 1, minWidth: 0 }} value={row.platform}

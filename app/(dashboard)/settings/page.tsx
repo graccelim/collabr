@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [companyName, setCompanyName] = useState('')
   const [companyDescription, setCompanyDescription] = useState('')
   const [industry, setIndustry] = useState('')
+  const [location, setLocation] = useState('')
   const [website, setWebsite] = useState('')
   const [socialUrl, setSocialUrl] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
@@ -38,13 +39,14 @@ export default function SettingsPage() {
 
       if (profile.role === 'brand') {
         const { data: brand } = await supabase.from('brand_profiles')
-          .select('id, company_name, company_description, industry, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns')
+          .select('id, company_name, company_description, industry, location, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns')
           .eq('user_id', user.id).single()
         if (brand) {
           setBrandId((brand as any).id || '')
           setCompanyName(brand.company_name || '')
           setCompanyDescription(brand.company_description || '')
           setIndustry(brand.industry || '')
+          setLocation((brand as any).location || '')
           setWebsite(brand.website || '')
           setSocialUrl(brand.social_url || '')
           setLogoUrl(brand.logo_url || '')
@@ -80,6 +82,7 @@ export default function SettingsPage() {
           company_name: companyName.trim(),
           company_description: companyDescription.trim() || null,
           industry: industry || null,
+          location: location.trim() || null,
           website: normalizeUrl(website),
           social_url: normalizeUrl(socialUrl),
           logo_url: logoUrl.trim() || null,
@@ -200,12 +203,19 @@ export default function SettingsPage() {
             <p className="text-xs text-gray-400 mt-1">Creators see this before applying to your campaigns</p>
           </div>
 
-          <div>
-            <label className="label">Industry</label>
-            <select className="input" value={industry} onChange={e => setIndustry(e.target.value)}>
-              <option value="">Select industry</option>
-              {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
-            </select>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="label">Industry</label>
+              <select className="input" value={industry} onChange={e => setIndustry(e.target.value)}>
+                <option value="">Select industry</option>
+                {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Location</label>
+              <input className="input" value={location} maxLength={120}
+                onChange={e => setLocation(e.target.value)} placeholder="Singapore" />
+            </div>
           </div>
 
           <div>

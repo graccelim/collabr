@@ -3,17 +3,20 @@ import { requireAuth } from '@/lib/auth'
 import { getInitials, formatSGD } from '@/lib/utils'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
+import ProfileBackButton from '@/components/ProfileBackButton'
+import { chipColor } from '@/lib/niches'
+import { INDUSTRY_LABELS, type BrandIndustry } from '@/lib/onboarding'
 import Link from 'next/link'
-import { ChevronLeft, Globe, Briefcase, ShieldCheck, Pencil } from 'lucide-react'
+import { Globe, Briefcase, ShieldCheck, Pencil, MapPin } from 'lucide-react'
 
-export default async function BrandProfilePage({ params }: { params: { id: string } }) {
+export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
   const supabase = createClient()
   const admin = createAdminClient()
 
   // Brand identity + public reputation (public data → admin read is fine).
   const { data: brand } = await admin.from('brand_profiles')
-    .select('id, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at')
+    .select('id, user_id, company_name, company_description, industry, location, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at')
     .eq('id', params.id).single()
   if (!brand) return <p className="text-sm" style={{ color: 'var(--danger)' }}>Brand not found.</p>
   const isOwner = brand.user_id === user.id
@@ -59,9 +62,7 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
           <ShieldCheck size={13} /> This is how creators see you
         </div>
       ) : (
-        <Link href="/jobs" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 28 }}>
-          <ChevronLeft size={15} /> Campaigns
-        </Link>
+        <ProfileBackButton from={searchParams.from} fallback="/jobs" />
       )}
 
       {/* identity — airy hero, hairline-divided stat strip below */}
@@ -81,9 +82,17 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
               <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
-              {brand.industry && <span className="badge badge-neutral" style={{ fontSize: 11 }}>{brand.industry}</span>}
+              {brand.industry && (() => {
+                const c = chipColor(brand.industry)
+                return <span className="badge" style={{ fontSize: 11, background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
+              })()}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 14px', marginTop: 9, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+              {brand.location && (
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <MapPin size={13} />{brand.location}
+                </span>
+              )}
               {memberSince && <span>Member since {memberSince}</span>}
               {brand.website && (
                 <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow"
@@ -101,14 +110,11 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
         )}
       </div>
 
-      {/* stat strip — clean, borderless, hairline dividers */}
-      <div className="resp-stats" style={{
-        display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 36,
-        borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '20px 0',
-      }}>
-        {stats.map(([k, v, ctx], i) => (
-          <div key={k} style={{ padding: i === 0 ? '0 22px 0 2px' : '0 22px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
-            <div className="mono-num" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}>{v}</div>
+      {/* stat strip — clean, borderless, reflows to 2-up on phones */}
+      <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 36 }}>
+        {stats.map(([k, v, ctx]) => (
+          <div key={k}>
+            <div className="mono-num profile-stat-val">{v}</div>
             <div className="eyebrow" style={{ fontSize: 10, marginTop: 7 }}>{k}</div>
             <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{ctx}</div>
           </div>
@@ -122,6 +128,19 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
           <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, whiteSpace: 'pre-wrap', margin: 0 }}>
             {brand.company_description}
           </p>
+        </section>
+      )}
+
+      {/* Industry — the brand equivalent of a creator's niches */}
+      {brand.industry && (
+        <section style={{ marginBottom: 28 }}>
+          <h2 className="h2" style={{ fontSize: 18, marginBottom: 12 }}>Industry</h2>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {(() => {
+              const c = chipColor(brand.industry)
+              return <span className="badge" style={{ background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
+            })()}
+          </div>
         </section>
       )}
 

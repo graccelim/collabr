@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { getAuthUser } from '@/lib/auth'
 import { Reveal, RevealItem } from '@/components/Reveal'
 import CountUp from '@/components/CountUp'
 
@@ -44,7 +46,12 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   { value: 'Real', label: 'Reviews & ratings', sub: 'only from completed collabs' },
 ]
 
-export default function HomePage() {
+export default async function HomePage() {
+  // Logged-in users never see the public marketing page — bounce them into the
+  // app. This also stops an authed session lingering on a public route.
+  const user = await getAuthUser()
+  if (user) redirect('/dashboard')
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--paper)', fontFamily: 'var(--font-body)' }}>
 

@@ -174,7 +174,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
         }}>
           {!collapsed && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-              <Link href="/" style={{
+              <Link href="/dashboard" style={{
                 display: 'flex', alignItems: 'center', gap: 8,
                 fontFamily: 'var(--font-display)',
                 fontWeight: 600,

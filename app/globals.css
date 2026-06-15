@@ -379,6 +379,19 @@
     font-size: 14px; color: var(--ink); font-family: var(--font-body);
   }
 
+  /* Profile stat strip — borderless, hairline-divided; reflows to 2-up on phones.
+     Column count is set inline per page (4 for creators, 3 for brands). */
+  .profile-stats {
+    display: grid;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 20px 0;
+  }
+  .profile-stats > div { padding: 0 22px; }
+  .profile-stats > div:first-child { padding-left: 2px; }
+  .profile-stats > div + div { border-left: 1px solid var(--line); }
+  .profile-stats .profile-stat-val { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+
   /* Selects: replace the cramped native arrow with a padded custom chevron. */
   select.input, select.select, .select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
@@ -648,6 +661,14 @@
   /* Dense numeric stat rows wrap to two columns; card pairs / N-up stack. */
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
   .resp-1col  { grid-template-columns: 1fr !important; }
+
+  /* Profile stat strip → clean 2-up grid with cross dividers (no stray borders). */
+  .profile-stats { grid-template-columns: repeat(2, 1fr) !important; padding: 16px 0; }
+  .profile-stats > div, .profile-stats > div:first-child { padding: 0 16px; }
+  .profile-stats > div + div { border-left: none; }
+  .profile-stats > div:nth-child(even) { border-left: 1px solid var(--line); }
+  .profile-stats > div:nth-child(n+3) { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
+  .profile-stats .profile-stat-val { font-size: 22px; }
 
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
