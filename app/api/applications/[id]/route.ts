@@ -85,16 +85,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   }
 
-  if (status === 'shortlisted' && creatorUserId && changed) {
-    await sendNotification({
-      userId: creatorUserId,
-      type: 'application_shortlisted',
-      title: `Shortlisted for "${campaignTitle}"`,
-      body: 'The brand has shortlisted your application.',
-      payload: { application_id: params.id },
-      dedupeKey: `application:${params.id}:shortlisted`,
-    })
-  } else if (status === 'rejected' && creatorUserId && changed) {
+  // "Save" (status=shortlisted) is a PRIVATE brand-side bookmark — intentionally
+  // no creator notification, so it never raises false hope. Only Pass/Accept ping.
+  if (status === 'rejected' && creatorUserId && changed) {
     await sendNotification({
       userId: creatorUserId,
       type: 'application_rejected',

@@ -45,9 +45,15 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: true }),
     createAdminClient().from('collabs')
-      .select('status').eq('campaign_id', params.id),
+      .select('id, application_id, status, payment_status').eq('campaign_id', params.id),
   ])
   const spotsFilled = (collabs || []).filter(c => c.status !== 'cancelled').length
+  // Map each selected application to its collab so the card can deep-link the
+  // brand straight to funding (Accept → Fund is one continuous motion).
+  const collabByApp: Record<string, { id: string; payment_status: string }> = {}
+  for (const c of (collabs || []) as { id: string; application_id: string | null; payment_status: string }[]) {
+    if (c.application_id) collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status }
+  }
 
   // Honest ranking inputs: socials (self-reported reach + ownership verification)
   // and the creator_scores row are fetched via the admin client for the applicant
@@ -88,7 +94,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       const match = creatorSignals ? computeMatch(creatorSignals, campaignSignals) : null
       const indicators = creatorSignals ? creatorIndicators(creatorSignals, campaignSignals) : null
       const rankScore = (match?.score ?? 0) + (app.is_boosted ? BOOST_TIEBREAK : 0)
-      return { ...app, match, indicators, _rankScore: rankScore }
+      const collab = collabByApp[app.id]
+      return { ...app, match, indicators, _rankScore: rankScore, collab_id: collab?.id, collab_payment_status: collab?.payment_status }
     })
     .sort((a, b) => b._rankScore - a._rankScore)
 

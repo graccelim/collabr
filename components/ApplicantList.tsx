@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Shield, Zap, Check, Sparkles } from 'lucide-react'
+import { Shield, Zap, Check, Sparkles, Bookmark } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
@@ -13,6 +13,9 @@ interface Application {
   proposed_rate: number | null
   status: string
   is_boosted: boolean
+  /** Present once the applicant has been selected → deep-link to funding. */
+  collab_id?: string
+  collab_payment_status?: string
   /** Honest creator↔campaign match (null when there's no credible fit to claim). */
   match?: MatchResult | null
   /** Boolean trust indicators (verified ownership, availability, etc). */
@@ -63,10 +66,19 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
       if (!res.ok) throw new Error(data.error)
       setStatuses(prev => ({ ...prev, [appId]: status }))
       if (status === 'selected') {
-        toast.success('Creator selected — collab created!')
-        router.refresh()
+        // Accept → fund is one motion: drop the brand straight onto the collab's
+        // funding step so escrow gets secured (no stranded, unfunded collabs).
+        if (data.collab_id) {
+          toast.success('Creator accepted — fund escrow to start')
+          router.push(`/collabs/${data.collab_id}`)
+        } else {
+          toast.success('Creator accepted — collab created')
+          router.refresh()
+        }
+      } else if (status === 'shortlisted') {
+        toast.success('Saved — only you can see this')
       } else {
-        toast.success(`Application ${status}`)
+        toast.success('Applicant passed')
       }
     } catch (e: any) {
       toast.error(e.message || 'Something went wrong')
@@ -186,14 +198,21 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
 
               {isOpen && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  {status === 'shortlisted' && (
+                    <span title="Private to you — the creator isn't notified"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+                      <Bookmark size={13} fill="currentColor" /> Saved
+                    </span>
+                  )}
                   {status === 'pending' && (
                     <button
                       onClick={() => updateStatus(app.id, 'shortlisted')}
                       disabled={!!loading}
                       className="btn-secondary"
-                      style={{ height: 32, fontSize: 13, padding: '0 13px' }}
+                      title="Save privately to compare later — the creator isn't notified"
+                      style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                     >
-                      {loading === `${app.id}-shortlisted` ? '…' : 'Shortlist'}
+                      <Bookmark size={14} /> {loading === `${app.id}-shortlisted` ? '…' : 'Save'}
                     </button>
                   )}
                   <button
@@ -217,9 +236,23 @@ export default function ApplicantList({ applications, campaignId, campaign }: Pr
               )}
 
               {status === 'selected' && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
-                  <Check size={15} /> Selected · collab created
-                </span>
+                app.collab_id ? (
+                  ['unfunded', 'authorizing'].includes(app.collab_payment_status || 'unfunded') ? (
+                    <Link href={`/collabs/${app.collab_id}`} className="btn-primary"
+                      style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Shield size={14} /> Fund escrow{rateLabel ? ` ${rateLabel}` : ''} →
+                    </Link>
+                  ) : (
+                    <Link href={`/collabs/${app.collab_id}`}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
+                      <Check size={15} /> Escrow secured · open collab →
+                    </Link>
+                  )
+                ) : (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
+                    <Check size={15} /> Selected · collab created
+                  </span>
+                )
               )}
             </div>
           </div>

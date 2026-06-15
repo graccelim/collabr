@@ -52,7 +52,7 @@ export default async function ApplicationsPage() {
         <EmptyState
           icon={Send}
           title="Your pitches will track here"
-          body="Apply to open campaigns and watch each application here — you'll see the moment you're shortlisted or selected."
+          body="Apply to open campaigns and watch each application here — you'll see the moment you're selected."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />
@@ -79,7 +79,13 @@ export default async function ApplicationsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`badge ${STATUS_COLORS[app.status] || 'badge-gray'}`}>{app.status}</span>
+                      {(() => {
+                        // "shortlisted" is a private brand bookmark — show it as
+                        // "applied" to the creator so it never leaks.
+                        const shown = app.status === 'shortlisted' ? 'applied' : app.status
+                        const color = STATUS_COLORS[app.status === 'shortlisted' ? 'pending' : app.status] || 'badge-gray'
+                        return <span className={`badge ${color}`}>{shown}</span>
+                      })()}
                       {collabId && (
                         <Link href={`/collabs/${collabId}`} className="btn-primary btn-sm">
                           View collab →

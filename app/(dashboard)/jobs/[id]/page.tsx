@@ -168,17 +168,16 @@ export default async function JobDetailPage({ params }: { params: { id: string }
 
           {/* Apply or sent state — compact status card (not a full-page medallion) */}
           {existing ? (() => {
+            // "shortlisted" is a private brand bookmark — to the creator it reads
+            // exactly like a sent application (no false "you're shortlisted" signal).
             const selected = existing.status === 'selected'
-            const shortlisted = existing.status === 'shortlisted'
             const tone = selected ? 'money' : 'accent'
             const tile = tone === 'money' ? 'var(--money-tint)' : 'var(--accent-tint)'
             const ink = tone === 'money' ? 'var(--money)' : 'var(--accent-deep)'
-            const title = selected ? 'You were selected!' : shortlisted ? 'You’re shortlisted' : `Application sent to ${brandName}`
+            const title = selected ? 'You were selected!' : `Application sent to ${brandName}`
             const body = selected
               ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
-              : shortlisted
-                ? 'The brand is interested — you’ll be notified the moment you’re selected.'
-                : 'Most brands reply within 36 hours. We’ll notify you the moment they do.'
+              : 'Most brands reply within 36 hours. We’ll notify you the moment they do.'
             return (
               <div className="card" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                 <span style={{ width: 42, height: 42, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: tile, color: ink, display: 'grid', placeItems: 'center' }}>

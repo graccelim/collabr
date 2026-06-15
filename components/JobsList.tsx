@@ -34,7 +34,7 @@ export interface JobsListCampaign {
 // How an existing application renders in place of the Apply affordance.
 const APPLIED: Record<string, { label: string; cls: string }> = {
   pending:     { label: 'Applied',      cls: 'badge-neutral' },
-  shortlisted: { label: 'Shortlisted',  cls: 'badge-match' },
+  shortlisted: { label: 'Applied',      cls: 'badge-neutral' }, // private brand bookmark — looks like "Applied" to the creator
   selected:    { label: 'Selected',     cls: 'badge-money' },
   rejected:    { label: 'Not selected', cls: 'badge-neutral' },
 }
