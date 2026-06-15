@@ -31,6 +31,13 @@ export interface JobsListCampaign {
   matchReasons: string[]
 }
 
+// Tier-specific colour for the fit label (Best / Strong / Good).
+export function matchClass(label: string | null): string {
+  if (label === 'Best Match') return 'badge-match-best'
+  if (label === 'Good Fit') return 'badge-match-good'
+  return 'badge-match-strong' // Strong Fit + any default
+}
+
 // How an existing application renders in place of the Apply affordance.
 const APPLIED: Record<string, { label: string; cls: string }> = {
   pending:     { label: 'Applied',      cls: 'badge-neutral' },
@@ -160,7 +167,7 @@ export default function JobsList({
                 {/* Honest fit tier — only shown when there's a credible match
                     to claim. No numbers, ever. Null → no pill. */}
                 {c.matchLabel && (
-                  <span className="badge badge-match" style={{ flexShrink: 0, gap: 5, fontSize: 12, padding: '5px 11px' }}>
+                  <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, gap: 5, fontSize: 12, padding: '5px 11px' }}>
                     <Sparkles size={13} />
                     {c.matchLabel}
                   </span>
@@ -173,10 +180,10 @@ export default function JobsList({
                   {c.matchReasons.map(reason => (
                     <span key={reason} style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
-                      fontSize: 12, color: '#B5430E', fontWeight: 500,
-                      background: 'rgba(255,138,76,.12)', padding: '4px 10px', borderRadius: 99,
+                      fontSize: 12, color: 'var(--accent-deep)', fontWeight: 500,
+                      background: 'var(--accent-tint)', padding: '4px 10px', borderRadius: 99,
                     }}>
-                      <Check size={12} style={{ color: '#F97316', flexShrink: 0 }} />
+                      <Check size={12} style={{ color: 'var(--accent)', flexShrink: 0 }} />
                       {reason}
                     </span>
                   ))}

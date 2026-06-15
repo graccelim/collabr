@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Shield, Zap, Check, Sparkles, Bookmark, UserPlus, Search } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
+import { matchClass } from '@/components/JobsList'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
 interface Application {
@@ -199,7 +200,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                 </div>
               </div>
               {matchLabel && (
-                <span className="badge badge-match" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                <span className={`badge ${matchClass(matchLabel)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
                   <Sparkles size={11} /> {matchLabel}
                 </span>
               )}

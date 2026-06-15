@@ -71,19 +71,20 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
             </Link>
           )}
         </div>
-        <div style={{ padding: '0 24px 22px', marginTop: -34, display: 'flex', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+        <div style={{ padding: '0 24px 22px' }}>
+          {/* avatar overlaps the cover; name + meta sit BELOW it on the surface */}
           <div style={{
-            width: 76, height: 76, borderRadius: 16, flexShrink: 0, overflow: 'hidden',
+            width: 84, height: 84, borderRadius: 18, flexShrink: 0, overflow: 'hidden', marginTop: -42,
             background: '#fff', boxShadow: '0 0 0 4px #fff, var(--shadow)',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 26, color: 'var(--accent-deep)',
+            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28, color: 'var(--accent-deep)',
           }}>
             {brand.logo_url
               ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : getInitials(name)}
           </div>
-          <div style={{ minWidth: 0, paddingBottom: 4 }}>
-            <h1 className="h1" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 5, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+          <div style={{ marginTop: 14 }}>
+            <h1 className="h1" style={{ fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 7, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
               {brand.industry && <span className="badge badge-neutral" style={{ fontSize: 11 }}>{brand.industry}</span>}
               {memberSince && <span>Member since {memberSince}</span>}
               {brand.website && (

@@ -134,89 +134,87 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         </Link>
       )}
 
-      {/* identity — colourful header band with a soft glow */}
-      <div style={{
-        position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 26,
-        background: 'linear-gradient(135deg, var(--accent-tint) 0%, #fff 52%, var(--creator-tint) 100%)',
-        border: '1px solid var(--line)',
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap',
-      }}>
-        <div aria-hidden style={{ position: 'absolute', top: -70, right: -40, width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.18), transparent 65%)', pointerEvents: 'none' }} />
-        <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', minWidth: 0, position: 'relative', zIndex: 1 }}>
-          <div style={{
-            width: 76, height: 76, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-            background: '#fff', color: 'var(--accent-deep)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 700, fontSize: 25,
-            boxShadow: '0 0 0 3px #fff, 0 0 0 5px var(--accent-tint-2, var(--accent-tint)), var(--shadow-sm)',
-          }}>
-            {avatar
-              ? <img src={avatar} alt={name} style={{ width: 76, height: 76, objectFit: 'cover' }} />
-              : getInitials(name)}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <h1 className="h1" style={{ fontSize: 25, fontWeight: 600 }}>{name}</h1>
-              {/* "Verified Account" = social OWNERSHIP only (never the stale
-                  creator_profiles.is_verified flag, and never reach/followers). */}
-              {verifiedOwnership && (
-                <span className="badge badge-money" title={VERIFICATION_NOTE}
-                  style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <ShieldCheck size={12} /> Verified Account
-                </span>
-              )}
-              {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
-              {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
-              {primarySocial && <span>@{primarySocial.handle}</span>}
-              {creator.location && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <MapPin size={13} />{creator.location}
-                </span>
-              )}
-              {primaryNiche && <span>{primaryNiche}</span>}
-              {emailVerified === true && <span>Email verified</span>}
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                title="Categorical summary of invite responses — never a score.">
-                <Clock size={13} />{response.label}
-              </span>
-              {availability && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
-                  {AVAILABILITY_LABELS[availability]}
-                </span>
-              )}
-            </div>
-          </div>
+      {/* identity — cover hero (matches the brand profile) */}
+      <div className="card" style={{ position: 'relative', overflow: 'hidden', padding: 0, marginBottom: 26 }}>
+        <div style={{
+          height: 92, position: 'relative',
+          background: 'radial-gradient(120% 160% at 12% -20%, var(--accent) 0%, #2a2f63 36%, var(--creator) 78%, #0A0C22 100%)',
+        }}>
+          <div aria-hidden style={{ position: 'absolute', top: -40, right: -20, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.35), transparent 65%)' }} />
+          {isOwner && (
+            <Link href="/profile" className="btn" style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.16)', color: '#fff', backdropFilter: 'blur(6px)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13 }}>
+              <Pencil size={14} /> Edit profile
+            </Link>
+          )}
         </div>
-
-        {/* Owner: edit their own profile */}
-        {isOwner && (
-          <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Pencil size={15} /> Edit profile
-          </Link>
-        )}
-
-        {/* Brand actions: invite + save (Pro — complimentary during beta) */}
-        {isBrandViewer && (
-          viewerIsPro ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start', flexShrink: 0 }}>
-              <InviteCreatorForm
-                creatorId={params.id}
-                creatorName={name}
-                campaigns={inviteCampaigns}
-                pendingCampaignIds={pendingInviteCampaignIds}
-              />
-              <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
+        <div style={{ padding: '0 24px 22px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ minWidth: 0 }}>
+            {/* avatar overlaps the cover; identity sits below on the surface */}
+            <div style={{
+              width: 84, height: 84, borderRadius: '50%', flexShrink: 0, overflow: 'hidden', marginTop: -42,
+              background: '#fff', color: 'var(--accent-deep)',
+              display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28,
+              boxShadow: '0 0 0 4px #fff, var(--shadow)',
+            }}>
+              {avatar
+                ? <img src={avatar} alt={name} style={{ width: 84, height: 84, objectFit: 'cover' }} />
+                : getInitials(name)}
             </div>
-          ) : (
-            <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 240 }}>
-              Inviting and saving creators is part of collabr Pro.{' '}
-              <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
-            </p>
-          )
-        )}
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <h1 className="h1" style={{ fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
+                {verifiedOwnership && (
+                  <span className="badge badge-money" title={VERIFICATION_NOTE}
+                    style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <ShieldCheck size={12} /> Verified Account
+                  </span>
+                )}
+                {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
+                {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
+                {primarySocial && <span>@{primarySocial.handle}</span>}
+                {creator.location && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    <MapPin size={13} />{creator.location}
+                  </span>
+                )}
+                {primaryNiche && <span>{primaryNiche}</span>}
+                {emailVerified === true && <span>Email verified</span>}
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                  title="Categorical summary of invite responses — never a score.">
+                  <Clock size={13} />{response.label}
+                </span>
+                {availability && (
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
+                    <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
+                    {AVAILABILITY_LABELS[availability]}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Brand actions: invite + save (Pro — complimentary during beta) */}
+          {isBrandViewer && (
+            viewerIsPro ? (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flexShrink: 0, paddingBottom: 2 }}>
+                <InviteCreatorForm
+                  creatorId={params.id}
+                  creatorName={name}
+                  campaigns={inviteCampaigns}
+                  pendingCampaignIds={pendingInviteCampaignIds}
+                />
+                <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
+              </div>
+            ) : (
+              <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 240, paddingBottom: 4 }}>
+                Inviting and saving creators is part of collabr Pro.{' '}
+                <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
+              </p>
+            )
+          )}
+        </div>
       </div>
 
       {/* stat band — tinted accents for a livelier feel */}

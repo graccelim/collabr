@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Bell, Plus, Compass, LogOut } from 'lucide-react'
+import { Bell, Plus, Compass, LogOut } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
@@ -44,7 +44,6 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         { href: '/earnings', label: 'Earnings' },
         { href: '/notifications', label: 'Notifications' },
       ]
-  const searchHref = isBrand ? '/creators' : '/jobs'
   const ctaHref = isBrand ? '/post-job' : '/jobs'
   const ctaLabel = isBrand ? 'Post a campaign' : 'Find campaigns'
   const CtaIcon = isBrand ? Plus : Compass
@@ -82,12 +81,9 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
       {/* left — intentionally empty; controls live on the right */}
       <div style={{ minWidth: 0 }} />
 
-      {/* right — search / notifications / primary action */}
+      {/* right — notifications / primary action (search removed: it pointed to
+          the same screen as the primary CTA) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-        <IconButton href={searchHref} label="Search">
-          <Search size={17} />
-        </IconButton>
-
         <IconButton href="/notifications" label="Notifications">
           <Bell size={17} />
           {notificationBadge > 0 && (
