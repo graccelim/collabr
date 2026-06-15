@@ -83,6 +83,14 @@ export default function ProfilePage() {
     load()
   }, [])
 
+  // Keep the "add social" platform valid — skip ones already connected.
+  useEffect(() => {
+    if (socials.some(s => s.platform === newPlatform)) {
+      const next = SOCIAL_PLATFORMS.find(p => !socials.some(s => s.platform === p))
+      if (next) setNewPlatform(next)
+    }
+  }, [socials, newPlatform])
+
   async function uploadAvatar(file: File) {
     setAvatarUploading(true)
     const ext = file.name.split('.').pop()
@@ -412,10 +420,14 @@ export default function ProfilePage() {
           </div>
         ))}
 
+        {SOCIAL_PLATFORMS.every(p => socials.some(s => s.platform === p)) ? (
+          <p className="text-xs text-gray-400">All platforms connected.</p>
+        ) : (
         <form onSubmit={addSocial} className="grid grid-cols-2 sm:grid-cols-[110px_1fr_1fr_auto] gap-2 items-center">
           <select className="input" value={newPlatform}
             onChange={e => setNewPlatform(e.target.value as SocialPlatform)}>
-            {SOCIAL_PLATFORMS.map(p => <option key={p} value={p}>{p}</option>)}
+            {SOCIAL_PLATFORMS.filter(p => !socials.some(s => s.platform === p))
+              .map(p => <option key={p} value={p}>{p}</option>)}
           </select>
           <input className="input" placeholder="@handle" value={newHandle}
             onChange={e => setNewHandle(e.target.value)} />
@@ -425,6 +437,7 @@ export default function ProfilePage() {
             {addingSocial ? 'Adding…' : 'Add'}
           </button>
         </form>
+        )}
         <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Verifying confirms <strong>account ownership</strong> — follower counts stay self-reported until platform APIs are connected.</p>
       </div>
 

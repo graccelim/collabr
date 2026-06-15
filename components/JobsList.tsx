@@ -41,7 +41,7 @@ export function matchClass(label: string | null): string {
 // Colour-code each "why it fits" reason by what it means.
 export function reasonStyle(reason: string): { bg: string; fg: string; Icon: typeof Check } {
   const r = reason.toLowerCase()
-  if (r.includes('niche')) return { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)', Icon: Target }
+  if (r.includes('niche')) return { bg: 'rgba(249,115,22,.13)', fg: '#C2410C', Icon: Target }
   if (r.includes('rate') || r.includes('budget')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: Wallet }
   if (r.includes('verified')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: ShieldCheck }
   if (r.includes('available')) return { bg: '#E6F4FB', fg: '#0E6F9E', Icon: CircleCheck }
@@ -167,8 +167,8 @@ export default function JobsList({
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                         {c.niche_tags.map(t => (
                           <span key={t} style={{
-                            fontSize: 11.5, color: 'var(--ink-soft)',
-                            background: 'var(--paper-2)', padding: '3px 8px',
+                            fontSize: 11.5, fontWeight: 500, color: 'var(--accent-deep)',
+                            background: 'var(--accent-tint)', padding: '3px 9px',
                             borderRadius: 'var(--radius-pill)',
                           }}>{nicheLabel(t)}</span>
                         ))}
@@ -179,9 +179,8 @@ export default function JobsList({
                 {/* Honest fit tier — only shown when there's a credible match
                     to claim. No numbers, ever. Null → no pill. */}
                 {c.matchLabel && (
-                  <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, gap: 5, fontSize: 12, padding: '5px 11px' }}>
-                    <Sparkles size={13} />
-                    {c.matchLabel}
+                  <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, fontSize: 12 }}>
+                    <span>{c.matchLabel}</span>
                   </span>
                 )}
               </div>

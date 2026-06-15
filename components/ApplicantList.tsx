@@ -3,7 +3,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Shield, Zap, Check, Sparkles, Bookmark, UserPlus, Search } from 'lucide-react'
+import { Shield, Zap, Check, Bookmark, UserPlus, Search } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { matchClass, reasonStyle } from '@/components/JobsList'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
@@ -200,8 +200,8 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                 </div>
               </div>
               {matchLabel && (
-                <span className={`badge ${matchClass(matchLabel)}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
-                  <Sparkles size={11} /> {matchLabel}
+                <span className={`badge ${matchClass(matchLabel)}`} style={{ flexShrink: 0 }}>
+                  <span>{matchLabel}</span>
                 </span>
               )}
             </div>

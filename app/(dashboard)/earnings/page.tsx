@@ -3,8 +3,8 @@ import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
 import EmptyState from '@/components/EmptyState'
+import { stripe } from '@/lib/stripe'
 import Link from 'next/link'
-import { boostEnabled } from '@/lib/stripe'
 import type { LucideProps } from 'lucide-react'
 import { Wallet, TrendingUp, Shield, CheckCircle2, Zap, ArrowRight } from 'lucide-react'
 
@@ -45,6 +45,17 @@ export default async function EarningsPage({
     admin.from('creator_profiles')
       .select('stripe_connect_id, total_earned').eq('user_id', user.id).single(),
   ])
+
+  // Real payout readiness — having a Connect id is NOT the same as being able to
+  // receive payouts (Stripe may still need details/verification). Check the live
+  // account so we never show "connected" (green) before payouts are enabled.
+  let payoutsReady = false
+  if (connectProfile?.stripe_connect_id) {
+    try {
+      const acct = await stripe.accounts.retrieve(connectProfile.stripe_connect_id)
+      payoutsReady = Boolean(acct.charges_enabled && acct.payouts_enabled)
+    } catch { payoutsReady = false }
+  }
   // Payout history + active escrow both key off creator.id — fetch concurrently.
   const [{ data: collabs }, { data: secured }] = await Promise.all([
     supabase.from('collabs')
@@ -88,26 +99,25 @@ export default async function EarningsPage({
         <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
 
-      {/* Earn more — boost lives here now (boost → get picked → earn more) */}
-      {boostEnabled() && (
-        <Link href="/boost" className="card card-hover" style={{
-          display: 'flex', alignItems: 'center', gap: 14, padding: 18, textDecoration: 'none',
-          background: 'linear-gradient(120deg, var(--accent-tint) 0%, var(--paper-2) 70%)',
-        }}>
-          <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
-            <Zap size={20} />
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Get picked first — Boost your profile</div>
-            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 1 }}>Sponsored placement lifts you in applicant lists, so brands notice you sooner.</div>
-          </div>
-          <span style={{ flexShrink: 0, color: 'var(--accent-deep)' }}><ArrowRight size={18} /></span>
-        </Link>
-      )}
+      {/* Earn more — boost lives here (boost → get picked → earn more). Always
+          visible so creators can find it; /boost shows its own beta state. */}
+      <Link href="/boost" className="card card-hover" style={{
+        display: 'flex', alignItems: 'center', gap: 14, padding: 18, textDecoration: 'none',
+        background: 'linear-gradient(120deg, var(--accent-tint) 0%, var(--paper-2) 70%)',
+      }}>
+        <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+          <Zap size={20} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Get picked first — Boost your profile</div>
+          <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 1 }}>Sponsored placement lifts you in applicant lists, so brands notice you sooner.</div>
+        </div>
+        <span style={{ flexShrink: 0, color: 'var(--accent-deep)' }}><ArrowRight size={18} /></span>
+      </Link>
 
       {/* Stripe Connect onboarding */}
       <ConnectOnboarding
-        hasConnectId={!!connectProfile?.stripe_connect_id}
+        hasConnectId={payoutsReady}
         justCompleted={connectComplete}
         needsRefresh={connectRefresh}
       />

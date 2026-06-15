@@ -60,8 +60,9 @@ function AttentionRow({
       style={{
         width: '100%',
         textDecoration: 'none',
-        background: 'var(--surface)',
+        background: 'linear-gradient(100deg, var(--warn-tint) 0%, var(--surface) 32%)',
         border: '1px solid var(--line)',
+        borderLeft: '3px solid var(--warn)',
         borderRadius: 'var(--radius)',
         padding: '15px 18px',
         display: 'flex',
@@ -126,6 +127,8 @@ function QuietRow({
         width: '100%',
         textDecoration: 'none',
         padding: '16px 18px',
+        borderLeft: '3px solid var(--accent)',
+        background: 'linear-gradient(100deg, var(--accent-tint) 0%, transparent 34%)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -765,6 +768,7 @@ async function CreatorDashboard({
       {/* earnings — the one dark anchor */}
       <div className="money-panel" style={{ marginBottom: 14 }}>
         <div
+          className="money-rows"
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -779,7 +783,7 @@ async function CreatorDashboard({
               {formatSGD(connectProfile?.total_earned || 0)}
             </div>
           </div>
-          <div style={{ textAlign: 'right' }}>
+          <div className="money-secured" style={{ textAlign: 'right' }}>
             <div className="money-label">Secured in escrow now</div>
             <div
               className="mono-num"

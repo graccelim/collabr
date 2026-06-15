@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import { AlertTriangle } from 'lucide-react'
 
 interface Props {
   hasConnectId: boolean
@@ -50,18 +51,23 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
   }
 
   return (
-    <div className="card border-amber-200 bg-amber-50">
-      <p className="text-xs text-amber-700 font-medium mb-1">Set up payouts to get paid</p>
-      <p className="text-xs text-amber-600 mb-3">
-        Connect your bank account via Stripe to receive payments directly when collabs complete.
-        Takes about 2 minutes.
-      </p>
-      <button
-        onClick={startOnboarding}
-        disabled={loading}
-        className="btn-primary text-sm"
-      >
-        {loading ? 'Redirecting…' : 'Set up payouts with Stripe'}
+    <div style={{
+      borderRadius: 'var(--radius)', padding: 18,
+      background: 'var(--warn-tint)', border: '1px solid var(--warn)',
+      borderLeft: '4px solid var(--warn)',
+      display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap',
+    }}>
+      <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'var(--warn)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+        <AlertTriangle size={20} />
+      </div>
+      <div style={{ flex: 1, minWidth: 180 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)' }}>Connect your payout account to get paid</div>
+        <div style={{ fontSize: 12.5, color: 'var(--warn-deep)', opacity: .85, lineHeight: 1.45, marginTop: 1 }}>
+          You haven&rsquo;t connected Stripe yet — payments can&rsquo;t reach you until you do. Takes about 2 minutes.
+        </div>
+      </div>
+      <button onClick={startOnboarding} disabled={loading} className="btn-primary" style={{ flexShrink: 0 }}>
+        {loading ? 'Redirecting…' : 'Connect payouts'}
       </button>
     </div>
   )

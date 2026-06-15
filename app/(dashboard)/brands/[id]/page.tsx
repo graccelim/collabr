@@ -58,34 +58,22 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
         </Link>
       )}
 
-      {/* Identity — cover hero with a soft glow + overlapping mark */}
-      <div className="card" style={{ position: 'relative', overflow: 'hidden', padding: 0, marginBottom: 24 }}>
-        <div style={{
-          height: 104, position: 'relative',
-          background: 'radial-gradient(120% 160% at 12% -20%, var(--accent) 0%, #2a2f63 36%, var(--creator) 78%, #0A0C22 100%)',
-        }}>
-          <div aria-hidden style={{ position: 'absolute', top: -40, right: -20, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.35), transparent 65%)' }} />
-          {isOwner && (
-            <Link href="/settings" className="btn" style={{ position: 'absolute', top: 14, right: 14, background: 'rgba(255,255,255,.16)', color: '#fff', backdropFilter: 'blur(6px)', display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13 }}>
-              <Pencil size={14} /> Edit profile
-            </Link>
-          )}
-        </div>
-        <div style={{ padding: '0 24px 22px' }}>
-          {/* avatar overlaps the cover; name + meta sit BELOW it on the surface */}
+      {/* Identity — clean header card (no heavy cover band) */}
+      <div className="card" style={{ padding: 22, marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
           <div style={{
-            width: 84, height: 84, borderRadius: 18, flexShrink: 0, overflow: 'hidden', marginTop: -42,
+            width: 76, height: 76, borderRadius: 18, flexShrink: 0, overflow: 'hidden',
             background: brand.logo_url ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
             color: '#fff',
-            boxShadow: '0 0 0 4px #fff, var(--shadow)',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 30, letterSpacing: '-0.02em',
+            boxShadow: '0 0 0 1px var(--line)',
+            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28, letterSpacing: '-0.02em',
           }}>
             {brand.logo_url
               ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
               : getInitials(name)}
           </div>
-          <div style={{ marginTop: 14 }}>
-            <h1 className="h1" style={{ fontSize: 27, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
+          <div style={{ minWidth: 0 }}>
+            <h1 className="h1" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 7, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
               {brand.industry && <span className="badge badge-neutral" style={{ fontSize: 11 }}>{brand.industry}</span>}
               {memberSince && <span>Member since {memberSince}</span>}
@@ -98,6 +86,11 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
             </div>
           </div>
         </div>
+        {isOwner && (
+          <Link href="/settings" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Pencil size={15} /> Edit profile
+          </Link>
+        )}
       </div>
 
       {/* Reputation summary (premium empty state for new brands) */}
