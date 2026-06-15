@@ -26,3 +26,18 @@ export function boostEnabled(): boolean {
   const ids = boostPriceIds()
   return Boolean(process.env.STRIPE_SECRET_KEY && (ids.monthly || ids.per_app))
 }
+
+// ── Developer-only UI preview ───────────────────────────────────────────────
+// BOOST_UI_PREVIEW=true renders the Boost hint + /boost page WITHOUT real Stripe
+// prices, so the UI can be designed before products exist. It is visual-only:
+// no Checkout session is created, and the ranking bump / "Boosted" badge / the
+// purchase API all stay on boostEnabled() (real config). Off unless the env var
+// is explicitly "true", so production is unchanged unless deliberately enabled.
+export function boostPreview(): boolean {
+  return process.env.BOOST_UI_PREVIEW === 'true'
+}
+
+/** Should the Boost UI surfaces (hint + /boost page) render? Real config OR preview. */
+export function boostUiEnabled(): boolean {
+  return boostEnabled() || boostPreview()
+}

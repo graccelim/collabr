@@ -3,10 +3,10 @@ import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
 import EmptyState from '@/components/EmptyState'
-import { stripe } from '@/lib/stripe'
-import Link from 'next/link'
+import { stripe, boostUiEnabled } from '@/lib/stripe'
+import BoostHint from '@/components/BoostHint'
 import type { LucideProps } from 'lucide-react'
-import { Wallet, TrendingUp, Shield, CheckCircle2, Zap, ArrowRight } from 'lucide-react'
+import { Wallet, TrendingUp, Shield, CheckCircle2 } from 'lucide-react'
 
 // Stat tile (Collabr Redesign): mono value, micro label, tone-tinted icon.
 // `money` tone is reserved for secured / escrow figures.
@@ -39,7 +39,7 @@ export default async function EarningsPage({
   // creator profile + Connect status both key off user.id — fetch concurrently.
   const [{ data: creator }, { data: connectProfile }] = await Promise.all([
     supabase.from('creator_profiles')
-      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at')
+      .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, onboarding_completed_at, rating_avg, rating_count, collabs_completed, created_at')
       .eq('user_id', user.id).single(),
     // total_earned is private (not client-readable) — read it via the service role.
     admin.from('creator_profiles')
@@ -99,21 +99,11 @@ export default async function EarningsPage({
         <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
 
-      {/* Earn more — boost lives here (boost → get picked → earn more). Always
-          visible so creators can find it; /boost shows its own beta state. */}
-      <Link href="/boost" className="card card-hover" style={{
-        display: 'flex', alignItems: 'center', gap: 14, padding: 18, textDecoration: 'none',
-        background: 'linear-gradient(120deg, var(--accent-tint) 0%, var(--paper-2) 70%)',
-      }}>
-        <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
-          <Zap size={20} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Get picked first — Boost your profile</div>
-          <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 1 }}>Sponsored placement lifts you in applicant lists, so brands notice you sooner.</div>
-        </div>
-        <span style={{ flexShrink: 0, color: 'var(--accent-deep)' }}><ArrowRight size={18} /></span>
-      </Link>
+      {/* Boost nudge — only once boost is configured AND the profile is complete
+          (no point boosting an undiscoverable profile). */}
+      {boostUiEnabled() && creator?.onboarding_completed_at && (
+        <BoostHint boostUntil={creator?.boost_active_until ?? null} />
+      )}
 
       {/* Stripe Connect onboarding */}
       <ConnectOnboarding

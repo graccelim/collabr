@@ -35,8 +35,11 @@ export async function POST(req: NextRequest) {
   }
 
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('id').eq('user_id', user.id).single()
+    .select('id, onboarding_completed_at').eq('user_id', user.id).single()
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
+  if (!creator.onboarding_completed_at) {
+    return NextResponse.json({ error: 'Complete your creator profile before boosting.' }, { status: 403 })
+  }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 

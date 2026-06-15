@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { formatSGD, relativeTime, getInitials } from '@/lib/utils'
 import InviteActions from '@/components/InviteActions'
 import EmptyState from '@/components/EmptyState'
+import BoostHint from '@/components/BoostHint'
+import { boostUiEnabled } from '@/lib/stripe'
 import { Send, Mail, Zap, Shield } from 'lucide-react'
 
 const STATUS_BADGE: Record<string, string> = {
@@ -84,7 +86,7 @@ export default async function InvitesPage() {
 
   // ── Creator: invites received ───────────────────────────────────────────────
   const { data: creator } = await supabase.from('creator_profiles')
-    .select('id').eq('user_id', user.id).single()
+    .select('id, boost_active_until, onboarding_completed_at').eq('user_id', user.id).single()
   // Admin client so campaign titles still resolve after a campaign closes;
   // scoped explicitly to this creator's invites.
   const adminClient = createAdminClient()
@@ -106,6 +108,11 @@ export default async function InvitesPage() {
           Brands that want to work with you. Accepting creates the collab instantly — escrow protects the payment.
         </p>
       </div>
+
+      {/* Boost nudge — only once boost is configured AND the profile is complete. */}
+      {boostUiEnabled() && creator?.onboarding_completed_at && (
+        <BoostHint boostUntil={creator?.boost_active_until ?? null} />
+      )}
 
       {(!invites || invites.length === 0) && (
         <EmptyState
