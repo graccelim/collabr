@@ -36,6 +36,15 @@ export function socialHandleLabel(platform: SocialPlatform, handle: string): str
   return AT_PLATFORMS.has(platform) ? `@${handle}` : handle
 }
 
+/**
+ * The fixed URL prefix shown before a username input, e.g. "instagram.com/" or
+ * "tiktok.com/@". Derived from socialUrl() so the prefix and the stored URL can
+ * never drift. (Xiaohongshu has no username — callers fall back to a link field.)
+ */
+export function socialUrlPrefix(platform: SocialPlatform): string {
+  return socialUrl(platform, '').replace(/^https?:\/\//, '')
+}
+
 export const INDUSTRY_LABELS: Record<BrandIndustry, string> = {
   fnb: 'F&B',
   retail: 'Retail',

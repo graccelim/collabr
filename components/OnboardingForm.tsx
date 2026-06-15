@@ -34,7 +34,7 @@ export default function OnboardingForm({ role, initial }: Props) {
   // Repeatable social-profile builder — starts with one row. Order matters: the
   // first row is submitted first and the API marks it primary.
   const [socialRows, setSocialRows] = useState<SocialRow[]>([
-    { platform: 'instagram', url: '', followers: '' },
+    { platform: 'instagram', username: '', followers: '' },
   ])
 
   // Brand state
@@ -63,10 +63,10 @@ export default function OnboardingForm({ role, initial }: Props) {
       // Row order is preserved → the first profile becomes primary server-side.
       // `handle` carries the raw URL/handle; the schema's extractHandle() normalizes it.
       const socials = socialRows
-        .filter(r => r.url.trim())
+        .filter(r => r.username.trim())
         .map(r => ({
           platform: r.platform,
-          handle: r.url.trim(),
+          handle: r.username.trim(),
           follower_count: r.followers ? parseInt(r.followers, 10) : null,
         }))
       if (socials.length === 0) { toast.error('Add at least one social profile'); return }

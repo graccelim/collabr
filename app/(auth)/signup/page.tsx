@@ -79,7 +79,7 @@ function SignupForm() {
   // Creator onboarding fields (single niche — matches our schema)
   const [niche, setNiche] = useState<CreatorNiche | ''>('')
   const [socialRows, setSocialRows] = useState<SocialRow[]>([
-    { platform: 'instagram', url: '', followers: '' },
+    { platform: 'instagram', username: '', followers: '' },
   ])
 
   // Brand onboarding fields
@@ -106,10 +106,10 @@ function SignupForm() {
       if (!niche) { toast.error('Pick your niche'); return }
       // Row order preserved → first profile becomes primary server-side.
       const socials = socialRows
-        .filter(r => r.url.trim())
+        .filter(r => r.username.trim())
         .map(r => ({
           platform: r.platform,
-          handle: r.url.trim(),
+          handle: r.username.trim(),
           follower_count: r.followers ? parseInt(r.followers, 10) : null,
         }))
       if (socials.length === 0) { toast.error('Add at least one social profile'); return }

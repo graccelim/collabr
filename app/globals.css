@@ -354,6 +354,31 @@
   }
   .textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
 
+  /* Prefixed input — fixed domain (e.g. "instagram.com/") + username field. */
+  .affix-field {
+    display: flex; align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .affix-field:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-tint);
+  }
+  .affix-field .affix {
+    padding: 10px 0 10px 13px;
+    color: var(--ink-faint-solid);
+    font-size: 14px; white-space: nowrap; user-select: none; flex-shrink: 0;
+  }
+  .affix-field input {
+    flex: 1; min-width: 0;
+    border: 0; outline: none; background: transparent;
+    padding: 10px 13px 10px 1px;
+    font-size: 14px; color: var(--ink); font-family: var(--font-body);
+  }
+
   /* Selects: replace the cramped native arrow with a padded custom chevron. */
   select.input, select.select, .select {
     appearance: none; -webkit-appearance: none; -moz-appearance: none;
@@ -613,7 +638,7 @@
      control under 16px triggers it, so force ≥16px on small screens. The
      !important overrides the redesign's inline 14px inputs. */
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-  textarea, select, .input, .textarea, .select { font-size: 16px !important; }
+  textarea, select, .input, .textarea, .select, .affix-field .affix, .affix-field input { font-size: 16px !important; }
 
   /* Two-column "main + sticky rail" layouts collapse to one column, and any
      sticky rail unsticks so it simply flows below the main content. */

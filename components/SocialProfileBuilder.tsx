@@ -1,20 +1,22 @@
 'use client'
 import { Plus, X } from 'lucide-react'
 import {
-  SOCIAL_PLATFORMS, SOCIAL_LABELS, extractHandle, socialUrl as buildSocialUrl,
+  SOCIAL_PLATFORMS, SOCIAL_LABELS, socialUrlPrefix,
   type SocialPlatform,
 } from '@/lib/onboarding'
 import { socialIcon } from '@/components/SocialIcon'
 
-// One repeatable social-profile row. `url` accepts a handle or a pasted profile
-// URL — extractHandle() normalizes either to the canonical stored handle.
-export interface SocialRow { platform: SocialPlatform; url: string; followers: string }
+// One repeatable social-profile row. `username` is what the creator types — a
+// bare username for most platforms (we prepend the domain), or a pasted profile
+// link for Xiaohongshu (which has no public username). extractHandle() normalizes
+// either form to the canonical stored handle.
+export interface SocialRow { platform: SocialPlatform; username: string; followers: string }
 
 /** A fresh row pre-set to the first platform not already in `used`. */
 export function newSocialRow(used: SocialPlatform[] = []): SocialRow {
   const set = new Set(used)
   const next = SOCIAL_PLATFORMS.find(p => !set.has(p)) ?? SOCIAL_PLATFORMS[0]
-  return { platform: next, url: '', followers: '' }
+  return { platform: next, username: '', followers: '' }
 }
 
 /**
@@ -35,7 +37,7 @@ export default function SocialProfileBuilder({
   }
   const addRow = () => {
     const next = SOCIAL_PLATFORMS.find(p => !used.has(p))
-    if (next) onChange([...rows, { platform: next, url: '', followers: '' }])
+    if (next) onChange([...rows, { platform: next, username: '', followers: '' }])
   }
   const removeRow = (i: number) => {
     if (rows.length > 1) onChange(rows.filter((_, idx) => idx !== i))
@@ -46,8 +48,7 @@ export default function SocialProfileBuilder({
       <div className="space-y-3">
         {rows.map((row, i) => {
           const Icon = socialIcon(row.platform)
-          const normalized = row.url.trim() ? buildSocialUrl(row.platform, extractHandle(row.platform, row.url)) : ''
-          const example = buildSocialUrl(row.platform, 'username').replace(/^https?:\/\//, '')
+          const isXhs = row.platform === 'xiaohongshu'
           return (
             <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
               <div className="flex items-center gap-2">
@@ -72,18 +73,24 @@ export default function SocialProfileBuilder({
                   </button>
                 )}
               </div>
-              <input className="input" inputMode="url"
-                placeholder={row.platform === 'xiaohongshu' ? 'Paste your profile link' : `Profile URL — e.g. ${example}`}
-                value={row.url}
-                onChange={e => update(i, { url: e.target.value })} />
+
+              {isXhs ? (
+                // Xiaohongshu has no public username — take the profile link directly.
+                <input className="input" inputMode="url" placeholder="Paste your RED (Xiaohongshu) profile link"
+                  value={row.username} onChange={e => update(i, { username: e.target.value })} />
+              ) : (
+                // Fixed domain prefix + username — we complete the link for them.
+                <div className="affix-field">
+                  <span className="affix">{socialUrlPrefix(row.platform)}</span>
+                  <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                    placeholder="username"
+                    value={row.username} onChange={e => update(i, { username: e.target.value })} />
+                </div>
+              )}
+
               <input className="input" type="number" min="0" placeholder="Follower count (optional)"
                 value={row.followers}
                 onChange={e => update(i, { followers: e.target.value })} />
-              {normalized && (
-                <p className="text-xs" style={{ color: 'var(--ink-faint-solid)', wordBreak: 'break-all' }}>
-                  → {normalized.replace(/^https?:\/\//, '')}
-                </p>
-              )}
             </div>
           )
         })}
