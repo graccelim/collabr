@@ -13,7 +13,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock } from 'lucide-react'
+import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock, Pencil } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -54,8 +54,11 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     getUserRow(),
   ])
 
+  // Owner viewing their own profile (Profile nav lands here) → show Edit, not
+  // brand actions. "This is how brands see you."
+  const isOwner = creator.user_id === user.id
   // Brand viewer: saved state + invitable campaigns (active, paid).
-  const isBrandViewer = viewer?.role === 'brand'
+  const isBrandViewer = viewer?.role === 'brand' && !isOwner
   let isSaved = false
   let viewerIsPro = false
   let inviteCampaigns: { id: string; title: string }[] = []
@@ -121,21 +124,33 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
 
   return (
     <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
-      <Link href="/creators" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 24 }}>
-        <ChevronLeft size={15} /> Discover
-      </Link>
+      {isOwner ? (
+        <div className="eyebrow" style={{ marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
+          <ShieldCheck size={13} /> This is how brands see you
+        </div>
+      ) : (
+        <Link href="/creators" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 24 }}>
+          <ChevronLeft size={15} /> Discover
+        </Link>
+      )}
 
-      {/* identity */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, marginBottom: 28, flexWrap: 'wrap' }}>
+      {/* identity — colourful header band */}
+      <div style={{
+        position: 'relative', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 26,
+        background: 'linear-gradient(135deg, var(--accent-tint) 0%, var(--paper-2) 55%, var(--creator-tint) 100%)',
+        border: '1px solid var(--line)',
+        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 24, flexWrap: 'wrap',
+      }}>
         <div style={{ display: 'flex', gap: 18, alignItems: 'flex-start', minWidth: 0 }}>
           <div style={{
-            width: 72, height: 72, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-            background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+            width: 76, height: 76, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+            background: '#fff', color: 'var(--accent-deep)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontWeight: 600, fontSize: 24,
+            fontWeight: 700, fontSize: 25,
+            boxShadow: '0 0 0 3px #fff, 0 0 0 5px var(--accent-tint-2, var(--accent-tint)), var(--shadow-sm)',
           }}>
             {avatar
-              ? <img src={avatar} alt={name} style={{ width: 72, height: 72, objectFit: 'cover' }} />
+              ? <img src={avatar} alt={name} style={{ width: 76, height: 76, objectFit: 'cover' }} />
               : getInitials(name)}
           </div>
           <div style={{ minWidth: 0 }}>
@@ -175,6 +190,13 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
           </div>
         </div>
 
+        {/* Owner: edit their own profile */}
+        {isOwner && (
+          <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Pencil size={15} /> Edit profile
+          </Link>
+        )}
+
         {/* Brand actions: invite + save (Pro — complimentary during beta) */}
         {isBrandViewer && (
           viewerIsPro ? (
@@ -196,15 +218,24 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         )}
       </div>
 
-      {/* stat band */}
+      {/* stat band — tinted accents for a livelier feel */}
       <div className="card resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, overflow: 'hidden', marginBottom: 36 }}>
-        {stats.map(([k, v, ctx], i) => (
-          <div key={k} style={{ padding: '18px 20px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
-            <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
-            <div className="mono-num" style={{ fontSize: 22, fontWeight: 600, color: 'var(--ink)' }}>{v}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
-          </div>
-        ))}
+        {stats.map(([k, v, ctx], i) => {
+          const tints = [
+            { bar: 'var(--accent)', val: 'var(--accent-deep)' },
+            { bar: 'var(--money)', val: 'var(--money-deep)' },
+            { bar: 'var(--creator)', val: 'var(--ink)' },
+            { bar: 'var(--warn)', val: 'var(--warn-deep)' },
+          ][i % 4]
+          return (
+            <div key={k} style={{ position: 'relative', padding: '18px 20px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
+              <span style={{ position: 'absolute', top: 0, left: i ? 0 : 0, right: 0, height: 3, background: tints.bar, opacity: .85 }} />
+              <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
+              <div className="mono-num" style={{ fontSize: 22, fontWeight: 700, color: tints.val }}>{v}</div>
+              <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
+            </div>
+          )
+        })}
       </div>
 
       {/* two-column layout */}

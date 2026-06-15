@@ -11,7 +11,6 @@ import { creatorCompletion } from '@/lib/profile-completion'
 import { getInitials } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import type { SocialAccount } from '@/types'
-import ReputationSummary from '@/components/ReputationSummary'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -26,7 +25,6 @@ export default function ProfilePage() {
 
   const [bio, setBio] = useState('')
   const [creatorId, setCreatorId] = useState('')
-  const [rep, setRep] = useState<{ avg: number; count: number; completed: number }>({ avg: 0, count: 0, completed: 0 })
   const [niches, setNiches] = useState<CreatorNiche[]>([])
   const [location, setLocation] = useState('')
   const [rate, setRate] = useState('')
@@ -68,11 +66,6 @@ export default function ProfilePage() {
       }
       if (data) {
         setCreatorId((data as any).id || '')
-        setRep({
-          avg: Number((data as any).rating_avg ?? 0),
-          count: (data as any).rating_count ?? 0,
-          completed: (data as any).collabs_completed ?? 0,
-        })
         setBio(data.bio || '')
         setNiches(((data.niche_tags as CreatorNiche[])?.length
           ? (data.niche_tags as CreatorNiche[])
@@ -247,21 +240,19 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* How brands see you — reputation (premium empty state while new) */}
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
-          <h2 className="text-sm font-medium text-gray-900" style={{ margin: 0 }}>How brands see you</h2>
+      {/* Edit-mode helper: jump to the public view or account settings */}
+      <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+        <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>You&rsquo;re editing — brands see your public profile &amp; reviews.</span>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           {creatorId && (
-            <a href={`/creators/${creatorId}`} target="_blank" rel="noopener noreferrer"
-              style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+            <a href={`/creators/${creatorId}`} style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
               View public profile →
             </a>
           )}
+          <a href="/settings" style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
+            Account settings →
+          </a>
         </div>
-        <ReputationSummary
-          ratingAvg={rep.avg} ratingCount={rep.count} completed={rep.completed}
-          emptyBody="Reviews from brands appear after completed collaborations — revealed once you both submit, or after 7 days."
-        />
       </div>
 
       {/* Photo + name */}

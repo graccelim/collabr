@@ -3,8 +3,10 @@ import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
 import EmptyState from '@/components/EmptyState'
+import Link from 'next/link'
+import { boostEnabled } from '@/lib/stripe'
 import type { LucideProps } from 'lucide-react'
-import { Wallet, TrendingUp, Shield, CheckCircle2 } from 'lucide-react'
+import { Wallet, TrendingUp, Shield, CheckCircle2, Zap, ArrowRight } from 'lucide-react'
 
 // Stat tile (Collabr Redesign): mono value, micro label, tone-tinted icon.
 // `money` tone is reserved for secured / escrow figures.
@@ -85,6 +87,23 @@ export default async function EarningsPage({
         />
         <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
+
+      {/* Earn more — boost lives here now (boost → get picked → earn more) */}
+      {boostEnabled() && (
+        <Link href="/boost" className="card card-hover" style={{
+          display: 'flex', alignItems: 'center', gap: 14, padding: 18, textDecoration: 'none',
+          background: 'linear-gradient(120deg, var(--accent-tint) 0%, var(--paper-2) 70%)',
+        }}>
+          <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: 'var(--accent)', color: '#fff', display: 'grid', placeItems: 'center' }}>
+            <Zap size={20} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Get picked first — Boost your profile</div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 1 }}>Sponsored placement lifts you in applicant lists, so brands notice you sooner.</div>
+          </div>
+          <span style={{ flexShrink: 0, color: 'var(--accent-deep)' }}><ArrowRight size={18} /></span>
+        </Link>
+      )}
 
       {/* Stripe Connect onboarding */}
       <ConnectOnboarding

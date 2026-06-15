@@ -160,8 +160,8 @@ export default function JobsList({
                 {/* Honest fit tier — only shown when there's a credible match
                     to claim. No numbers, ever. Null → no pill. */}
                 {c.matchLabel && (
-                  <span className="badge badge-match" style={{ flexShrink: 0, gap: 5 }}>
-                    <Sparkles size={12} />
+                  <span className="badge badge-match" style={{ flexShrink: 0, gap: 5, fontSize: 12, padding: '5px 11px' }}>
+                    <Sparkles size={13} />
                     {c.matchLabel}
                   </span>
                 )}
@@ -169,13 +169,14 @@ export default function JobsList({
 
               {/* Why it fits — compact ✓ list of honest, categorical reasons. */}
               {c.matchReasons.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 14, marginTop: 12 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
                   {c.matchReasons.map(reason => (
                     <span key={reason} style={{
                       display: 'inline-flex', alignItems: 'center', gap: 5,
-                      fontSize: 12.5, color: 'var(--ink-soft)',
+                      fontSize: 12, color: 'var(--match-ink)', fontWeight: 500,
+                      background: 'var(--match-soft)', padding: '4px 10px', borderRadius: 99,
                     }}>
-                      <Check size={13} style={{ color: 'var(--match)', flexShrink: 0 }} />
+                      <Check size={12} style={{ color: 'var(--match)', flexShrink: 0 }} />
                       {reason}
                     </span>
                   ))}

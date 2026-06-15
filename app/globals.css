@@ -284,7 +284,12 @@
     white-space: nowrap; line-height: 1.4;
   }
   .badge-accent  { background: var(--accent-tint);  color: var(--accent-deep); }
-  .badge-match   { background: var(--match-soft);   color: var(--match-ink); }
+  .badge-match   {
+    background: linear-gradient(135deg, #7A72FF 0%, #5B53E0 100%);
+    color: #fff; border: none;
+    box-shadow: 0 2px 8px -2px rgba(91,83,224,.5), inset 0 1px 0 rgba(255,255,255,.18);
+    font-weight: 600;
+  }
   .badge-money   { background: var(--money-tint);   color: var(--money-deep); }
   .badge-pending { background: var(--pending-tint); color: var(--pending); }
   .badge-danger  { background: var(--danger-tint);  color: var(--danger); }

@@ -5,18 +5,19 @@ import ReputationSummary from '@/components/ReputationSummary'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { ChevronLeft, Globe, Briefcase, ShieldCheck } from 'lucide-react'
+import { ChevronLeft, Globe, Briefcase, ShieldCheck, Pencil } from 'lucide-react'
 
 export default async function BrandProfilePage({ params }: { params: { id: string } }) {
-  await requireAuth()
+  const user = await requireAuth()
   const supabase = createClient()
   const admin = createAdminClient()
 
   // Brand identity + public reputation (public data → admin read is fine).
   const { data: brand } = await admin.from('brand_profiles')
-    .select('id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at')
+    .select('id, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at')
     .eq('id', params.id).single()
   if (!brand) return <p className="text-sm" style={{ color: 'var(--danger)' }}>Brand not found.</p>
+  const isOwner = brand.user_id === user.id
 
   // REVEALED reviews + active campaigns. Reviews go through the SESSION client so
   // the double-blind reveal RLS is enforced (admin would bypass it).
@@ -47,16 +48,26 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
 
   return (
     <div className="screen-in" style={{ maxWidth: 760, margin: '0 auto' }}>
-      <Link href="/jobs" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 22 }}>
-        <ChevronLeft size={15} /> Campaigns
-      </Link>
+      {isOwner ? (
+        <div className="eyebrow" style={{ marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
+          <ShieldCheck size={13} /> This is how creators see you
+        </div>
+      ) : (
+        <Link href="/jobs" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 22 }}>
+          <ChevronLeft size={15} /> Campaigns
+        </Link>
+      )}
 
-      {/* Identity */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 22, flexWrap: 'wrap' }}>
+      {/* Identity — colourful header band */}
+      <div style={{
+        borderRadius: 'var(--radius-lg)', padding: 22, marginBottom: 24, border: '1px solid var(--line)',
+        background: 'linear-gradient(135deg, var(--accent-tint) 0%, var(--paper-2) 55%, var(--creator-tint) 100%)',
+        display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap',
+      }}>
         <div style={{
           width: 64, height: 64, borderRadius: 'var(--radius-sm)', flexShrink: 0, overflow: 'hidden',
-          background: 'var(--paper-2)', border: '1px solid var(--line)',
-          display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 20, color: 'var(--ink-soft)',
+          background: '#fff', border: '1px solid var(--line)', boxShadow: 'var(--shadow-sm)',
+          display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 20, color: 'var(--accent-deep)',
         }}>
           {brand.logo_url
             ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -75,6 +86,11 @@ export default async function BrandProfilePage({ params }: { params: { id: strin
             )}
           </div>
         </div>
+        {isOwner && (
+          <Link href="/settings" className="btn-primary" style={{ marginLeft: 'auto', flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+            <Pencil size={15} /> Edit profile
+          </Link>
+        )}
       </div>
 
       {/* Reputation summary (premium empty state for new brands) */}

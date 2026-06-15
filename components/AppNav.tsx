@@ -8,7 +8,7 @@ import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
   Compass, FileText, Settings, Bell, User,
   CreditCard, LogOut, ChevronLeft, ChevronRight,
-  Zap, Mail,
+  Mail,
 } from 'lucide-react'
 
 type Icon = React.ComponentType<Partial<LucideProps>>
@@ -29,10 +29,13 @@ const BRAND_NAV: NavItem[] = [
   { href: '/creators',      label: 'Creators',     icon: Users, pro: true },
   { href: '/invites',       label: 'Invites',      icon: Mail,  pro: true },
   { href: '/notifications', label: 'Notifications',icon: Bell },
+  { href: '/__profile__',   label: 'Profile',      icon: User },
   { href: '/billing',       label: 'Billing',      icon: CreditCard },
   { href: '/settings',      label: 'Settings',     icon: Settings },
 ]
 
+// Decluttered: Settings folds into Profile (Profile = public view + edit + account),
+// and Boost lives inside Earnings (boost → earn more) rather than its own item.
 const CREATOR_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Overview',     icon: LayoutGrid, exact: true },
   { href: '/jobs',          label: 'Browse',       icon: Compass },
@@ -40,10 +43,8 @@ const CREATOR_NAV: NavItem[] = [
   { href: '/invites',       label: 'Invites',      icon: Mail },
   { href: '/collabs',       label: 'Collabs',      icon: Link2 },
   { href: '/earnings',      label: 'Earnings',     icon: Wallet },
-  { href: '/profile',       label: 'Profile',      icon: User },
-  { href: '/boost',         label: 'Boost',        icon: Zap },
+  { href: '/__profile__',   label: 'Profile',      icon: User },
   { href: '/notifications', label: 'Notifications',icon: Bell },
-  { href: '/settings',      label: 'Settings',     icon: Settings },
 ]
 
 const BRAND_TABS: NavItem[] = [
@@ -73,13 +74,18 @@ interface AppNavProps {
   inviteBadge?: number
   /** Unread notifications for the signed-in user. */
   notificationBadge?: number
+  /** The signed-in user's own public profile (Profile nav target). */
+  profileHref?: string
 }
 
-export function AppNav({ role, displayName, email, initials, planLabel, inviteBadge = 0, notificationBadge = 0 }: AppNavProps) {
+export function AppNav({ role, displayName, email, initials, planLabel, inviteBadge = 0, notificationBadge = 0, profileHref }: AppNavProps) {
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const isBrand = role === 'brand'
-  const nav  = isBrand ? BRAND_NAV  : CREATOR_NAV
+  const fallbackProfile = isBrand ? '/settings' : '/profile'
+  const nav = (isBrand ? BRAND_NAV : CREATOR_NAV).map(i =>
+    i.href === '/__profile__' ? { ...i, href: profileHref || fallbackProfile } : i
+  )
   const tabs = isBrand ? BRAND_TABS : CREATOR_TABS
 
   function isActive(item: NavItem) {

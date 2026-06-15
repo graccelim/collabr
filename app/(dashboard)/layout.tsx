@@ -32,21 +32,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
                 .select('*', { count: 'exact', head: true })
                 .eq('creator_id', creator.id).eq('status', 'pending')
             : { count: 0 }
-          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '' }
+          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile' }
         })()
       : (async () => {
           // Admin client: subscription columns are not client-readable.
           const { data: brand } = await createAdminClient().from('brand_profiles')
-            .select(`onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+            .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
           const plan = resolvePlan(brand)
-          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '' }
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings' }
         })(),
     supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id).eq('read', false),
   ])
 
-  const { onboardingComplete, planLabel, inviteBadge } = roleState
+  const { onboardingComplete, planLabel, inviteBadge, profileHref } = roleState
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
@@ -66,6 +66,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         planLabel={planLabel}
         inviteBadge={inviteBadge}
         notificationBadge={notificationBadge}
+        profileHref={profileHref}
       />
       <main
         className="main-content"
