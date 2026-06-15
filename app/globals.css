@@ -354,6 +354,16 @@
   }
   .textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
 
+  /* Selects: replace the cramped native arrow with a padded custom chevron. */
+  select.input, select.select, .select {
+    appearance: none; -webkit-appearance: none; -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 38px;
+  }
+
   /* ---- Chip (filter toggle — active goes ink, per redesign) ---- */
   .chip {
     display: inline-flex; align-items: center; gap: 6px;

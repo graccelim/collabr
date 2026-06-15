@@ -3,19 +3,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import {
-  CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeUrl,
-  extractHandle, socialUrl as buildSocialUrl,
-  type CreatorNiche, type SocialPlatform,
+  CREATOR_NICHES, BRAND_INDUSTRIES,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeUrl,
+  type CreatorNiche,
 } from '@/lib/onboarding'
-import { socialIcon } from '@/components/SocialIcon'
-import { Plus, X } from 'lucide-react'
+import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
 
 const MAX_NICHES = 4
-
-// One repeatable social-profile row. `url` accepts a handle or a pasted profile
-// URL — extractHandle() normalizes either to the canonical stored handle.
-interface SocialRow { platform: SocialPlatform; url: string; followers: string }
 
 interface Props {
   role: 'brand' | 'creator'
@@ -48,26 +42,6 @@ export default function OnboardingForm({ role, initial }: Props) {
   const [industry, setIndustry] = useState(initial.industry || '')
   const [website, setWebsite] = useState(initial.website || '')
   const [socialUrl, setSocialUrl] = useState(initial.social_url || '')
-
-  function updateRow(i: number, patch: Partial<SocialRow>) {
-    setSocialRows(rows => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)))
-  }
-  function changePlatform(i: number, platform: SocialPlatform) {
-    // Guard against duplicates (the <select> already disables taken platforms).
-    setSocialRows(rows => rows.some((r, idx) => idx !== i && r.platform === platform)
-      ? rows
-      : rows.map((r, idx) => (idx === i ? { ...r, platform } : r)))
-  }
-  function addRow() {
-    setSocialRows(rows => {
-      const used = new Set(rows.map(r => r.platform))
-      const next = SOCIAL_PLATFORMS.find(p => !used.has(p))
-      return next ? [...rows, { platform: next, url: '', followers: '' }] : rows
-    })
-  }
-  function removeRow(i: number) {
-    setSocialRows(rows => (rows.length > 1 ? rows.filter((_, idx) => idx !== i) : rows))
-  }
 
   function toggleNiche(n: CreatorNiche) {
     setNiches(prev => {
@@ -159,66 +133,7 @@ export default function OnboardingForm({ role, initial }: Props) {
             </p>
           </div>
 
-          {(() => {
-            const usedPlatforms = new Set(socialRows.map(r => r.platform))
-            const canAddMore = usedPlatforms.size < SOCIAL_PLATFORMS.length
-            return (
-              <>
-                <div className="space-y-3">
-                  {socialRows.map((row, i) => {
-                    const Icon = socialIcon(row.platform)
-                    const normalized = row.url.trim() ? buildSocialUrl(row.platform, extractHandle(row.platform, row.url)) : ''
-                    const example = buildSocialUrl(row.platform, 'username').replace(/^https?:\/\//, '')
-                    return (
-                      <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
-                        <div className="flex items-center gap-2">
-                          <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--surface-2)', color: 'var(--ink-soft)' }}>
-                            <Icon size={15} />
-                          </span>
-                          <select className="input" style={{ flex: 1, minWidth: 0 }} value={row.platform}
-                            onChange={e => changePlatform(i, e.target.value as SocialPlatform)}>
-                            {SOCIAL_PLATFORMS.map(p => (
-                              <option key={p} value={p} disabled={p !== row.platform && usedPlatforms.has(p)}>
-                                {SOCIAL_LABELS[p]}
-                              </option>
-                            ))}
-                          </select>
-                          {i === 0 && (
-                            <span className="badge badge-accent" style={{ fontSize: 10.5, flexShrink: 0 }}>Primary</span>
-                          )}
-                          {socialRows.length > 1 && (
-                            <button type="button" onClick={() => removeRow(i)} aria-label="Remove profile"
-                              style={{ flexShrink: 0, border: 0, background: 'transparent', color: 'var(--ink-faint-solid)', cursor: 'pointer', display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 8 }}>
-                              <X size={16} />
-                            </button>
-                          )}
-                        </div>
-                        <input className="input" inputMode="url"
-                          placeholder={row.platform === 'xiaohongshu' ? 'Paste your profile link' : `Profile URL — e.g. ${example}`}
-                          value={row.url}
-                          onChange={e => updateRow(i, { url: e.target.value })} />
-                        <input className="input" type="number" min="0" placeholder="Follower count (optional)"
-                          value={row.followers}
-                          onChange={e => updateRow(i, { followers: e.target.value })} />
-                        {normalized && (
-                          <p className="text-xs" style={{ color: 'var(--ink-faint-solid)', wordBreak: 'break-all' }}>
-                            → {normalized.replace(/^https?:\/\//, '')}
-                          </p>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {canAddMore && (
-                  <button type="button" onClick={addRow}
-                    className="btn-secondary text-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <Plus size={15} /> Add another platform
-                  </button>
-                )}
-              </>
-            )
-          })()}
+          <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
         </div>
 
         <button type="submit" className="btn-primary" disabled={saving}>

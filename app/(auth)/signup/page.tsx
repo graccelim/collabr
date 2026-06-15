@@ -7,14 +7,10 @@ import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import {
   CREATOR_NICHES, BRAND_INDUSTRIES,
-  NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeHandle, normalizeUrl,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle, normalizeUrl,
   type CreatorNiche,
 } from '@/lib/onboarding'
-
-// Signup stays quick with the three majors; creators add X / Lemon8 / RED later
-// from their profile (Social profiles section).
-const SIGNUP_PLATFORMS = ['instagram', 'tiktok', 'youtube'] as const
-type SignupPlatform = (typeof SIGNUP_PLATFORMS)[number]
+import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
 
 /* Field wrapper per design: label · optional tag · hint */
 function Field({ label, hint, optional, children }: {
@@ -82,20 +78,14 @@ function SignupForm() {
 
   // Creator onboarding fields (single niche — matches our schema)
   const [niche, setNiche] = useState<CreatorNiche | ''>('')
-  const [handles, setHandles] = useState<Record<SignupPlatform, { handle: string; followers: string }>>({
-    instagram: { handle: '', followers: '' },
-    tiktok: { handle: '', followers: '' },
-    youtube: { handle: '', followers: '' },
-  })
+  const [socialRows, setSocialRows] = useState<SocialRow[]>([
+    { platform: 'instagram', url: '', followers: '' },
+  ])
 
   // Brand onboarding fields
   const [industry, setIndustry] = useState('')
   const [website, setWebsite] = useState('')
   const [brandSocial, setBrandSocial] = useState('') // Instagram handle → social_url
-
-  function setHandle(p: SignupPlatform, field: 'handle' | 'followers', val: string) {
-    setHandles(prev => ({ ...prev, [p]: { ...prev[p], [field]: val } }))
-  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -114,14 +104,15 @@ function SignupForm() {
       payload = { ...payload, industry, website: websiteUrl, social_url: socialUrl }
     } else {
       if (!niche) { toast.error('Pick your niche'); return }
-      const socials = SIGNUP_PLATFORMS
-        .filter(p => handles[p].handle.trim())
-        .map(p => ({
-          platform: p,
-          handle: handles[p].handle,
-          follower_count: handles[p].followers ? parseInt(handles[p].followers, 10) : null,
+      // Row order preserved → first profile becomes primary server-side.
+      const socials = socialRows
+        .filter(r => r.url.trim())
+        .map(r => ({
+          platform: r.platform,
+          handle: r.url.trim(),
+          follower_count: r.followers ? parseInt(r.followers, 10) : null,
         }))
-      if (socials.length === 0) { toast.error('Connect at least one social account'); return }
+      if (socials.length === 0) { toast.error('Add at least one social profile'); return }
       payload = { ...payload, niche, socials }
     }
 
@@ -220,15 +211,8 @@ function SignupForm() {
                 ))}
               </div>
             </Field>
-            <Field label="Connect your socials" hint="Add at least one — this is what brands see.">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {SIGNUP_PLATFORMS.map(p => (
-                  <SocialInput key={p} platform={SOCIAL_LABELS[p]}
-                    handle={handles[p].handle} followers={handles[p].followers}
-                    onHandle={v => setHandle(p, 'handle', v)}
-                    onFollowers={v => setHandle(p, 'followers', v)} />
-                ))}
-              </div>
+            <Field label="Connect your socials" hint="Add at least one — your first profile is shown to brands as primary.">
+              <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
             </Field>
           </>
         )}
