@@ -130,7 +130,8 @@ export async function POST(req: NextRequest) {
   } else {
     const { data: creator, error: creatorErr } = await admin.from('creator_profiles').insert({
       user_id: data.user.id,
-      niche: parsed.data.niche,
+      niche: parsed.data.niche ?? parsed.data.niche_tags[0],
+      niche_tags: parsed.data.niche_tags,
     }).select('id').single()
     if (creatorErr || !creator) {
       console.error('[SIGNUP] creator profile insert failed:', creatorErr)

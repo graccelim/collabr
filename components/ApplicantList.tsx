@@ -131,6 +131,10 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
       ) : filtered.map(app => {
         const creator = app.creator_profiles
         const name = creator?.users?.display_name || 'Creator'
+        const avatar = creator?.users?.avatar_url
+        // Open the profile on its own page, but carry where we came from so the
+        // back button returns to this campaign (not Discover).
+        const profileHref = creator?.id ? `/creators/${creator.id}?from=/campaigns/${campaignId}` : null
         const status = statuses[app.id]
         const platforms = Object.values(creator?.platforms || {})
         const totalFollowers = platforms.reduce((sum, p) => sum + (p.followers || 0), 0)
@@ -155,21 +159,23 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         const isOpen = status === 'pending' || status === 'shortlisted'
 
         return (
-          <div key={app.id} className="card" style={{ padding: 18 }}>
+          <div key={app.id} className="card card-hover" style={{ padding: 18, cursor: profileHref ? 'pointer' : 'default' }}
+            onClick={() => { if (profileHref) router.push(profileHref) }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start', minWidth: 0 }}>
                 <span style={{
-                  width: 48, height: 48, borderRadius: '50%', flexShrink: 0,
+                  width: 48, height: 48, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
                   background: 'var(--accent-tint)', color: 'var(--accent-deep)',
                   display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                   fontWeight: 600, fontSize: 16,
-                }}>{getInitials(name)}</span>
+                }}>
+                  {avatar
+                    ? <img src={avatar} alt={name} style={{ width: 48, height: 48, objectFit: 'cover' }} />
+                    : getInitials(name)}
+                </span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-                    {creator?.id
-                      ? <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
-                          style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</Link>
-                      : <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>}
+                    <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>
                     {isNew && status !== 'selected' && status !== 'rejected' && (
                       <span className="badge badge-neutral">New Creator</span>
                     )}
@@ -208,8 +214,8 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       })}
                     </div>
                   )}
-                  {creator?.id && (
-                    <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
+                  {profileHref && (
+                    <Link href={profileHref} onClick={e => e.stopPropagation()}
                       style={{ display: 'inline-block', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', marginTop: 8 }}>
                       View full profile →
                     </Link>
@@ -245,7 +251,8 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
               “{app.pitch}”
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 14, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
+            <div onClick={e => e.stopPropagation()}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingTop: 14, borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Their rate</span>
                 <span className="mono-num" style={{ fontSize: 15, fontWeight: 560, color: 'var(--ink)' }}>

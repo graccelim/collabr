@@ -15,8 +15,15 @@ import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
 import { ChevronLeft, MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
 
-export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
+export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
+  // Where "back" returns to. Defaults to Discover, but a `from` param (e.g. set
+  // when arriving from a campaign's applicant list) routes back there instead.
+  const safeFrom = searchParams.from && searchParams.from.startsWith('/') && !searchParams.from.startsWith('//')
+    ? searchParams.from : null
+  const backHref = safeFrom || '/creators'
+  const backLabel = safeFrom?.startsWith('/campaigns/') ? 'Back to applicants'
+    : safeFrom?.startsWith('/collabs/') ? 'Back to collab' : 'Discover'
   const supabase = createClient()
   const admin = createAdminClient()
 
@@ -123,38 +130,37 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   return (
     <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
       {isOwner ? (
-        <div className="eyebrow" style={{ marginBottom: 16, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
+        <div className="eyebrow" style={{ marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
           <ShieldCheck size={13} /> This is how brands see you
         </div>
       ) : (
-        <Link href="/creators" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 24 }}>
-          <ChevronLeft size={15} /> Discover
+        <Link href={backHref} style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--ink-faint-solid)', marginBottom: 28 }}>
+          <ChevronLeft size={15} /> {backLabel}
         </Link>
       )}
 
-      {/* identity — clean header card (no heavy cover band) */}
-      <div className="card" style={{ padding: 22, marginBottom: 26, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 18, flexWrap: 'wrap' }}>
-        {/* left — avatar + identity */}
-        <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
+      {/* identity — airy hero (no boxy card), hairline divider below */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
+        <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
           <div style={{
-            width: 76, height: 76, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
+            width: 92, height: 92, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
             background: avatar ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
             color: '#fff',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 28, letterSpacing: '-0.02em',
-            boxShadow: '0 0 0 1px var(--line)',
+            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 32, letterSpacing: '-0.02em',
+            boxShadow: '0 0 0 1px var(--line), 0 8px 24px -10px rgba(67,56,202,.35)',
           }}>
             {avatar
-              ? <img src={avatar} alt={name} style={{ width: 76, height: 76, objectFit: 'cover' }} />
+              ? <img src={avatar} alt={name} style={{ width: 92, height: 92, objectFit: 'cover' }} />
               : getInitials(name)}
           </div>
           <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-              <h1 className="h1" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+              <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
               {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
               {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
-              {primarySocial && <span>{socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}</span>}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 14px', marginTop: 9, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
+              {primarySocial && <span style={{ color: 'var(--ink-soft)', fontWeight: 540 }}>{socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}</span>}
               {creator.location && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <MapPin size={13} />{creator.location}
@@ -202,24 +208,18 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
         )}
       </div>
 
-      {/* stat band — tinted accents for a livelier feel */}
-      <div className="card resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', padding: 0, overflow: 'hidden', marginBottom: 36 }}>
-        {stats.map(([k, v, ctx], i) => {
-          const tints = [
-            { bar: 'var(--accent)', val: 'var(--accent-deep)' },
-            { bar: 'var(--money)', val: 'var(--money-deep)' },
-            { bar: 'var(--creator)', val: 'var(--ink)' },
-            { bar: 'var(--warn)', val: 'var(--warn-deep)' },
-          ][i % 4]
-          return (
-            <div key={k} style={{ position: 'relative', padding: '18px 20px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
-              <span style={{ position: 'absolute', top: 0, left: i ? 0 : 0, right: 0, height: 3, background: tints.bar, opacity: .85 }} />
-              <div className="eyebrow" style={{ fontSize: 10.5, marginBottom: 9 }}>{k}</div>
-              <div className="mono-num" style={{ fontSize: 22, fontWeight: 700, color: tints.val }}>{v}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{ctx}</div>
-            </div>
-          )
-        })}
+      {/* stat strip — clean, borderless, hairline dividers (no coloured bars) */}
+      <div className="resp-stats" style={{
+        display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 40,
+        borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)', padding: '20px 0',
+      }}>
+        {stats.map(([k, v, ctx], i) => (
+          <div key={k} style={{ padding: i === 0 ? '0 22px 0 2px' : '0 22px', borderLeft: i ? '1px solid var(--line)' : 'none' }}>
+            <div className="mono-num" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}>{v}</div>
+            <div className="eyebrow" style={{ fontSize: 10, marginTop: 7 }}>{k}</div>
+            <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{ctx}</div>
+          </div>
+        ))}
       </div>
 
       {/* two-column layout */}

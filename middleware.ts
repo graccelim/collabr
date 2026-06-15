@@ -35,7 +35,18 @@ export async function middleware(req: NextRequest) {
   if (isProtected && !user) {
     const loginUrl = new URL('/login', req.url)
     loginUrl.searchParams.set('next', pathname)
-    return NextResponse.redirect(loginUrl)
+    const redirect = NextResponse.redirect(loginUrl)
+    redirect.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate')
+    return redirect
+  }
+
+  // Authenticated pages must never be served from the browser's back/forward
+  // cache: after sign-out, pressing Back would otherwise show the previous
+  // account's page without re-running this middleware. `no-store` makes the page
+  // bfcache-ineligible, so Back re-requests it and an unauthenticated user is
+  // bounced to /login.
+  if (isProtected) {
+    res.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate')
   }
 
   return res

@@ -6,11 +6,14 @@ import toast from 'react-hot-toast'
 import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import {
-  CREATOR_NICHES, BRAND_INDUSTRIES,
-  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle, normalizeUrl,
-  type CreatorNiche,
+  CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
+  NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeUrl,
+  extractHandle, socialUrl as buildSocialUrl, socialUrlPrefix,
+  type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
+
+const MAX_SIGNUP_NICHES = 3
 
 /* Field wrapper per design: label · optional tag · hint */
 function Field({ label, hint, optional, children }: {
@@ -28,42 +31,6 @@ function Field({ label, hint, optional, children }: {
   )
 }
 
-/* Composite social input: platform prefix · @handle · followers (mono) */
-function SocialInput({ platform, handle, followers, onHandle, onFollowers }: {
-  platform: string
-  handle: string
-  followers?: string
-  onHandle: (v: string) => void
-  onFollowers?: (v: string) => void
-}) {
-  return (
-    <div style={{
-      display: 'flex', border: '1px solid var(--line-strong)', borderRadius: 'var(--radius-sm)',
-      overflow: 'hidden', height: 42, background: 'var(--surface)',
-    }}>
-      <div style={{
-        display: 'flex', alignItems: 'center', gap: 7, padding: '0 12px',
-        background: 'var(--surface-2)', borderRight: '1px solid var(--line)',
-        minWidth: 104, flexShrink: 0,
-      }}>
-        <span style={{
-          width: 20, height: 20, borderRadius: 6, background: 'var(--accent-tint)',
-          color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center',
-          justifyContent: 'center', fontSize: 10, fontWeight: 600,
-        }}>{platform.slice(0, 2).toUpperCase()}</span>
-        <span style={{ fontSize: 13, fontWeight: 530 }}>{platform}</span>
-      </div>
-      <input placeholder="@handle" value={handle} onChange={e => onHandle(e.target.value)}
-        style={{ flex: 1, border: 'none', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 14, fontFamily: 'var(--font-body)', minWidth: 0 }} />
-      {onFollowers && (
-        <input placeholder="Followers" value={followers} onChange={e => onFollowers(e.target.value)}
-          inputMode="numeric"
-          style={{ width: 88, border: 'none', borderLeft: '1px solid var(--line)', outline: 'none', background: 'transparent', padding: '0 12px', fontSize: 13, fontFamily: 'var(--font-mono)' }} />
-      )}
-    </div>
-  )
-}
-
 function SignupForm() {
   const router = useRouter()
   const params = useSearchParams()
@@ -76,8 +43,8 @@ function SignupForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const isBrand = role === 'brand'
 
-  // Creator onboarding fields (single niche — matches our schema)
-  const [niche, setNiche] = useState<CreatorNiche | ''>('')
+  // Creator onboarding fields — up to 3 niches; first is the primary niche.
+  const [niches, setNiches] = useState<CreatorNiche[]>([])
   const [socialRows, setSocialRows] = useState<SocialRow[]>([
     { platform: 'instagram', username: '', followers: '' },
   ])
@@ -85,7 +52,17 @@ function SignupForm() {
   // Brand onboarding fields
   const [industry, setIndustry] = useState('')
   const [website, setWebsite] = useState('')
-  const [brandSocial, setBrandSocial] = useState('') // Instagram handle → social_url
+  // Brand's single social profile — platform dropdown + username → social_url.
+  const [brandSocialPlatform, setBrandSocialPlatform] = useState<SocialPlatform>('instagram')
+  const [brandSocialUsername, setBrandSocialUsername] = useState('')
+
+  function toggleNiche(n: CreatorNiche) {
+    setNiches(prev => {
+      if (prev.includes(n)) return prev.filter(x => x !== n)
+      if (prev.length >= MAX_SIGNUP_NICHES) { toast.error(`Pick up to ${MAX_SIGNUP_NICHES} niches`); return prev }
+      return [...prev, n]
+    })
+  }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -95,15 +72,15 @@ function SignupForm() {
     let payload: Record<string, unknown> = { email, password, name, role }
     if (isBrand) {
       if (!industry) { toast.error('Pick your industry'); return }
-      const socialHandle = normalizeHandle(brandSocial)
-      const socialUrl = socialHandle ? `https://instagram.com/${socialHandle}` : null
+      const u = brandSocialUsername.trim()
+      const social = u ? buildSocialUrl(brandSocialPlatform, extractHandle(brandSocialPlatform, u)) : null
       const websiteUrl = normalizeUrl(website)
-      if (!websiteUrl && !socialUrl) {
-        toast.error('Add a website or a brand social'); return
+      if (!websiteUrl && !social) {
+        toast.error('Add a website, social profile, or Google Maps link'); return
       }
-      payload = { ...payload, industry, website: websiteUrl, social_url: socialUrl }
+      payload = { ...payload, industry, website: websiteUrl, social_url: social }
     } else {
-      if (!niche) { toast.error('Pick your niche'); return }
+      if (niches.length === 0) { toast.error('Pick at least one niche'); return }
       // Row order preserved → first profile becomes primary server-side.
       const socials = socialRows
         .filter(r => r.username.trim())
@@ -113,7 +90,7 @@ function SignupForm() {
           follower_count: r.followers ? parseInt(r.followers, 10) : null,
         }))
       if (socials.length === 0) { toast.error('Add at least one social profile'); return }
-      payload = { ...payload, niche, socials }
+      payload = { ...payload, niche: niches[0], niche_tags: niches, socials }
     }
 
     setStatus('loading')
@@ -172,23 +149,32 @@ function SignupForm() {
             <Field label="Password" hint="At least 8 characters.">
               <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
             </Field>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 170 }}>
-                <Field label="Industry">
-                  <select className="input" value={industry} onChange={e => setIndustry(e.target.value)} required disabled={busy}>
-                    <option value="">Select industry</option>
-                    {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
-                  </select>
-                </Field>
+            <Field label="Industry">
+              <select className="input" value={industry} onChange={e => setIndustry(e.target.value)} required disabled={busy}>
+                <option value="">Select industry</option>
+                {BRAND_INDUSTRIES.map(i => <option key={i} value={i}>{INDUSTRY_LABELS[i]}</option>)}
+              </select>
+            </Field>
+            <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing — a website or a social below is required.">
+              <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />
+            </Field>
+            <Field label="Brand social" hint="Helps creators trust you faster. Pick a platform and enter your handle.">
+              <div style={{ display: 'flex', gap: 8 }}>
+                <select className="input" style={{ width: 'auto', flexShrink: 0 }} value={brandSocialPlatform}
+                  onChange={e => setBrandSocialPlatform(e.target.value as SocialPlatform)} disabled={busy}>
+                  {SOCIAL_PLATFORMS.map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
+                </select>
+                {brandSocialPlatform === 'xiaohongshu' ? (
+                  <input className="input" style={{ flex: 1 }} inputMode="url" placeholder="Profile link"
+                    value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
+                ) : (
+                  <div className="affix-field" style={{ flex: 1 }}>
+                    <span className="affix">{socialUrlPrefix(brandSocialPlatform)}</span>
+                    <input autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="username"
+                      value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
+                  </div>
+                )}
               </div>
-              <div style={{ flex: 1, minWidth: 170 }}>
-                <Field label="Website" optional>
-                  <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com" disabled={busy} />
-                </Field>
-              </div>
-            </div>
-            <Field label="Brand social" optional hint="Helps creators trust you faster. A website or a social is required.">
-              <SocialInput platform="Instagram" handle={brandSocial} onHandle={setBrandSocial} />
             </Field>
           </>
         ) : (
@@ -202,10 +188,10 @@ function SignupForm() {
             <Field label="Password" hint="At least 8 characters.">
               <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
             </Field>
-            <Field label="Your niche" hint="Pick what you make — we match you to the right campaigns.">
+            <Field label="Your niches" hint={`Pick up to ${MAX_SIGNUP_NICHES} — we match you to the right campaigns. ${niches.length}/${MAX_SIGNUP_NICHES} selected`}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {CREATOR_NICHES.map(n => (
-                  <button key={n} type="button" onClick={() => setNiche(n)} className={`chip${niche === n ? ' on' : ''}`}>
+                  <button key={n} type="button" onClick={() => toggleNiche(n)} className={`chip${niches.includes(n) ? ' on' : ''}`}>
                     {NICHE_LABELS[n]}
                   </button>
                 ))}

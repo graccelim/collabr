@@ -48,7 +48,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
   const select = (key: string, options: ReadonlyArray<readonly [string, string]>) => (
     <select
       className="input"
-      style={{ width: 'auto', fontSize: 13, padding: '6px 10px' }}
+      style={{ width: 'auto', fontSize: 13, padding: '6px 32px 6px 11px' }}
       value={params.get(key) || ''}
       onChange={e => setParam(key, e.target.value)}
     >

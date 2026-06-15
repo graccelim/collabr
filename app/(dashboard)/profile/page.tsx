@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
   CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS, SOCIAL_LABELS, normalizeUrl,
-  socialHandleLabel,
+  socialHandleLabel, socialUrlPrefix,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
@@ -454,19 +454,29 @@ export default function ProfilePage() {
         {SOCIAL_PLATFORMS.every(p => socials.some(s => s.platform === p)) ? (
           <p className="text-xs text-gray-400">All platforms connected.</p>
         ) : (
-        <form onSubmit={addSocial} className="grid grid-cols-2 sm:grid-cols-[110px_1fr_1fr_auto] gap-2 items-center">
+        <form onSubmit={addSocial} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
           <select className="input" value={newPlatform}
             onChange={e => setNewPlatform(e.target.value as SocialPlatform)}>
             {SOCIAL_PLATFORMS.filter(p => !socials.some(s => s.platform === p))
               .map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
           </select>
-          <input className="input" placeholder={newPlatform === 'xiaohongshu' ? 'profile link' : '@handle'} value={newHandle}
-            onChange={e => setNewHandle(e.target.value)} />
-          <input className="input" type="number" min="0" placeholder="Followers" value={newFollowers}
-            onChange={e => setNewFollowers(e.target.value)} />
-          <button type="submit" className="btn-secondary text-sm" disabled={addingSocial || !newHandle.trim()}>
-            {addingSocial ? 'Adding…' : 'Add'}
-          </button>
+          {newPlatform === 'xiaohongshu' ? (
+            <input className="input" inputMode="url" placeholder="Paste your RED (Xiaohongshu) profile link"
+              value={newHandle} onChange={e => setNewHandle(e.target.value)} />
+          ) : (
+            <div className="affix-field">
+              <span className="affix">{socialUrlPrefix(newPlatform)}</span>
+              <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                placeholder="username" value={newHandle} onChange={e => setNewHandle(e.target.value)} />
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input className="input" type="number" min="0" placeholder="Follower count (optional)" style={{ flex: 1 }}
+              value={newFollowers} onChange={e => setNewFollowers(e.target.value)} />
+            <button type="submit" className="btn-secondary text-sm shrink-0" disabled={addingSocial || !newHandle.trim()}>
+              {addingSocial ? 'Adding…' : 'Add'}
+            </button>
+          </div>
         </form>
         )}
         <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>

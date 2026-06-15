@@ -31,11 +31,11 @@ export interface JobsListCampaign {
   matchReasons: string[]
 }
 
-// Tier-specific colour for the fit label (Best / Strong / Good).
+// Tier-specific colour for the fit label. Best Match gets the violet treatment;
+// Strong Fit and Good Fit share the same indigo (visually unified per design).
 export function matchClass(label: string | null): string {
   if (label === 'Best Match') return 'badge-match-best'
-  if (label === 'Good Fit') return 'badge-match-good'
-  return 'badge-match-strong' // Strong Fit + any default
+  return 'badge-match-strong' // Strong Fit + Good Fit + any default
 }
 
 // Colour-code each "why it fits" reason by what it means.
