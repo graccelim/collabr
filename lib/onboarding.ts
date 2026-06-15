@@ -15,8 +15,26 @@ export const BRAND_INDUSTRIES = [
 ] as const
 export type BrandIndustry = (typeof BRAND_INDUSTRIES)[number]
 
-export const SOCIAL_PLATFORMS = ['instagram', 'tiktok', 'youtube'] as const
+export const SOCIAL_PLATFORMS = ['instagram', 'tiktok', 'youtube', 'x', 'lemon8', 'xiaohongshu'] as const
 export type SocialPlatform = (typeof SOCIAL_PLATFORMS)[number]
+
+export const SOCIAL_LABELS: Record<SocialPlatform, string> = {
+  instagram: 'Instagram',
+  tiktok: 'TikTok',
+  youtube: 'YouTube',
+  x: 'X',
+  lemon8: 'Lemon8',
+  xiaohongshu: 'RED (Xiaohongshu)',
+}
+
+// Platforms whose handle reads as "@name". Xiaohongshu profiles are id-based
+// (no public @handle), so we show the id / a profile label instead.
+const AT_PLATFORMS = new Set<SocialPlatform>(['instagram', 'tiktok', 'youtube', 'x', 'lemon8'])
+
+/** Human-facing handle label for a social row ("@name" or the raw id). */
+export function socialHandleLabel(platform: SocialPlatform, handle: string): string {
+  return AT_PLATFORMS.has(platform) ? `@${handle}` : handle
+}
 
 export const INDUSTRY_LABELS: Record<BrandIndustry, string> = {
   fnb: 'F&B',
@@ -66,19 +84,47 @@ export const HANDLE_REGEX = /^[a-z0-9._-]{1,64}$/
 
 export function socialUrl(platform: SocialPlatform, handle: string): string {
   switch (platform) {
-    case 'instagram': return `https://instagram.com/${handle}`
-    case 'tiktok':    return `https://tiktok.com/@${handle}`
-    case 'youtube':   return `https://youtube.com/@${handle}`
+    case 'instagram':   return `https://instagram.com/${handle}`
+    case 'tiktok':      return `https://tiktok.com/@${handle}`
+    case 'youtube':     return `https://youtube.com/@${handle}`
+    case 'x':           return `https://x.com/${handle}`
+    case 'lemon8':      return `https://www.lemon8-app.com/@${handle}`
+    case 'xiaohongshu': return `https://www.xiaohongshu.com/user/profile/${handle}`
   }
+}
+
+/**
+ * Accept either a bare handle ("@girldevours") or a pasted profile URL and
+ * reduce it to the canonical, storable handle. For Xiaohongshu the "handle" is
+ * the profile id segment (".../user/profile/<id>"); for everyone else it's the
+ * last path segment with any leading '@' stripped. Always lowercased.
+ */
+export function extractHandle(platform: SocialPlatform, raw: string): string {
+  let t = (raw || '').trim()
+  if (!t) return ''
+  if (t.includes('/') || /^https?:/i.test(t)) {
+    if (platform === 'xiaohongshu') {
+      const m = t.match(/profile\/([^/?#]+)/i)
+      t = m ? m[1] : (t.split(/[/?#]/).filter(Boolean).pop() || t)
+    } else {
+      t = t.split(/[?#]/)[0].replace(/\/+$/, '')
+      t = t.split('/').filter(Boolean).pop() || t
+    }
+  }
+  return t.replace(/^@+/, '').toLowerCase()
 }
 
 export const socialAccountInputSchema = z.object({
   platform: z.enum(SOCIAL_PLATFORMS),
-  handle: z.string().min(1).max(80).transform(normalizeHandle)
-    .refine(h => HANDLE_REGEX.test(h), 'Handle may only contain letters, numbers, dots, dashes and underscores'),
+  handle: z.string().min(1).max(300),
   follower_count: z.number().int().min(0).max(1_000_000_000).nullish(),
   is_primary: z.boolean().optional(),
 })
+  .transform(v => ({ ...v, handle: extractHandle(v.platform, v.handle) }))
+  .refine(v => HANDLE_REGEX.test(v.handle), {
+    message: 'Enter a valid handle or profile link',
+    path: ['handle'],
+  })
 export type SocialAccountInput = z.infer<typeof socialAccountInputSchema>
 
 export const creatorOnboardingSchema = z.object({

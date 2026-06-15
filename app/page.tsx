@@ -17,15 +17,15 @@ const WHY = [
   { Icon: Target, title: 'Niche + budget matching', body: 'Recommendations weigh niche, audience and budget — for both sides.' },
   { Icon: Send, title: 'Brand invitations', body: 'Brands invite creators that already fit. Creators get found, not ignored.' },
   { Icon: Filter, title: 'Less noise, better fits', body: 'Skip the irrelevant applications and the endless directory scroll.' },
-  { Icon: Badge, title: 'Verified ownership', body: 'Creators verify they own their accounts. Follower counts stay clearly self-reported.' },
+  { Icon: Badge, title: 'Profiles you can check', body: 'Every creator lists their social profiles — open them in one click to see the real account. Follower counts stay clearly self-reported.' },
   { Icon: Lock, title: 'Secure escrow', body: 'Funds are held safely until content is approved — protected on both sides.' },
-  { Icon: Star, title: 'Two-way reviews', body: 'Both sides review each other after a paid collab — revealed together, so feedback stays honest.' },
+  { Icon: Star, title: 'Two-way reviews', body: 'Both sides review each other after a paid collab — revealed together, so feedback stays honest. Reputation is built only through completed collaborations.' },
 ]
 
 const STEPS = {
   brand: [
     ['Get matched', 'Creators recommended for your niche and budget.'],
-    ['Invite creators', 'Reach out directly, or review verified applicants.'],
+    ['Invite creators', 'Reach out directly, or review applicants and their profiles.'],
     ['Approve content', 'Drafts are submitted privately for your review.'],
     ['Release payment', 'Confirm and escrow releases automatically.'],
   ],
@@ -41,7 +41,7 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   { value: <CountUp to={100} suffix="%" />, label: 'Funds protected', sub: 'held until content is approved' },
   { value: <CountUp to={48} suffix="h" />, label: 'Review window', sub: 'auto-approves if no response' },
   { value: <CountUp to={3} suffix=" days" />, label: 'Dispute resolution', sub: 'platform mediates fairly' },
-  { value: 'Verified', label: 'Account ownership', sub: 'no fakes about who’s who' },
+  { value: 'Real', label: 'Reviews & ratings', sub: 'only from completed collabs' },
 ]
 
 export default function HomePage() {
@@ -90,7 +90,7 @@ export default function HomePage() {
               Find the right creators.
             </h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11, marginBottom: 30 }}>
-              {['Matched to your niche and budget', 'Verified creators, secure escrow payments'].map(t => (
+              {['Matched to your niche and budget', 'Creator-provided profiles, secure escrow payments'].map(t => (
                 <div key={t} style={{ display: 'flex', alignItems: 'center', gap: 9, color: 'rgba(255,255,255,.82)', fontSize: 14.5 }}>
                   <span style={{ color: 'var(--accent-on-dark)', flexShrink: 0 }}><Check /></span>{t}
                 </div>

@@ -6,14 +6,15 @@ import toast from 'react-hot-toast'
 import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import {
-  CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS, normalizeHandle, normalizeUrl,
-  type CreatorNiche, type SocialPlatform,
+  CREATOR_NICHES, BRAND_INDUSTRIES,
+  NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeHandle, normalizeUrl,
+  type CreatorNiche,
 } from '@/lib/onboarding'
 
-const PLATFORM_LABEL: Record<SocialPlatform, string> = {
-  instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube',
-}
+// Signup stays quick with the three majors; creators add X / Lemon8 / RED later
+// from their profile (Social profiles section).
+const SIGNUP_PLATFORMS = ['instagram', 'tiktok', 'youtube'] as const
+type SignupPlatform = (typeof SIGNUP_PLATFORMS)[number]
 
 /* Field wrapper per design: label · optional tag · hint */
 function Field({ label, hint, optional, children }: {
@@ -81,7 +82,7 @@ function SignupForm() {
 
   // Creator onboarding fields (single niche — matches our schema)
   const [niche, setNiche] = useState<CreatorNiche | ''>('')
-  const [handles, setHandles] = useState<Record<SocialPlatform, { handle: string; followers: string }>>({
+  const [handles, setHandles] = useState<Record<SignupPlatform, { handle: string; followers: string }>>({
     instagram: { handle: '', followers: '' },
     tiktok: { handle: '', followers: '' },
     youtube: { handle: '', followers: '' },
@@ -92,7 +93,7 @@ function SignupForm() {
   const [website, setWebsite] = useState('')
   const [brandSocial, setBrandSocial] = useState('') // Instagram handle → social_url
 
-  function setHandle(p: SocialPlatform, field: 'handle' | 'followers', val: string) {
+  function setHandle(p: SignupPlatform, field: 'handle' | 'followers', val: string) {
     setHandles(prev => ({ ...prev, [p]: { ...prev[p], [field]: val } }))
   }
 
@@ -113,7 +114,7 @@ function SignupForm() {
       payload = { ...payload, industry, website: websiteUrl, social_url: socialUrl }
     } else {
       if (!niche) { toast.error('Pick your niche'); return }
-      const socials = SOCIAL_PLATFORMS
+      const socials = SIGNUP_PLATFORMS
         .filter(p => handles[p].handle.trim())
         .map(p => ({
           platform: p,
@@ -221,8 +222,8 @@ function SignupForm() {
             </Field>
             <Field label="Connect your socials" hint="Add at least one — this is what brands see.">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-                {SOCIAL_PLATFORMS.map(p => (
-                  <SocialInput key={p} platform={PLATFORM_LABEL[p]}
+                {SIGNUP_PLATFORMS.map(p => (
+                  <SocialInput key={p} platform={SOCIAL_LABELS[p]}
                     handle={handles[p].handle} followers={handles[p].followers}
                     onHandle={v => setHandle(p, 'handle', v)}
                     onFollowers={v => setHandle(p, 'followers', v)} />

@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, Check, Target, Wallet, ShieldCheck, CircleCheck, Building2, Award } from 'lucide-react'
+import { Sparkles, ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
@@ -43,7 +43,6 @@ export function reasonStyle(reason: string): { bg: string; fg: string; Icon: typ
   const r = reason.toLowerCase()
   if (r.includes('niche')) return { bg: 'rgba(249,115,22,.13)', fg: '#C2410C', Icon: Target }
   if (r.includes('rate') || r.includes('budget')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: Wallet }
-  if (r.includes('verified')) return { bg: 'var(--money-tint)', fg: 'var(--money-deep)', Icon: ShieldCheck }
   if (r.includes('available')) return { bg: '#E6F4FB', fg: '#0E6F9E', Icon: CircleCheck }
   if (r.includes('brand')) return { bg: 'var(--warn-tint)', fg: 'var(--warn-deep)', Icon: Building2 }
   if (r.includes('complet') || r.includes('collaborat')) return { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)', Icon: Award }

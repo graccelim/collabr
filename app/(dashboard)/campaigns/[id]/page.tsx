@@ -55,25 +55,30 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     if (c.application_id) collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status }
   }
 
-  // Honest ranking inputs: socials (self-reported reach + ownership verification)
-  // and the creator_scores row are fetched via the admin client for the applicant
-  // creator profile ids, then mapped to ranking signals and passed down.
+  // Honest ranking inputs: socials (self-reported reach) and the creator_scores
+  // row are fetched via the admin client for the applicant creator profile ids,
+  // then mapped to ranking signals and passed down. Handles/URLs ride along so
+  // the brand can open and check each profile without leaving the page.
   const creatorIds = (applications || [])
     .map(a => a.creator_profiles?.id)
     .filter((id): id is string => Boolean(id))
-  const socialsByCreator: Record<string, { follower_count: number | null; verification_status: string | null }[]> = {}
+  type ApplicantSocial = { creator_id: string; platform: string; handle: string; url: string; follower_count: number | null; is_primary: boolean }
+  const socialsByCreator: Record<string, { follower_count: number | null }[]> = {}
+  const socialLinksByCreator: Record<string, { platform: string; handle: string; url: string }[]> = {}
   const scoreByCreator: Record<string, ScoreRow> = {}
   if (creatorIds.length > 0) {
     const admin = createAdminClient()
     const [{ data: socials }, { data: scores }] = await Promise.all([
       admin.from('social_accounts')
-        .select('creator_id, follower_count, verification_status').in('creator_id', creatorIds),
+        .select('creator_id, platform, handle, url, follower_count, is_primary').in('creator_id', creatorIds)
+        .order('is_primary', { ascending: false }).order('follower_count', { ascending: false, nullsFirst: false }),
       admin.from('creator_scores')
-        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded, verification_tier')
+        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded')
         .in('creator_id', creatorIds),
     ])
-    for (const s of (socials || []) as { creator_id: string; follower_count: number | null; verification_status: string | null }[]) {
-      (socialsByCreator[s.creator_id] ||= []).push({ follower_count: s.follower_count, verification_status: s.verification_status })
+    for (const s of (socials || []) as ApplicantSocial[]) {
+      (socialsByCreator[s.creator_id] ||= []).push({ follower_count: s.follower_count })
+      ;(socialLinksByCreator[s.creator_id] ||= []).push({ platform: s.platform, handle: s.handle, url: s.url })
     }
     for (const sc of (scores || []) as (ScoreRow & { creator_id: string })[]) {
       scoreByCreator[sc.creator_id] = sc
@@ -95,7 +100,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       const indicators = creatorSignals ? creatorIndicators(creatorSignals, campaignSignals) : null
       const rankScore = (match?.score ?? 0) + (app.is_boosted ? BOOST_TIEBREAK : 0)
       const collab = collabByApp[app.id]
-      return { ...app, match, indicators, _rankScore: rankScore, collab_id: collab?.id, collab_payment_status: collab?.payment_status }
+      const socials = creatorRow ? (socialLinksByCreator[creatorRow.id] || []) : []
+      return { ...app, match, indicators, socials, _rankScore: rankScore, collab_id: collab?.id, collab_payment_status: collab?.payment_status }
     })
     .sort((a, b) => b._rankScore - a._rankScore)
 

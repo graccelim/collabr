@@ -5,8 +5,7 @@ export type CollabStatus =
   | 'live_submitted' | 'live_confirmed' | 'disputed' | 'completed' | 'cancelled'
 
 export type CompType = 'paid' | 'barter' | 'both'
-export type SocialPlatform = 'instagram' | 'tiktok' | 'youtube'
-export type SocialVerificationStatus = 'unverified' | 'pending' | 'verified'
+export type SocialPlatform = 'instagram' | 'tiktok' | 'youtube' | 'x' | 'lemon8' | 'xiaohongshu'
 export type AvailabilityStatus = 'available' | 'limited' | 'unavailable'
 export type DisputeOutcome = 'pending' | 'creator_wins' | 'brand_wins' | 'split' | 'mutual'
 export type ApplicationStatus = 'pending' | 'shortlisted' | 'selected' | 'rejected'
@@ -47,16 +46,9 @@ export interface SocialAccount {
   handle: string
   url: string
   follower_count: number | null
-  verification_status: SocialVerificationStatus
   is_primary: boolean
   created_at: string
   updated_at: string
-  // Bio-code ownership verification (Phase 15)
-  verification_method?: 'bio_code' | 'oauth' | null
-  verification_code?: string | null
-  verification_code_expires_at?: string | null
-  verified_at?: string | null
-  verified_follower_count?: number | null
 }
 
 export interface CreatorProfile {

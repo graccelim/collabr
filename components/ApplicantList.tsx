@@ -3,9 +3,11 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Shield, Zap, Check, Bookmark, UserPlus, Search } from 'lucide-react'
+import { Shield, Zap, Check, Bookmark, UserPlus, Search, ExternalLink } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import { matchClass, reasonStyle } from '@/components/JobsList'
+import { socialIcon } from '@/components/SocialIcon'
+import { SOCIAL_LABELS, socialHandleLabel, type SocialPlatform } from '@/lib/onboarding'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
 interface Application {
@@ -19,8 +21,10 @@ interface Application {
   collab_payment_status?: string
   /** Honest creator↔campaign match (null when there's no credible fit to claim). */
   match?: MatchResult | null
-  /** Boolean trust indicators (verified ownership, availability, etc). */
+  /** Boolean trust indicators (availability, completed collabs, etc). */
   indicators?: CreatorIndicators | null
+  /** Creator-provided social profiles — clickable so the brand can verify them. */
+  socials?: { platform: string; handle: string; url: string }[]
   creator_profiles?: {
     id?: string
     bio?: string | null
@@ -46,8 +50,6 @@ interface Props {
   campaign?: CampaignFit
   spotsLeft?: number
 }
-
-const OWNERSHIP_NOTE = 'Account ownership verified — follower counts are self-reported'
 
 export default function ApplicantList({ applications, campaignId, campaign, spotsLeft = 0 }: Props) {
   const router = useRouter()
@@ -138,9 +140,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         // Honest label only when computeMatch found a credible niche fit.
         const matchLabel = match?.label ?? null
         const reasons = match?.reasons ?? []
-        // "Verified Account" reflects social OWNERSHIP only — never the stale
-        // creator_profiles.is_verified flag.
-        const verified = indicators?.verified ?? false
+        const socials = app.socials ?? []
         const isNew = indicators?.isNew ?? false
         const showRating = indicators?.showRating ?? Boolean(creator?.rating_count)
 
@@ -170,11 +170,6 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       ? <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
                           style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</Link>
                       : <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>}
-                    {verified && (
-                      <span className="badge badge-money" title={OWNERSHIP_NOTE} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                        <Shield size={11} /> Verified Account
-                      </span>
-                    )}
                     {isNew && status !== 'selected' && status !== 'rejected' && (
                       <span className="badge badge-neutral">New Creator</span>
                     )}
@@ -191,9 +186,31 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     {sub}
                     {showRating && creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
                   </div>
+                  {/* Creator-provided socials — one click to check each account */}
+                  {socials.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+                      {socials.map(s => {
+                        const Icon = socialIcon(s.platform)
+                        return (
+                          <a key={s.platform + s.handle} href={s.url} target="_blank" rel="noopener noreferrer"
+                            title={`${SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform} — opens in a new tab`}
+                            onClick={e => e.stopPropagation()}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px',
+                              borderRadius: 99, border: '1px solid var(--line)', background: 'var(--surface)',
+                              fontSize: 12, color: 'var(--ink-soft)', textDecoration: 'none',
+                            }}>
+                            <Icon size={12} style={{ flexShrink: 0 }} />
+                            {socialHandleLabel(s.platform as SocialPlatform, s.handle)}
+                            <ExternalLink size={11} style={{ flexShrink: 0, opacity: 0.6 }} />
+                          </a>
+                        )
+                      })}
+                    </div>
+                  )}
                   {creator?.id && (
                     <Link href={`/creators/${creator.id}`} target="_blank" rel="noopener noreferrer"
-                      style={{ display: 'inline-block', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', marginTop: 5 }}>
+                      style={{ display: 'inline-block', fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)', marginTop: 8 }}>
                       View full profile →
                     </Link>
                   )}

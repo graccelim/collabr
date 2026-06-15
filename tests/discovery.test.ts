@@ -41,7 +41,7 @@ describe('niche normalization', () => {
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const baseCreator = (o: Partial<CreatorSignals> = {}): CreatorSignals => ({
   id: 'c', niches: ['food'], followers: 10000, rate: 20000, availability: 'available',
-  verifiedOwnership: false, completedCollabs: 0, ratingAvg: 0, ratingCount: 0, ...o,
+  completedCollabs: 0, ratingAvg: 0, ratingCount: 0, ...o,
 })
 const campaign = (o: Partial<CampaignSignals> = {}): CampaignSignals => ({
   niches: ['food'], minFollowers: 5000, budgetMin: 10000, budgetMax: 50000, compType: 'paid', ...o,
@@ -60,14 +60,15 @@ describe('budgetFit', () => {
 // ── match + honest labels ───────────────────────────────────────────────────
 describe('computeMatch', () => {
   it('a same-niche, in-budget, available creator earns a fit tier and honest reasons', () => {
-    const m = computeMatch(baseCreator({ completedCollabs: 3, verifiedOwnership: true }), campaign())
+    const m = computeMatch(baseCreator({ completedCollabs: 3 }), campaign())
     expect(['best', 'strong', 'good']).toContain(m.tier)
     expect(m.label).toMatch(/Match|Fit/)
     expect(m.reasons).toContain('Same niche as your campaign')
     expect(m.reasons).toContain('Fits your budget')
     expect(m.reasons).toContain('Available for collaborations')
-    expect(m.reasons).toContain('Verified account ownership')
     expect(m.reasons.some(r => /Completed 3 collaboration/.test(r))).toBe(true)
+    // never claims social-ownership verification (beta has no such concept)
+    expect(m.reasons.some(r => /verif/i.test(r))).toBe(false)
     // never a raw percentage
     expect(JSON.stringify(m)).not.toMatch(/%/)
   })
@@ -77,13 +78,6 @@ describe('computeMatch', () => {
     expect(m.tier).toBe('none')
     expect(m.label).toBeNull()
     expect(m.reasons).not.toContain('Same niche as your campaign')
-  })
-
-  it('discounts self-reported reach until ownership is verified', () => {
-    const c = campaign({ minFollowers: 100000 })
-    const unverified = computeMatch(baseCreator({ followers: 100000, verifiedOwnership: false }), c).score
-    const verified = computeMatch(baseCreator({ followers: 100000, verifiedOwnership: true }), c).score
-    expect(verified).toBeGreaterThan(unverified)
   })
 })
 
@@ -145,14 +139,12 @@ describe('creatorIndicators (fallback labels)', () => {
     expect(ind.isNew).toBe(true)                 // → "New Creator"
     expect(ind.showRating).toBe(false)           // no fabricated rating
     expect(ind.available).toBe(true)
-    expect(ind.verified).toBe(false)             // no unearned "Verified"
   })
-  it('shows verified + experience for an established creator', () => {
-    const ind = creatorIndicators(baseCreator({ completedCollabs: 5, ratingCount: 4, verifiedOwnership: true }), campaign())
+  it('shows experience for an established creator', () => {
+    const ind = creatorIndicators(baseCreator({ completedCollabs: 5, ratingCount: 4 }), campaign())
     expect(ind.isNew).toBe(false)
     expect(ind.completedCollabs).toBe(5)
     expect(ind.showRating).toBe(true)
-    expect(ind.verified).toBe(true)
     expect(ind.fitsBudget).toBe(true)
   })
 })

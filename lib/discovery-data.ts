@@ -21,7 +21,6 @@ export interface CreatorRow {
 
 export interface SocialRow {
   follower_count?: number | null
-  verification_status?: string | null
 }
 
 export interface ScoreRow {
@@ -30,17 +29,11 @@ export interface ScoreRow {
   response_rate_shrunk?: number | null
   response_rate?: number | null
   invites_concluded?: number | null
-  verification_tier?: number | null
 }
 
 /** Best self-reported follower count across a creator's socials. */
 export function followerCount(socials: SocialRow[]): number {
   return bestFollowers(socials as { follower_count: number | null }[])
-}
-
-/** True when ≥1 social has verified OWNERSHIP (never implies reach). */
-export function hasVerifiedOwnership(socials: SocialRow[]): boolean {
-  return socials.some(s => s.verification_status === 'verified')
 }
 
 export function toCreatorSignals(creator: CreatorRow, socials: SocialRow[], score?: ScoreRow | null): CreatorSignals {
@@ -53,7 +46,6 @@ export function toCreatorSignals(creator: CreatorRow, socials: SocialRow[], scor
     followers: followerCount(socials),
     rate: creator.average_rate_sgd ?? creator.base_rate ?? null,
     availability: ['available', 'limited', 'unavailable'].includes(avail) ? avail : 'available',
-    verifiedOwnership: hasVerifiedOwnership(socials),
     completedCollabs: creator.collabs_completed ?? 0,
     ratingAvg: Number(creator.rating_avg ?? 0),
     ratingCount: creator.rating_count ?? 0,
@@ -100,6 +92,3 @@ export function toCampaignForCreator(c: CampaignRow & { is_featured?: boolean | 
     isFeatured: Boolean(c.is_featured),
   }
 }
-
-/** Verified-ownership tier label for badges (never implies follower verification). */
-export const VERIFICATION_NOTE = 'Account ownership verified — follower counts are self-reported'

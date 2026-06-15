@@ -3,16 +3,17 @@ import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { formatSGD, getInitials } from '@/lib/utils'
-import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { NICHE_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import CreatorFilters from '@/components/CreatorFilters'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import EmptyState from '@/components/EmptyState'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
-import { Users, Star, BadgeCheck, Sparkles, ShieldCheck } from 'lucide-react'
+import { Users, Star, Sparkles } from 'lucide-react'
 import type { SocialAccount } from '@/types'
+import { socialIcon } from '@/components/SocialIcon'
 import { rankCreators, creatorIndicators } from '@/lib/recommend'
-import { toCreatorSignals, VERIFICATION_NOTE, type ScoreRow } from '@/lib/discovery-data'
+import { toCreatorSignals, type ScoreRow } from '@/lib/discovery-data'
 import { boostEnabled } from '@/lib/stripe'
 
 const PAGE_SIZE = 12
@@ -26,7 +27,6 @@ interface Search {
   followers?: string
   availability?: string
   maxRate?: string
-  verified?: string
   location?: string
   saved?: string
   sort?: string
@@ -90,15 +90,6 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     idFilter = idFilter ? idFilter.filter(id => savedIds.includes(id)) : savedIds
   }
 
-  // "Verified" means REAL account-ownership verification on ≥1 social — not the
-  // stale creator_profiles.is_verified flag (which nothing sets).
-  if (searchParams.verified === '1') {
-    const { data: vmatches } = await supabase.from('social_accounts')
-      .select('creator_id').eq('verification_status', 'verified').limit(5000)
-    const verifiedIds = Array.from(new Set((vmatches || []).map(m => m.creator_id)))
-    idFilter = idFilter ? idFilter.filter(id => verifiedIds.includes(id)) : verifiedIds
-  }
-
   // ── Main query ──────────────────────────────────────────────────────────────
   // Admin client: creator profiles are public data, but the users join
   // (display name / avatar) is RLS-limited to own-row for session clients.
@@ -155,12 +146,12 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     // Explicit columns — verification_code is not client-readable (migration 017).
     const [{ data: socials }, { data: scores }, savedRes] = await Promise.all([
       supabase.from('social_accounts')
-        .select('id, creator_id, platform, handle, url, follower_count, verification_status, verification_method, verified_at, is_primary, created_at, updated_at')
+        .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
         .in('creator_id', pageIds)
         .order('is_primary', { ascending: false })
         .order('follower_count', { ascending: false, nullsFirst: false }),
       admin.from('creator_scores')
-        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded, verification_tier')
+        .select('creator_id, quality_score, reliability_score, response_rate_shrunk, response_rate, invites_concluded')
         .in('creator_id', pageIds),
       brand
         ? admin.from('saved_creators')
@@ -274,29 +265,26 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
                   <SaveCreatorButton creatorId={c.id} initialSaved={savedSet.has(c.id)} compact />
                 </div>
 
-                {/* name + verified + availability dot */}
+                {/* name + availability dot + platform icons */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 13 }}>
                   <span style={{ fontWeight: 600, fontSize: 15.5, letterSpacing: '-0.01em', color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {name}
                   </span>
-                  {indicators.verified && (
-                    <span title="Account ownership verified" style={{ display: 'inline-flex', flexShrink: 0 }}>
-                      <BadgeCheck size={15} style={{ color: 'var(--accent)' }} />
-                    </span>
-                  )}
                   {availability === 'available' && (
                     <span title="Available" style={{ width: 6, height: 6, borderRadius: 99, background: 'var(--money)', flexShrink: 0, marginLeft: 2 }} />
+                  )}
+                  {socials.length > 0 && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, marginLeft: 'auto', flexShrink: 0, color: 'var(--ink-faint-solid)' }}>
+                      {socials.slice(0, 4).map(s => {
+                        const Icon = socialIcon(s.platform)
+                        return <Icon key={s.id} size={14} aria-label={s.platform} />
+                      })}
+                    </span>
                   )}
                 </div>
 
                 {/* honest trust indicators */}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
-                  {indicators.verified && (
-                    <span className="badge badge-money" title={VERIFICATION_NOTE}
-                      style={{ fontSize: 10.5, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                      <ShieldCheck size={11} /> Verified Account
-                    </span>
-                  )}
                   {indicators.available && (
                     <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Available Now</span>
                   )}
@@ -307,7 +295,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
 
                 {/* handle · niche */}
                 <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {primary ? `@${primary.handle}` : (c.location || 'collabr creator')}
+                  {primary ? socialHandleLabel(primary.platform as SocialPlatform, primary.handle) : (c.location || 'collabr creator')}
                   {primaryNiche ? ` · ${primaryNiche}` : ''}
                 </div>
 

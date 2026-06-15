@@ -42,7 +42,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     router.push(`/creators?${next.toString()}`)
   }
 
-  const hasFilters = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'verified', 'location', 'saved']
+  const hasFilters = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'location', 'saved']
     .some(k => params.get(k))
 
   const select = (key: string, options: ReadonlyArray<readonly [string, string]>) => (
@@ -78,14 +78,6 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
           }
         }}
       />
-
-      <button
-        type="button"
-        className={`chip${params.get('verified') === '1' ? ' on' : ''}`}
-        onClick={() => setParam('verified', params.get('verified') === '1' ? '' : '1')}
-      >
-        Verified
-      </button>
 
       {showSaved && (
         <button

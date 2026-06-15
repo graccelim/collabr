@@ -584,7 +584,7 @@ async function CreatorDashboard({
       .limit(6),
     supabase
       .from('social_accounts')
-      .select('follower_count, verification_status')
+      .select('follower_count')
       .eq('creator_id', creator.id),
     createAdminClient()
       .from('creator_profiles')
@@ -630,10 +630,7 @@ async function CreatorDashboard({
   // never a percentage or numeric score.
   const creatorSignals = toCreatorSignals(
     creator,
-    (socials || []) as {
-      follower_count: number | null;
-      verification_status: string | null;
-    }[],
+    (socials || []) as { follower_count: number | null }[],
     scoreRow
   );
   const unappliedCampaigns = (openCampaigns || []).filter(

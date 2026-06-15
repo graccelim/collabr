@@ -4,21 +4,16 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
-  CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS, normalizeUrl,
+  CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS, SOCIAL_LABELS, normalizeUrl,
+  socialHandleLabel,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import { creatorCompletion } from '@/lib/profile-completion'
 import { getInitials } from '@/lib/utils'
-import { Star, Instagram, Youtube, Music2 } from 'lucide-react'
+import { Star } from 'lucide-react'
+import { socialIcon } from '@/components/SocialIcon'
 import type { SocialAccount } from '@/types'
-
-// Per-platform glyph for the social rows (lucide has no TikTok mark — Music2 reads as short-form video).
-const PLATFORM_ICON: Record<string, typeof Instagram> = {
-  instagram: Instagram,
-  youtube: Youtube,
-  tiktok: Music2,
-}
 
 // Stable serialization of the editable fields — used to detect whether anything
 // changed since load so we can disable "Save profile" when there's no diff.
@@ -405,7 +400,7 @@ export default function ProfilePage() {
           <p className="text-xs text-gray-400">No accounts connected yet — add at least one to complete onboarding.</p>
         )}
         {socials.map(s => {
-          const Icon = PLATFORM_ICON[s.platform] || Star
+          const Icon = socialIcon(s.platform)
           return (
             <div key={s.id} style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
@@ -423,7 +418,7 @@ export default function ProfilePage() {
                 </span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <span className="capitalize" style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{s.platform}</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
                     {s.is_primary && (
                       <span className="badge" style={{
                         display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 700,
@@ -435,7 +430,7 @@ export default function ProfilePage() {
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 1 }}>
                     <a href={s.url} target="_blank" rel="noopener noreferrer"
-                      className="hover:underline" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>@{s.handle}</a>
+                      className="hover:underline" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{socialHandleLabel(s.platform as SocialPlatform, s.handle)}</a>
                     {s.follower_count != null && (
                       <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }} title="Self-reported">
                         · {s.follower_count.toLocaleString()} followers
@@ -463,9 +458,9 @@ export default function ProfilePage() {
           <select className="input" value={newPlatform}
             onChange={e => setNewPlatform(e.target.value as SocialPlatform)}>
             {SOCIAL_PLATFORMS.filter(p => !socials.some(s => s.platform === p))
-              .map(p => <option key={p} value={p}>{p}</option>)}
+              .map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
           </select>
-          <input className="input" placeholder="@handle" value={newHandle}
+          <input className="input" placeholder={newPlatform === 'xiaohongshu' ? 'profile link' : '@handle'} value={newHandle}
             onChange={e => setNewHandle(e.target.value)} />
           <input className="input" type="number" min="0" placeholder="Followers" value={newFollowers}
             onChange={e => setNewFollowers(e.target.value)} />

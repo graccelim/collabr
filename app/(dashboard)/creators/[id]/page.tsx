@@ -1,19 +1,19 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth, getUserRow } from '@/lib/auth'
 import { formatSGD, getInitials } from '@/lib/utils'
-import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
+import { socialIcon } from '@/components/SocialIcon'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 import type { SocialAccount } from '@/types'
-import { hasVerifiedOwnership, VERIFICATION_NOTE } from '@/lib/discovery-data'
 import { responseStanding } from '@/lib/recommend'
 import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
+import { ChevronLeft, MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -37,7 +37,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     viewer,
   ] = await Promise.all([
     supabase.from('social_accounts')
-      .select('id, creator_id, platform, handle, url, follower_count, verification_status, verification_method, verified_at, is_primary, created_at, updated_at')
+      .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
       .eq('creator_id', params.id)
       .order('is_primary', { ascending: false }).order('created_at'),
     supabase.rpc('user_email_verified', { p_user_id: creator.user_id }),
@@ -102,8 +102,6 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
   const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
   const rate = creator.average_rate_sgd ?? creator.base_rate
 
-  // Honest trust signals: ownership verified ≠ follower reach verified.
-  const verifiedOwnership = hasVerifiedOwnership(socials)
   const completedCollabs = creator.collabs_completed || 0
   const isNewCreator = completedCollabs === 0
   const showRating = (creator.rating_count || 0) >= 1
@@ -152,17 +150,11 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               <h1 className="h1" style={{ fontSize: 26, fontWeight: 700, letterSpacing: '-0.02em' }}>{name}</h1>
-              {verifiedOwnership && (
-                <span className="badge badge-money" title={VERIFICATION_NOTE}
-                  style={{ fontSize: 11, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <ShieldCheck size={12} /> Verified Account
-                </span>
-              )}
               {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
               {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginTop: 7, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
-              {primarySocial && <span>@{primarySocial.handle}</span>}
+              {primarySocial && <span>{socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}</span>}
               {creator.location && (
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                   <MapPin size={13} />{creator.location}
@@ -349,68 +341,67 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             </div>
           </div>
 
-          {/* Connected accounts */}
+          {/* Social profiles — creator-provided, clickable so brands verify themselves */}
           <div>
-            <div className="eyebrow" style={{ marginBottom: 4 }}>Connected accounts</div>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Social profiles</div>
             {socials.length > 0 ? (
               <>
-                {socials.map(s => (
-                  <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderTop: '1px solid var(--line)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
-                      <div style={{
-                        width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-                        background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 600, fontSize: 11, textTransform: 'capitalize',
-                      }}>{s.platform[0].toUpperCase()}</div>
-                      <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: 13, color: 'var(--ink)', textTransform: 'capitalize', display: 'flex', alignItems: 'center', gap: 5 }}>
-                          {s.platform}
-                          {s.is_primary && <span style={{ fontSize: 9.5, color: 'var(--ink-faint-solid)' }}>Primary</span>}
-                        </div>
-                        {s.handle && <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>@{s.handle}</div>}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                      {s.follower_count != null && (
-                        <span className="mono-num" title="Self-reported follower count" style={{ fontSize: 13, color: 'var(--ink)' }}>{s.follower_count.toLocaleString()}</span>
-                      )}
-                      {s.verification_status === 'verified' && (
-                        <span title={VERIFICATION_NOTE} style={{ display: 'inline-flex' }}>
-                          <ShieldCheck size={14} style={{ color: 'var(--money)' }} />
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {socials.map(s => {
+                    const Icon = socialIcon(s.platform)
+                    return (
+                      <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
+                        className="card card-hover"
+                        style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
+                        <span style={{
+                          width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center',
+                          background: 'var(--accent-tint)', color: 'var(--accent-deep)',
+                        }}>
+                          <Icon size={16} />
                         </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 10, color: 'var(--ink-faint-solid)' }}>
-                  <Lock size={12} />
-                  <span style={{ fontSize: 11 }}>Connected accounts · follower counts are self-reported</span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
+                            {s.is_primary && (
+                              <span className="badge badge-accent" style={{ fontSize: 9.5, padding: '1px 6px' }}>Primary</span>
+                            )}
+                          </span>
+                          <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {socialHandleLabel(s.platform as SocialPlatform, s.handle)}
+                            {s.follower_count != null && ` · ${s.follower_count.toLocaleString()} followers`}
+                          </span>
+                        </span>
+                        <ExternalLink size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
+                      </a>
+                    )
+                  })}
                 </div>
+                <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 10, lineHeight: 1.5 }}>
+                  Social profiles are creator-provided — open them to check the account yourself. Follower counts are self-reported.
+                </p>
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
               // Legacy fallback for profiles created before normalized socials
-              Object.entries(creator.platforms as Record<string, { handle: string; followers: number; verified: boolean }>)
-                .map(([platform, info]) => (
-                  <div key={platform} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderTop: '1px solid var(--line)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{
-                        width: 26, height: 26, borderRadius: 7, flexShrink: 0,
-                        background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontWeight: 600, fontSize: 11,
-                      }}>{platform[0].toUpperCase()}</div>
-                      <div>
-                        <div style={{ fontSize: 13, color: 'var(--ink)', textTransform: 'capitalize' }}>{platform}</div>
-                        {info.handle && <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>@{info.handle}</div>}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {Object.entries(creator.platforms as Record<string, { handle: string; followers: number }>)
+                  .map(([platform, info]) => {
+                    const Icon = socialIcon(platform)
+                    return (
+                      <div key={platform} className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px' }}>
+                        <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--accent-tint)', color: 'var(--accent-deep)' }}>
+                          <Icon size={16} />
+                        </span>
+                        <span style={{ minWidth: 0, flex: 1 }}>
+                          <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', textTransform: 'capitalize' }}>{platform}</span>
+                          {info.handle && <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)' }}>@{info.handle}{info.followers ? ` · ${Number(info.followers).toLocaleString()} followers` : ''}</span>}
+                        </span>
                       </div>
-                    </div>
-                    <span className="mono-num" style={{ fontSize: 13, color: 'var(--ink)' }}>{Number(info.followers || 0).toLocaleString()}</span>
-                  </div>
-                ))
+                    )
+                  })}
+              </div>
             ) : (
               <div style={{ padding: '12px 0', borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
-                This creator hasn&apos;t connected any social accounts yet.
+                This creator hasn&apos;t added any social profiles yet.
               </div>
             )}
           </div>

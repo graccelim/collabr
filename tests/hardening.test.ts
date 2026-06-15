@@ -14,7 +14,7 @@ import { creatorOnboardingSchema } from '@/lib/onboarding'
 
 const creator = (o: Partial<CreatorSignals> = {}): CreatorSignals => ({
   id: 'c', niches: ['food'], followers: 10000, rate: 20000, availability: 'available',
-  verifiedOwnership: false, completedCollabs: 3, ratingAvg: 4.5, ratingCount: 3,
+  completedCollabs: 3, ratingAvg: 4.5, ratingCount: 3,
   qualityScore: 70, reliabilityScore: 60, responseShrunk: 0.5, responseSample: 3, ...o,
 })
 const campaign = (o: Partial<CampaignSignals> = {}): CampaignSignals => ({
@@ -109,10 +109,12 @@ describe('responseStanding (new creators + honest fallback)', () => {
   })
 })
 
-// ── Verified badge means OWNERSHIP only ──────────────────────────────────────
-describe('verified indicator reflects real ownership verification only', () => {
-  it('is false without verified ownership, true with it', () => {
-    expect(creatorIndicators(creator({ verifiedOwnership: false }), campaign()).verified).toBe(false)
-    expect(creatorIndicators(creator({ verifiedOwnership: true }), campaign()).verified).toBe(true)
+// ── No social-ownership verification concept in beta ─────────────────────────
+describe('creator indicators never claim social-account verification', () => {
+  it('exposes only honest, earned indicators (no "verified" field)', () => {
+    const ind = creatorIndicators(creator({ completedCollabs: 5, ratingCount: 4 }), campaign())
+    expect('verified' in ind).toBe(false)
+    expect(ind.available).toBe(true)
+    expect(ind.completedCollabs).toBe(5)
   })
 })

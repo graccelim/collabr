@@ -6,7 +6,7 @@ import { nicheOverlap, nicheLabel } from '@/lib/niches'
 //
 // Hard rule: never expose a numeric score (no "95% Match", "92 Reliability").
 // The UI shows tiers (Best Match / Strong Fit / Good Fit), boolean indicators
-// (Verified Account, Fits Your Budget, Available), and reasons — nothing else.
+// (Fits Your Budget, Available), and reasons — nothing else.
 
 export type Availability = 'available' | 'limited' | 'unavailable'
 export type CompType = 'paid' | 'barter' | 'both'
@@ -20,8 +20,6 @@ export interface CreatorSignals {
   /** Current rate in cents (average_rate_sgd → base_rate), or null = negotiable. */
   rate: number | null
   availability: Availability
-  /** True when ≥1 social account has verified OWNERSHIP (not reach). */
-  verifiedOwnership: boolean
   completedCollabs: number
   ratingAvg: number   // 0..5
   ratingCount: number
@@ -93,9 +91,8 @@ const AVAIL_FACTOR: Record<Availability, number> = { available: 1, limited: 0.6,
 /** Creator ↔ campaign match. Score orders results; tier/label/reasons are shown. */
 export function computeMatch(creator: CreatorSignals, campaign: CampaignSignals): MatchResult {
   const niche = nicheOverlap(creator.niches, campaign.niches)
-  const reachRaw = campaign.minFollowers > 0 ? clamp01(creator.followers / campaign.minFollowers) : 1
-  // Self-reported reach is discounted until ownership is verified — honest, not fake.
-  const reach = reachRaw * (creator.verifiedOwnership ? 1 : 0.8)
+  // Reach is self-reported (labelled as such in the UI); we don't verify it.
+  const reach = campaign.minFollowers > 0 ? clamp01(creator.followers / campaign.minFollowers) : 1
   const bf = budgetFit(creator.rate, campaign.budgetMin, campaign.budgetMax)
   const avail = AVAIL_FACTOR[creator.availability]
   const qualityNorm = (creator.qualityScore ?? 50) / 100
@@ -121,7 +118,6 @@ export function computeMatch(creator: CreatorSignals, campaign: CampaignSignals)
   if (niche > 0) reasons.push('Same niche as your campaign')
   if (bf.fits && (creator.rate != null || campaign.budgetMax != null)) reasons.push('Fits your budget')
   if (creator.availability === 'available') reasons.push('Available for collaborations')
-  if (creator.verifiedOwnership) reasons.push('Verified account ownership')
   if (creator.completedCollabs > 0) {
     reasons.push(`Completed ${creator.completedCollabs} collaboration${creator.completedCollabs > 1 ? 's' : ''}`)
   }
@@ -240,7 +236,6 @@ export function rankCampaignsForCreator(
 
 // ── Honest creator-card indicators (UI helper, no numbers) ──────────────────
 export interface CreatorIndicators {
-  verified: boolean              // → "Verified Account"
   fitsBudget: boolean            // → "Fits Your Budget" (campaign context only)
   available: boolean             // → "Available Now"
   isNew: boolean                 // no completed collabs → "New Creator"
@@ -252,7 +247,6 @@ export interface CreatorIndicators {
 export function creatorIndicators(c: CreatorSignals, campaign: CampaignSignals | null): CreatorIndicators {
   const bf = campaign ? budgetFit(c.rate, campaign.budgetMin, campaign.budgetMax) : { fits: false, factor: 0 }
   return {
-    verified: c.verifiedOwnership,
     fitsBudget: Boolean(campaign) && bf.fits,
     available: c.availability === 'available',
     isNew: c.completedCollabs === 0,

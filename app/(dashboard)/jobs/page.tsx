@@ -25,11 +25,11 @@ export default async function JobsPage() {
       .eq('user_id', user.id).single(),
   ])
 
-  // Social accounts (followers + verified ownership), the creator's existing
+  // Social accounts (self-reported followers), the creator's existing
   // applications, and the creator's score row all key off the creator id —
   // batch them.
   const [{ data: socials }, { data: myApps }, { data: scoreRow }] = await Promise.all([
-    supabase.from('social_accounts').select('follower_count, verification_status').eq('creator_id', creator?.id ?? ''),
+    supabase.from('social_accounts').select('follower_count').eq('creator_id', creator?.id ?? ''),
     supabase.from('applications').select('campaign_id, status').eq('creator_id', creator?.id ?? ''),
     supabase.from('creator_scores').select('*').eq('creator_id', creator?.id ?? '').maybeSingle(),
   ])
@@ -40,7 +40,7 @@ export default async function JobsPage() {
   const creatorRow: CreatorRow = (creator as CreatorRow | null) ?? { id: '' }
   const creatorSignals = toCreatorSignals(
     creatorRow,
-    (socials ?? []) as { follower_count: number | null; verification_status: string | null }[],
+    (socials ?? []) as { follower_count: number | null }[],
     scoreRow,
   )
 
