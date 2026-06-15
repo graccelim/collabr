@@ -11,7 +11,8 @@ import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
-import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert } from 'lucide-react'
+import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star } from 'lucide-react'
+import RatingChip from '@/components/RatingChip'
 
 // Destination domain for an external draft link, so the brand sees where a
 // "View draft" actually points before clicking.
@@ -51,7 +52,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       *,
       campaigns(title, brief, deliverable_types),
       creator_profiles(id, bio, rating_avg, rating_count, users(display_name, avatar_url)),
-      brand_profiles(id, company_name, user_id)
+      brand_profiles(id, company_name, user_id, rating_avg, rating_count)
     `)
     .eq('id', params.id).single()
 
@@ -77,12 +78,19 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     { data: submissions },
     { data: livePost },
     { data: existingReview },
+    { data: counterpartyReview },
   ] = await Promise.all([
     supabase.from('creator_profiles').select('user_id').eq('id', collab.creator_id).single(),
     admin.from('creator_profiles').select('stripe_connect_id').eq('id', collab.creator_id).single(),
     supabase.from('submissions').select('*').eq('collab_id', params.id).order('version', { ascending: false }),
     supabase.from('live_posts').select('*').eq('collab_id', params.id).maybeSingle(),
     supabase.from('reviews').select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle(),
+    // The other side's review — RLS only returns it once it's REVEALED
+    // (both submitted, or 14 days). Session client respects the reveal gate.
+    supabase.from('reviews').select('rating, note, created_at')
+      .eq('collab_id', params.id)
+      .eq('reviewer_type', profile?.role === 'brand' ? 'creator' : 'brand')
+      .maybeSingle(),
   ])
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
     return (
@@ -278,6 +286,39 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
               )}
             </div>
           )}
+
+          {/* Counterparty reputation + their revealed feedback (double-blind) */}
+          {collab.status === 'completed' && (() => {
+            const cpName = isBrand ? creatorName : brandName
+            const cp = (isBrand ? collab.creator_profiles : collab.brand_profiles) as any
+            const cr = counterpartyReview as { rating: number; note: string | null } | null
+            return (
+              <div className="card" style={{ padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{cpName}&rsquo;s reputation</h2>
+                  <RatingChip avg={cp?.rating_avg} count={cp?.rating_count} label={isBrand ? 'New creator' : 'New to collabr'} />
+                </div>
+                {cr ? (
+                  <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)' }}>
+                    <div style={{ display: 'flex', gap: 2, marginBottom: 6 }}>
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <Star key={s} size={14} fill={s <= cr.rating ? 'currentColor' : 'none'}
+                          style={{ color: s <= cr.rating ? 'var(--warn)' : 'var(--line-strong)' }} />
+                      ))}
+                    </div>
+                    {cr.note
+                      ? <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>&ldquo;{cr.note}&rdquo;</p>
+                      : <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', margin: 0 }}>Rated this collaboration, no note left.</p>}
+                    <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', margin: '8px 0 0' }}>What {cpName} thought of working with you.</p>
+                  </div>
+                ) : existingReview ? (
+                  <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', margin: '12px 0 0', lineHeight: 1.5 }}>
+                    {cpName}&rsquo;s review is hidden until you&rsquo;ve both reviewed — or 14 days after the collab. Reviews reveal together, so feedback stays honest.
+                  </p>
+                ) : null}
+              </div>
+            )
+          })()}
 
           {/* Completed review */}
           <ReviewForm

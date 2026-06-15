@@ -19,7 +19,7 @@ const WHY = [
   { Icon: Filter, title: 'Less noise, better fits', body: 'Skip the irrelevant applications and the endless directory scroll.' },
   { Icon: Badge, title: 'Verified ownership', body: 'Creators verify they own their accounts. Follower counts stay clearly self-reported.' },
   { Icon: Lock, title: 'Secure escrow', body: 'Funds are held safely until content is approved — protected on both sides.' },
-  { Icon: Star, title: 'Two-way reviews', body: 'Brands and creators rate each other after every collaboration.' },
+  { Icon: Star, title: 'Two-way reviews', body: 'Both sides review each other after a paid collab — revealed together, so feedback stays honest.' },
 ]
 
 const STEPS = {

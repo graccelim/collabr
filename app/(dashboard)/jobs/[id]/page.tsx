@@ -6,6 +6,7 @@ import { computeFit, bestFollowers } from '@/lib/fit'
 import Link from 'next/link'
 import { ChevronLeft, Shield, CheckCircle2 } from 'lucide-react'
 import ApplyForm from '@/components/ApplyForm'
+import RatingChip from '@/components/RatingChip'
 
 function nicheLabel(tag: string): string {
   return NICHE_LABELS[tag as CreatorNiche] ?? tag
@@ -37,7 +38,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   // Campaign (by id) and creator profile (by user.id) are independent — batch.
   const [{ data: campaign }, { data: creator }] = await Promise.all([
     supabase.from('campaigns')
-      .select('*, brand_profiles(company_name, company_description, logo_url, website, social_url, industry, completed_campaigns)')
+      .select('*, brand_profiles(company_name, company_description, logo_url, website, social_url, industry, completed_campaigns, rating_avg, rating_count)')
       .eq('id', params.id).eq('status', 'active').single(),
     supabase.from('creator_profiles')
       .select('id, niche, niches').eq('user_id', user.id).single(),
@@ -58,7 +59,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
       .select('id, status').eq('campaign_id', params.id).eq('creator_id', creator!.id).maybeSingle(),
   ])
 
-  const brand = campaign.brand_profiles as { company_name: string | null; logo_url: string | null } | null
+  const brand = campaign.brand_profiles as { company_name: string | null; logo_url: string | null; completed_campaigns?: number | null; rating_avg?: number | null; rating_count?: number | null } | null
   const brandName = brand?.company_name || 'Brand'
   const isPaid = campaign.comp_type !== 'barter'
   const platform = typeof (campaign as { platform?: unknown }).platform === 'string'
@@ -119,6 +120,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           <h1 style={{ fontSize: 24 }}>{campaign.title}</h1>
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>
             {brandName}{platform ? ` · ${platform}` : ''}
+          </div>
+          {/* Brand reputation — so creators know who they'd work with. */}
+          <div style={{ marginTop: 7 }}>
+            <RatingChip avg={brand?.rating_avg} count={brand?.rating_count} label="New to collabr" />
           </div>
         </div>
       </div>

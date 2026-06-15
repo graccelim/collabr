@@ -1,5 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { recomputeBrandRating, recomputeCreatorRating } from '@/lib/reputation'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -47,15 +48,23 @@ export async function POST(req: NextRequest) {
   if (error?.code === '23505') return NextResponse.json({ error: 'You have already reviewed this collab' }, { status: 409 })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  // Event-triggered recompute: a brand review changes the creator's quality
-  // inputs. Non-blocking — nightly cron is the backstop.
+  // Event-triggered reputation refresh. Non-blocking — the nightly cron is the
+  // backstop for both sides.
+  const admin = createAdminClient()
   if (userRow?.role === 'brand') {
+    // A brand review changes the creator's quality inputs + visible rating.
     const creatorUserId = (collab.creator_profiles as any)?.user_id
     if (creatorUserId) {
-      const admin = createAdminClient()
       const { data: cp } = await admin.from('creator_profiles').select('id').eq('user_id', creatorUserId).single()
-      if (cp) await admin.rpc('recompute_creator_scores', { p_creator_id: cp.id }).then(() => {}, () => {})
+      if (cp) {
+        await admin.rpc('recompute_creator_scores', { p_creator_id: cp.id }).then(() => {}, () => {})
+        await recomputeCreatorRating(admin, cp.id).catch(() => {})
+      }
     }
+  } else {
+    // A creator review changes the brand's visible reputation.
+    const { data: c } = await admin.from('collabs').select('brand_id').eq('id', body.collab_id).single()
+    if (c?.brand_id) await recomputeBrandRating(admin, c.brand_id).catch(() => {})
   }
   return NextResponse.json(data, { status: 201 })
 }

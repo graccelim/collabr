@@ -6,29 +6,31 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   const supabase = createAdminClient()
+  // Both directions: brand→creator reviews rate creators, creator→brand rate brands.
   const { data: reviews } = await supabase.from('reviews')
-    .select('collab_id, rating, collabs(creator_id)').eq('reviewer_type', 'brand')
+    .select('rating, reviewer_type, collabs(creator_id, brand_id)')
 
-  if (!reviews) return NextResponse.json({ updated: 0 })
+  if (!reviews) return NextResponse.json({ creators: 0, brands: 0 })
 
-  // Group by creator
   const creatorRatings: Record<string, number[]> = {}
+  const brandRatings: Record<string, number[]> = {}
   for (const r of reviews) {
-    const creatorId = (r.collabs as any)?.creator_id
-    if (!creatorId) continue
-    if (!creatorRatings[creatorId]) creatorRatings[creatorId] = []
-    creatorRatings[creatorId].push(r.rating)
+    const c = r.collabs as any
+    if (r.reviewer_type === 'brand' && c?.creator_id) (creatorRatings[c.creator_id] ||= []).push(r.rating)
+    if (r.reviewer_type === 'creator' && c?.brand_id) (brandRatings[c.brand_id] ||= []).push(r.rating)
   }
 
-  let updated = 0
-  for (const [creatorId, ratings] of Object.entries(creatorRatings)) {
-    const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length
-    await supabase.from('creator_profiles').update({
-      rating_avg: Math.round(avg * 100) / 100,
-      rating_count: ratings.length,
-    }).eq('id', creatorId)
-    updated++
+  const write = async (table: 'creator_profiles' | 'brand_profiles', groups: Record<string, number[]>) => {
+    let n = 0
+    for (const [id, ratings] of Object.entries(groups)) {
+      const avg = Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 100) / 100
+      await supabase.from(table).update({ rating_avg: avg, rating_count: ratings.length }).eq('id', id)
+      n++
+    }
+    return n
   }
 
-  return NextResponse.json({ updated })
+  const creators = await write('creator_profiles', creatorRatings)
+  const brands = await write('brand_profiles', brandRatings)
+  return NextResponse.json({ creators, brands })
 }
