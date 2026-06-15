@@ -137,7 +137,7 @@ export default function HomePage() {
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>From match to paid, on both sides.</h2>
           </Reveal>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }} className="pc-grid">
-            {([['For brands', 'brand', 'var(--ink)', '#fff', {}], ['For creators', 'creator', 'var(--creator)', 'var(--creator-ink)', { borderColor: 'var(--creator)', boxShadow: '0 0 0 1px var(--creator-tint) inset' }]] as const).map(([label, key, dotBg, dotInk, extra]) => (
+            {([['For brands', 'brand', 'var(--brand)', '#fff', {}], ['For creators', 'creator', 'var(--creator)', 'var(--creator-ink)', { borderColor: 'var(--creator)', boxShadow: '0 0 0 1px var(--creator-tint) inset' }]] as const).map(([label, key, dotBg, dotInk, extra]) => (
               <Reveal stagger key={key} className="card" style={{ padding: 26, ...extra }}>
                 <div className="eyebrow" style={{ marginBottom: 18 }}>{label}</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -177,7 +177,7 @@ export default function HomePage() {
       </section>
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}
-      <section className="lp-section" style={{ background: 'var(--ink)', paddingTop: 'clamp(40px,5vw,60px)', paddingBottom: 'clamp(40px,5vw,60px)' }}>
+      <section className="lp-section" style={{ background: 'var(--brand)', paddingTop: 'clamp(40px,5vw,60px)', paddingBottom: 'clamp(40px,5vw,60px)' }}>
         <Reveal stagger className="resp-stats lp-narrow" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
           {STATS.map(({ value, label, sub }) => (
             <RevealItem key={label} style={{ textAlign: 'center' }}>
@@ -190,7 +190,7 @@ export default function HomePage() {
       </section>
 
       {/* ══ FINAL CTA ══ */}
-      <section style={{ background: 'var(--ink)', color: '#fff', padding: 'clamp(56px,8vw,88px) 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,.08)', position: 'relative', overflow: 'hidden' }}>
+      <section style={{ background: 'var(--brand)', color: '#fff', padding: 'clamp(56px,8vw,88px) 20px', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,.08)', position: 'relative', overflow: 'hidden' }}>
         {/* soft background atmosphere — pure CSS, no JS, no parallax */}
         <div aria-hidden style={{ position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)', width: 620, height: 620, borderRadius: '50%', background: 'radial-gradient(circle, rgba(124,108,255,.18), transparent 62%)', pointerEvents: 'none' }} />
         <Reveal style={{ position: 'relative', zIndex: 1 }}>
@@ -212,7 +212,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ background: 'var(--ink)', borderTop: '1px solid rgba(255,255,255,.08)', padding: '22px clamp(20px,5vw,40px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
+      <footer style={{ background: 'var(--brand)', borderTop: '1px solid rgba(255,255,255,.08)', padding: '22px clamp(20px,5vw,40px)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.04em', color: '#fff' }}>
           collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
         </span>

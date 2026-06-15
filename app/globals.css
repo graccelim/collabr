@@ -218,25 +218,42 @@
     overflow: hidden;
     border-radius: var(--radius-lg);
     color: var(--brand-ink);
-    background: radial-gradient(120% 140% at 85% -10%, #23262F 0%, #16171D 46%, #101116 100%);
+    /* Deep-navy base with a soft light source top-right (matches the navy scheme). */
+    background: radial-gradient(130% 125% at 78% -20%, #2a2f63 0%, #161b40 46%, #0A0C22 100%);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.10),
-      inset 0 0 0 1px rgba(255,255,255,0.04),
-      0 22px 50px -26px rgba(16,17,22,0.62),
-      0 6px 18px -12px rgba(16,17,22,0.45);
+      inset 0 1px 0 rgba(255,255,255,0.12),
+      inset 0 0 0 1px rgba(255,255,255,0.05),
+      0 22px 50px -26px rgba(8,10,26,0.62),
+      0 6px 18px -12px rgba(8,10,26,0.45);
     padding: 28px 30px;
   }
+  /* Colour atmosphere — indigo top-right, faint escrow-green bottom-left. */
   .money-panel::before {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
     background:
-      radial-gradient(60% 90% at 88% 2%, color-mix(in srgb, var(--accent) 60%, #3a3f7a) 0%, transparent 60%),
-      radial-gradient(52% 82% at 10% 112%, color-mix(in srgb, var(--secure, var(--money)) 36%, transparent) 0%, transparent 62%);
-    opacity: 0.55; filter: saturate(1.1);
+      radial-gradient(60% 90% at 90% 0%, color-mix(in srgb, var(--accent) 70%, #4a52a8) 0%, transparent 58%),
+      radial-gradient(52% 82% at 8% 112%, color-mix(in srgb, var(--secure, var(--money)) 30%, transparent) 0%, transparent 62%);
+    opacity: 0.5; filter: saturate(1.15);
   }
+  /* Revolut-style glossy reflection — a diagonal light sweep across the card. */
   .money-panel::after {
-    content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
-    background-image: var(--noise); background-size: 140px 140px;
-    opacity: 0.05; mix-blend-mode: overlay;
+    content: ''; position: absolute; inset: -2px; pointer-events: none; z-index: 0;
+    background: linear-gradient(122deg,
+      transparent 30%,
+      rgba(255,255,255,0.05) 40%,
+      rgba(255,255,255,0.10) 46%,
+      rgba(255,255,255,0.18) 50%,
+      rgba(255,255,255,0.08) 55%,
+      rgba(255,255,255,0.02) 60%,
+      transparent 70%);
+    transform: translateX(0);
+    transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .4s ease;
+  }
+  /* Gentle shimmer when the card is hovered — the highlight glides across. */
+  .money-panel:hover::after { transform: translateX(8%); opacity: 1.05; }
+  @media (prefers-reduced-motion: reduce) {
+    .money-panel::after { transition: none; }
+    .money-panel:hover::after { transform: translateX(0); }
   }
   .money-panel > * { position: relative; z-index: 1; }
   .money-panel .money-label {
@@ -456,7 +473,8 @@
 .split-hero:hover .split-side      { flex: .82; }
 .split-hero .split-side:hover      { flex: 1.5; }
 .split-side-brand  {
-  background: radial-gradient(120% 130% at 80% -10%, #1a1d3a 0%, #0A0C22 50%, #08091a 100%);
+  /* Deep-navy money panel — matched to the mobile-landing dark scheme. */
+  background: radial-gradient(120% 80% at 50% -10%, #161a36 0%, #0a0c1a 55%, #07080f 100%);
   color: #fff;
 }
 .split-side-creator {
