@@ -40,10 +40,19 @@ export async function PATCH(req: NextRequest) {
 
   let data = null
   if (Object.keys(updates).length > 0) {
-    const result = await supabase.from('brand_profiles')
+    let result = await supabase.from('brand_profiles')
       .update(updates).eq('user_id', user.id)
       .select(SELECT_COLUMNS)
       .single()
+    // `location` is newer (migration 020). On DBs where it isn't applied yet the
+    // update errors — retry without it so the rest of the save still lands.
+    if (result.error && 'location' in updates) {
+      const rest = { ...updates }
+      delete rest.location
+      result = Object.keys(rest).length > 0
+        ? await supabase.from('brand_profiles').update(rest).eq('user_id', user.id).select(SELECT_COLUMNS).single()
+        : await supabase.from('brand_profiles').select(SELECT_COLUMNS).eq('user_id', user.id).single()
+    }
     if (result.error) return NextResponse.json({ error: result.error.message }, { status: 500 })
     data = result.data
   } else {

@@ -4,7 +4,6 @@ import {
   SOCIAL_PLATFORMS, SOCIAL_LABELS, socialUrlPrefix,
   type SocialPlatform,
 } from '@/lib/onboarding'
-import { socialIcon, socialTint } from '@/components/SocialIcon'
 
 // One repeatable social-profile row. `username` is what the creator types — a
 // bare username for most platforms (we prepend the domain), or a pasted profile
@@ -47,16 +46,12 @@ export default function SocialProfileBuilder({
     <div className="space-y-3">
       <div className="space-y-3">
         {rows.map((row, i) => {
-          const Icon = socialIcon(row.platform)
-          const tint = socialTint(row.platform)
           const isXhs = row.platform === 'xiaohongshu'
           return (
             <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
+              {/* platform + profile, side by side (follower count sits below) */}
               <div className="flex items-center gap-2">
-                <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: tint.bg, color: tint.fg }}>
-                  <Icon size={15} />
-                </span>
-                <select className="input" style={{ flex: 1, minWidth: 0 }} value={row.platform}
+                <select className="input" style={{ width: 'auto', flexShrink: 0, maxWidth: 150 }} value={row.platform}
                   onChange={e => changePlatform(i, e.target.value as SocialPlatform)}>
                   {SOCIAL_PLATFORMS.map(p => (
                     <option key={p} value={p} disabled={p !== row.platform && used.has(p)}>
@@ -64,6 +59,17 @@ export default function SocialProfileBuilder({
                     </option>
                   ))}
                 </select>
+                {isXhs ? (
+                  <input className="input" style={{ flex: 1, minWidth: 0 }} inputMode="url" placeholder="Profile link"
+                    value={row.username} onChange={e => update(i, { username: e.target.value })} />
+                ) : (
+                  <div className="affix-field" style={{ flex: 1, minWidth: 0 }}>
+                    <span className="affix">{socialUrlPrefix(row.platform)}</span>
+                    <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                      placeholder="username"
+                      value={row.username} onChange={e => update(i, { username: e.target.value })} />
+                  </div>
+                )}
                 {i === 0 && (
                   <span className="badge badge-accent" style={{ fontSize: 10.5, flexShrink: 0 }}>Primary</span>
                 )}
@@ -74,20 +80,6 @@ export default function SocialProfileBuilder({
                   </button>
                 )}
               </div>
-
-              {isXhs ? (
-                // Xiaohongshu has no public username — take the profile link directly.
-                <input className="input" inputMode="url" placeholder="Paste your RED (Xiaohongshu) profile link"
-                  value={row.username} onChange={e => update(i, { username: e.target.value })} />
-              ) : (
-                // Fixed domain prefix + username — we complete the link for them.
-                <div className="affix-field">
-                  <span className="affix">{socialUrlPrefix(row.platform)}</span>
-                  <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                    placeholder="username"
-                    value={row.username} onChange={e => update(i, { username: e.target.value })} />
-                </div>
-              )}
 
               <input className="input" type="number" min="0" placeholder="Follower count (optional)"
                 value={row.followers}

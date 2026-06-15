@@ -15,9 +15,18 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   const admin = createAdminClient()
 
   // Brand identity + public reputation (public data → admin read is fine).
-  const { data: brand } = await admin.from('brand_profiles')
-    .select('id, user_id, company_name, company_description, industry, location, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at')
-    .eq('id', params.id).single()
+  const BRAND_COLS = 'id, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at'
+  // `location` is newer (migration 020). Tolerate DBs where it isn't applied yet
+  // so brand profiles never 404 during the migration window.
+  let brand: any = null
+  {
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location`).eq('id', params.id).single()
+    brand = r.data
+  }
+  if (!brand) {
+    const r = await admin.from('brand_profiles').select(BRAND_COLS).eq('id', params.id).single()
+    brand = r.data
+  }
   if (!brand) return <p className="text-sm" style={{ color: 'var(--danger)' }}>Brand not found.</p>
   const isOwner = brand.user_id === user.id
 

@@ -38,9 +38,15 @@ export default function SettingsPage() {
       setRole(profile.role as 'brand' | 'creator')
 
       if (profile.role === 'brand') {
-        const { data: brand } = await supabase.from('brand_profiles')
-          .select('id, company_name, company_description, industry, location, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns')
-          .eq('user_id', user.id).single()
+        // `location` is newer (migration 020) — fall back if it isn't applied yet.
+        const BCOLS = 'id, company_name, company_description, industry, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns'
+        let brand: any = null
+        const r1 = await supabase.from('brand_profiles').select(`${BCOLS}, location`).eq('user_id', user.id).single()
+        brand = r1.data
+        if (!brand) {
+          const r2 = await supabase.from('brand_profiles').select(BCOLS).eq('user_id', user.id).single()
+          brand = r2.data
+        }
         if (brand) {
           setBrandId((brand as any).id || '')
           setCompanyName(brand.company_name || '')

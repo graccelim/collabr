@@ -121,7 +121,6 @@ export async function POST(req: NextRequest) {
       company_name: name,
       industry: parsed.data.industry,
       company_description: parsed.data.company_description || null,
-      location: parsed.data.location || null,
       website: parsed.data.website || null,
       social_url: parsed.data.social_url || null,
       onboarding_completed_at: new Date().toISOString(),
@@ -129,6 +128,11 @@ export async function POST(req: NextRequest) {
     if (brandErr) {
       console.error('[SIGNUP] brand profile insert failed:', brandErr)
       return NextResponse.json({ error: 'Could not create profile' }, { status: 500 })
+    }
+    // `location` is newer (migration 020) — set it best-effort so signup never
+    // fails on DBs where the column isn't applied yet.
+    if (parsed.data.location) {
+      await admin.from('brand_profiles').update({ location: parsed.data.location }).eq('user_id', data.user.id)
     }
     // Fire-and-forget — don't block the response on email delivery
     emails.welcomeBrand(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
