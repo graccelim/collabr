@@ -586,6 +586,12 @@
      instead of floating awkwardly to the right. */
   .money-secured { text-align: left !important; width: 100%; }
 
+  /* Boost modal → bottom sheet on phones. */
+  .boost-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .boost-modal-card {
+    max-width: none !important; border-radius: 20px 20px 0 0 !important; max-height: 92vh !important;
+  }
+
   /* Rating summary: stack the big-average and the bars on phones. */
   .rep-summary { grid-template-columns: 1fr !important; gap: 16px !important; }
   .rep-summary > div:first-child {

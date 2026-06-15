@@ -13,7 +13,7 @@ const OPTIONS = [
  * goes straight to Stripe Checkout. No marketing hero — boost is a small,
  * optional growth tool, reached only from the BoostHint or a direct URL.
  */
-export default function BoostPurchase({ initialBoostUntil, preview = false }: { initialBoostUntil: string | null; preview?: boolean }) {
+export default function BoostPurchase({ initialBoostUntil, preview = false, returnTo }: { initialBoostUntil: string | null; preview?: boolean; returnTo?: string }) {
   const params = useSearchParams()
   const [loading, setLoading] = useState<'monthly' | 'per_app' | null>(null)
   const isActive = initialBoostUntil ? new Date(initialBoostUntil).getTime() > Date.now() : false
@@ -22,8 +22,9 @@ export default function BoostPurchase({ initialBoostUntil, preview = false }: { 
     : 0
 
   useEffect(() => {
-    if (params.get('success')) toast.success('Payment received — your boost is now active.')
-    else if (params.get('canceled')) toast('Checkout canceled — no charge was made.')
+    const r = params.get('boost')
+    if (r === 'success') toast.success('Payment received — your boost is now active.')
+    else if (r === 'canceled') toast('Checkout canceled — no charge was made.')
   }, [params])
 
   async function purchase(type: 'monthly' | 'per_app') {
@@ -35,7 +36,7 @@ export default function BoostPurchase({ initialBoostUntil, preview = false }: { 
     const res = await fetch('/api/payments/boost-creator', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type }),
+      body: JSON.stringify({ type, returnTo }),
     })
     const data = await res.json()
     if (!res.ok || !data.url) {

@@ -42,14 +42,19 @@ export async function POST(req: NextRequest) {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Return to the page the boost was started from (modal can be opened anywhere).
+  // Only allow safe in-app relative paths — never an external/absolute redirect.
+  const rt = typeof body?.returnTo === 'string' ? body.returnTo : ''
+  const returnTo = rt.startsWith('/') && !rt.startsWith('//') ? rt : '/boost'
+  const sep = returnTo.includes('?') ? '&' : '?'
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
       customer_email: user.email ?? undefined,
-      success_url: `${appUrl}/boost?success=1`,
-      cancel_url: `${appUrl}/boost?canceled=1`,
+      success_url: `${appUrl}${returnTo}${sep}boost=success`,
+      cancel_url: `${appUrl}${returnTo}${sep}boost=canceled`,
       metadata: {
         kind: 'boost',
         creator_id: creator.id,

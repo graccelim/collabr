@@ -5,7 +5,7 @@ import { formatSGD, relativeTime, getInitials } from '@/lib/utils'
 import InviteActions from '@/components/InviteActions'
 import EmptyState from '@/components/EmptyState'
 import BoostHint from '@/components/BoostHint'
-import { boostUiEnabled } from '@/lib/stripe'
+import { boostUiEnabled, boostPreview } from '@/lib/stripe'
 import { Send, Mail, Zap, Shield } from 'lucide-react'
 
 const STATUS_BADGE: Record<string, string> = {
@@ -111,7 +111,7 @@ export default async function InvitesPage() {
 
       {/* Boost nudge — only once boost is configured AND the profile is complete. */}
       {boostUiEnabled() && creator?.onboarding_completed_at && (
-        <BoostHint boostUntil={creator?.boost_active_until ?? null} />
+        <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
       )}
 
       {(!invites || invites.length === 0) && (

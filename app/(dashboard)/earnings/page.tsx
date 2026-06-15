@@ -3,7 +3,7 @@ import { requireCreator } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import ConnectOnboarding from '@/components/ConnectOnboarding'
 import EmptyState from '@/components/EmptyState'
-import { stripe, boostUiEnabled } from '@/lib/stripe'
+import { stripe, boostUiEnabled, boostPreview } from '@/lib/stripe'
 import BoostHint from '@/components/BoostHint'
 import type { LucideProps } from 'lucide-react'
 import { Wallet, TrendingUp, Shield, CheckCircle2 } from 'lucide-react'
@@ -102,7 +102,7 @@ export default async function EarningsPage({
       {/* Boost nudge — only once boost is configured AND the profile is complete
           (no point boosting an undiscoverable profile). */}
       {boostUiEnabled() && creator?.onboarding_completed_at && (
-        <BoostHint boostUntil={creator?.boost_active_until ?? null} />
+        <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
       )}
 
       {/* Stripe Connect onboarding */}
