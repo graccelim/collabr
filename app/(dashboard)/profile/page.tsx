@@ -10,8 +10,29 @@ import {
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import { creatorCompletion } from '@/lib/profile-completion'
 import { getInitials } from '@/lib/utils'
-import { Check } from 'lucide-react'
+import { Star, Instagram, Youtube, Music2 } from 'lucide-react'
 import type { SocialAccount } from '@/types'
+
+// Per-platform glyph for the social rows (lucide has no TikTok mark — Music2 reads as short-form video).
+const PLATFORM_ICON: Record<string, typeof Instagram> = {
+  instagram: Instagram,
+  youtube: Youtube,
+  tiktok: Music2,
+}
+
+// Stable serialization of the editable fields — used to detect whether anything
+// changed since load so we can disable "Save profile" when there's no diff.
+// (Avatar and socials save on their own, so they're excluded here.)
+function profileSnapshot(f: {
+  bio: string; niches: CreatorNiche[]; location: string; rate: string
+  availability: AvailabilityStatus; mediaKitUrl: string; portfolioLinks: string[]; displayName: string
+}) {
+  return JSON.stringify({
+    bio: f.bio.trim(), niches: f.niches, location: f.location.trim(), rate: f.rate.trim(),
+    availability: f.availability, mediaKitUrl: f.mediaKitUrl.trim(),
+    portfolioLinks: f.portfolioLinks, displayName: f.displayName.trim(),
+  })
+}
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -34,6 +55,8 @@ export default function ProfilePage() {
   const [mediaKitUrl, setMediaKitUrl] = useState('')
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([])
   const [newPortfolioLink, setNewPortfolioLink] = useState('')
+  // Snapshot of the form as loaded — Save stays disabled until something differs.
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null)
 
   // Social accounts (normalized, managed via /api/socials)
   const [socials, setSocials] = useState<SocialAccount[]>([])
@@ -62,21 +85,30 @@ export default function ProfilePage() {
           .eq('user_id', user.id).single(),
         loadSocials(),
       ])
+      const loadedDisplayName = account?.display_name || ''
       if (account) {
-        setDisplayName(account.display_name || '')
+        setDisplayName(loadedDisplayName)
         setAvatarUrl(account.avatar_url || '')
       }
       if (data) {
+        const loadedNiches = ((data.niche_tags as CreatorNiche[])?.length
+          ? (data.niche_tags as CreatorNiche[])
+          : data.niche ? [data.niche as CreatorNiche] : [])
+        const loadedRate = data.average_rate_sgd ? String(data.average_rate_sgd / 100) : ''
+        const loadedAvailability = (data.availability_status as AvailabilityStatus) || 'available'
         setCreatorId((data as any).id || '')
         setBio(data.bio || '')
-        setNiches(((data.niche_tags as CreatorNiche[])?.length
-          ? (data.niche_tags as CreatorNiche[])
-          : data.niche ? [data.niche as CreatorNiche] : []))
+        setNiches(loadedNiches)
         setLocation(data.location || '')
-        setRate(data.average_rate_sgd ? String(data.average_rate_sgd / 100) : '')
-        setAvailability((data.availability_status as AvailabilityStatus) || 'available')
+        setRate(loadedRate)
+        setAvailability(loadedAvailability)
         setMediaKitUrl(data.media_kit_url || '')
         setPortfolioLinks(data.portfolio_links || [])
+        setInitialSnapshot(profileSnapshot({
+          bio: data.bio || '', niches: loadedNiches, location: data.location || '', rate: loadedRate,
+          availability: loadedAvailability, mediaKitUrl: data.media_kit_url || '',
+          portfolioLinks: data.portfolio_links || [], displayName: loadedDisplayName,
+        }))
       }
       setLoading(false)
     }
@@ -192,19 +224,6 @@ export default function ProfilePage() {
     else await loadSocials()
   }
 
-  // Bio-code ownership verification (not follower verification).
-  async function requestVerification(id: string) {
-    const res = await fetch('/api/verification', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ social_account_id: id }),
-    })
-    const data = await res.json()
-    if (!res.ok) { toast.error(data.error || 'Could not start verification'); return }
-    toast.success('Add the code to your bio — our team will confirm ownership')
-    await loadSocials()
-  }
-
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
 
   const completion = creatorCompletion({
@@ -215,6 +234,11 @@ export default function ProfilePage() {
     portfolio_links: portfolioLinks,
     socials_count: socials.length,
   })
+
+  // Nothing to save until the form differs from how it loaded.
+  const isDirty = initialSnapshot !== null && profileSnapshot({
+    bio, niches, location, rate, availability, mediaKitUrl, portfolioLinks, displayName,
+  }) !== initialSnapshot
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -371,54 +395,66 @@ export default function ProfilePage() {
       <div className="card space-y-4">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <h2 className="text-sm font-medium text-gray-900">Social accounts</h2>
-          <span className="badge badge-neutral" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-            title="Verification confirms account ownership only. Follower counts are self-reported.">
-            <Check size={12} /> Ownership verification · counts self-reported
-          </span>
+          {socials.length > 0 && (
+            <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>
+              {socials.length} connected
+            </span>
+          )}
         </div>
         {socials.length === 0 && (
           <p className="text-xs text-gray-400">No accounts connected yet — add at least one to complete onboarding.</p>
         )}
-        {socials.map(s => (
-          <div key={s.id} className="flex flex-col gap-2" style={{ paddingBottom: 4 }}>
-            <div className="flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <span className="text-sm font-medium text-gray-700 capitalize">{s.platform}</span>
-                <a href={s.url} target="_blank" rel="noopener noreferrer"
-                  className="text-xs text-gray-400 ml-2 hover:text-gray-600">@{s.handle}</a>
-                {s.is_primary && <span className="badge badge-purple ml-2 text-xs">Primary</span>}
-                {s.verification_status === 'verified' && (
-                  <span className="badge badge-money ml-2 text-xs" title="Account ownership verified — follower counts are self-reported">
-                    Verified Account
-                  </span>
-                )}
-                {s.verification_status === 'pending' && <span className="badge badge-warn ml-2 text-xs">Pending review</span>}
+        {socials.map(s => {
+          const Icon = PLATFORM_ICON[s.platform] || Star
+          return (
+            <div key={s.id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+              padding: '12px 14px', borderRadius: 'var(--radius-sm)',
+              border: s.is_primary ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+              background: s.is_primary ? 'var(--accent-tint)' : 'var(--surface)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
+                <span style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center',
+                  background: s.is_primary ? 'var(--accent)' : 'var(--surface-2)',
+                  color: s.is_primary ? '#fff' : 'var(--ink-soft)',
+                }}>
+                  <Icon size={18} />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                    <span className="capitalize" style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{s.platform}</span>
+                    {s.is_primary && (
+                      <span className="badge" style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 700,
+                        background: 'var(--accent)', color: '#fff', padding: '2px 8px',
+                      }}>
+                        <Star size={10} fill="currentColor" /> Primary
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 1 }}>
+                    <a href={s.url} target="_blank" rel="noopener noreferrer"
+                      className="hover:underline" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>@{s.handle}</a>
+                    {s.follower_count != null && (
+                      <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }} title="Self-reported">
+                        · {s.follower_count.toLocaleString()} followers
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                {s.follower_count != null && (
-                  <span className="text-xs text-gray-500" title="Self-reported">{s.follower_count.toLocaleString()} followers</span>
-                )}
                 {!s.is_primary && (
                   <button type="button" onClick={() => makePrimary(s.id)}
-                    className="text-xs text-gray-400 hover:text-gray-600">Make primary</button>
+                    style={{ fontSize: 12, fontWeight: 540, color: 'var(--accent-deep)' }}>Make primary</button>
                 )}
                 <button type="button" onClick={() => removeSocial(s.id)}
-                  className="text-xs text-red-400 hover:text-red-600">Remove</button>
+                  className="text-red-400 hover:text-red-600" style={{ fontSize: 12 }}>Remove</button>
               </div>
             </div>
-            {s.verification_status === 'pending' && s.verification_code ? (
-              <p className="text-xs" style={{ color: 'var(--ink-soft)' }}>
-                Add this code to your {s.platform} bio so we can confirm ownership:{' '}
-                <span className="mono-num" style={{ background: 'var(--surface-2)', padding: '2px 7px', borderRadius: 6 }}>{s.verification_code}</span>
-              </p>
-            ) : s.verification_status !== 'verified' && (
-              <button type="button" onClick={() => requestVerification(s.id)}
-                className="text-xs self-start" style={{ color: 'var(--accent-deep)', fontWeight: 540 }}>
-                Verify account ownership →
-              </button>
-            )}
-          </div>
-        ))}
+          )
+        })}
 
         {SOCIAL_PLATFORMS.every(p => socials.some(s => s.platform === p)) ? (
           <p className="text-xs text-gray-400">All platforms connected.</p>
@@ -438,11 +474,11 @@ export default function ProfilePage() {
           </button>
         </form>
         )}
-        <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Verifying confirms <strong>account ownership</strong> — follower counts stay self-reported until platform APIs are connected.</p>
+        <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
       </div>
 
-      <button onClick={save} className="btn-primary" disabled={saving || avatarUploading}>
-        {saving ? 'Saving…' : 'Save profile'}
+      <button onClick={save} className="btn-primary" disabled={saving || avatarUploading || !isDirty}>
+        {saving ? 'Saving…' : !isDirty ? 'No changes to save' : 'Save profile'}
       </button>
     </div>
   )

@@ -2,10 +2,17 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
+import { Zap, ArrowUp, TrendingUp, Eye, ShieldCheck } from 'lucide-react'
 
 const OPTIONS = [
-  { type: 'per_app' as const, days: '7 days', price: 'S$4' },
-  { type: 'monthly' as const, days: '30 days', price: 'S$20' },
+  { type: 'per_app' as const, days: '7 days', price: 'S$4', tag: 'Quick boost' },
+  { type: 'monthly' as const, days: '30 days', price: 'S$20', tag: 'Popular', featured: true },
+]
+
+const BENEFITS = [
+  { icon: ArrowUp, color: 'var(--money)', tint: 'var(--money-tint)', text: 'Jump to the top of applicant lists brands review first' },
+  { icon: Eye, color: 'var(--accent)', tint: 'var(--accent-tint)', text: 'Get seen by brands browsing for creators like you' },
+  { icon: ShieldCheck, color: 'var(--warn)', tint: 'var(--warn-tint)', text: 'Clearly labelled — never touches your ratings or match quality' },
 ]
 
 /**
@@ -49,11 +56,33 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
 
   return (
     <div style={{ maxWidth: 460, margin: '0 auto' }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700 }}>Boost your profile</h1>
-      <p style={{ color: 'var(--ink-soft)', fontSize: 14, marginTop: 6, lineHeight: 1.55 }}>
-        Appear higher in applicant lists for a few days. It&rsquo;s a clearly-labelled sponsored
-        placement only — it never changes your ratings, reliability or match quality.
-      </p>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{
+          width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: 'grid', placeItems: 'center',
+          background: 'linear-gradient(140deg, var(--accent), var(--accent-deep))', color: '#fff',
+          boxShadow: '0 4px 14px -4px var(--accent)',
+        }}>
+          <Zap size={20} />
+        </span>
+        <div>
+          <h1 style={{ fontSize: 22, fontWeight: 700, lineHeight: 1.1 }}>Boost your profile</h1>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12.5, fontWeight: 600, color: 'var(--money)', marginTop: 3 }}>
+            <TrendingUp size={13} /> Get discovered faster
+          </span>
+        </div>
+      </div>
+
+      {/* What you get — colour-coded so the value lands at a glance */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+        {BENEFITS.map(b => (
+          <div key={b.text} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+            <span style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: 'grid', placeItems: 'center', background: b.tint, color: b.color }}>
+              <b.icon size={15} />
+            </span>
+            <span style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.4 }}>{b.text}</span>
+          </div>
+        ))}
+      </div>
 
       {preview && (
         <div className="card" style={{ padding: 12, marginTop: 16, background: 'var(--warn-tint)', border: '1px solid var(--warn)' }}>
@@ -71,15 +100,29 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
 
       <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 20 }}>
         {OPTIONS.map(o => (
-          <div key={o.type} className="card" style={{ padding: 20, display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <span style={{ fontSize: 13, color: 'var(--ink-soft)' }}>{o.days}</span>
+          <div key={o.type} className="card" style={{
+            padding: 20, display: 'flex', flexDirection: 'column', gap: 4, position: 'relative',
+            border: o.featured ? '1.5px solid var(--accent)' : '1px solid var(--line)',
+            background: o.featured ? 'linear-gradient(160deg, var(--accent-tint) 0%, var(--surface) 55%)' : 'var(--surface)',
+          }}>
+            <span style={{
+              alignSelf: 'flex-start', fontSize: 11, fontWeight: 700, letterSpacing: '.02em',
+              textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999,
+              background: o.featured ? 'var(--accent)' : 'var(--surface-2)',
+              color: o.featured ? '#fff' : 'var(--ink-soft)',
+            }}>{o.tag}</span>
+            <span style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>{o.days}</span>
             <span className="mono-num" style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em' }}>{o.price}</span>
             <button
               onClick={() => purchase(o.type)}
               disabled={!!loading || preview}
-              className="btn-primary btn-block"
-              style={{ marginTop: 12 }}
-            >{preview ? 'Preview only' : loading === o.type ? 'Redirecting…' : isActive ? 'Extend' : 'Boost'}</button>
+              className={o.featured ? 'btn-primary btn-block' : 'btn-secondary btn-block'}
+              style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+            >
+              {preview ? 'Preview only' : loading === o.type ? 'Redirecting…' : (
+                <>{isActive ? 'Extend' : 'Boost'} <ArrowUp size={15} /></>
+              )}
+            </button>
           </div>
         ))}
       </div>

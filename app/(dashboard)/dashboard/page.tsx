@@ -127,8 +127,8 @@ function QuietRow({
         width: '100%',
         textDecoration: 'none',
         padding: '16px 18px',
-        borderLeft: '3px solid var(--accent)',
-        background: 'linear-gradient(100deg, var(--accent-tint) 0%, transparent 34%)',
+        // Amber rail only when the creator/brand has to act — calm rows stay clean.
+        borderLeft: statusColor === 'var(--warn)' ? '3px solid var(--warn)' : '3px solid transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -192,9 +192,15 @@ function QuietRow({
       >
         <span
           style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 5,
             fontSize: 12,
             fontWeight: 600,
-            color: statusColor,
+            color:
+              statusColor === 'var(--warn)'
+                ? 'var(--warn-deep)'
+                : 'var(--ink-soft)',
             background:
               statusColor === 'var(--warn)'
                 ? 'var(--warn-tint)'
@@ -204,6 +210,18 @@ function QuietRow({
             whiteSpace: 'nowrap',
           }}
         >
+          <span
+            style={{
+              width: 6,
+              height: 6,
+              borderRadius: 99,
+              flexShrink: 0,
+              background:
+                statusColor === 'var(--warn)'
+                  ? 'var(--warn)'
+                  : 'var(--ink-faint-solid)',
+            }}
+          />
           {status}
         </span>
         <span
@@ -452,6 +470,8 @@ async function BrandDashboard({ userId }: { userId: string }) {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
+                fontSize: 12.5,
+                fontWeight: 700,
               }}
             >
               <span
@@ -853,6 +873,8 @@ async function CreatorDashboard({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
+                fontSize: 12.5,
+                fontWeight: 700,
               }}
             >
               <span
@@ -921,6 +943,8 @@ async function CreatorDashboard({
               gap: 6,
               marginBottom: 12,
               color: 'var(--warn)',
+              fontSize: 12.5,
+              fontWeight: 700,
             }}
           >
             <Zap size={13} /> Happening now
@@ -1096,6 +1120,8 @@ async function CreatorDashboard({
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 6,
+                fontSize: 12.5,
+                fontWeight: 700,
               }}
             >
               <Sparkles size={13} /> Matched to you
