@@ -30,8 +30,12 @@ export function creatorCompletion(input: {
     { key: 'niche', label: 'Niche', done: Boolean(input.niche) },
     { key: 'bio', label: 'Bio', done: Boolean(input.bio?.trim()) },
     { key: 'location', label: 'Location', done: Boolean(input.location?.trim()) },
-    { key: 'portfolio', label: 'Portfolio link', done: (input.portfolio_links?.length || 0) > 0 },
-    { key: 'social', label: 'Social account', done: input.socials_count > 0 },
+    // Socials OR a portfolio link satisfies this — neither is required on its own.
+    {
+      key: 'links',
+      label: 'Socials or link',
+      done: input.socials_count > 0 || (input.portfolio_links?.length || 0) > 0,
+    },
   ])
 }
 

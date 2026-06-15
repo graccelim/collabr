@@ -47,6 +47,7 @@ export const brandProfileUpdateSchema = z.object({
   ),
   company_description: optionalText(2000, 'Description'),
   industry: z.enum(BRAND_INDUSTRIES).nullish(),
+  location: optionalText(120, 'Location'),
   website: optionalUrl,
   social_url: optionalUrl,
   logo_url: optionalUrl,
