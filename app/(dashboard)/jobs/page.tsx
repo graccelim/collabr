@@ -16,7 +16,7 @@ export default async function JobsPage() {
   // the browse list is ordered by real fit and labelled honestly.
   const [{ data: campaigns }, { data: creator }] = await Promise.all([
     supabase.from('campaigns')
-      .select('*, brand_profiles(id, company_name, logo_url, completed_campaigns)')
+      .select('*, brand_profiles(id, company_name, logo_url, completed_campaigns, rating_avg, rating_count)')
       .eq('status', 'active')
       .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false }),
@@ -58,7 +58,7 @@ export default async function JobsPage() {
 
   const list: JobsListCampaign[] = ranked.map(r => {
     const c = campaignById.get(r.campaign.id)!
-    const brand = c.brand_profiles as { company_name: string | null; logo_url: string | null } | null
+    const brand = c.brand_profiles as { company_name: string | null; logo_url: string | null; rating_avg?: number | null; rating_count?: number | null } | null
     // campaigns have no platform column; surface one only if present.
     const platform = typeof (c as { platform?: unknown }).platform === 'string'
       ? (c as { platform: string }).platform
@@ -78,6 +78,8 @@ export default async function JobsPage() {
       platform,
       brand_name: brand?.company_name || 'Brand',
       brand_logo: brand?.logo_url ?? null,
+      brand_rating_avg: brand?.rating_avg ?? null,
+      brand_rating_count: brand?.rating_count ?? null,
       appliedStatus: (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ?? null,
       // Honest fit signals from the recommender — tier label (or null) + reasons.
       matchLabel: r.label,

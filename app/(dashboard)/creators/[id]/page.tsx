@@ -10,6 +10,7 @@ import type { SocialAccount } from '@/types'
 import { hasVerifiedOwnership, VERIFICATION_NOTE } from '@/lib/discovery-data'
 import { responseStanding } from '@/lib/recommend'
 import { boostEnabled } from '@/lib/stripe'
+import ReviewList from '@/components/ReviewList'
 import Link from 'next/link'
 import { ChevronLeft, MapPin, Shield, Lock, ExternalLink, ShieldCheck, Clock } from 'lucide-react'
 
@@ -114,7 +115,7 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
     ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
     ['Collabs', String(completedCollabs), 'completed on collabr'],
     ['Rating', showRating ? `${creator.rating_avg} ★` : '—',
-      showRating ? `${creator.rating_count} review${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+      showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
   ]
 
   return (
@@ -271,26 +272,15 @@ export default async function CreatorProfilePage({ params }: { params: { id: str
             )}
           </section>
 
-          {/* Brand reviews — real */}
-          {brandReviews && brandReviews.length > 0 && (
-            <section style={{ marginBottom: 30 }}>
-              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Brand reviews</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {brandReviews.map(r => {
-                  const campaign = (r.collabs as any)?.campaigns
-                  return (
-                    <div key={r.id} className="card">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: r.note ? 6 : 0 }}>
-                        <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>{campaign?.title || 'Collab'}</span>
-                        <span style={{ fontSize: 13, color: 'var(--warn)' }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                      </div>
-                      {r.note && <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>{r.note}</p>}
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-          )}
+          {/* Brand reviews — revealed only; premium empty state for new creators */}
+          <ReviewList
+            heading="Brand reviews"
+            reviews={(brandReviews || []).map(r => ({
+              id: r.id, rating: r.rating, note: r.note,
+              title: (r.collabs as any)?.campaigns?.title ?? null,
+            }))}
+            emptyBody="No reviews yet — feedback from brands appears after completed collaborations, revealed once both sides submit or after 7 days."
+          />
         </div>
 
         {/* RAIL */}

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Sparkles, ArrowRight, Check } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
+import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 
 export interface JobsListCampaign {
@@ -20,6 +21,8 @@ export interface JobsListCampaign {
   platform: string | null
   brand_name: string
   brand_logo: string | null
+  brand_rating_avg: number | null
+  brand_rating_count: number | null   // distinct collaborators
   /** The signed-in creator's application status for this campaign, if any. */
   appliedStatus: 'pending' | 'shortlisted' | 'selected' | 'rejected' | null
   /** Honest tier label ("Best Match" / "Strong Fit" / "Good Fit") or null. */
@@ -136,6 +139,11 @@ export default function JobsList({
                     <div style={{ fontSize: 13.5, color: 'var(--ink-faint-solid)', marginTop: 2 }}>
                       {c.brand_name}{c.platform ? ` · ${c.platform}` : ''}
                     </div>
+                    {(c.brand_rating_count || 0) >= 1 && (
+                      <div style={{ marginTop: 5 }}>
+                        <RatingChip avg={c.brand_rating_avg} count={c.brand_rating_count} size={12} />
+                      </div>
+                    )}
                     {c.niche_tags && c.niche_tags.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
                         {c.niche_tags.map(t => (

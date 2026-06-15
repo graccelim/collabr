@@ -58,7 +58,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
         {existingReview.note && (
           <p className="text-xs text-gray-600">{existingReview.note}</p>
         )}
-        <p className="text-xs text-gray-400">Submitted ✓ — revealed once you&rsquo;ve both reviewed, or after 14 days.</p>
+        <p className="text-xs text-gray-400">Submitted ✓ — revealed once you&rsquo;ve both reviewed, or after 7 days.</p>
       </div>
     )
   }
@@ -68,7 +68,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
       <h2 className="text-sm font-medium text-gray-900">Leave a review</h2>
       <p className="text-xs text-gray-500">
         The collab is complete. Reviews are double-blind — yours reveals once you&rsquo;ve both
-        reviewed, or after 14 days, so feedback stays honest on both sides.
+        reviewed, or after 7 days, so feedback stays honest on both sides.
       </p>
       <form onSubmit={submit} className="space-y-3">
         <div>

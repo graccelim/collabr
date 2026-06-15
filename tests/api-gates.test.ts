@@ -298,13 +298,14 @@ describe('POST /api/reviews — authorization', () => {
     expect(res.status).toBe(409)
   })
 
-  it('rejects reviews on completed-but-unpaid collabs (409)', async () => {
+  it('rejects reviews on a PAID collab that never settled (409)', async () => {
     useStub({
       user: verifiedUser('brand-1'),
       tables: {
         users: [{ data: { role: 'brand' } }],
         collabs: [{ data: {
           status: 'completed', payment_status: 'refund_pending',
+          agreed_rate: 50000, // a paid collab — money must have moved
           creator_profiles: { user_id: 'creator-1' },
           brand_profiles: { user_id: 'brand-1' },
         } }],
@@ -312,6 +313,26 @@ describe('POST /api/reviews — authorization', () => {
     })
     const res = await post(reviewBody)
     expect(res.status).toBe(409)
+  })
+
+  it('allows reviews on a completed BARTER collab even though unpaid (not 409)', async () => {
+    useStub({
+      user: verifiedUser('brand-1'),
+      tables: {
+        users: [{ data: { role: 'brand' } }],
+        collabs: [{ data: {
+          status: 'completed', payment_status: 'unfunded',
+          agreed_rate: 0, // barter — eligible on completion alone
+          creator_profiles: { user_id: 'creator-1' },
+          brand_profiles: { user_id: 'brand-1' },
+        } }],
+      },
+    })
+    const res = await post(reviewBody)
+    // Eligibility passes (it does not 409/403); downstream insert behaviour
+    // depends on the stub, so we only assert the barter gate is open.
+    expect(res.status).not.toBe(409)
+    expect(res.status).not.toBe(403)
   })
 })
 

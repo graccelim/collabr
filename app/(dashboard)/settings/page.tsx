@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { BRAND_INDUSTRIES, INDUSTRY_LABELS, normalizeUrl } from '@/lib/onboarding'
 import { brandCompletion } from '@/lib/profile-completion'
+import ReputationSummary from '@/components/ReputationSummary'
 
 export default function SettingsPage() {
   const supabase = createClient()
@@ -20,6 +21,8 @@ export default function SettingsPage() {
   const [logoUploading, setLogoUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState('')
+  const [brandId, setBrandId] = useState('')
+  const [rep, setRep] = useState<{ avg: number; count: number; completed: number }>({ avg: 0, count: 0, completed: 0 })
 
   useEffect(() => {
     async function load() {
@@ -35,9 +38,15 @@ export default function SettingsPage() {
 
       if (profile.role === 'brand') {
         const { data: brand } = await supabase.from('brand_profiles')
-          .select('company_name, company_description, industry, website, social_url, logo_url')
+          .select('id, company_name, company_description, industry, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns')
           .eq('user_id', user.id).single()
         if (brand) {
+          setBrandId((brand as any).id || '')
+          setRep({
+            avg: Number((brand as any).rating_avg ?? 0),
+            count: (brand as any).rating_count ?? 0,
+            completed: (brand as any).completed_campaigns ?? 0,
+          })
           setCompanyName(brand.company_name || '')
           setCompanyDescription(brand.company_description || '')
           setIndustry(brand.industry || '')
@@ -121,6 +130,26 @@ export default function SettingsPage() {
           <input className="input" value={displayName} onChange={e => setDisplayName(e.target.value)} />
         </div>
       </div>
+
+      {/* How creators see you — reputation (premium empty state while new) */}
+      {role === 'brand' && (
+        <div className="card" style={{ padding: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+            <h2 className="text-sm font-medium text-gray-900" style={{ margin: 0 }}>How creators see you</h2>
+            {brandId && (
+              <a href={`/brands/${brandId}`} target="_blank" rel="noopener noreferrer"
+                style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+                View public profile →
+              </a>
+            )}
+          </div>
+          <ReputationSummary
+            ratingAvg={rep.avg} ratingCount={rep.count} completed={rep.completed}
+            completedLabel="completed campaigns"
+            emptyBody="Reviews from creators appear after completed collaborations — revealed once you both submit, or after 7 days."
+          />
+        </div>
+      )}
 
       {/* Brand profile — only shown for brand users */}
       {role === 'brand' && (

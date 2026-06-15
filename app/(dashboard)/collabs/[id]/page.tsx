@@ -12,6 +12,7 @@ import CollabChat from '@/components/CollabChat'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star } from 'lucide-react'
+import Link from 'next/link'
 import RatingChip from '@/components/RatingChip'
 
 // Destination domain for an external draft link, so the brand sees where a
@@ -86,7 +87,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     supabase.from('live_posts').select('*').eq('collab_id', params.id).maybeSingle(),
     supabase.from('reviews').select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle(),
     // The other side's review — RLS only returns it once it's REVEALED
-    // (both submitted, or 14 days). Session client respects the reveal gate.
+    // (both submitted, or 7 days). Session client respects the reveal gate.
     supabase.from('reviews').select('rating, note, created_at')
       .eq('collab_id', params.id)
       .eq('reviewer_type', profile?.role === 'brand' ? 'creator' : 'brand')
@@ -295,7 +296,11 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             return (
               <div className="card" style={{ padding: 20 }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                  <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{cpName}&rsquo;s reputation</h2>
+                  <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
+                    {cp?.id
+                      ? <Link href={isBrand ? `/creators/${cp.id}` : `/brands/${cp.id}`} style={{ color: 'var(--ink)' }}>{cpName}&rsquo;s reputation →</Link>
+                      : <>{cpName}&rsquo;s reputation</>}
+                  </h2>
                   <RatingChip avg={cp?.rating_avg} count={cp?.rating_count} label={isBrand ? 'New creator' : 'New to collabr'} />
                 </div>
                 {cr ? (
@@ -313,7 +318,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                   </div>
                 ) : existingReview ? (
                   <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', margin: '12px 0 0', lineHeight: 1.5 }}>
-                    {cpName}&rsquo;s review is hidden until you&rsquo;ve both reviewed — or 14 days after the collab. Reviews reveal together, so feedback stays honest.
+                    {cpName}&rsquo;s review is hidden until you&rsquo;ve both reviewed — or 7 days after the collab. Reviews reveal together, so feedback stays honest.
                   </p>
                 ) : null}
               </div>

@@ -11,6 +11,7 @@ import { creatorCompletion } from '@/lib/profile-completion'
 import { getInitials } from '@/lib/utils'
 import { Check } from 'lucide-react'
 import type { SocialAccount } from '@/types'
+import ReputationSummary from '@/components/ReputationSummary'
 
 export default function ProfilePage() {
   const supabase = createClient()
@@ -24,6 +25,8 @@ export default function ProfilePage() {
   const [emailVerified, setEmailVerified] = useState(false)
 
   const [bio, setBio] = useState('')
+  const [creatorId, setCreatorId] = useState('')
+  const [rep, setRep] = useState<{ avg: number; count: number; completed: number }>({ avg: 0, count: 0, completed: 0 })
   const [niches, setNiches] = useState<CreatorNiche[]>([])
   const [location, setLocation] = useState('')
   const [rate, setRate] = useState('')
@@ -55,7 +58,7 @@ export default function ProfilePage() {
       const [{ data: account }, { data }] = await Promise.all([
         supabase.from('users').select('display_name, avatar_url').eq('id', user.id).single(),
         supabase.from('creator_profiles')
-          .select('bio, niche, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status')
+          .select('id, bio, niche, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, rating_avg, rating_count, collabs_completed')
           .eq('user_id', user.id).single(),
         loadSocials(),
       ])
@@ -64,6 +67,12 @@ export default function ProfilePage() {
         setAvatarUrl(account.avatar_url || '')
       }
       if (data) {
+        setCreatorId((data as any).id || '')
+        setRep({
+          avg: Number((data as any).rating_avg ?? 0),
+          count: (data as any).rating_count ?? 0,
+          completed: (data as any).collabs_completed ?? 0,
+        })
         setBio(data.bio || '')
         setNiches(((data.niche_tags as CreatorNiche[])?.length
           ? (data.niche_tags as CreatorNiche[])
@@ -236,6 +245,23 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* How brands see you — reputation (premium empty state while new) */}
+      <div className="card" style={{ padding: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 12, flexWrap: 'wrap' }}>
+          <h2 className="text-sm font-medium text-gray-900" style={{ margin: 0 }}>How brands see you</h2>
+          {creatorId && (
+            <a href={`/creators/${creatorId}`} target="_blank" rel="noopener noreferrer"
+              style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+              View public profile →
+            </a>
+          )}
+        </div>
+        <ReputationSummary
+          ratingAvg={rep.avg} ratingCount={rep.count} completed={rep.completed}
+          emptyBody="Reviews from brands appear after completed collaborations — revealed once you both submit, or after 7 days."
+        />
       </div>
 
       {/* Photo + name */}
