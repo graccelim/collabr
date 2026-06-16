@@ -155,13 +155,13 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           {campaigns && campaigns.length > 0 && (
             <section style={{ marginBottom: 30 }}>
               <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Open campaigns</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {campaigns.map(c => {
                   const budget = c.budget_min && c.budget_max
                     ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
                     : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
                   return (
-                    <Link key={c.id} href={`/jobs/${c.id}`} className="card card-hover" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: 14 }}>
+                    <Link key={c.id} href={`/jobs/${c.id}`} className="rail-link" style={{ justifyContent: 'space-between' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
                         <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
                           <Briefcase size={16} />
@@ -194,9 +194,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           />
         </div>
 
-        {/* RAIL - why work with this brand + where to find them */}
-        <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          <div className="card" style={{ padding: 20 }}>
+        {/* RAIL - flat sections (no card boxes): why work with this brand + where to find them */}
+        <div style={{ position: 'sticky', top: 24 }}>
+          <div className="rail-section">
             <div className="eyebrow" style={{ marginBottom: 12 }}>Working with {name}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {brandTrust.map(p => (
@@ -208,13 +208,12 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           </div>
 
           {(brand.website || brandSocials.length > 0) && (
-            <div>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Find {name} online</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div className="rail-section">
+              <div className="eyebrow" style={{ marginBottom: 6 }}>Find {name} online</div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {brand.website && (
-                  <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow"
-                    className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
-                    <span style={{ width: 30, flexShrink: 0, display: 'grid', placeItems: 'center', color: 'var(--ink-soft)' }}>
+                  <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow" className="rail-link">
+                    <span style={{ width: 26, flexShrink: 0, display: 'grid', placeItems: 'center', color: 'var(--ink-soft)' }}>
                       <Globe size={20} />
                     </span>
                     <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>Website</span>
@@ -224,10 +223,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                 {brandSocials.map((s: any) => {
                   const Icon = socialIcon(s.platform)
                   return (
-                    <a key={s.platform + s.handle} href={s.url} target="_blank" rel="noopener noreferrer"
-                      className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
-                      <span style={{ width: 30, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
-                        <Icon size={24} />
+                    <a key={s.platform + s.handle} href={s.url} target="_blank" rel="noopener noreferrer" className="rail-link">
+                      <span style={{ width: 26, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                        <Icon size={22} />
                       </span>
                       <span style={{ minWidth: 0, flex: 1 }}>
                         <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>

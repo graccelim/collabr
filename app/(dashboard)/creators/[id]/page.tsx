@@ -230,10 +230,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           {(portfolioLinks.length > 0 || creator.media_kit_url) && (
             <section style={{ marginBottom: 30 }}>
               <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Portfolio &amp; links</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {creator.media_kit_url && (
-                  <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer"
-                    className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, textDecoration: 'none' }}>
+                  <a href={creator.media_kit_url} target="_blank" rel="noopener noreferrer" className="rail-link">
                     <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
                       <FileText size={16} />
                     </span>
@@ -249,8 +248,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                     { bg: 'var(--creator-tint)', fg: 'var(--creator-deep)' },
                   ][i % 4]
                   return (
-                    <a key={link} href={link} target="_blank" rel="noopener noreferrer"
-                      className="card card-hover" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 14, textDecoration: 'none' }}>
+                    <a key={link} href={link} target="_blank" rel="noopener noreferrer" className="rail-link">
                       <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: tints.bg, color: tints.fg, display: 'grid', placeItems: 'center' }}>
                         <LinkIcon size={15} />
                       </span>
@@ -298,10 +296,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           })()}
         </div>
 
-        {/* RAIL */}
-        <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+        {/* RAIL - flat sections divided by hairlines (no card boxes) */}
+        <div style={{ position: 'sticky', top: 24 }}>
           {/* Rates & terms - rate + the platform protections a brand gets */}
-          <div className="card" style={{ padding: 20 }}>
+          <div className="rail-section">
             <div className="eyebrow" style={{ marginBottom: 10 }}>Rates &amp; terms</div>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
               <span className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
@@ -310,7 +308,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </span>
               <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', flexShrink: 0 }}>Negotiable</span>
             </div>
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 11 }}>
+            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 11 }}>
               {[
                 ['Payment held in escrow', 'Funded when they accept'],
                 ['48-hour review window', 'Approve or request changes'],
@@ -328,19 +326,17 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
 
           {/* Social profiles - creator-provided, clickable so brands verify themselves */}
-          <div>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Social profiles</div>
+          <div className="rail-section">
+            <div className="eyebrow" style={{ marginBottom: 6 }}>Social profiles</div>
             {socials.length > 0 ? (
               <>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
                   {socials.map(s => {
                     const Icon = socialIcon(s.platform)
                     return (
-                      <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
-                        className="card card-hover"
-                        style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
-                        <span style={{ width: 30, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
-                          <Icon size={24} />
+                      <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="rail-link">
+                        <span style={{ width: 26, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                          <Icon size={22} />
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -365,14 +361,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
               // Legacy fallback for profiles created before normalized socials
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {Object.entries(creator.platforms as Record<string, { handle: string; followers: number }>)
                   .map(([platform, info]) => {
                     const Icon = socialIcon(platform)
                     return (
-                      <div key={platform} className="card" style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px' }}>
-                        <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center', background: 'var(--accent-tint)', color: 'var(--accent-deep)' }}>
-                          <Icon size={16} />
+                      <div key={platform} className="rail-link" style={{ cursor: 'default' }}>
+                        <span style={{ width: 26, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                          <Icon size={22} />
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', textTransform: 'capitalize' }}>{platform}</span>
@@ -383,14 +379,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   })}
               </div>
             ) : (
-              <div style={{ padding: '12px 0', borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+              <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
                 This creator hasn&apos;t added any social profiles yet.
               </div>
             )}
           </div>
 
           {/* Availability */}
-          <div className="card" style={{ padding: 20 }}>
+          <div className="rail-section">
             <div className="eyebrow" style={{ marginBottom: 12 }}>Availability</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
               {availability && (

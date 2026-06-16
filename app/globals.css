@@ -220,6 +220,19 @@
   .social-glyph:hover { opacity: .6; }
   a:hover > .social-glyph, a:hover .social-glyph { opacity: .7; }
 
+  /* Flat profile rail - sections divided by hairlines, no card boxes. The whole
+     rail reads as one quiet column matching the flat left content. */
+  .rail-section { padding: 20px 0; border-top: 1px solid var(--line); }
+  .rail-section:first-child { padding-top: 0; border-top: 0; }
+  /* Flat, hoverable link rows (socials, portfolio) - no bordered box. */
+  .rail-link {
+    display: flex; align-items: center; gap: 11px;
+    margin: 0 -10px; padding: 9px 10px;
+    text-decoration: none; border-radius: var(--radius-sm);
+    transition: background .12s ease;
+  }
+  .rail-link:hover { background: var(--surface-2); }
+
   /* Connected-socials list rows + their actions. */
   .social-row { transition: background .12s ease; }
   .social-action { transition: background .12s ease; }
