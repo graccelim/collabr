@@ -212,8 +212,8 @@ export default async function JobDetailPage({
       <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
         <div
           style={{
-            width: 60,
-            height: 60,
+            width: 68,
+            height: 68,
             borderRadius: 'var(--radius-sm)',
             background: 'var(--paper-2)',
             border: '1px solid var(--line)',
