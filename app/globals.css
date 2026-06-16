@@ -220,6 +220,13 @@
   .social-glyph:hover { opacity: .6; }
   a:hover > .social-glyph, a:hover .social-glyph { opacity: .7; }
 
+  /* Connected-socials list rows + their actions. */
+  .social-row { transition: background .12s ease; }
+  .social-action { transition: background .12s ease; }
+  .social-action:hover { background: var(--accent-tint); }
+  .social-remove { transition: background .12s ease, color .12s ease; }
+  .social-remove:hover { background: var(--danger-tint); color: var(--danger); }
+
   /* ---- Dimensional dark "money" panel - the premium hero object ----
      Deep navy gradient + soft accent/secure glow + faint grain. The glow and
      grain are pseudo-elements so existing markup upgrades with no JSX change;

@@ -12,7 +12,7 @@ import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } f
 import { creatorCompletion } from '@/lib/profile-completion'
 import { friendlyUploadError, MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/utils'
 import Avatar from '@/components/Avatar'
-import { Star } from 'lucide-react'
+import { Star, X } from 'lucide-react'
 import { socialIcon } from '@/components/SocialIcon'
 import type { SocialAccount } from '@/types'
 
@@ -226,20 +226,37 @@ export default function ProfilePage() {
   }
 
   async function removeSocial(id: string) {
+    if (socials.length <= 1) { toast.error('Keep at least one social profile.'); return }
+    const prev = socials
+    // Optimistic: drop it instantly, and promote the first remaining if we just
+    // removed the primary (mirrors the server's reassignment).
+    setSocials(list => {
+      const removed = list.find(x => x.id === id)
+      let next = list.filter(x => x.id !== id)
+      if (removed?.is_primary && next.length && !next.some(x => x.is_primary)) {
+        next = next.map((x, i) => (i === 0 ? { ...x, is_primary: true } : x))
+      }
+      return next
+    })
+    setTouched(true)
     const res = await fetch(`/api/socials/${id}`, { method: 'DELETE' })
-    const data = await res.json()
-    if (!res.ok) toast.error(data.error || 'Could not remove account')
-    else { toast.success('Account removed'); setTouched(true); await loadSocials() }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      toast.error(data.error || 'Could not remove account')
+      setSocials(prev) // revert
+    }
   }
 
   async function makePrimary(id: string) {
+    const prev = socials
+    setSocials(list => list.map(x => ({ ...x, is_primary: x.id === id }))) // instant
+    setTouched(true)
     const res = await fetch(`/api/socials/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ is_primary: true }),
     })
-    if (!res.ok) toast.error('Could not update')
-    else { setTouched(true); await loadSocials() }
+    if (!res.ok) { toast.error('Could not update'); setSocials(prev) } // revert
   }
 
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
@@ -426,57 +443,63 @@ export default function ProfilePage() {
         {socials.length === 0 && (
           <p className="text-xs text-gray-400">No accounts connected yet, add at least one to complete onboarding.</p>
         )}
-        {socials.map(s => {
-          const Icon = socialIcon(s.platform)
-          return (
-            <div key={s.id} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-              padding: '12px 14px', borderRadius: 'var(--radius-sm)',
-              border: s.is_primary ? '1.5px solid var(--accent)' : '1px solid var(--line)',
-              background: s.is_primary ? 'var(--accent-tint)' : 'var(--surface)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 11, minWidth: 0 }}>
-                <span style={{
-                  width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center',
-                  background: s.is_primary ? 'var(--accent)' : 'var(--surface-2)',
-                  color: s.is_primary ? '#fff' : 'var(--ink-soft)',
+        {socials.length > 0 && (
+          <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
+            {socials.map((s, i) => {
+              const Icon = socialIcon(s.platform)
+              return (
+                <div key={s.id} className="social-row" style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+                  padding: '13px 14px',
+                  borderTop: i ? '1px solid var(--line)' : 'none',
+                  borderLeft: `3px solid ${s.is_primary ? 'var(--accent)' : 'transparent'}`,
+                  background: s.is_primary ? 'var(--accent-tint)' : 'var(--surface)',
                 }}>
-                  <Icon size={18} />
-                </span>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
-                    {s.is_primary && (
-                      <span className="badge" style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 700,
-                        background: 'var(--accent)', color: '#fff', padding: '2px 8px',
-                      }}>
-                        <Star size={10} fill="currentColor" /> Primary
-                      </span>
-                    )}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                    <span style={{
+                      width: 38, height: 38, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center',
+                      background: s.is_primary ? 'var(--accent)' : 'var(--paper-2)',
+                      color: s.is_primary ? '#fff' : 'var(--ink)',
+                    }}>
+                      <Icon size={19} />
+                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
+                        {s.is_primary && (
+                          <span className="badge" style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 3, fontSize: 10.5, fontWeight: 700,
+                            background: 'var(--accent)', color: '#fff', padding: '2px 7px',
+                          }}>
+                            <Star size={9.5} fill="currentColor" /> Primary
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <a href={s.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{socialHandleLabel(s.platform as SocialPlatform, s.handle)}</a>
+                        {s.follower_count != null && (
+                          <span style={{ color: 'var(--ink-faint-solid)' }} title="Self-reported"> · {s.follower_count.toLocaleString()} followers</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 1 }}>
-                    <a href={s.url} target="_blank" rel="noopener noreferrer"
-                      className="hover:underline" style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{socialHandleLabel(s.platform as SocialPlatform, s.handle)}</a>
-                    {s.follower_count != null && (
-                      <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }} title="Self-reported">
-                        · {s.follower_count.toLocaleString()} followers
-                      </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                    {!s.is_primary && (
+                      <button type="button" onClick={() => makePrimary(s.id)} className="social-action"
+                        style={{ fontSize: 12.5, fontWeight: 560, color: 'var(--accent-deep)', padding: '6px 10px', borderRadius: 8, background: 'transparent', border: 0, cursor: 'pointer' }}>
+                        Make primary
+                      </button>
                     )}
+                    <button type="button" onClick={() => removeSocial(s.id)} className="social-remove" title="Remove" aria-label="Remove"
+                      style={{ display: 'grid', placeItems: 'center', width: 30, height: 30, borderRadius: 8, color: 'var(--ink-faint-solid)', background: 'transparent', border: 0, cursor: 'pointer' }}>
+                      <X size={15} />
+                    </button>
                   </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-3 shrink-0">
-                {!s.is_primary && (
-                  <button type="button" onClick={() => makePrimary(s.id)}
-                    style={{ fontSize: 12, fontWeight: 540, color: 'var(--accent-deep)' }}>Make primary</button>
-                )}
-                <button type="button" onClick={() => removeSocial(s.id)}
-                  className="text-red-400 hover:text-red-600" style={{ fontSize: 12 }}>Remove</button>
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </div>
+        )}
 
         {SOCIAL_PLATFORMS.every(p => socials.some(s => s.platform === p)) ? (
           <p className="text-xs text-gray-400">All platforms connected.</p>
