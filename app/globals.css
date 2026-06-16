@@ -412,13 +412,12 @@
   }
   .profile-stats > .profile-stat { padding: 20px 22px; }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
+  /* Neutral, monochrome stat icon - tech/professional, no brand colours. */
   .profile-stat-icon {
-    width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
-    margin-bottom: 13px; background: var(--paper-2); color: var(--ink-soft);
+    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    margin-bottom: 13px; background: var(--surface-2);
+    color: var(--ink-faint-solid); border: 1px solid var(--line);
   }
-  .profile-stat-icon[data-tone="accent"] { background: var(--accent-tint); color: var(--accent-deep); }
-  .profile-stat-icon[data-tone="money"]  { background: var(--money-tint);  color: var(--money-deep); }
-  .profile-stat-icon[data-tone="warn"]   { background: var(--warn-tint);   color: var(--warn-deep); }
   .profile-stat-val {
     font-family: var(--font-money); font-variant-numeric: tabular-nums;
     font-size: 25px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1;

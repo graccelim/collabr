@@ -17,7 +17,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
+import { MapPin, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -123,6 +123,17 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     { label: 'Collabs', value: String(completedCollabs), sub: 'completed on collabr', icon: CheckCircle2, tone: 'accent' },
     { label: 'Rating', value: showRating ? String(creator.rating_avg) : '–', sub: showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
   ]
+
+  // Reasons a brand should work with this creator (honest, never escrow - the
+  // brand is the one reading this page).
+  const sellingPoints: string[] = []
+  if (availability === 'available') sellingPoints.push('Available for collaborations now')
+  if (response.hasHistory) sellingPoints.push(response.label)
+  if (completedCollabs > 0) sellingPoints.push(`${completedCollabs} completed collaboration${completedCollabs !== 1 ? 's' : ''} on collabr`)
+  if (showRating) sellingPoints.push(`${creator.rating_avg}★ from ${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}`)
+  if (emailVerified === true) sellingPoints.push('Email verified')
+  if (primaryNiche) sellingPoints.push(`${primaryNiche} content specialist`)
+  if (sellingPoints.length === 0) sellingPoints.push('New to collabr, ready to collaborate')
 
   return (
     <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -301,21 +312,23 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
         {/* RAIL */}
         <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Typical rate */}
+          {/* Rates & terms - sells the creator to the brand reading this */}
           <div className="card" style={{ padding: 20 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Typical rate</span>
-              <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Negotiable</span>
+              <span className="eyebrow">Typical rate</span>
+              <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>Negotiable</span>
             </div>
             <div className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
               {rate > 0 ? formatSGD(rate) : 'Negotiable'}
               {rate > 0 && <span style={{ fontSize: 14, color: 'var(--ink-faint-solid)', fontWeight: 400 }}> / post</span>}
             </div>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', color: 'var(--ink-soft)' }}>
-              <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-              <span style={{ fontSize: 12.5, lineHeight: 1.5 }}>
-                Fund escrow once when they accept. It releases only after you approve the live post.
-              </span>
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {sellingPoints.map(p => (
+                <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
+                  <CheckCircle2 size={14} style={{ color: 'var(--money)', flexShrink: 0 }} />
+                  {p}
+                </div>
+              ))}
             </div>
           </div>
 
