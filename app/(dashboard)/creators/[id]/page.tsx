@@ -7,6 +7,7 @@ import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
 import { socialIcon } from '@/components/SocialIcon'
+import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import { chipColor } from '@/lib/niches'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
@@ -16,7 +17,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon } from 'lucide-react'
+import { MapPin, Shield, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -116,12 +117,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const portfolioLinks: string[] = creator.portfolio_links || []
   const memberSince = creator.created_at ? new Date(creator.created_at).getFullYear() : null
 
-  const stats: [string, string, string][] = [
-    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '-', 'self-reported'],
-    ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
-    ['Collabs', String(completedCollabs), 'completed on collabr'],
-    ['Rating', showRating ? `${creator.rating_avg} ★` : '-',
-      showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+  const stats: ProfileStat[] = [
+    { label: 'Followers', value: totalFollowers > 0 ? totalFollowers.toLocaleString() : '–', sub: 'self-reported', icon: Users, tone: 'neutral' },
+    { label: 'Avg. rate', value: rate > 0 ? formatSGD(rate) : 'Negotiable', sub: 'per post', icon: Wallet, tone: 'money' },
+    { label: 'Collabs', value: String(completedCollabs), sub: 'completed on collabr', icon: CheckCircle2, tone: 'accent' },
+    { label: 'Rating', value: showRating ? String(creator.rating_avg) : '–', sub: showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
   ]
 
   return (
@@ -194,15 +194,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         )}
       </div>
 
-      {/* stat strip - clean, borderless, reflows to 2-up on phones */}
-      <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 40 }}>
-        {stats.map(([k, v, ctx]) => (
-          <div key={k}>
-            <div className="mono-num profile-stat-val">{v}</div>
-            <div className="eyebrow" style={{ fontSize: 10, marginTop: 7 }}>{k}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{ctx}</div>
-          </div>
-        ))}
+      {/* premium stat band */}
+      <div style={{ marginBottom: 40 }}>
+        <ProfileStats stats={stats} />
       </div>
 
       {/* two-column layout */}

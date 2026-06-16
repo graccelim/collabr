@@ -8,8 +8,9 @@ import ProfileBackButton from '@/components/ProfileBackButton'
 import { chipColor } from '@/lib/niches'
 import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding'
 import { socialIcon } from '@/components/SocialIcon'
+import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import Link from 'next/link'
-import { Globe, Briefcase, ShieldCheck, Pencil, MapPin, ExternalLink } from 'lucide-react'
+import { Globe, Briefcase, ShieldCheck, Pencil, MapPin, ExternalLink, Star, CalendarDays } from 'lucide-react'
 
 export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -64,10 +65,10 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   for (const r of reviews) if (r.rating >= 1 && r.rating <= 5) dist[r.rating - 1]++
 
   const showRating = (brand.rating_count || 0) >= 1
-  const stats: [string, string, string][] = [
-    ['Completed', String(brand.completed_campaigns || 0), 'campaigns on collabr'],
-    ['Rating', showRating ? `${brand.rating_avg} ★` : '-', showRating ? `${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
-    ['Member', memberSince ? String(memberSince) : '-', 'on collabr since'],
+  const stats: ProfileStat[] = [
+    { label: 'Completed', value: String(brand.completed_campaigns || 0), sub: 'campaigns on collabr', icon: Briefcase, tone: 'accent' },
+    { label: 'Rating', value: showRating ? String(brand.rating_avg) : '–', sub: showRating ? `${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
+    { label: 'Member', value: memberSince ? String(memberSince) : '–', sub: 'on collabr since', icon: CalendarDays, tone: 'neutral' },
   ]
 
   return (
@@ -115,15 +116,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         )}
       </div>
 
-      {/* stat strip - clean, borderless, reflows to 2-up on phones */}
-      <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 36 }}>
-        {stats.map(([k, v, ctx]) => (
-          <div key={k}>
-            <div className="mono-num profile-stat-val">{v}</div>
-            <div className="eyebrow" style={{ fontSize: 10, marginTop: 7 }}>{k}</div>
-            <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{ctx}</div>
-          </div>
-        ))}
+      {/* premium stat band */}
+      <div style={{ marginBottom: 36 }}>
+        <ProfileStats stats={stats} />
       </div>
 
       {/* About */}

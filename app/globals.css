@@ -404,14 +404,30 @@
      Column count is set inline per page (4 for creators, 3 for brands). */
   .profile-stats {
     display: grid;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
-    padding: 20px 0;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
-  .profile-stats > div { padding: 0 22px; }
-  .profile-stats > div:first-child { padding-left: 2px; }
-  .profile-stats > div + div { border-left: 1px solid var(--line); }
-  .profile-stats .profile-stat-val { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); }
+  .profile-stats > .profile-stat { padding: 20px 22px; }
+  .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
+  .profile-stat-icon {
+    width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
+    margin-bottom: 13px; background: var(--paper-2); color: var(--ink-soft);
+  }
+  .profile-stat-icon[data-tone="accent"] { background: var(--accent-tint); color: var(--accent-deep); }
+  .profile-stat-icon[data-tone="money"]  { background: var(--money-tint);  color: var(--money-deep); }
+  .profile-stat-icon[data-tone="warn"]   { background: var(--warn-tint);   color: var(--warn-deep); }
+  .profile-stat-val {
+    font-family: var(--font-money); font-variant-numeric: tabular-nums;
+    font-size: 25px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1;
+  }
+  .profile-stat-label {
+    font-size: 10.5px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--ink-faint-solid); margin-top: 9px;
+  }
+  .profile-stat-sub { font-size: 11.5px; color: var(--ink-faint-solid); margin-top: 3px; }
 
   /* Selects: replace the cramped native arrow with a padded custom chevron. */
   select.input, select.select, .select {
@@ -683,13 +699,13 @@
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
   .resp-1col  { grid-template-columns: 1fr !important; }
 
-  /* Profile stat strip → clean 2-up grid with cross dividers (no stray borders). */
-  .profile-stats { grid-template-columns: repeat(2, 1fr) !important; padding: 16px 0; }
-  .profile-stats > div, .profile-stats > div:first-child { padding: 0 16px; }
-  .profile-stats > div + div { border-left: none; }
-  .profile-stats > div:nth-child(even) { border-left: 1px solid var(--line); }
-  .profile-stats > div:nth-child(n+3) { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; }
-  .profile-stats .profile-stat-val { font-size: 22px; }
+  /* Profile stat band → clean 2-up grid with cross dividers on phones. */
+  .profile-stats { grid-template-columns: repeat(2, 1fr) !important; }
+  .profile-stats > .profile-stat { padding: 16px !important; }
+  .profile-stats > .profile-stat + .profile-stat { border-left: none; }
+  .profile-stats > .profile-stat:nth-child(even) { border-left: 1px solid var(--line); }
+  .profile-stats > .profile-stat:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .profile-stat-val { font-size: 22px; }
 
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
