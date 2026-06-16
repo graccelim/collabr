@@ -6,6 +6,7 @@ import { checkRateLimit, clientIp } from '@/lib/rate-limit'
 import {
   brandOnboardingFields, creatorOnboardingSchema, requireWebsiteOrSocial, socialUrl,
 } from '@/lib/onboarding'
+import { brandSocialSchema } from '@/lib/profiles'
 
 const baseSchema = z.object({
   email: z.string().trim().email().max(254),
@@ -25,6 +26,7 @@ const brandSignupSchema = baseSchema.extend({
   brandOnboardingFields.omit({ company_name: true }).extend({
     company_description: z.string().trim().max(2000).optional().nullable(),
     location: z.string().trim().max(120).optional().nullable(),
+    socials: z.array(brandSocialSchema).max(6).optional(),
   }).refine(requireWebsiteOrSocial, {
     message: 'A website or a social account link is required',
     path: ['website'],
@@ -129,10 +131,14 @@ export async function POST(req: NextRequest) {
       console.error('[SIGNUP] brand profile insert failed:', brandErr)
       return NextResponse.json({ error: 'Could not create profile' }, { status: 500 })
     }
-    // `location` is newer (migration 020) - set it best-effort so signup never
-    // fails on DBs where the column isn't applied yet.
+    // `location` (020) and `socials` (021) are newer columns - set them
+    // best-effort and separately so signup never fails on DBs where one of the
+    // columns isn't applied yet.
     if (parsed.data.location) {
       await admin.from('brand_profiles').update({ location: parsed.data.location }).eq('user_id', data.user.id)
+    }
+    if (parsed.data.socials && parsed.data.socials.length > 0) {
+      await admin.from('brand_profiles').update({ socials: parsed.data.socials }).eq('user_id', data.user.id)
     }
     // Fire-and-forget - don't block the response on email delivery
     emails.welcomeBrand(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))

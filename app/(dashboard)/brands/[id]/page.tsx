@@ -6,9 +6,10 @@ import ReviewList, { type ReviewItem } from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { chipColor } from '@/lib/niches'
-import { INDUSTRY_LABELS, type BrandIndustry } from '@/lib/onboarding'
+import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding'
+import { socialIcon } from '@/components/SocialIcon'
 import Link from 'next/link'
-import { Globe, Briefcase, ShieldCheck, Pencil, MapPin } from 'lucide-react'
+import { Globe, Briefcase, ShieldCheck, Pencil, MapPin, ExternalLink } from 'lucide-react'
 
 export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -21,7 +22,11 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   // so brand profiles never 404 during the migration window.
   let brand: any = null
   {
-    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location`).eq('id', params.id).single()
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url, socials`).eq('id', params.id).single()
+    brand = r.data
+  }
+  if (!brand) {
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url`).eq('id', params.id).single()
     brand = r.data
   }
   if (!brand) {
@@ -143,6 +148,40 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           </div>
         </section>
       )}
+
+      {/* Social profiles - creator-provided, clickable so the creator can check them */}
+      {(() => {
+        const brandSocials = (Array.isArray(brand.socials) ? brand.socials : [])
+          .filter((s: any) => s && s.platform && s.url)
+          .sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
+        if (brandSocials.length === 0) return null
+        return (
+          <section style={{ marginBottom: 28 }}>
+            <h2 className="h2" style={{ fontSize: 18, marginBottom: 12 }}>Social profiles</h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 360 }}>
+              {brandSocials.map((s: any) => {
+                const Icon = socialIcon(s.platform)
+                return (
+                  <a key={s.platform + s.handle} href={s.url} target="_blank" rel="noopener noreferrer"
+                    className="card card-hover"
+                    style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
+                    <span style={{ width: 30, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                      <Icon size={24} />
+                    </span>
+                    <span style={{ minWidth: 0, flex: 1 }}>
+                      <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
+                      <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {socialHandleLabel(s.platform as SocialPlatform, s.handle)}
+                      </span>
+                    </span>
+                    <ExternalLink size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
+                  </a>
+                )
+              })}
+            </div>
+          </section>
+        )
+      })()}
 
       {/* Revealed reviews from creators */}
       {reviews.length > 0 && (

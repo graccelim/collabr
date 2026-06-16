@@ -44,11 +44,13 @@ export async function PATCH(req: NextRequest) {
       .update(updates).eq('user_id', user.id)
       .select(SELECT_COLUMNS)
       .single()
-    // `location` is newer (migration 020). On DBs where it isn't applied yet the
-    // update errors - retry without it so the rest of the save still lands.
-    if (result.error && 'location' in updates) {
+    // `location` (020) and `socials` (021) are newer columns. On DBs where they
+    // aren't applied yet the update errors - retry without them so the rest of
+    // the save still lands.
+    if (result.error && ('location' in updates || 'socials' in updates)) {
       const rest = { ...updates }
       delete rest.location
+      delete rest.socials
       result = Object.keys(rest).length > 0
         ? await supabase.from('brand_profiles').update(rest).eq('user_id', user.id).select(SELECT_COLUMNS).single()
         : await supabase.from('brand_profiles').select(SELECT_COLUMNS).eq('user_id', user.id).single()

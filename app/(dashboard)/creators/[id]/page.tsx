@@ -337,11 +337,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                       <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
                         className="card card-hover"
                         style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
-                        <span style={{
-                          width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center',
-                          background: 'var(--surface-2)', color: 'var(--ink)',
-                        }}>
-                          <Icon size={18} />
+                        <span style={{ width: 30, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                          <Icon size={24} />
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

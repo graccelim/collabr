@@ -6,10 +6,10 @@ import toast from 'react-hot-toast'
 import { ArrowRight, Loader2, Star, Megaphone } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import {
-  CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
-  NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeUrl,
+  CREATOR_NICHES, BRAND_INDUSTRIES,
+  NICHE_LABELS, INDUSTRY_LABELS, normalizeUrl,
   extractHandle, socialUrl as buildSocialUrl,
-  type CreatorNiche, type SocialPlatform,
+  type CreatorNiche,
 } from '@/lib/onboarding'
 import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
 
@@ -54,9 +54,6 @@ function SignupForm() {
   const [website, setWebsite] = useState('')
   const [brandAbout, setBrandAbout] = useState('')
   const [brandLocation, setBrandLocation] = useState('')
-  // Brand's single social profile - platform dropdown + username → social_url.
-  const [brandSocialPlatform, setBrandSocialPlatform] = useState<SocialPlatform>('instagram')
-  const [brandSocialUsername, setBrandSocialUsername] = useState('')
 
   function toggleNiche(n: CreatorNiche) {
     setNiches(prev => {
@@ -74,14 +71,24 @@ function SignupForm() {
     let payload: Record<string, unknown> = { email, password, name, role }
     if (isBrand) {
       if (!industry) { toast.error('Pick your industry'); return }
-      const u = brandSocialUsername.trim()
-      const social = u ? buildSocialUrl(brandSocialPlatform, extractHandle(brandSocialPlatform, u)) : null
+      // Brand socials (first row = primary); social_url mirrors the primary.
+      const brandSocials = socialRows
+        .filter(r => r.username.trim())
+        .map((r, i) => {
+          const handle = extractHandle(r.platform, r.username)
+          return {
+            platform: r.platform, handle, url: buildSocialUrl(r.platform, handle),
+            is_primary: i === 0, follower_count: r.followers ? parseInt(r.followers, 10) : null,
+          }
+        })
       const websiteUrl = normalizeUrl(website)
-      if (!websiteUrl && !social) {
+      if (!websiteUrl && brandSocials.length === 0) {
         toast.error('Add a website, social profile, or Google Maps link'); return
       }
       payload = {
-        ...payload, industry, website: websiteUrl, social_url: social,
+        ...payload, industry, website: websiteUrl,
+        social_url: brandSocials[0]?.url || null,
+        socials: brandSocials,
         company_description: brandAbout.trim() || null,
         location: brandLocation.trim() || null,
       }
@@ -177,18 +184,8 @@ function SignupForm() {
             <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing, a website or a social below is required.">
               <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />
             </Field>
-            <Field label="Brand social" hint="Helps creators trust you faster. Pick a platform and enter your handle.">
-              <div style={{ display: 'flex', gap: 8 }}>
-                <select className="input" style={{ width: 'auto', flexShrink: 0 }} value={brandSocialPlatform}
-                  onChange={e => setBrandSocialPlatform(e.target.value as SocialPlatform)} disabled={busy}>
-                  {SOCIAL_PLATFORMS.map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
-                </select>
-                <input className="input" style={{ flex: 1 }}
-                  inputMode={brandSocialPlatform === 'xiaohongshu' ? 'url' : 'text'}
-                  autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                  placeholder={brandSocialPlatform === 'xiaohongshu' ? 'Profile link' : '@username'}
-                  value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
-              </div>
+            <Field label="Brand socials" hint="Helps creators trust you faster. Pick a platform and enter your handle, we build the link. Your first profile is shown as primary.">
+              <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
             </Field>
           </>
         ) : (

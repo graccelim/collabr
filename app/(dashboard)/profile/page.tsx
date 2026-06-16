@@ -456,12 +456,8 @@ export default function ProfilePage() {
                   background: s.is_primary ? 'var(--accent-tint)' : 'var(--surface)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                    <span style={{
-                      width: 38, height: 38, borderRadius: 10, flexShrink: 0, display: 'grid', placeItems: 'center',
-                      background: s.is_primary ? 'var(--accent)' : 'var(--paper-2)',
-                      color: s.is_primary ? '#fff' : 'var(--ink)',
-                    }}>
-                      <Icon size={19} />
+                    <span style={{ width: 34, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+                      <Icon size={28} />
                     </span>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>

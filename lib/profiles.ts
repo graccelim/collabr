@@ -1,5 +1,14 @@
 import { z } from 'zod'
-import { CREATOR_NICHES, BRAND_INDUSTRIES } from '@/lib/onboarding'
+import { CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS } from '@/lib/onboarding'
+
+// A brand's stored social profile (multiple per brand, one primary).
+export const brandSocialSchema = z.object({
+  platform: z.enum(SOCIAL_PLATFORMS),
+  handle: z.string().trim().min(1).max(64),
+  url: z.string().trim().url().max(300),
+  is_primary: z.boolean(),
+  follower_count: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
+})
 
 // Phase 6 profile editing schemas - must match the check constraints in
 // supabase/migrations/008_profile_quality.sql.
@@ -50,6 +59,7 @@ export const brandProfileUpdateSchema = z.object({
   location: optionalText(120, 'Location'),
   website: optionalUrl,
   social_url: optionalUrl,
+  socials: z.array(brandSocialSchema).max(6).optional(),
   logo_url: optionalUrl,
   display_name: optionalText(120, 'Display name'),
 }).strict()
