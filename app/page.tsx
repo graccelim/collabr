@@ -98,16 +98,40 @@ const WHY = [
 
 const STEPS = {
   brand: [
-    ['Discover creators', 'Shortlist creators who fit, or post a campaign and review who applies.'],
-    ['Secure the collab', 'You fund escrow up front. The creator only starts once the money is protected.'],
-    ['Review the content', 'Drafts come to you privately. Approve, or request changes before anything goes live.'],
-    ['Release payment', 'Confirm the live post and escrow pays out automatically. No chasing invoices.'],
+    [
+      'Discover creators',
+      'Find the right creators that fit your brand, audience, and budget.',
+    ],
+    [
+      'Collaborate confidently',
+      'Your funds stay protected while both sides work together.',
+    ],
+    [
+      'Review the content',
+      'Review content and ensure it meets your standards before it reaches your audience.',
+    ],
+    [
+      'Approve and relax',
+      'Once approved, payment, reviews, and follow-up are handled automatically for you.',
+    ],
   ],
   creator: [
-    ['Discover campaigns', 'Find campaigns that fit your niche and rates, or get invited directly by brands.'],
-    ['Accept with confidence', 'The brand funds escrow before you start, so your pay is locked in from day one.'],
-    ['Submit your content', 'Upload privately and get feedback first. Nothing posts before it is approved.'],
-    ['Get paid', 'Once your live post is confirmed, escrow releases straight to you.'],
+    [
+      'Discover campaigns',
+      'Find campaigns that fit your niche and rates, or get invited directly by brands.',
+    ],
+    [
+      'Accept with confidence',
+      'Funds are secured before you start, so you know your payment is protected.',
+    ],
+    [
+      'Submit your content',
+      'Upload drafts, receive feedback, and make changes before anything goes live.',
+    ],
+    [
+      'Get paid',
+      'Once posts are live, payment will automatically be released to you. No more chasing or waiting for payments.',
+    ],
   ],
 } as const;
 
