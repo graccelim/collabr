@@ -83,7 +83,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   ]
 
   return (
-    <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
+    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
       {isOwner ? (
         <div className="eyebrow" style={{ marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
           <ShieldCheck size={13} /> This is how creators see you
@@ -92,44 +92,44 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         <ProfileBackButton from={searchParams.from} fallback="/jobs" />
       )}
 
-      {/* identity - airy hero, hairline-divided stat strip below */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
-          <Avatar src={brand.logo_url} name={name} size={88} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-              <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
-              {brand.industry && (() => {
-                const c = chipColor(brand.industry)
-                return <span className="badge" style={{ fontSize: 11, background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
-              })()}
+      {/* two-column from the top: identity + content (left), rail (right) */}
+      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+        {/* LEFT - identity, stats, content */}
+        <div style={{ minWidth: 0 }}>
+          {/* hero */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
+              <Avatar src={brand.logo_url} name={name} size={76} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                  <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                  {brand.industry && (() => {
+                    const c = chipColor(brand.industry)
+                    return <span className="badge" style={{ fontSize: 11, background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
+                  })()}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+                  {brand.location && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <MapPin size={13} />{brand.location}
+                    </span>
+                  )}
+                  {memberSince && <span>Member since {memberSince}</span>}
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 14px', marginTop: 9, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-              {brand.location && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <MapPin size={13} />{brand.location}
-                </span>
-              )}
-              {memberSince && <span>Member since {memberSince}</span>}
-            </div>
+            {isOwner && (
+              <Link href="/settings" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <Pencil size={15} /> Edit profile
+              </Link>
+            )}
           </div>
-        </div>
-        {isOwner && (
-          <Link href="/settings" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Pencil size={15} /> Edit profile
-          </Link>
-        )}
-      </div>
 
-      {/* premium stat band */}
-      <div style={{ marginBottom: 36 }}>
-        <ProfileStats stats={stats} />
-      </div>
+          {/* premium stat band */}
+          <div style={{ marginBottom: 28 }}>
+            <ProfileStats stats={stats} />
+          </div>
 
-      {/* two-column: content + side rail (website + socials, like the creator page) */}
-      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 290px', gap: 40, alignItems: 'start' }}>
-        {/* MAIN */}
-        <div>
           {brand.company_description && (
             <section style={{ marginBottom: 30 }}>
               <h2 className="h2" style={{ fontSize: 18, marginBottom: 12 }}>About</h2>

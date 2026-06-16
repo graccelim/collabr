@@ -124,19 +124,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     { label: 'Rating', value: showRating ? String(creator.rating_avg) : '–', sub: showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
   ]
 
-  // Reasons a brand should work with this creator (honest, never escrow - the
-  // brand is the one reading this page).
-  const sellingPoints: string[] = []
-  if (availability === 'available') sellingPoints.push('Available for collaborations now')
-  if (response.hasHistory) sellingPoints.push(response.label)
-  if (completedCollabs > 0) sellingPoints.push(`${completedCollabs} completed collaboration${completedCollabs !== 1 ? 's' : ''} on collabr`)
-  if (showRating) sellingPoints.push(`${creator.rating_avg}★ from ${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}`)
-  if (emailVerified === true) sellingPoints.push('Email verified')
-  if (primaryNiche) sellingPoints.push(`${primaryNiche} content specialist`)
-  if (sellingPoints.length === 0) sellingPoints.push('New to collabr, ready to collaborate')
 
   return (
-    <div className="screen-in" style={{ maxWidth: 940, margin: '0 auto' }}>
+    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
       {isOwner ? (
         <div className="eyebrow" style={{ marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
           <ShieldCheck size={13} /> This is how brands see you
@@ -145,75 +135,73 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         <ProfileBackButton from={searchParams.from} fallback="/creators" />
       )}
 
-      {/* identity - airy hero (no boxy card), hairline divider below */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
-        <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
-          <Avatar src={avatar} name={name} size={92} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-              <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
-              {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
-              {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
+      {/* two-column from the top: identity + content (left), rail (right) */}
+      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+        {/* LEFT - identity, stats, content */}
+        <div style={{ minWidth: 0 }}>
+          {/* hero */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
+              <Avatar src={avatar} name={name} size={76} />
+              <div style={{ minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                  <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                  {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
+                  {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
+                </div>
+                {primarySocial && (
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 540, marginTop: 5 }}>
+                    {socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}
+                  </div>
+                )}
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
+                  {primaryNiche && <span>{primaryNiche} creator</span>}
+                  {creator.location && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                      <MapPin size={13} />{creator.location}
+                    </span>
+                  )}
+                  {availability && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
+                      <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
+                      {availability === 'available' ? 'Available for collaborations' : AVAILABILITY_LABELS[availability]}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 14px', marginTop: 9, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
-              {primarySocial && <span style={{ color: 'var(--ink-soft)', fontWeight: 540 }}>{socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}</span>}
-              {creator.location && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                  <MapPin size={13} />{creator.location}
-                </span>
-              )}
-              {primaryNiche && <span>{primaryNiche}</span>}
-              {memberSince && <span>Member since {memberSince}</span>}
-              {emailVerified === true && <span>Email verified</span>}
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                title="Categorical summary of invite responses, never a score.">
-                <Clock size={13} />{response.label}
-              </span>
-              {availability && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
-                  <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
-                  {AVAILABILITY_LABELS[availability]}
-                </span>
-              )}
-            </div>
+
+            {/* owner edit OR brand actions */}
+            {isOwner && (
+              <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <Pencil size={15} /> Edit profile
+              </Link>
+            )}
+            {isBrandViewer && (
+              viewerIsPro ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flexShrink: 0 }}>
+                  <InviteCreatorForm
+                    creatorId={params.id}
+                    creatorName={name}
+                    campaigns={inviteCampaigns}
+                    pendingCampaignIds={pendingInviteCampaignIds}
+                  />
+                  <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
+                </div>
+              ) : (
+                <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 220 }}>
+                  Inviting and saving creators is part of collabr Pro.{' '}
+                  <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
+                </p>
+              )
+            )}
           </div>
-        </div>
 
-        {/* right - owner edit OR brand actions */}
-        {isOwner && (
-          <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-            <Pencil size={15} /> Edit profile
-          </Link>
-        )}
-        {isBrandViewer && (
-          viewerIsPro ? (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flexShrink: 0 }}>
-              <InviteCreatorForm
-                creatorId={params.id}
-                creatorName={name}
-                campaigns={inviteCampaigns}
-                pendingCampaignIds={pendingInviteCampaignIds}
-              />
-              <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
-            </div>
-          ) : (
-            <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 240 }}>
-              Inviting and saving creators is part of collabr Pro.{' '}
-              <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
-            </p>
-          )
-        )}
-      </div>
+          {/* premium stat band */}
+          <div style={{ marginBottom: 28 }}>
+            <ProfileStats stats={stats} />
+          </div>
 
-      {/* premium stat band */}
-      <div style={{ marginBottom: 40 }}>
-        <ProfileStats stats={stats} />
-      </div>
-
-      {/* two-column layout */}
-      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 290px', gap: 40, alignItems: 'start' }}>
-        {/* MAIN */}
-        <div>
           {/* About */}
           {creator.bio && (
             <section style={{ marginBottom: 30 }}>
@@ -312,21 +300,28 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
         {/* RAIL */}
         <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
-          {/* Rates & terms - sells the creator to the brand reading this */}
+          {/* Rates & terms - rate + the platform protections a brand gets */}
           <div className="card" style={{ padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-              <span className="eyebrow">Typical rate</span>
-              <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>Negotiable</span>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>Rates &amp; terms</div>
+            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
+              <span className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
+                {rate > 0 ? formatSGD(rate) : 'Negotiable'}
+                {rate > 0 && <span style={{ fontSize: 14, color: 'var(--ink-faint-solid)', fontWeight: 400 }}> / post</span>}
+              </span>
+              <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', flexShrink: 0 }}>Negotiable</span>
             </div>
-            <div className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
-              {rate > 0 ? formatSGD(rate) : 'Negotiable'}
-              {rate > 0 && <span style={{ fontSize: 14, color: 'var(--ink-faint-solid)', fontWeight: 400 }}> / post</span>}
-            </div>
-            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {sellingPoints.map(p => (
-                <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                  <CheckCircle2 size={14} style={{ color: 'var(--money)', flexShrink: 0 }} />
-                  {p}
+            <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {[
+                ['Payment held in escrow', 'Funded when they accept'],
+                ['48-hour review window', 'Approve or request changes'],
+                ['Released only on approval', 'You confirm the live post'],
+              ].map(([t, sub]) => (
+                <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                  <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
+                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>{sub}</span>
+                  </span>
                 </div>
               ))}
             </div>
@@ -390,6 +385,36 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             ) : (
               <div style={{ padding: '12px 0', borderTop: '1px solid var(--line)', fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
                 This creator hasn&apos;t added any social profiles yet.
+              </div>
+            )}
+          </div>
+
+          {/* Availability */}
+          <div className="card" style={{ padding: 20 }}>
+            <div className="eyebrow" style={{ marginBottom: 12 }}>Availability</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+              {availability && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--ink)' }}>
+                  <span style={{ width: 8, height: 8, borderRadius: 99, flexShrink: 0, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
+                  {availability === 'available' ? 'Open to brand collaborations' : AVAILABILITY_LABELS[availability]}
+                </div>
+              )}
+              {response.hasHistory && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--ink-soft)' }}>
+                  <Clock size={14} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} /> {response.label}
+                </div>
+              )}
+              {completedCollabs > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13, color: 'var(--ink-soft)' }}>
+                  <CheckCircle2 size={14} style={{ color: 'var(--money)', flexShrink: 0 }} /> {completedCollabs} completed collaboration{completedCollabs !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+            {(memberSince || emailVerified === true) && (
+              <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>
+                {memberSince ? `Member since ${memberSince}` : ''}
+                {memberSince && emailVerified === true ? ' · ' : ''}
+                {emailVerified === true ? 'Email verified' : ''}
               </div>
             )}
           </div>
