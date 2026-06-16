@@ -452,7 +452,6 @@ export default function ProfilePage() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12,
                   padding: '13px 14px',
                   borderTop: i ? '1px solid var(--line)' : 'none',
-                  borderLeft: `3px solid ${s.is_primary ? 'var(--accent)' : 'transparent'}`,
                   background: s.is_primary ? 'var(--accent-tint)' : 'var(--surface)',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>

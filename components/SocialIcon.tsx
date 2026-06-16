@@ -8,8 +8,10 @@ export type SocialIconProps = { size?: number } & SVGProps<SVGSVGElement>
 function simpleGlyph(path: string, hex: string): ComponentType<SocialIconProps> {
   return function SocialGlyph({ size = 20, className, ...rest }: SocialIconProps) {
     return (
+      // Padded viewBox so these edge-to-edge glyphs render at the same visual
+      // size as the Lemon8 mark (whose logo already sits inset in its box).
       <svg
-        width={size} height={size} viewBox="0 0 24 24" fill={`#${hex}`} role="img"
+        width={size} height={size} viewBox="-2.5 -2.5 29 29" fill={`#${hex}`} role="img"
         className={['social-glyph', className].filter(Boolean).join(' ')} {...rest}
       >
         <path d={path} />

@@ -117,9 +117,10 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             : getInitials(brandName)}
         </div>
         <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: 24 }}>{campaign.title}</h1>
-          <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>
-            {brandName}{platform ? ` · ${platform}` : ''}
+          <div className="eyebrow" style={{ marginBottom: 4 }}>Campaign</div>
+          <h1 style={{ fontSize: 24, lineHeight: 1.1 }}>{campaign.title}</h1>
+          <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 5 }}>
+            by <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{brandName}</span>{platform ? ` · ${platform}` : ''}
           </div>
           {/* Brand reputation - so creators know who they'd work with. */}
           <div style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
