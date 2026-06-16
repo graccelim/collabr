@@ -46,7 +46,6 @@ export default function SocialProfileBuilder({
     <div className="space-y-3">
       <div className="space-y-3">
         {rows.map((row, i) => {
-          const isXhs = row.platform === 'xiaohongshu'
           return (
             <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
               {/* platform + profile, side by side (follower count sits below) */}
@@ -60,8 +59,8 @@ export default function SocialProfileBuilder({
                   ))}
                 </select>
                 <input className="input" style={{ flex: 1, minWidth: 0 }}
-                  inputMode={isXhs ? 'url' : 'text'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                  placeholder={isXhs ? 'Profile link' : '@username'}
+                  inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  placeholder="@username"
                   value={row.username} onChange={e => update(i, { username: e.target.value })} />
                 {i === 0 && (
                   <span className="badge badge-accent" style={{ fontSize: 10.5, flexShrink: 0 }}>Primary</span>

@@ -1,14 +1,16 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import EmptyState from '@/components/EmptyState'
-import { Compass } from 'lucide-react'
+import { Compass, ArrowLeft } from 'lucide-react'
 import { rankCampaignsForCreator } from '@/lib/recommend'
 import { toCreatorSignals, toCampaignForCreator, type CreatorRow } from '@/lib/discovery-data'
 import JobsList, { type JobsListCampaign } from '@/components/JobsList'
 
-export default async function JobsPage() {
+export default async function JobsPage({ searchParams }: { searchParams: { brand?: string } }) {
   const user = await requireCreator()
   const supabase = createClient()
+  const brandFilter = searchParams?.brand || null
 
   // The active campaign list (by status) and the signed-in creator's profile
   // (by user.id) are independent - batch them. The creator's niche, rate,
@@ -44,17 +46,26 @@ export default async function JobsPage() {
     scoreRow,
   )
 
+  // Optional brand scope: when arriving from a brand's profile ("See all"),
+  // narrow to that brand's active campaigns. Name comes from the matched rows.
+  const scopedCampaigns = brandFilter
+    ? (campaigns ?? []).filter(c => (c.brand_profiles as any)?.id === brandFilter)
+    : (campaigns ?? [])
+  const brandName = brandFilter
+    ? ((scopedCampaigns[0]?.brand_profiles as any)?.company_name || 'this brand')
+    : null
+
   // Rank active campaigns for this creator (best-first), then map each ranked
   // entry to the card props the list renders. The recommender already orders by
   // real fit, so we keep that order.
   const ranked = rankCampaignsForCreator(
     creatorSignals,
-    (campaigns ?? []).map(c => {
+    scopedCampaigns.map(c => {
       const brand = (c.brand_profiles as any) ?? null
       return toCampaignForCreator(c, brand?.completed_campaigns ?? 0)
     }),
   )
-  const campaignById = new Map((campaigns ?? []).map(c => [c.id, c]))
+  const campaignById = new Map(scopedCampaigns.map(c => [c.id, c]))
 
   const list: JobsListCampaign[] = ranked.map(r => {
     const c = campaignById.get(r.campaign.id)!
@@ -91,15 +102,37 @@ export default async function JobsPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 880, margin: '0 auto' }}>
       {/* Header */}
       <div>
-        <div className="eyebrow" style={{ marginBottom: 7 }}>Curated for you</div>
-        <h1 style={{ fontSize: 28 }}>Campaigns picked for you</h1>
-        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          A shortlist matched to your niche, audience and rate - your strongest fits, first.
-        </p>
+        {brandName ? (
+          <>
+            <Link href="/jobs" className="eyebrow" style={{ marginBottom: 7, display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-faint-solid)' }}>
+              <ArrowLeft size={12} /> All campaigns
+            </Link>
+            <h1 style={{ fontSize: 28 }}>Campaigns from {brandName}</h1>
+            <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+              Active briefs from {brandName}, ordered by your fit.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="eyebrow" style={{ marginBottom: 7 }}>Curated for you</div>
+            <h1 style={{ fontSize: 28 }}>Campaigns picked for you</h1>
+            <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+              A shortlist matched to your niche, audience and rate - your strongest fits, first.
+            </p>
+          </>
+        )}
       </div>
 
       {list.length > 0 ? (
         <JobsList campaigns={list} />
+      ) : brandName ? (
+        <EmptyState
+          icon={Compass}
+          title={`${brandName} has no open campaigns right now`}
+          body="This brand isn't hiring at the moment. Browse everything else that's live, or check back soon."
+          actionHref="/jobs"
+          actionLabel="Browse all campaigns"
+        />
       ) : (
         <EmptyState
           icon={Compass}

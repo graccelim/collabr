@@ -10,7 +10,7 @@ import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, 
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import Link from 'next/link'
-import { Globe, Briefcase, ShieldCheck, Pencil, MapPin, ExternalLink, Star, CalendarDays, CheckCircle2 } from 'lucide-react'
+import { Globe, Briefcase, Pencil, MapPin, ExternalLink, Star, CalendarDays, CheckCircle2 } from 'lucide-react'
 
 export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -68,13 +68,16 @@ export default async function BrandProfilePage({ params, searchParams }: { param
     .filter((s: any) => s && s.platform && s.url)
     .sort((a: any, b: any) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
 
-  // Reasons a creator should work with this brand (escrow is honest + enticing
-  // here, since the creator is the one reading it).
-  const brandTrust: string[] = ['Payment secured in escrow before you start']
-  if ((brand.completed_campaigns || 0) > 0) brandTrust.push(`${brand.completed_campaigns} completed campaign${brand.completed_campaigns !== 1 ? 's' : ''} on collabr`)
-
   const showRating = (brand.rating_count || 0) >= 1
-  if (showRating) brandTrust.push(`${brand.rating_avg}★ from ${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}`)
+
+  // What a creator gets working with this brand - the platform's escrow
+  // protections, framed for the creator who is reading the brand's profile.
+  // (Only shown to visitors, never on the brand's own-profile view.)
+  const brandTerms: [string, string][] = [
+    ['Payment held in escrow', 'Brand funds the collab before you start'],
+    ['48-hour review window', 'They approve or request changes'],
+    ['Released on approval', 'Paid once your post is confirmed live'],
+  ]
 
   const stats: ProfileStat[] = [
     { label: 'Completed', value: String(brand.completed_campaigns || 0), sub: 'campaigns on collabr', icon: Briefcase, tone: 'accent' },
@@ -84,11 +87,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
 
   return (
     <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
-      {isOwner ? (
-        <div className="eyebrow" style={{ marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
-          <ShieldCheck size={13} /> This is how creators see you
-        </div>
-      ) : (
+      {!isOwner && (
         <ProfileBackButton from={searchParams.from} fallback="/jobs" />
       )}
 
@@ -151,31 +150,6 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             </section>
           )}
 
-          {/* Open campaigns */}
-          {campaigns && campaigns.length > 0 && (
-            <section style={{ marginBottom: 30 }}>
-              <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Open campaigns</h2>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {campaigns.map(c => {
-                  const budget = c.budget_min && c.budget_max
-                    ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
-                    : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
-                  return (
-                    <Link key={c.id} href={`/jobs/${c.id}`} className="rail-link" style={{ justifyContent: 'space-between' }}>
-                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                        <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
-                          <Briefcase size={16} />
-                        </span>
-                        <span style={{ fontWeight: 600, fontSize: 14.5, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
-                      </span>
-                      <span className="badge badge-money" style={{ flexShrink: 0, fontSize: 12 }}>{budget}</span>
-                    </Link>
-                  )
-                })}
-              </div>
-            </section>
-          )}
-
           {/* Reviews */}
           {reviews.length > 0 && (
             <div style={{ marginBottom: 16 }}>
@@ -194,22 +168,61 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           />
         </div>
 
-        {/* RAIL - flat sections (no card boxes): why work with this brand + where to find them */}
+        {/* RAIL - flat sections (no card boxes). The escrow pitch is for creators
+            reading the profile, so it's hidden on the brand's own-profile view. */}
         <div style={{ position: 'sticky', top: 24 }}>
-          <div className="rail-section">
-            <div className="eyebrow" style={{ marginBottom: 12 }}>Working with {name}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {brandTrust.map(p => (
-                <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'var(--ink-soft)', lineHeight: 1.4 }}>
-                  <CheckCircle2 size={14} style={{ color: 'var(--money)', flexShrink: 0 }} /> {p}
-                </div>
-              ))}
+          {/* Open campaigns - the most actionable thing a creator can do here.
+              "See all" → brand's own manager (owner) or brand-scoped discover. */}
+          {campaigns && campaigns.length > 0 && (
+            <div className="rail-section">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
+                <div className="eyebrow">{isOwner ? 'Your campaigns' : 'Open campaigns'}</div>
+                <Link href={isOwner ? '/campaigns' : `/jobs?brand=${params.id}`}
+                  style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--accent-deep)', flexShrink: 0 }}>
+                  See all
+                </Link>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {campaigns.slice(0, 4).map(c => {
+                  const budget = c.budget_min && c.budget_max
+                    ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
+                    : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
+                  return (
+                    <Link key={c.id} href={`/jobs/${c.id}`} className="rail-link">
+                      <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+                        <Briefcase size={15} />
+                      </span>
+                      <span style={{ minWidth: 0, flex: 1 }}>
+                        <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.title}</span>
+                        <span style={{ display: 'block', fontSize: 11.5, fontWeight: 600, color: 'var(--money-deep)' }}>{budget}</span>
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
             </div>
-          </div>
+          )}
+
+          {!isOwner && (
+            <div className="rail-section">
+              <div className="eyebrow" style={{ marginBottom: 12 }}>Working with {name}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
+                {brandTerms.map(([t, sub]) => (
+                  <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                    <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>{sub}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {(brand.website || brandSocials.length > 0) && (
             <div className="rail-section">
-              <div className="eyebrow" style={{ marginBottom: 6 }}>Find {name} online</div>
+              <div className="eyebrow" style={{ marginBottom: 6 }}>{isOwner ? 'Your social profiles' : `Find ${name} online`}</div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {brand.website && (
                   <a href={brand.website} target="_blank" rel="noopener noreferrer nofollow" className="rail-link">

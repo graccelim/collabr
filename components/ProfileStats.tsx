@@ -10,21 +10,23 @@ export interface ProfileStat {
 }
 
 /**
- * Premium stat band for the creator/brand profile headers. An elevated card with
- * tinted icon chips and tabular figures - reads as a polished summary rather than
- * a flat admin strip. Reflows to 2-up on phones.
+ * Premium stat band for the creator/brand profile headers. A flat, hairline-bounded
+ * strip - soft tinted circular icons on the left, tabular figures on the right -
+ * reading as a polished summary rather than a cardy admin panel. 2-up on phones.
  */
 export default function ProfileStats({ stats }: { stats: ProfileStat[] }) {
   return (
-    <div className="profile-stats" style={{ gridTemplateColumns: `repeat(${stats.length}, 1fr)` }}>
+    <div className="profile-stats">
       {stats.map(s => (
         <div key={s.label} className="profile-stat">
           <span className="profile-stat-icon" data-tone={s.tone || 'neutral'}>
-            <s.icon size={15} />
+            <s.icon size={18} />
           </span>
-          <div className="profile-stat-val">{s.value}</div>
-          <div className="profile-stat-label">{s.label}</div>
-          {s.sub && <div className="profile-stat-sub">{s.sub}</div>}
+          <div className="profile-stat-body">
+            <div className="profile-stat-val">{s.value}</div>
+            <div className="profile-stat-label">{s.label}</div>
+            {s.sub && <div className="profile-stat-sub">{s.sub}</div>}
+          </div>
         </div>
       ))}
     </div>

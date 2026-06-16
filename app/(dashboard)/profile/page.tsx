@@ -506,9 +506,9 @@ export default function ProfilePage() {
               .map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
           </select>
           <input className="input"
-            inputMode={newPlatform === 'xiaohongshu' ? 'url' : 'text'}
+            inputMode="text"
             autoCapitalize="none" autoCorrect="off" spellCheck={false}
-            placeholder={newPlatform === 'xiaohongshu' ? 'Paste your RED (Xiaohongshu) profile link' : '@username'}
+            placeholder="@username"
             value={newHandle} onChange={e => setNewHandle(e.target.value)} />
           <div className="flex gap-2">
             <input className="input" type="number" min="0" placeholder="Follower count (optional)" style={{ flex: 1 }}

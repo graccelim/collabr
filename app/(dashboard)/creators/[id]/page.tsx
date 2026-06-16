@@ -17,7 +17,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { MapPin, ExternalLink, ShieldCheck, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
+import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -127,11 +127,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   return (
     <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
-      {isOwner ? (
-        <div className="eyebrow" style={{ marginBottom: 22, display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--accent-deep)' }}>
-          <ShieldCheck size={13} /> This is how brands see you
-        </div>
-      ) : (
+      {!isOwner && (
         <ProfileBackButton from={searchParams.from} fallback="/creators" />
       )}
 
@@ -298,36 +294,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
         {/* RAIL - flat sections divided by hairlines (no card boxes) */}
         <div style={{ position: 'sticky', top: 24 }}>
-          {/* Rates & terms - rate + the platform protections a brand gets */}
-          <div className="rail-section">
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Rates &amp; terms</div>
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 }}>
-              <span className="mono-num" style={{ fontSize: 25, fontWeight: 600, color: 'var(--ink)' }}>
-                {rate > 0 ? formatSGD(rate) : 'Negotiable'}
-                {rate > 0 && <span style={{ fontSize: 14, color: 'var(--ink-faint-solid)', fontWeight: 400 }}> / post</span>}
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', flexShrink: 0 }}>Negotiable</span>
-            </div>
-            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 11 }}>
-              {[
-                ['Payment held in escrow', 'Funded when they accept'],
-                ['48-hour review window', 'Approve or request changes'],
-                ['Released only on approval', 'You confirm the live post'],
-              ].map(([t, sub]) => (
-                <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                  <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ minWidth: 0 }}>
-                    <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
-                    <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>{sub}</span>
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Social profiles - creator-provided, clickable so brands verify themselves */}
           <div className="rail-section">
-            <div className="eyebrow" style={{ marginBottom: 6 }}>Social profiles</div>
+            <div className="eyebrow" style={{ marginBottom: 6 }}>{isOwner ? 'Your social profiles' : 'Social profiles'}</div>
             {socials.length > 0 ? (
               <>
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -356,7 +325,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   })}
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 10, lineHeight: 1.5 }}>
-                  Social profiles are creator-provided, open them to check the account yourself. Follower counts are self-reported.
+                  {isOwner
+                    ? 'These are the profiles brands see. Follower counts are self-reported.'
+                    : 'Social profiles are creator-provided, open them to check the account yourself. Follower counts are self-reported.'}
                 </p>
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
@@ -380,7 +351,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </div>
             ) : (
               <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
-                This creator hasn&apos;t added any social profiles yet.
+                {isOwner ? 'You haven’t added any social profiles yet.' : 'This creator hasn’t added any social profiles yet.'}
               </div>
             )}
           </div>
