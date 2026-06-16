@@ -216,7 +216,6 @@ export default async function JobDetailPage({
             height: 68,
             borderRadius: 'var(--radius-sm)',
             background: 'var(--paper-2)',
-            border: '1px solid var(--line)',
             display: 'grid',
             placeItems: 'center',
             flexShrink: 0,
