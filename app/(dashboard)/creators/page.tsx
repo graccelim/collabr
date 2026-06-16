@@ -2,7 +2,8 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { formatSGD, getInitials } from '@/lib/utils'
+import { formatSGD } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import { NICHE_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import CreatorFilters from '@/components/CreatorFilters'
@@ -252,16 +253,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
               >
                 {/* top: avatar + save */}
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                  <div style={{
-                    width: 46, height: 46, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                    background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 600, fontSize: 15,
-                  }}>
-                    {avatar
-                      ? <img src={avatar} alt={name} style={{ width: 46, height: 46, objectFit: 'cover' }} />
-                      : getInitials(name)}
-                  </div>
+                  <Avatar src={avatar} name={name} size={46} />
                   <SaveCreatorButton creatorId={c.id} initialSaved={savedSet.has(c.id)} compact />
                 </div>
 

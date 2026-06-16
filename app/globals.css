@@ -209,6 +209,12 @@
   .card-hover { cursor: pointer; transition: background .12s ease, border-color .15s ease; }
   .card-hover:hover { background: var(--surface-2); border-color: var(--line-strong); }
 
+  /* Landing "How it works" steps - subtle, premium hover, no layout shift. */
+  .workflow-step .workflow-dot { transition: transform .2s ease, box-shadow .2s ease; }
+  .workflow-step:hover .workflow-dot { transform: scale(1.12); box-shadow: 0 6px 16px -4px rgba(13,16,44,.4); }
+  .workflow-step .workflow-title { transition: color .2s ease; }
+  .workflow-step:hover .workflow-title { color: var(--accent-deep); }
+
   /* ---- Dimensional dark "money" panel - the premium hero object ----
      Deep navy gradient + soft accent/secure glow + faint grain. The glow and
      grain are pseudo-elements so existing markup upgrades with no JSX change;
@@ -292,27 +298,30 @@
     color: #fff; border: none; font-weight: 600;
     padding: 5px 12px;
   }
+  /* Gradients run dark → light toward the trailing edge for a fresh, expensive
+     "lit" look (vs flat light → dark, which reads dated). */
   .badge-match,
   .badge-match-strong {
-    background: linear-gradient(135deg, #5B6CFF 0%, #4338CA 100%); /* Strong Fit - indigo */
-    box-shadow: 0 3px 12px -3px rgba(67,56,202,.55), inset 0 1px 0 rgba(255,255,255,.3);
+    background: linear-gradient(115deg, #3B30B8 0%, #5B53E0 55%, #8E97FF 100%); /* Strong Fit - indigo */
+    box-shadow: 0 4px 14px -4px rgba(67,56,202,.55), inset 0 1px 0 rgba(255,255,255,.32);
   }
   .badge-match-best {
-    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #4F46E5 100%); /* Best Match - violet→indigo */
-    box-shadow: 0 3px 14px -3px rgba(124,92,246,.6), inset 0 1px 0 rgba(255,255,255,.32);
+    background: linear-gradient(115deg, #5B21B6 0%, #6D5BF0 55%, #A99BFF 100%); /* Best Match - violet */
+    box-shadow: 0 4px 16px -4px rgba(124,92,246,.6), inset 0 1px 0 rgba(255,255,255,.34);
   }
-  /* Glossy reflection sweep - a soft diagonal highlight across the top. */
+  /* Glossy reflection sweep - a soft diagonal highlight across the top-left. */
   .badge-match::after,
   .badge-match-strong::after,
   .badge-match-best::after {
     content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: linear-gradient(125deg, rgba(255,255,255,.45) 0%, rgba(255,255,255,.12) 30%, rgba(255,255,255,0) 52%);
+    background: linear-gradient(120deg, rgba(255,255,255,.5) 0%, rgba(255,255,255,.14) 26%, rgba(255,255,255,0) 50%);
   }
   .badge-match > *, .badge-match-strong > *, .badge-match-best > * { position: relative; z-index: 1; }
   .badge-match-good {
-    background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%); /* Good Fit - bright sky gradient */
+    position: relative; overflow: hidden;
+    background: linear-gradient(115deg, #0284C7 0%, #29ABE8 55%, #7FD7FB 100%); /* Good Fit - sky */
     color: #fff; border: none; font-weight: 600;
-    box-shadow: 0 2px 10px -3px rgba(14,165,233,.5), inset 0 1px 0 rgba(255,255,255,.3);
+    box-shadow: 0 3px 12px -4px rgba(14,165,233,.5), inset 0 1px 0 rgba(255,255,255,.32);
   }
   .badge-money   { background: var(--money-tint);   color: var(--money-deep); }
   .badge-pending { background: var(--pending-tint); color: var(--pending); }

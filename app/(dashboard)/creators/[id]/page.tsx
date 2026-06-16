@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth, getUserRow } from '@/lib/auth'
-import { formatSGD, getInitials } from '@/lib/utils'
+import { formatSGD } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
@@ -136,17 +137,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       {/* identity - airy hero (no boxy card), hairline divider below */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
-          <div style={{
-            width: 92, height: 92, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-            background: avatar ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
-            color: '#fff',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 32, letterSpacing: '-0.02em',
-            boxShadow: '0 0 0 1px var(--line), 0 8px 24px -10px rgba(67,56,202,.35)',
-          }}>
-            {avatar
-              ? <img src={avatar} alt={name} style={{ width: 92, height: 92, objectFit: 'cover' }} />
-              : getInitials(name)}
-          </div>
+          <Avatar src={avatar} name={name} size={92} />
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
               <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>

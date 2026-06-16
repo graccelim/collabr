@@ -10,7 +10,8 @@ import {
 } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import { creatorCompletion } from '@/lib/profile-completion'
-import { getInitials } from '@/lib/utils'
+import { friendlyUploadError, MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import { Star } from 'lucide-react'
 import { socialIcon } from '@/components/SocialIcon'
 import type { SocialAccount } from '@/types'
@@ -119,15 +120,17 @@ export default function ProfilePage() {
   }, [socials, newPlatform])
 
   async function uploadAvatar(file: File) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error('Please upload a PNG, JPG or WebP image.'); return }
+    if (file.size > MAX_IMAGE_BYTES) { toast.error('That image is too large. Please upload one under 2 MB.'); return }
     setAvatarUploading(true)
     const ext = file.name.split('.').pop()
     const path = `${userId}-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true })
-    if (error) { toast.error('Photo upload failed'); setAvatarUploading(false); return }
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
+    if (error) { toast.error(friendlyUploadError(error, 'photo')); setAvatarUploading(false); return }
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     const { error: userErr } = await supabase.from('users')
       .update({ avatar_url: data.publicUrl }).eq('id', userId)
-    if (userErr) toast.error('Could not save photo')
+    if (userErr) toast.error('We couldn’t save your photo. Please try again.')
     else { setAvatarUrl(data.publicUrl); toast.success('Photo updated') }
     setAvatarUploading(false)
   }
@@ -276,11 +279,7 @@ export default function ProfilePage() {
       <div className="card space-y-4">
         <h2 className="text-sm font-medium text-gray-900">About you</h2>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full bg-purple-50 text-purple-600 text-xl font-medium flex items-center justify-center shrink-0 overflow-hidden">
-            {avatarUrl
-              ? <img src={avatarUrl} alt="Profile photo" className="w-16 h-16 object-cover" />
-              : getInitials(displayName || 'C')}
-          </div>
+          <Avatar src={avatarUrl} name={displayName} size={64} />
           <div>
             <button
               type="button"

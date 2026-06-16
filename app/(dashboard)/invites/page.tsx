@@ -1,7 +1,8 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth, getUserRow } from '@/lib/auth'
 import Link from 'next/link'
-import { formatSGD, relativeTime, getInitials } from '@/lib/utils'
+import { formatSGD, relativeTime } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import InviteActions from '@/components/InviteActions'
 import EmptyState from '@/components/EmptyState'
 import BoostHint from '@/components/BoostHint'
@@ -57,15 +58,7 @@ export default async function InvitesPage() {
               const name = creator?.users?.display_name || 'Creator'
               return (
                 <div key={inv.id} className="card" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                    background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 12,
-                  }}>
-                    {creator?.users?.avatar_url
-                      ? <img src={creator.users.avatar_url} alt={name} style={{ width: 36, height: 36, objectFit: 'cover' }} />
-                      : getInitials(name)}
-                  </div>
+                  <Avatar src={creator?.users?.avatar_url} name={name} size={36} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <Link href={`/creators/${creator?.id}`} style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>
                       {name}
@@ -133,17 +126,7 @@ export default async function InvitesPage() {
             return (
               <div key={inv.id} className="card space-y-3">
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 13 }}>
-                  {/* brand avatar (square) */}
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 'var(--radius-sm)', flexShrink: 0, overflow: 'hidden',
-                    background: 'var(--paper-2)', border: '1px solid var(--line)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 700, fontSize: 15, color: 'var(--ink-soft)',
-                  }}>
-                    {brandP?.logo_url
-                      ? <img src={brandP.logo_url} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : getInitials(brandName)}
-                  </div>
+                  <Avatar src={brandP?.logo_url} name={brandName} size={48} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <p style={{ fontSize: 14, fontWeight: 560, color: 'var(--ink)' }}>{brandName} invited you</p>

@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth } from '@/lib/auth'
-import { getInitials, formatSGD } from '@/lib/utils'
+import { formatSGD } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import ProfileBackButton from '@/components/ProfileBackButton'
@@ -77,17 +78,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
       {/* identity - airy hero, hairline-divided stat strip below */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
-          <div style={{
-            width: 88, height: 88, borderRadius: 22, flexShrink: 0, overflow: 'hidden',
-            background: brand.logo_url ? '#fff' : 'linear-gradient(135deg, #7C72FF 0%, #5B53E0 60%, #4338CA 100%)',
-            color: '#fff',
-            boxShadow: '0 0 0 1px var(--line), 0 8px 24px -10px rgba(67,56,202,.35)',
-            display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 32, letterSpacing: '-0.02em',
-          }}>
-            {brand.logo_url
-              ? <img src={brand.logo_url} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              : getInitials(name)}
-          </div>
+          <Avatar src={brand.logo_url} name={name} size={88} />
           <div style={{ minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
               <h1 className="display-face" style={{ fontSize: 'clamp(26px, 4vw, 34px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>

@@ -44,3 +44,32 @@ export const COLLAB_STATUSES = {
   completed: { label: 'Completed', color: 'teal' },
   cancelled: { label: 'Cancelled', color: 'gray' },
 } as const
+
+// Max image upload size (matches the storage buckets' file_size_limit).
+export const MAX_IMAGE_BYTES = 2 * 1024 * 1024
+export const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+
+/**
+ * Turn a raw Supabase storage error into a plain-English message a creator or
+ * brand can act on. `noun` is the thing being uploaded ("photo" / "logo").
+ */
+export function friendlyUploadError(
+  err: { message?: string; statusCode?: string | number } | null | undefined,
+  noun: 'photo' | 'logo' = 'photo',
+): string {
+  const m = (err?.message || '').toLowerCase()
+  const status = String(err?.statusCode ?? '')
+  if (m.includes('exceeded') || m.includes('too large') || m.includes('maximum allowed size') || status === '413') {
+    return 'That image is too large. Please upload one under 2 MB.'
+  }
+  if (m.includes('mime') || m.includes('not supported') || (m.includes('invalid') && m.includes('type'))) {
+    return 'Please upload a PNG, JPG or WebP image.'
+  }
+  if (m.includes('row-level security') || m.includes('unauthorized') || m.includes('permission') || status === '403') {
+    return `We couldn't save your ${noun}. Please sign in again and retry.`
+  }
+  if (m.includes('bucket not found') || m.includes('not found') || status === '404') {
+    return 'Image uploads are temporarily unavailable. Please try again later.'
+  }
+  return `We couldn't upload your ${noun}. Please try again.`
+}

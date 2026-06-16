@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
+import WorkflowSteps from '@/components/WorkflowSteps';
 import CountUp from '@/components/CountUp';
 
 /* ── Minimal line icons (no emoji - Linear/Stripe house style) ─────────────── */
@@ -81,7 +82,7 @@ const WHY = [
   {
     Icon: Badge,
     title: 'Profiles you can check',
-    body: 'Every creator lists their social profiles, open them in one click to see the real account. Follower counts stay clearly self-reported.',
+    body: 'Every creator lists their social profiles, open them in one click to view.',
   },
   {
     Icon: Lock,
@@ -97,21 +98,18 @@ const WHY = [
 
 const STEPS = {
   brand: [
-    ['Get matched', 'Creators recommended for your niche and budget.'],
-    [
-      'Invite creators',
-      'Reach out directly, or review applicants and their profiles.',
-    ],
-    ['Approve content', 'Drafts are submitted privately for your review.'],
-    ['Release payment', 'Confirm and escrow releases automatically.'],
+    ['Discover creators', 'Shortlist creators who fit, or post a campaign and review who applies.'],
+    ['Secure the collab', 'You fund escrow up front. The creator only starts once the money is protected.'],
+    ['Review the content', 'Drafts come to you privately. Approve, or request changes before anything goes live.'],
+    ['Release payment', 'Confirm the live post and escrow pays out automatically. No chasing invoices.'],
   ],
   creator: [
-    ['Get matched', 'Campaigns recommended for your niche, or get invited.'],
-    ['Accept collaboration', 'Say yes to the fits worth your time.'],
-    ['Submit content', 'Upload privately for the brand to approve.'],
-    ['Get paid', 'Post, and escrow releases straight to you.'],
+    ['Discover campaigns', 'Find campaigns that fit your niche and rates, or get invited directly by brands.'],
+    ['Accept with confidence', 'The brand funds escrow before you start, so your pay is locked in from day one.'],
+    ['Submit your content', 'Upload privately and get feedback first. Nothing posts before it is approved.'],
+    ['Get paid', 'Once your live post is confirmed, escrow releases straight to you.'],
   ],
-};
+} as const;
 
 const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   {
@@ -426,8 +424,20 @@ export default async function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              From match to paid, on both sides.
+              Match. Secure. Review. Paid.
             </h2>
+            <p
+              style={{
+                color: 'var(--ink-soft)',
+                fontSize: 15.5,
+                marginTop: 12,
+                maxWidth: 460,
+                marginInline: 'auto',
+              }}
+            >
+              The same protected flow on both sides, from first match to final
+              payout.
+            </p>
           </Reveal>
           <div
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
@@ -449,7 +459,6 @@ export default async function HomePage() {
               ] as const
             ).map(([label, key, dotBg, dotInk, extra]) => (
               <Reveal
-                stagger
                 key={key}
                 className="card"
                 style={{ padding: 26, ...extra }}
@@ -457,47 +466,12 @@ export default async function HomePage() {
                 <div className="eyebrow" style={{ marginBottom: 18 }}>
                   {label}
                 </div>
-                <div
-                  style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-                >
-                  {STEPS[key].map(([t, d], i) => (
-                    <RevealItem key={t} style={{ display: 'flex', gap: 13 }}>
-                      <div
-                        style={{
-                          width: 26,
-                          height: 26,
-                          borderRadius: '50%',
-                          background: dotBg,
-                          color: dotInk,
-                          display: 'grid',
-                          placeItems: 'center',
-                          fontFamily: 'var(--font-display)',
-                          fontWeight: 700,
-                          fontSize: 12.5,
-                          flexShrink: 0,
-                          marginTop: 1,
-                        }}
-                      >
-                        {i + 1}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14.5 }}>
-                          {t}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 13,
-                            color: 'var(--ink-soft)',
-                            marginTop: 2,
-                            lineHeight: 1.45,
-                          }}
-                        >
-                          {d}
-                        </div>
-                      </div>
-                    </RevealItem>
-                  ))}
-                </div>
+                <WorkflowSteps
+                  steps={STEPS[key]}
+                  dotBg={dotBg}
+                  dotInk={dotInk}
+                  lineColor={dotBg}
+                />
               </Reveal>
             ))}
           </div>
@@ -627,7 +601,8 @@ export default async function HomePage() {
       {/* ══ FINAL CTA ══ */}
       <section
         style={{
-          background: 'var(--brand)',
+          background:
+            'linear-gradient(125deg, color-mix(in srgb, var(--brand) 92%, #000) 0%, var(--brand) 48%, color-mix(in srgb, var(--brand) 76%, #fff) 100%)',
           color: '#fff',
           padding: 'clamp(56px,8vw,88px) 20px',
           textAlign: 'center',
@@ -650,6 +625,17 @@ export default async function HomePage() {
             background:
               'radial-gradient(circle, rgba(124,108,255,.18), transparent 62%)',
             pointerEvents: 'none',
+          }}
+        />
+        {/* glossy reflection sweep - Revolut-style sheen + a faint glint at the far edge */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(120deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 34%, rgba(255,255,255,0) 76%, rgba(255,255,255,.06) 100%)',
           }}
         />
         <Reveal style={{ position: 'relative', zIndex: 1 }}>

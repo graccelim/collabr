@@ -4,7 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Shield, Zap, Check, Bookmark, UserPlus, Search, ExternalLink } from 'lucide-react'
-import { formatSGD, getInitials } from '@/lib/utils'
+import { formatSGD } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 import { matchClass, reasonStyle } from '@/components/JobsList'
 import { socialIcon } from '@/components/SocialIcon'
 import { SOCIAL_LABELS, socialHandleLabel, type SocialPlatform } from '@/lib/onboarding'
@@ -163,16 +164,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
             onClick={() => { if (profileHref) router.push(profileHref) }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div style={{ display: 'flex', gap: 13, alignItems: 'flex-start', minWidth: 0 }}>
-                <span style={{
-                  width: 48, height: 48, borderRadius: '50%', flexShrink: 0, overflow: 'hidden',
-                  background: 'var(--accent-tint)', color: 'var(--accent-deep)',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                  fontWeight: 600, fontSize: 16,
-                }}>
-                  {avatar
-                    ? <img src={avatar} alt={name} style={{ width: 48, height: 48, objectFit: 'cover' }} />
-                    : getInitials(name)}
-                </span>
+                <Avatar src={avatar} name={name} size={48} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 600, fontSize: 15, color: 'var(--ink)' }}>{name}</span>

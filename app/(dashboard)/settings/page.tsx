@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import { BRAND_INDUSTRIES, INDUSTRY_LABELS, normalizeUrl } from '@/lib/onboarding'
 import { brandCompletion } from '@/lib/profile-completion'
+import { friendlyUploadError, MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/utils'
+import Avatar from '@/components/Avatar'
 
 export default function SettingsPage() {
   const supabase = createClient()
@@ -63,11 +65,17 @@ export default function SettingsPage() {
   }, [])
 
   async function uploadLogo(file: File) {
+    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error('Please upload a PNG, JPG or WebP image.'); return }
+    if (file.size > MAX_IMAGE_BYTES) { toast.error('That image is too large. Please upload one under 2 MB.'); return }
     setLogoUploading(true)
+    // The storage RLS policy keys the filename to auth.uid(); read it fresh so a
+    // not-yet-loaded `userId` can never produce a rejected "logos/-..." path.
+    const uid = userId || (await supabase.auth.getUser()).data.user?.id
+    if (!uid) { toast.error('Please sign in again to upload your logo.'); setLogoUploading(false); return }
     const ext = file.name.split('.').pop()
-    const path = `logos/${userId}-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true })
-    if (error) { toast.error('Logo upload failed'); setLogoUploading(false); return }
+    const path = `logos/${uid}-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true, contentType: file.type })
+    if (error) { toast.error(friendlyUploadError(error, 'logo')); setLogoUploading(false); return }
     const { data } = supabase.storage.from('brand-assets').getPublicUrl(path)
     setLogoUrl(data.publicUrl)
     setLogoUploading(false)
@@ -164,13 +172,7 @@ export default function SettingsPage() {
           <div>
             <label className="label">Logo</label>
             <div className="flex items-center gap-4">
-              {logoUrl ? (
-                <img src={logoUrl} alt="Logo" className="w-16 h-16 rounded-lg object-cover border border-border" />
-              ) : (
-                <div className="w-16 h-16 rounded-lg bg-surface border border-dashed border-border flex items-center justify-center text-gray-400 text-xs">
-                  No logo
-                </div>
-              )}
+              <Avatar src={logoUrl} name={companyName} size={64} />
               <div>
                 <button
                   type="button"
