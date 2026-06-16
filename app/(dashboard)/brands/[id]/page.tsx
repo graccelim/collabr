@@ -60,8 +60,8 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   const showRating = (brand.rating_count || 0) >= 1
   const stats: [string, string, string][] = [
     ['Completed', String(brand.completed_campaigns || 0), 'campaigns on collabr'],
-    ['Rating', showRating ? `${brand.rating_avg} ★` : '—', showRating ? `${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
-    ['Member', memberSince ? String(memberSince) : '—', 'on collabr since'],
+    ['Rating', showRating ? `${brand.rating_avg} ★` : '-', showRating ? `${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
+    ['Member', memberSince ? String(memberSince) : '-', 'on collabr since'],
   ]
 
   return (
@@ -74,7 +74,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         <ProfileBackButton from={searchParams.from} fallback="/jobs" />
       )}
 
-      {/* identity — airy hero, hairline-divided stat strip below */}
+      {/* identity - airy hero, hairline-divided stat strip below */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
           <div style={{
@@ -119,7 +119,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         )}
       </div>
 
-      {/* stat strip — clean, borderless, reflows to 2-up on phones */}
+      {/* stat strip - clean, borderless, reflows to 2-up on phones */}
       <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 36 }}>
         {stats.map(([k, v, ctx]) => (
           <div key={k}>
@@ -140,7 +140,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         </section>
       )}
 
-      {/* Industry — the brand equivalent of a creator's niches */}
+      {/* Industry - the brand equivalent of a creator's niches */}
       {brand.industry && (
         <section style={{ marginBottom: 28 }}>
           <h2 className="h2" style={{ fontSize: 18, marginBottom: 12 }}>Industry</h2>
@@ -162,7 +162,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
       <ReviewList
         reviews={reviews}
         heading="What creators say"
-        emptyTitle={isOwner ? 'No reviews yet — let’s change that' : 'No reviews yet'}
+        emptyTitle={isOwner ? 'No reviews yet, let’s change that' : 'No reviews yet'}
         emptyBody={isOwner
           ? 'Run your first collaboration and creators’ reviews will show up here, building the trust that wins you better creators.'
           : 'Reviews from creators appear after completed collaborations, revealed once both sides submit or after 7 days.'}

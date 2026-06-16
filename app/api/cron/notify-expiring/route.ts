@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const in6h = new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString()
   const in12h = new Date(now.getTime() + 12 * 60 * 60 * 1000).toISOString()
 
-  // Drafts expiring within 6h — notify brand
+  // Drafts expiring within 6h - notify brand
   const { data: expiringDrafts } = await supabase.from('collabs')
     .select('id, brand_id, draft_auto_approve_at, brand_profiles(user_id), campaigns(title)')
     .eq('status', 'draft_submitted')
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Live posts expiring within 12h — notify brand
+  // Live posts expiring within 12h - notify brand
   const { data: expiringLive } = await supabase.from('collabs')
     .select('id, live_auto_release_at, brand_profiles(user_id), campaigns(title), creator_profiles(users(display_name))')
     .eq('status', 'live_submitted')

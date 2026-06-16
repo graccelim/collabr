@@ -1,7 +1,7 @@
--- Phase 9: creator discovery — saved creators and campaign invites.
+-- Phase 9: creator discovery - saved creators and campaign invites.
 -- Discovery filters reuse the Phase 5/6 profile columns; no profile schema
 -- changes are needed. Invite acceptance converges into the existing collab
--- workflow via select_application_atomic — no parallel workflow.
+-- workflow via select_application_atomic - no parallel workflow.
 
 -- ─── SAVED CREATORS ──────────────────────────────────────────────────────────
 create table public.saved_creators (

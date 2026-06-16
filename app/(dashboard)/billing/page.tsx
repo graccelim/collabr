@@ -44,7 +44,7 @@ export default async function BillingPage() {
     : plan.state === 'past_due' ? 'Past due'
     : plan.isPro ? 'Active'
     : plan.state === 'cancelled' ? 'Cancelled'
-    : '—'
+    : '-'
   const statusBadge = plan.state === 'past_due' ? 'badge-warn'
     : plan.proReason === 'cancelled_until_period_end' ? 'badge-warn'
     : plan.isPro ? 'badge-safe'
@@ -76,7 +76,7 @@ export default async function BillingPage() {
           </ul>
         )}
 
-        {/* Beta explanation — the one place this is spelled out */}
+        {/* Beta explanation - the one place this is spelled out */}
         {beta && (
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-border leading-relaxed">
             You currently have complimentary Pro access while collabr is in beta.
@@ -92,7 +92,7 @@ export default async function BillingPage() {
               <div className="w-full">
                 <p className="text-sm text-gray-600 mb-1">
                   You have complimentary Pro access until {grandfatheredUntil} as an early
-                  collabr user — thanks for being here from the start.
+                  collabr user, thanks for being here from the start.
                 </p>
                 <p className="text-xs text-gray-400 mb-3">
                   Subscribe any time to keep Pro after that. Pricing is shown at checkout.
@@ -104,12 +104,12 @@ export default async function BillingPage() {
                 <BillingActions action="portal" label="Manage subscription" />
                 {plan.state === 'past_due' && (
                   <p className="text-xs" style={{ color: 'var(--warn-deep)' }}>
-                    Your last payment failed — update your payment method to keep Pro access.
+                    Your last payment failed, update your payment method to keep Pro access.
                   </p>
                 )}
                 {plan.proReason === 'cancelled_until_period_end' ? (
                   <p className="text-xs" style={{ color: 'var(--warn-deep)' }}>
-                    Subscription cancelled — Pro access remains until {periodEnd}. Your saved
+                    Subscription cancelled, Pro access remains until {periodEnd}. Your saved
                     creators and invites are kept either way.
                   </p>
                 ) : periodEnd ? (

@@ -29,8 +29,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     .eq('id', params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
 
-  // Independent reads — connected socials, email verification, brand reviews,
-  // and the memoized current-user row — issued concurrently.
+  // Independent reads - connected socials, email verification, brand reviews,
+  // and the memoized current-user row - issued concurrently.
   const [
     { data: socialAccounts },
     { data: emailVerified },
@@ -49,7 +49,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       .eq('collabs.creator_id', params.id)
       .order('created_at', { ascending: false })
       .limit(50),
-    // Internal score row — ONLY for the categorical response standing below.
+    // Internal score row - ONLY for the categorical response standing below.
     // Never rendered as a number; raw inputs stay server-side.
     admin.from('creator_scores')
       .select('invites_concluded, response_rate_shrunk').eq('creator_id', params.id).maybeSingle(),
@@ -92,7 +92,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const isBoosted = boostEnabled() && creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
   const availability = creator.availability_status as AvailabilityStatus | null
 
-  // Honest, categorical responsiveness — "Not enough response history yet" until
+  // Honest, categorical responsiveness - "Not enough response history yet" until
   // there's a real sample. Never a percentage.
   const response = responseStanding(
     (scoreRow as any)?.invites_concluded,
@@ -116,10 +116,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const memberSince = creator.created_at ? new Date(creator.created_at).getFullYear() : null
 
   const stats: [string, string, string][] = [
-    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '—', 'self-reported'],
+    ['Followers', totalFollowers > 0 ? totalFollowers.toLocaleString() : '-', 'self-reported'],
     ['Avg. rate', rate > 0 ? formatSGD(rate) : 'Negotiable', 'per post'],
     ['Collabs', String(completedCollabs), 'completed on collabr'],
-    ['Rating', showRating ? `${creator.rating_avg} ★` : '—',
+    ['Rating', showRating ? `${creator.rating_avg} ★` : '-',
       showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet'],
   ]
 
@@ -133,7 +133,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         <ProfileBackButton from={searchParams.from} fallback="/creators" />
       )}
 
-      {/* identity — airy hero (no boxy card), hairline divider below */}
+      {/* identity - airy hero (no boxy card), hairline divider below */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap', marginBottom: 26 }}>
         <div style={{ display: 'flex', gap: 18, alignItems: 'center', minWidth: 0 }}>
           <div style={{
@@ -164,7 +164,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               {memberSince && <span>Member since {memberSince}</span>}
               {emailVerified === true && <span>Email verified</span>}
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                title="Categorical summary of invite responses — never a score.">
+                title="Categorical summary of invite responses, never a score.">
                 <Clock size={13} />{response.label}
               </span>
               {availability && (
@@ -177,7 +177,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
         </div>
 
-        {/* right — owner edit OR brand actions */}
+        {/* right - owner edit OR brand actions */}
         {isOwner && (
           <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
             <Pencil size={15} /> Edit profile
@@ -203,7 +203,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         )}
       </div>
 
-      {/* stat strip — clean, borderless, reflows to 2-up on phones */}
+      {/* stat strip - clean, borderless, reflows to 2-up on phones */}
       <div className="profile-stats" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: 40 }}>
         {stats.map(([k, v, ctx]) => (
           <div key={k}>
@@ -226,7 +226,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             </section>
           )}
 
-          {/* Niches — canonical niche_tags, falling back to the legacy list */}
+          {/* Niches - canonical niche_tags, falling back to the legacy list */}
           {(() => {
             const tags = (creator.niche_tags?.length ? creator.niche_tags : creator.niches) || []
             return tags.length > 0 ? (
@@ -242,7 +242,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             ) : null
           })()}
 
-          {/* Portfolio & links — clean link rows (no image previews) */}
+          {/* Portfolio & links - clean link rows (no image previews) */}
           {(portfolioLinks.length > 0 || creator.media_kit_url) && (
             <section style={{ marginBottom: 30 }}>
               <h2 className="h2" style={{ fontSize: 18, marginBottom: 14 }}>Portfolio &amp; links</h2>
@@ -281,7 +281,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             </section>
           )}
 
-          {/* Brand reviews — revealed only; premium empty state for new creators */}
+          {/* Brand reviews - revealed only; premium empty state for new creators */}
           {(() => {
             const items = (brandReviews || []).map(r => ({
               id: r.id, rating: r.rating, note: r.note,
@@ -302,9 +302,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 <ReviewList
                   heading="Brand reviews"
                   reviews={items}
-                  emptyTitle={isOwner ? 'No reviews yet — let’s get you started' : 'No reviews yet'}
+                  emptyTitle={isOwner ? 'No reviews yet, let’s get you started' : 'No reviews yet'}
                   emptyBody={isOwner
-                    ? 'Apply to campaigns and land your first collab — brands’ reviews will appear here and help you win more work.'
+                    ? 'Apply to campaigns and land your first collab, brands’ reviews will appear here and help you win more work.'
                     : 'Reviews from brands appear after completed collaborations, revealed once both sides submit or after 7 days.'}
                   ctaHref={isOwner ? '/jobs' : undefined}
                   ctaLabel={isOwner ? 'Discover campaigns' : undefined}
@@ -334,7 +334,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             </div>
           </div>
 
-          {/* Social profiles — creator-provided, clickable so brands verify themselves */}
+          {/* Social profiles - creator-provided, clickable so brands verify themselves */}
           <div>
             <div className="eyebrow" style={{ marginBottom: 10 }}>Social profiles</div>
             {socials.length > 0 ? (
@@ -371,7 +371,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   })}
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 10, lineHeight: 1.5 }}>
-                  Social profiles are creator-provided — open them to check the account yourself. Follower counts are self-reported.
+                  Social profiles are creator-provided, open them to check the account yourself. Follower counts are self-reported.
                 </p>
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (

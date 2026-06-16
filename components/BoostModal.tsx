@@ -7,7 +7,7 @@ import BoostPurchase from './BoostPurchase'
 
 /**
  * Lightweight boost dialog (centered on desktop, bottom sheet on mobile). Keeps
- * the creator in context — the actual payment still hands off to Stripe Checkout
+ * the creator in context - the actual payment still hands off to Stripe Checkout
  * and returns to the page it was opened from. Reuses BoostPurchase for content.
  */
 export default function BoostModal({

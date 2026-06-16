@@ -61,7 +61,7 @@ export default async function NotificationsPage() {
           <div className="eyebrow" style={{ marginBottom: 7 }}>Activity</div>
           <h1 style={{ fontSize: 28 }}>Notifications</h1>
           <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            Applications, drafts, approvals and payments — as they happen.
+            Applications, drafts, approvals and payments, as they happen.
           </p>
         </div>
         {notifications && notifications.some(n => !n.read) && (
@@ -73,7 +73,7 @@ export default async function NotificationsPage() {
         <EmptyState
           icon={Bell}
           title="You're all caught up"
-          body="Workflow updates — applications, drafts, approvals and payments — appear here as they happen."
+          body="Workflow updates, applications, drafts, approvals and payments, appear here as they happen."
         />
       ) : (
         <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>

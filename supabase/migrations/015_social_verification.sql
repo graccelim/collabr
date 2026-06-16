@@ -1,9 +1,9 @@
 -- ============================================================================
--- Phase 15 — Social ownership verification (bio-code)
+-- Phase 15 - Social ownership verification (bio-code)
 --
 -- Beta verification = ACCOUNT OWNERSHIP only (creator places a one-time code in
 -- their bio; an admin confirms). It does NOT verify follower count, engagement,
--- or audience — follower_count stays self-reported. The schema is source-
+-- or audience - follower_count stays self-reported. The schema is source-
 -- agnostic so OAuth (which can set verified_follower_count) drops in later.
 --
 -- verification_status remains service-role-set only (existing grant in 007).
@@ -40,7 +40,7 @@ create index if not exists idx_verification_events_account on public.verificatio
 create index if not exists idx_verification_events_pending on public.verification_events (created_at desc);
 
 alter table public.verification_events enable row level security;
--- No client policies — written/read only by service role (request route + admin queue).
+-- No client policies - written/read only by service role (request route + admin queue).
 
 create index if not exists idx_social_accounts_pending
   on public.social_accounts (verification_requested_at)

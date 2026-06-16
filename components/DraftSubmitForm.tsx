@@ -98,7 +98,7 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
       setSubmitting(false)
       return
     }
-    toast.success('Draft submitted — brand has 48 hours to review')
+    toast.success('Draft submitted, brand has 48 hours to review')
     router.refresh()
   }
 
@@ -107,7 +107,7 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* brand feedback — shown when in revision */}
+      {/* brand feedback - shown when in revision */}
       {isRevision && latestFeedback && (
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           <div style={{ padding: '12px 16px', background: 'var(--brand-tint)', display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -238,7 +238,7 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
           )}
 
           <div>
-            <label className="label">{isRevision ? 'Reply to the brand' : 'Note to brand'} <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ink-soft)' }}>— optional</span></label>
+            <label className="label">{isRevision ? 'Reply to the brand' : 'Note to brand'} <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--ink-soft)' }}>- optional</span></label>
             <textarea
               className="textarea"
               value={note}

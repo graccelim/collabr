@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   // Anti-spam: 20 invites per hour per brand.
   if (!checkRateLimit(`invites:${user.id}`, 20, 60 * 60 * 1000)) {
-    return NextResponse.json({ error: 'Invite limit reached — try again in an hour' }, { status: 429 })
+    return NextResponse.json({ error: 'Invite limit reached, try again in an hour' }, { status: 429 })
   }
 
   let body: unknown
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Campaign must belong to this brand, be active, and pay creators —
+  // Campaign must belong to this brand, be active, and pay creators -
   // acceptance creates a paid collab through the existing workflow.
   const { data: campaign } = await admin.from('campaigns')
     .select('id, title, status, comp_type, brand_id')
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
   if (!['paid', 'both'].includes(campaign.comp_type)) {
     return NextResponse.json(
-      { error: 'Invites require a paid campaign — barter-only campaigns are not supported yet' },
+      { error: 'Invites require a paid campaign, barter-only campaigns are not supported yet' },
       { status: 400 }
     )
   }

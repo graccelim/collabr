@@ -89,7 +89,7 @@ export default function CollabActions({
           <StripePaymentButton
             collabId={collabId}
             amountCents={agreedRate}
-            label={`collabr. — ${creatorName}`}
+            label={`collabr., ${creatorName}`}
             onSuccess={() => router.refresh()}
           />
 
@@ -104,7 +104,7 @@ export default function CollabActions({
           <div>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--safe-deep)', marginBottom: 4 }}>What "escrow" means, plainly</div>
             <p style={{ fontSize: 13, color: 'var(--safe-deep)', lineHeight: 1.5, margin: 0 }}>
-              Your money goes to collabr — <strong>not</strong> the creator. We hold it safely. It only moves to {creatorName.split(' ')[0]} once you approve their live post. If the work never happens, you get it back.
+              Your money goes to collabr, <strong>not</strong> the creator. We hold it safely. It only moves to {creatorName.split(' ')[0]} once you approve their live post. If the work never happens, you get it back.
             </p>
           </div>
         </div>
@@ -224,7 +224,7 @@ export default function CollabActions({
             {formatSGD(agreedRate)} secured in escrow
           </span>
           <span style={{ fontSize: 13, color: 'var(--safe-deep)', display: 'block', marginTop: 1 }}>
-            Your payment is locked in — submit your draft to get started.
+            Your payment is locked in, submit your draft to get started.
           </span>
         </div>
       </div>

@@ -25,7 +25,7 @@ export default function EmptyState({ icon: Icon, title, body, actionHref, action
 
   return (
     <div className="empty-state">
-      {/* medallion — soft halo + colored tile + spark */}
+      {/* medallion - soft halo + colored tile + spark */}
       <div style={{
         position: 'relative', width: 96, height: 96, margin: '0 auto 22px',
         display: 'flex', alignItems: 'center', justifyContent: 'center',

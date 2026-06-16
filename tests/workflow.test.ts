@@ -3,7 +3,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 
 const base = { isBrand: false, counterpartName: 'Glow Works' }
 
-describe('deriveWorkflow — stage and actor derivation', () => {
+describe('deriveWorkflow - stage and actor derivation', () => {
   it('briefed + unfunded → brand must fund escrow', () => {
     const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'unfunded' })
     expect(v.actor).toBe('brand')
@@ -63,7 +63,7 @@ describe('deriveWorkflow — stage and actor derivation', () => {
   })
 })
 
-describe('actorLabel — "your turn" derivation', () => {
+describe('actorLabel - "your turn" derivation', () => {
   it('marks the acting side as "Your turn" and the other as waiting', () => {
     const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'unfunded' }) // brand acts
     expect(actorLabel(v, true, 'Sara Reyes')).toEqual({ label: 'Your turn', yourTurn: true })

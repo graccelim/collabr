@@ -17,8 +17,8 @@ const ORIGINAL_BETA = process.env.BETA_FREE_PRO
 afterAll(() => { process.env.BETA_FREE_PRO = ORIGINAL_BETA })
 beforeEach(() => { process.env.BETA_FREE_PRO = 'true' })
 
-// ─── 1 & 2: applications POST — verification + onboarding + campaign gates ──
-describe('POST /api/applications — trust gates', () => {
+// ─── 1 & 2: applications POST - verification + onboarding + campaign gates ──
+describe('POST /api/applications - trust gates', () => {
   const CAMPAIGN_ID = '11111111-1111-1111-1111-111111111111'
   const VALID_BODY = { campaign_id: CAMPAIGN_ID, pitch: 'A solid pitch about my audience and past work.' }
   const onboardedCreator = { data: { id: 'cr-1', boost_active_until: null, onboarding_completed_at: '2026-01-01' } }
@@ -131,7 +131,7 @@ describe('POST /api/applications — trust gates', () => {
 })
 
 // ─── L-4: campaign status transitions ────────────────────────────────────────
-describe('PATCH /api/campaigns/[id] — status transitions', () => {
+describe('PATCH /api/campaigns/[id] - status transitions', () => {
   async function patch(body: unknown) {
     const { PATCH } = await import('@/app/api/campaigns/[id]/route')
     return PATCH(jsonRequest('PATCH', body), { params: { id: 'camp-1' } })
@@ -259,7 +259,7 @@ describe('Pro gates (BETA_FREE_PRO=false)', () => {
 })
 
 // ─── 13: review authorization ────────────────────────────────────────────────
-describe('POST /api/reviews — authorization', () => {
+describe('POST /api/reviews - authorization', () => {
   async function post(body: unknown) {
     const { POST } = await import('@/app/api/reviews/route')
     return POST(jsonRequest('POST', body))
@@ -305,7 +305,7 @@ describe('POST /api/reviews — authorization', () => {
         users: [{ data: { role: 'brand' } }],
         collabs: [{ data: {
           status: 'completed', payment_status: 'refund_pending',
-          agreed_rate: 50000, // a paid collab — money must have moved
+          agreed_rate: 50000, // a paid collab - money must have moved
           creator_profiles: { user_id: 'creator-1' },
           brand_profiles: { user_id: 'brand-1' },
         } }],
@@ -322,7 +322,7 @@ describe('POST /api/reviews — authorization', () => {
         users: [{ data: { role: 'brand' } }],
         collabs: [{ data: {
           status: 'completed', payment_status: 'unfunded',
-          agreed_rate: 0, // barter — eligible on completion alone
+          agreed_rate: 0, // barter - eligible on completion alone
           creator_profiles: { user_id: 'creator-1' },
           brand_profiles: { user_id: 'brand-1' },
         } }],
@@ -337,7 +337,7 @@ describe('POST /api/reviews — authorization', () => {
 })
 
 // ─── 12: signed URL access protection ────────────────────────────────────────
-describe('GET /api/submissions/[id]/file — signed URL authorization', () => {
+describe('GET /api/submissions/[id]/file - signed URL authorization', () => {
   async function get(config: StubConfig) {
     useStub(config)
     const { GET } = await import('@/app/api/submissions/[id]/file/route')

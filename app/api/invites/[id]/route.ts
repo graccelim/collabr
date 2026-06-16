@@ -70,9 +70,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: 'Complete onboarding before accepting invites' }, { status: 403 })
   }
   if (!campaign?.id) {
-    return NextResponse.json({ error: 'This invite has no campaign attached — ask the brand to re-invite you' }, { status: 409 })
+    return NextResponse.json({ error: 'This invite has no campaign attached, ask the brand to re-invite you' }, { status: 409 })
   }
-  // The campaign may have changed since the invite was sent — recheck before
+  // The campaign may have changed since the invite was sent - recheck before
   // creating anything. Capacity is enforced atomically by the selection RPC.
   if (campaign.status !== 'active') {
     return NextResponse.json(
@@ -96,7 +96,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   if (existingApp) {
     if (existingApp.status === 'selected') {
-      // Collab already exists through the normal path — just close the invite.
+      // Collab already exists through the normal path - just close the invite.
       const { data: collab } = await admin.from('collabs')
         .select('id').eq('application_id', existingApp.id).maybeSingle()
       await admin.from('campaign_invites')
@@ -154,7 +154,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       userId: brandUserId,
       type: 'invite_accepted',
       title: `${creatorName} accepted your invite 🎉`,
-      body: 'The collab has been created — fund escrow to get work started.',
+      body: 'The collab has been created, fund escrow to get work started.',
       payload: { invite_id: invite.id, collab_id: collabId },
       dedupeKey: `invite:${invite.id}:accepted`,
     })

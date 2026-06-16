@@ -62,7 +62,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
       setSending(false)
       return
     }
-    toast.success(`Invite sent to ${first} — you'll be notified when they respond`)
+    toast.success(`Invite sent to ${first}, you'll be notified when they respond`)
     setOpen(false)
     setRate(''); setMessage('')
     setSending(false)
@@ -86,7 +86,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
         <select className="input" value={campaignId} onChange={e => setCampaignId(e.target.value)}>
           {campaigns.map(c => (
             <option key={c.id} value={c.id} disabled={pendingCampaignIds.includes(c.id)}>
-              {c.title}{pendingCampaignIds.includes(c.id) ? ' — invite pending' : ''}
+              {c.title}{pendingCampaignIds.includes(c.id) ? ', invite pending' : ''}
             </option>
           ))}
         </select>
@@ -100,7 +100,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
         </p>
       </div>
       <div>
-        <label className="label">Message — optional</label>
+        <label className="label">Message, optional</label>
         <textarea className="input" style={{ minHeight: 70, resize: 'none' }} maxLength={1000}
           value={message} onChange={e => setMessage(e.target.value)}
           placeholder={`Tell ${first} why they're a great fit.`} />

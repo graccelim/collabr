@@ -52,7 +52,7 @@ export function reasonStyle(reason: string): { bg: string; fg: string; Icon: typ
 // How an existing application renders in place of the Apply affordance.
 const APPLIED: Record<string, { label: string; cls: string }> = {
   pending:     { label: 'Applied',      cls: 'badge-neutral' },
-  shortlisted: { label: 'Applied',      cls: 'badge-neutral' }, // private brand bookmark — looks like "Applied" to the creator
+  shortlisted: { label: 'Applied',      cls: 'badge-neutral' }, // private brand bookmark - looks like "Applied" to the creator
   selected:    { label: 'Selected',     cls: 'badge-money' },
   rejected:    { label: 'Not selected', cls: 'badge-neutral' },
 }
@@ -92,7 +92,7 @@ export default function JobsList({
   }, [campaigns])
 
   // `campaigns` arrives already ranked best-first by the two-sided recommender
-  // (rankCampaignsForCreator) — preserve that order, only apply the niche chip.
+  // (rankCampaignsForCreator) - preserve that order, only apply the niche chip.
   const visible = useMemo(() => {
     if (filter === '__for_you') return campaigns
     return campaigns.filter(c => c.niche_tags?.includes(filter))
@@ -125,7 +125,7 @@ export default function JobsList({
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {visible.map((c) => {
           const pays = paysLabel(c)
-          const deliverable = c.deliverable_types?.[0] ?? '—'
+          const deliverable = c.deliverable_types?.[0] ?? '-'
           return (
             <Link
               key={c.id}
@@ -175,7 +175,7 @@ export default function JobsList({
                     )}
                   </div>
                 </div>
-                {/* Honest fit tier — only shown when there's a credible match
+                {/* Honest fit tier - only shown when there's a credible match
                     to claim. No numbers, ever. Null → no pill. */}
                 {c.matchLabel && (
                   <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, fontSize: 12 }}>
@@ -184,7 +184,7 @@ export default function JobsList({
                 )}
               </div>
 
-              {/* Why it fits — compact ✓ list of honest, categorical reasons. */}
+              {/* Why it fits - compact ✓ list of honest, categorical reasons. */}
               {c.matchReasons.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
                   {c.matchReasons.map(reason => {

@@ -6,7 +6,7 @@ import { isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans'
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 // Starts a Stripe Checkout subscription for collabr Pro. Pricing lives in
-// Stripe (STRIPE_PRO_PRICE_ID) — never hardcoded in the product.
+// Stripe (STRIPE_PRO_PRICE_ID) - never hardcoded in the product.
 export async function POST() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -14,7 +14,7 @@ export async function POST() {
 
   if (isBetaFreePro()) {
     return NextResponse.json(
-      { error: 'Pro is complimentary during the collabr beta — no subscription needed.' },
+      { error: 'Pro is complimentary during the collabr beta, no subscription needed.' },
       { status: 409 }
     )
   }

@@ -1,6 +1,6 @@
 # collabr.
 
-Creator-brand marketplace for Singapore. Connects content creators directly with brands — no agency needed.
+Creator-brand marketplace for Singapore. Connects content creators directly with brands - no agency needed.
 
 ## Stack
 - Next.js 14 (App Router)
@@ -33,7 +33,7 @@ Connect repo to Vercel. Add all environment variables. Deploy.
 - Phase 2: Campaigns + discovery ✅
 - Phase 3: Applications ✅
 - Phase 4: Collab workflow ✅
-- Phase 5: Stripe payments (pending — add STRIPE keys)
+- Phase 5: Stripe payments (pending - add STRIPE keys)
 - Phase 6: Disputes + reviews (partial)
 - Phase 7: Boosts + subscriptions (pending)
 - Phase 8: Analytics + polish (pending)

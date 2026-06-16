@@ -1,11 +1,11 @@
 'use client'
 import { Plus, X } from 'lucide-react'
 import {
-  SOCIAL_PLATFORMS, SOCIAL_LABELS, socialUrlPrefix,
+  SOCIAL_PLATFORMS, SOCIAL_LABELS,
   type SocialPlatform,
 } from '@/lib/onboarding'
 
-// One repeatable social-profile row. `username` is what the creator types — a
+// One repeatable social-profile row. `username` is what the creator types - a
 // bare username for most platforms (we prepend the domain), or a pasted profile
 // link for Xiaohongshu (which has no public username). extractHandle() normalizes
 // either form to the canonical stored handle.
@@ -20,7 +20,7 @@ export function newSocialRow(used: SocialPlatform[] = []): SocialRow {
 
 /**
  * Repeatable social-profile builder shared by signup + onboarding. Controlled:
- * the parent owns the rows. Row order is meaningful — the first row is submitted
+ * the parent owns the rows. Row order is meaningful - the first row is submitted
  * first and the API marks it primary. Prevents duplicate platforms.
  */
 export default function SocialProfileBuilder({
@@ -59,17 +59,10 @@ export default function SocialProfileBuilder({
                     </option>
                   ))}
                 </select>
-                {isXhs ? (
-                  <input className="input" style={{ flex: 1, minWidth: 0 }} inputMode="url" placeholder="Profile link"
-                    value={row.username} onChange={e => update(i, { username: e.target.value })} />
-                ) : (
-                  <div className="affix-field" style={{ flex: 1, minWidth: 0 }}>
-                    <span className="affix">{socialUrlPrefix(row.platform)}</span>
-                    <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                      placeholder="username"
-                      value={row.username} onChange={e => update(i, { username: e.target.value })} />
-                  </div>
-                )}
+                <input className="input" style={{ flex: 1, minWidth: 0 }}
+                  inputMode={isXhs ? 'url' : 'text'} autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  placeholder={isXhs ? 'Profile link' : '@username'}
+                  value={row.username} onChange={e => update(i, { username: e.target.value })} />
                 {i === 0 && (
                   <span className="badge badge-accent" style={{ fontSize: 10.5, flexShrink: 0 }}>Primary</span>
                 )}

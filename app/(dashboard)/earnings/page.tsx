@@ -36,17 +36,17 @@ export default async function EarningsPage({
   const supabase = createClient()
 
   const admin = createAdminClient()
-  // creator profile + Connect status both key off user.id — fetch concurrently.
+  // creator profile + Connect status both key off user.id - fetch concurrently.
   const [{ data: creator }, { data: connectProfile }] = await Promise.all([
     supabase.from('creator_profiles')
       .select('id, user_id, bio, niches, platforms, base_rate, is_verified, boost_active_until, onboarding_completed_at, rating_avg, rating_count, collabs_completed, created_at')
       .eq('user_id', user.id).single(),
-    // total_earned is private (not client-readable) — read it via the service role.
+    // total_earned is private (not client-readable) - read it via the service role.
     admin.from('creator_profiles')
       .select('stripe_connect_id, total_earned').eq('user_id', user.id).single(),
   ])
 
-  // Real payout readiness — having a Connect id is NOT the same as being able to
+  // Real payout readiness - having a Connect id is NOT the same as being able to
   // receive payouts (Stripe may still need details/verification). Check the live
   // account so we never show "connected" (green) before payouts are enabled.
   let payoutsReady = false
@@ -56,7 +56,7 @@ export default async function EarningsPage({
       payoutsReady = Boolean(acct.charges_enabled && acct.payouts_enabled)
     } catch { payoutsReady = false }
   }
-  // Payout history + active escrow both key off creator.id — fetch concurrently.
+  // Payout history + active escrow both key off creator.id - fetch concurrently.
   const [{ data: collabs }, { data: secured }] = await Promise.all([
     supabase.from('collabs')
       .select('*, campaigns(title), brand_profiles(company_name)')
@@ -64,7 +64,7 @@ export default async function EarningsPage({
       .eq('status', 'completed')
       .in('payment_status', ['paid', 'manual_exception'])
       .order('created_at', { ascending: false }),
-    // Active escrow secured for this creator — money held but not yet released.
+    // Active escrow secured for this creator - money held but not yet released.
     supabase.from('collabs')
       .select('creator_payout')
       .eq('creator_id', creator!.id)
@@ -99,7 +99,7 @@ export default async function EarningsPage({
         <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
 
-      {/* Boost nudge — only once boost is configured AND the profile is complete
+      {/* Boost nudge - only once boost is configured AND the profile is complete
           (no point boosting an undiscoverable profile). */}
       {boostUiEnabled() && creator?.onboarding_completed_at && (
         <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
@@ -132,8 +132,8 @@ export default async function EarningsPage({
               tone="money"
               title="Your first payout is on its way"
               body={inEscrow > 0
-                ? `${formatSGD(inEscrow)} is secured in escrow — it lands here the moment the brand confirms your live post.`
-                : 'Once a brand confirms your live post, escrow releases and Stripe transfers your earnings — payment is guaranteed before you start work.'}
+                ? `${formatSGD(inEscrow)} is secured in escrow, it lands here the moment the brand confirms your live post.`
+                : 'Once a brand confirms your live post, escrow releases and Stripe transfers your earnings, payment is guaranteed before you start work.'}
               actionHref={inEscrow > 0 ? '/collabs' : '/jobs'}
               actionLabel={inEscrow > 0 ? 'Open active collab' : 'Browse campaigns'}
             />

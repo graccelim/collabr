@@ -15,7 +15,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--paper)' }}>
-      {/* LEFT — brand panel */}
+      {/* LEFT - brand panel */}
       <div className="auth-rail">
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <span style={{
@@ -54,7 +54,7 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* RIGHT — form, centered */}
+      {/* RIGHT - form, centered */}
       <div style={{
         flex: 1, overflowY: 'auto', display: 'flex', justifyContent: 'center',
         padding: '48px 24px',

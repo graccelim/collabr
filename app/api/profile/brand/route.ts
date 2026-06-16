@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest) {
   for (const [k, v] of Object.entries(fields)) {
     if (v !== undefined) updates[k] = v
   }
-  // company_name has a not-null default — never blank it out.
+  // company_name has a not-null default - never blank it out.
   if (updates.company_name === null) delete updates.company_name
 
   if (Object.keys(updates).length === 0 && !display_name) {
@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest) {
       .select(SELECT_COLUMNS)
       .single()
     // `location` is newer (migration 020). On DBs where it isn't applied yet the
-    // update errors — retry without it so the rest of the save still lands.
+    // update errors - retry without it so the rest of the save still lands.
     if (result.error && 'location' in updates) {
       const rest = { ...updates }
       delete rest.location

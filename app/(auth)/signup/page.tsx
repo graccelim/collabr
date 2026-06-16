@@ -8,7 +8,7 @@ import AuthShell from '@/components/AuthShell'
 import {
   CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS,
   NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, normalizeUrl,
-  extractHandle, socialUrl as buildSocialUrl, socialUrlPrefix,
+  extractHandle, socialUrl as buildSocialUrl,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
@@ -43,7 +43,7 @@ function SignupForm() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
   const isBrand = role === 'brand'
 
-  // Creator onboarding fields — up to 3 niches; first is the primary niche.
+  // Creator onboarding fields - up to 3 niches; first is the primary niche.
   const [niches, setNiches] = useState<CreatorNiche[]>([])
   const [socialRows, setSocialRows] = useState<SocialRow[]>([
     { platform: 'instagram', username: '', followers: '' },
@@ -54,7 +54,7 @@ function SignupForm() {
   const [website, setWebsite] = useState('')
   const [brandAbout, setBrandAbout] = useState('')
   const [brandLocation, setBrandLocation] = useState('')
-  // Brand's single social profile — platform dropdown + username → social_url.
+  // Brand's single social profile - platform dropdown + username → social_url.
   const [brandSocialPlatform, setBrandSocialPlatform] = useState<SocialPlatform>('instagram')
   const [brandSocialUsername, setBrandSocialUsername] = useState('')
 
@@ -170,11 +170,11 @@ function SignupForm() {
                 </Field>
               </div>
             </div>
-            <Field label="About" optional hint="A line or two about your brand — creators see this on your profile.">
+            <Field label="About" optional hint="A line or two about your brand, creators see this on your profile.">
               <textarea className="textarea" value={brandAbout} onChange={e => setBrandAbout(e.target.value)}
                 placeholder="We're a neighbourhood kopitiam in Tiong Bahru serving…" disabled={busy} maxLength={2000} style={{ minHeight: 72 }} />
             </Field>
-            <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing — a website or a social below is required.">
+            <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing, a website or a social below is required.">
               <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />
             </Field>
             <Field label="Brand social" hint="Helps creators trust you faster. Pick a platform and enter your handle.">
@@ -183,16 +183,11 @@ function SignupForm() {
                   onChange={e => setBrandSocialPlatform(e.target.value as SocialPlatform)} disabled={busy}>
                   {SOCIAL_PLATFORMS.map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
                 </select>
-                {brandSocialPlatform === 'xiaohongshu' ? (
-                  <input className="input" style={{ flex: 1 }} inputMode="url" placeholder="Profile link"
-                    value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
-                ) : (
-                  <div className="affix-field" style={{ flex: 1 }}>
-                    <span className="affix">{socialUrlPrefix(brandSocialPlatform)}</span>
-                    <input autoCapitalize="none" autoCorrect="off" spellCheck={false} placeholder="username"
-                      value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
-                  </div>
-                )}
+                <input className="input" style={{ flex: 1 }}
+                  inputMode={brandSocialPlatform === 'xiaohongshu' ? 'url' : 'text'}
+                  autoCapitalize="none" autoCorrect="off" spellCheck={false}
+                  placeholder={brandSocialPlatform === 'xiaohongshu' ? 'Profile link' : '@username'}
+                  value={brandSocialUsername} onChange={e => setBrandSocialUsername(e.target.value)} disabled={busy} />
               </div>
             </Field>
           </>
@@ -207,7 +202,7 @@ function SignupForm() {
             <Field label="Password" hint="At least 8 characters.">
               <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
             </Field>
-            <Field label="Your niches" hint={`Pick up to ${MAX_SIGNUP_NICHES} — we match you to the right campaigns. ${niches.length}/${MAX_SIGNUP_NICHES} selected`}>
+            <Field label="Your niches" hint={`Pick up to ${MAX_SIGNUP_NICHES}, we match you to the right campaigns. ${niches.length}/${MAX_SIGNUP_NICHES} selected`}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {CREATOR_NICHES.map(n => (
                   <button key={n} type="button" onClick={() => toggleNiche(n)} className={`chip${niches.includes(n) ? ' on' : ''}`}>
@@ -216,7 +211,7 @@ function SignupForm() {
                 ))}
               </div>
             </Field>
-            <Field label="Connect your socials" hint="Add at least one — your first profile is shown to brands as primary.">
+            <Field label="Connect your socials" hint="Add at least one, your first profile is shown to brands as primary.">
               <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
             </Field>
           </>

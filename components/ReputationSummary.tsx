@@ -2,7 +2,7 @@ import { Star, Users, CheckCircle2, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 /**
- * Level-2 reputation block — a calm trust summary used on profiles (public and
+ * Level-2 reputation block - a calm trust summary used on profiles (public and
  * "how you appear to others"). Shows earned signals only; for a brand-new
  * account it shows a premium, non-suspicious empty state instead of zeros.
  * Pass ctaHref/ctaLabel for an owner-facing call to action.

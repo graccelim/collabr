@@ -12,10 +12,10 @@ interface Props {
 type Outcome = 'creator_wins' | 'brand_wins' | 'split' | 'mutual'
 
 const OUTCOME_LABELS: Record<Outcome, string> = {
-  creator_wins: 'Creator wins — full payout to creator',
-  brand_wins: 'Brand wins — payment refunded to brand',
-  split: 'Split — partial payout',
-  mutual: 'Mutual resolution — payment voided',
+  creator_wins: 'Creator wins, full payout to creator',
+  brand_wins: 'Brand wins, payment refunded to brand',
+  split: 'Split, partial payout',
+  mutual: 'Mutual resolution, payment voided',
 }
 
 export default function DisputeResolutionForm({ disputeId, agreedRate }: Props) {

@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
   // Compensation requirements: barter-only campaigns carry no cash rate.
   if (campaign.comp_type === 'barter' && body.proposed_rate) {
     return NextResponse.json(
-      { error: 'This is a barter campaign — it does not pay a cash rate' },
+      { error: 'This is a barter campaign, it does not pay a cash rate' },
       { status: 400 }
     )
   }
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     .gte('created_at', oneHourAgo)
   if ((recentCount || 0) >= 10) {
     return NextResponse.json(
-      { error: 'Application limit reached — try again in an hour' },
+      { error: 'Application limit reached, try again in an hour' },
       { status: 429 }
     )
   }

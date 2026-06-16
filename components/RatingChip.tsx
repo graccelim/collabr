@@ -4,7 +4,7 @@ import { Star } from 'lucide-react'
  * Honest reputation chip used wherever one party evaluates another (job detail,
  * collab page). `count` is DISTINCT collaborators (anti-farming: repeat reviews
  * from the same pair don't inflate it). Shows the earned average + collaborator
- * count, or a neutral "New to collabr" before any reviews — never a fake score.
+ * count, or a neutral "New to collabr" before any reviews - never a fake score.
  */
 export default function RatingChip({
   avg, count, label = 'New to collabr', size = 13,

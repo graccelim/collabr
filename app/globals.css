@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 /* ============================================================
-   collabr. — design system (Collabr Redesign · Navy)
+   collabr. - design system (Collabr Redesign · Navy)
    Cool neutral surfaces · Deep navy accent · editorial display type
    Green is SEMANTIC ONLY (secured escrow / money) · dark navy money panels
    ============================================================ */
@@ -33,21 +33,21 @@
   --line:           rgba(14,16,22,0.08);
   --line-strong:    rgba(14,16,22,0.18);
 
-  /* brand side — dark money panel (deep navy, premium) */
+  /* brand side - dark money panel (deep navy, premium) */
   --brand:      #0A0C22;
   --brand-deep: #08091a;
   --brand-tint: #E6E7F0;
   --brand-tint-2:#EEF0F4;
   --brand-ink:  #F6F7F9;
 
-  /* creator accent — unified with the brand navy */
+  /* creator accent - unified with the brand navy */
   --creator:      #000435;
   --creator-deep: #000228;
   --creator-tint: #E6E7F0;
   --creator-tint-2:#EFF0F6;
   --creator-ink:  #FFFFFF;
 
-  /* SEMANTIC: secured / escrow / paid — the ONLY place green lives */
+  /* SEMANTIC: secured / escrow / paid - the ONLY place green lives */
   --money:        #157A55;
   --money-deep:   #0F5A3E;
   --money-tint:   #E2F1EA;
@@ -72,7 +72,7 @@
   --accent-ink:   #FFFFFF;
   /* legible accent on dark/navy surfaces (navy is too dark to read there) */
   --accent-on-dark: #9CA2D6;
-  /* fit/match — a bright, friendly violet, distinct from navy accent and the
+  /* fit/match - a bright, friendly violet, distinct from navy accent and the
      reserved escrow green. Used for "% match" pills only. */
   --match:      #5B53E0;
   --match-soft: #ECEBFC;
@@ -85,7 +85,7 @@
   --radius-pill: 999px;
   --pad:         18px;
 
-  /* elevation — soft, low-contrast, premium */
+  /* elevation - soft, low-contrast, premium */
   --shadow-sm: 0 1px 2px rgba(17,19,25,.04);
   --shadow:    0 1px 3px rgba(17,19,25,.05), 0 6px 16px -10px rgba(17,19,25,.10);
   --shadow-lg: 0 2px 6px rgba(26,24,28,.04), 0 16px 30px -18px rgba(26,24,28,.14);
@@ -162,7 +162,7 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* "money" = settlement / payout actions — escrow green */
+  /* "money" = settlement / payout actions - escrow green */
   .btn-money, .btn-success {
     background: var(--money); color: #fff;
     box-shadow: var(--shadow-sm);
@@ -209,7 +209,7 @@
   .card-hover { cursor: pointer; transition: background .12s ease, border-color .15s ease; }
   .card-hover:hover { background: var(--surface-2); border-color: var(--line-strong); }
 
-  /* ---- Dimensional dark "money" panel — the premium hero object ----
+  /* ---- Dimensional dark "money" panel - the premium hero object ----
      Deep navy gradient + soft accent/secure glow + faint grain. The glow and
      grain are pseudo-elements so existing markup upgrades with no JSX change;
      direct children sit above them via position/z-index. */
@@ -227,7 +227,7 @@
       0 6px 18px -12px rgba(8,10,26,0.45);
     padding: 28px 30px;
   }
-  /* Colour atmosphere — indigo top-right, faint escrow-green bottom-left. */
+  /* Colour atmosphere - indigo top-right, faint escrow-green bottom-left. */
   .money-panel::before {
     content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0;
     background:
@@ -235,7 +235,7 @@
       radial-gradient(52% 82% at 8% 112%, color-mix(in srgb, var(--secure, var(--money)) 30%, transparent) 0%, transparent 62%);
     opacity: 0.5; filter: saturate(1.15);
   }
-  /* Revolut-style glossy reflection — a soft sheen catching the far (right) end
+  /* Revolut-style glossy reflection - a soft sheen catching the far (right) end
      of the card, not a stripe through the middle. */
   .money-panel::after {
     content: ''; position: absolute; inset: -2px; pointer-events: none; z-index: 0;
@@ -249,7 +249,7 @@
     transform: translateX(0);
     transition: transform .7s cubic-bezier(.2,.7,.2,1), opacity .45s ease;
   }
-  /* Gentle shimmer when the card is hovered — the highlight glides toward the edge. */
+  /* Gentle shimmer when the card is hovered - the highlight glides toward the edge. */
   .money-panel:hover::after { transform: translateX(3%); opacity: 1.1; }
   @media (prefers-reduced-motion: reduce) {
     .money-panel::after { transition: none; }
@@ -284,7 +284,7 @@
     white-space: nowrap; line-height: 1.4;
   }
   .badge-accent  { background: var(--accent-tint);  color: var(--accent-deep); }
-  /* Match tiers — premium glossy badges with a reflective sheen. */
+  /* Match tiers - premium glossy badges with a reflective sheen. */
   .badge-match,
   .badge-match-strong,
   .badge-match-best {
@@ -294,14 +294,14 @@
   }
   .badge-match,
   .badge-match-strong {
-    background: linear-gradient(135deg, #5B6CFF 0%, #4338CA 100%); /* Strong Fit — indigo */
+    background: linear-gradient(135deg, #5B6CFF 0%, #4338CA 100%); /* Strong Fit - indigo */
     box-shadow: 0 3px 12px -3px rgba(67,56,202,.55), inset 0 1px 0 rgba(255,255,255,.3);
   }
   .badge-match-best {
-    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #4F46E5 100%); /* Best Match — violet→indigo */
+    background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #4F46E5 100%); /* Best Match - violet→indigo */
     box-shadow: 0 3px 14px -3px rgba(124,92,246,.6), inset 0 1px 0 rgba(255,255,255,.32);
   }
-  /* Glossy reflection sweep — a soft diagonal highlight across the top. */
+  /* Glossy reflection sweep - a soft diagonal highlight across the top. */
   .badge-match::after,
   .badge-match-strong::after,
   .badge-match-best::after {
@@ -310,7 +310,7 @@
   }
   .badge-match > *, .badge-match-strong > *, .badge-match-best > * { position: relative; z-index: 1; }
   .badge-match-good {
-    background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%); /* Good Fit — bright sky gradient */
+    background: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%); /* Good Fit - bright sky gradient */
     color: #fff; border: none; font-weight: 600;
     box-shadow: 0 2px 10px -3px rgba(14,165,233,.5), inset 0 1px 0 rgba(255,255,255,.3);
   }
@@ -354,7 +354,7 @@
   }
   .textarea { resize: vertical; min-height: 88px; line-height: 1.5; }
 
-  /* Prefixed input — fixed domain (e.g. "instagram.com/") + username field. */
+  /* Prefixed input - fixed domain (e.g. "instagram.com/") + username field. */
   .affix-field {
     display: flex; align-items: center;
     border: 1px solid var(--line-strong);
@@ -379,7 +379,7 @@
     font-size: 14px; color: var(--ink); font-family: var(--font-body);
   }
 
-  /* Profile stat strip — borderless, hairline-divided; reflows to 2-up on phones.
+  /* Profile stat strip - borderless, hairline-divided; reflows to 2-up on phones.
      Column count is set inline per page (4 for creators, 3 for brands). */
   .profile-stats {
     display: grid;
@@ -402,7 +402,7 @@
     padding-right: 38px;
   }
 
-  /* ---- Chip (filter toggle — active goes ink, per redesign) ---- */
+  /* ---- Chip (filter toggle - active goes ink, per redesign) ---- */
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
     font-size: 13px; font-weight: 500; color: var(--ink-soft);
@@ -461,7 +461,7 @@
     margin: 0 auto;
   }
 
-  /* slim escrow progress — clean track + step count */
+  /* slim escrow progress - clean track + step count */
   .mini-escrow-track {
     width: 58px; height: 4px; border-radius: 99px;
     background: var(--brand-tint); overflow: hidden;
@@ -479,7 +479,7 @@
   .mono-num { font-family: var(--font-money); font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
   .hr { height: 1px; background: var(--line); border: 0; margin: 0; }
 
-  /* stat tile number — tabular sans (chic, not code-y) */
+  /* stat tile number - tabular sans (chic, not code-y) */
   .display-num {
     font-family: var(--font-money);
     font-weight: 600;
@@ -550,7 +550,7 @@
 .split-hero:hover .split-side      { flex: .82; }
 .split-hero .split-side:hover      { flex: 1.5; }
 .split-side-brand  {
-  /* Deep-navy money panel — matched to the mobile-landing dark scheme. */
+  /* Deep-navy money panel - matched to the mobile-landing dark scheme. */
   background: radial-gradient(120% 80% at 50% -10%, #161a36 0%, #0a0c1a 55%, #07080f 100%);
   color: #fff;
 }
@@ -580,12 +580,12 @@
   box-shadow: var(--shadow);
   transition: transform .15s ease, box-shadow .15s ease;
 }
-/* Landing section rhythm — one consistent vertical step (mobile override above). */
+/* Landing section rhythm - one consistent vertical step (mobile override above). */
 .lp-section { padding: 84px 40px; }
 .lp-narrow  { max-width: 1040px; margin: 0 auto; }
 
 /* ============================================================
-   AUTH SHELL — dark brand rail (hidden on mobile)
+   AUTH SHELL - dark brand rail (hidden on mobile)
    ============================================================ */
 .auth-rail {
   width: 44%;
@@ -611,11 +611,11 @@
 .scroll-y::-webkit-scrollbar-track { background: transparent; }
 
 /* ============================================================
-   RESPONSIVE — sidebar / tab bar toggle
+   RESPONSIVE - sidebar / tab bar toggle
    ============================================================ */
 @media (max-width: 768px) {
   .sidebar-desktop { display: none !important; }
-  /* Let the document scroll natively on mobile — a nested overflow:auto/100vh
+  /* Let the document scroll natively on mobile - a nested overflow:auto/100vh
      container fights the body scroll and causes the "scroll twice" jank. */
   .main-content {
     padding-bottom: 80px !important;

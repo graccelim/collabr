@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 // ── Per-request memoized auth + profile ──────────────────────────────────────
 // `supabase.auth.getUser()` is a NETWORK round-trip to the auth server (it
 // re-validates the JWT), and the same goes for the `users` profile read. Both
-// were being repeated several times per request — middleware, the dashboard
+// were being repeated several times per request - middleware, the dashboard
 // layout, each page's role guard, and again inside pages. React `cache()`
 // dedupes them to a single call per request render, so the layout, guards and
 // page all share one getUser + one profile fetch.
@@ -16,7 +16,7 @@ export const getAuthUser = cache(async () => {
   return user
 })
 
-/** The signed-in user's `users` row (role, display_name, email, …) — memoized. */
+/** The signed-in user's `users` row (role, display_name, email, …) - memoized. */
 export const getUserRow = cache(async () => {
   const user = await getAuthUser()
   if (!user) return null

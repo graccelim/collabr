@@ -1,7 +1,7 @@
--- Rollback Phase 17 — Pre-launch hardening
+-- Rollback Phase 17 - Pre-launch hardening
 -- Restores the prior (less safe) grants/behaviour. Run only to undo 017.
 
--- 1. Re-expose total_earned (NOT recommended — restores the privacy leak)
+-- 1. Re-expose total_earned (NOT recommended - restores the privacy leak)
 grant select (total_earned) on table public.creator_profiles to anon, authenticated;
 
 -- 2. Drop the niche_tags cap (restore pre-017 validation function)

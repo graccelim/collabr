@@ -3,16 +3,16 @@ import { NextResponse } from 'next/server'
 
 // Phase 10: single source of truth for plan resolution and feature gating.
 //
-// BETA MODE — while BETA_FREE_PRO is enabled (the default), every brand
+// BETA MODE - while BETA_FREE_PRO is enabled (the default), every brand
 // resolves to Pro ("Pro Beta"): all Pro features work, no Stripe subscription
 // is required, and no upgrade prompts are shown.
 //
-// PAID MODE — setting BETA_FREE_PRO=false activates the paid system with no
+// PAID MODE - setting BETA_FREE_PRO=false activates the paid system with no
 // code or data changes: new brands resolve to Free, Pro features gate, and
 // the upgrade flow (Stripe Checkout → webhook → plan=pro) unlocks instantly.
 // Cancellation keeps access until the paid period ends; grandfathered_pro_until
 // grants existing beta users a complimentary window at launch. Downgrades only
-// lock functionality — saved creators, invites and history are never deleted.
+// lock functionality - saved creators, invites and history are never deleted.
 
 export type PlanTier = 'free' | 'pro'
 export type SubscriptionState = 'beta_free' | 'active' | 'cancelled' | 'past_due'
@@ -34,10 +34,10 @@ export interface BrandPlanRow {
   grandfathered_pro_until?: string | null
 }
 
-/** Columns resolvePlan needs — keep brand_profiles selects in sync. */
+/** Columns resolvePlan needs - keep brand_profiles selects in sync. */
 export const PLAN_COLUMNS = 'plan, subscription_status, subscription_current_period_end, grandfathered_pro_until'
 
-/** Beta defaults ON — only an explicit 'false' activates paid mode. */
+/** Beta defaults ON - only an explicit 'false' activates paid mode. */
 export function isBetaFreePro(): boolean {
   return process.env.BETA_FREE_PRO !== 'false'
 }
@@ -66,7 +66,7 @@ export function resolvePlan(brand: BrandPlanRow | null): ResolvedPlan {
     return { tier: 'pro', state, isPro: true, label: 'Pro', proReason: 'subscription' }
   }
 
-  // Cancelled but the paid period hasn't ended yet — access remains.
+  // Cancelled but the paid period hasn't ended yet - access remains.
   if (brand?.plan === 'pro' && state === 'cancelled' && inFuture(brand?.subscription_current_period_end)) {
     return { tier: 'pro', state, isPro: true, label: 'Pro', proReason: 'cancelled_until_period_end' }
   }
@@ -94,7 +94,7 @@ export async function getBrandPlanForUser(userId: string): Promise<{
 
 /**
  * API gate for Pro features. Returns null when allowed, or a 403 response
- * when paid mode is active and the brand is on Free. Calm copy — no pricing.
+ * when paid mode is active and the brand is on Free. Calm copy - no pricing.
  */
 export function proGateResponse(plan: ResolvedPlan, feature: string): NextResponse | null {
   if (plan.isPro) return null

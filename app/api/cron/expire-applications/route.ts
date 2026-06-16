@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from 'next/server'
 //   • the campaign was closed/completed, or
 //   • the campaign deadline passed, or
 //   • the application has waited too long with no decision
-//     (pending > 14 days; saved > 30 days — saved = still actively considered).
+//     (pending > 14 days; saved > 30 days - saved = still actively considered).
 // Idempotent + gentle (reuses the standard "not selected" notification + email).
 const PENDING_MAX_DAYS = 14
 const SAVED_MAX_DAYS = 30
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
         userId: d.userId,
         type: 'application_rejected',
         title: `Application closed for "${d.title}"`,
-        body: 'This campaign is no longer accepting applicants. Thanks for applying — new campaigns are posted regularly.',
+        body: 'This campaign is no longer accepting applicants. Thanks for applying, new campaigns are posted regularly.',
         payload: { application_id: d.id },
         dedupeKey: `application:${d.id}:rejected`,
       })

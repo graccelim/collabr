@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         userId: creatorUserId,
         type: 'application_selected',
         title: `You've been selected for "${campaignTitle}"`,
-        body: 'Your collab has been created — escrow funding is the next step.',
+        body: 'Your collab has been created, escrow funding is the next step.',
         payload: { application_id: params.id, campaign_id: campaignId, collab_id: collabId },
         dedupeKey: `application:${params.id}:selected`,
       })
@@ -90,7 +90,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             if (uid) await sendNotification({
               userId: uid, type: 'application_rejected',
               title: `Application closed for "${campaignTitle}"`,
-              body: 'This campaign has been filled. Thanks for applying — new campaigns are posted regularly.',
+              body: 'This campaign has been filled. Thanks for applying, new campaigns are posted regularly.',
               payload: { application_id: l.id },
               dedupeKey: `application:${l.id}:rejected`,
             })
@@ -114,14 +114,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
   }
 
-  // "Save" (status=shortlisted) is a PRIVATE brand-side bookmark — intentionally
+  // "Save" (status=shortlisted) is a PRIVATE brand-side bookmark - intentionally
   // no creator notification, so it never raises false hope. Only Pass/Accept ping.
   if (status === 'rejected' && creatorUserId && changed) {
     await sendNotification({
       userId: creatorUserId,
       type: 'application_rejected',
       title: `Application not selected for "${campaignTitle}"`,
-      body: 'The brand went in another direction. New campaigns are posted regularly — keep applying.',
+      body: 'The brand went in another direction. New campaigns are posted regularly, keep applying.',
       payload: { application_id: params.id },
       dedupeKey: `application:${params.id}:rejected`,
     })

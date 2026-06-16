@@ -6,7 +6,7 @@ const EASE = [0.2, 0.7, 0.2, 1] as const
 
 /**
  * Scroll-reveal wrapper (landing page). Fades + rises its content into view
- * once. Respects reduced-motion via Framer. Keeps the existing design — just
+ * once. Respects reduced-motion via Framer. Keeps the existing design - just
  * animates it in. `stagger` cascades direct children for grids/lists.
  */
 export function Reveal({

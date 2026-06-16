@@ -2,7 +2,7 @@
 -- Subscription state lives alongside the existing plan column. While
 -- BETA_FREE_PRO is enabled the application resolves every brand to Pro
 -- ("Pro Beta") regardless of these columns, so no data migration is needed
--- to enter or leave beta — the flag flips behavior in code.
+-- to enter or leave beta - the flag flips behavior in code.
 --
 -- grandfathered_pro_until supports the beta → paid transition: existing beta
 -- brands can be granted 30/60/90 days of complimentary Pro at launch with a

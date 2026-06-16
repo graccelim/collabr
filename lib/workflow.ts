@@ -1,5 +1,5 @@
 // Phase 8: display-only derivation of the collaboration workflow.
-// Pure functions — no business logic lives here; this mirrors the states the
+// Pure functions - no business logic lives here; this mirrors the states the
 // server enforces so every screen can explain where the collab is, what
 // happens next, and who must act.
 
@@ -77,7 +77,7 @@ export function deriveWorkflow(opts: {
           steps: buildSteps('selected', 'funded', includeRevision),
           happened: 'The creator was selected for this campaign.',
           next: isBrand
-            ? 'Deposit the agreed amount into escrow. Funds stay with collabr — work begins only after Stripe verifies the authorization.'
+            ? 'Deposit the agreed amount into escrow. Funds stay with collabr, work begins only after Stripe verifies the authorization.'
             : `${first} must fund escrow before you start. Your payment is reserved with collabr before any work begins.`,
           actor: 'brand',
           deadline: null,
@@ -86,7 +86,7 @@ export function deriveWorkflow(opts: {
       }
       return {
         steps: buildSteps('funded', 'draft_submitted', includeRevision),
-        happened: 'Escrow is funded — the money is held safely by collabr.',
+        happened: 'Escrow is funded, the money is held safely by collabr.',
         next: isBrand
           ? `${first} is working on the draft. You'll review it before anything goes live.`
           : 'Submit your draft for review. Your payment is locked in and guaranteed once requirements are met.',
@@ -137,7 +137,7 @@ export function deriveWorkflow(opts: {
         happened: 'The content is live and the link has been submitted.',
         next: isBrand
           ? 'Verify the post and release payment within 72 hours. Payment will auto-release if no action is taken.'
-          : 'The brand has 72 hours to confirm. Payment will auto-release if no action is taken — you are marked paid once the transfer succeeds.',
+          : 'The brand has 72 hours to confirm. Payment will auto-release if no action is taken, you are marked paid once the transfer succeeds.',
         actor: 'brand',
         deadline: liveAutoReleaseAt || null,
         frozen: false,

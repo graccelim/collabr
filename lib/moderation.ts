@@ -1,4 +1,4 @@
-// Phase 11 — contact-info detection for collab chat.
+// Phase 11 - contact-info detection for collab chat.
 //
 // collabr's escrow only protects deals that stay on-platform, so we flag (not
 // block) messages that look like an attempt to move the conversation off the
@@ -24,7 +24,7 @@ const EMAIL = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i
 const SG_PHONE = /(?:\+?65[\s-]?)?[89]\d{3}[\s-]?\d{4}\b/
 const LONG_DIGITS = /(?:\d[\s-]?){8,}\d/
 
-// A bare @handle (>= 3 chars) — but not an email (handled above).
+// A bare @handle (>= 3 chars) - but not an email (handled above).
 const HANDLE = /(?:^|[^\w@])@[a-z0-9._]{3,}/i
 
 export function detectContactInfo(text: string): ModerationResult {

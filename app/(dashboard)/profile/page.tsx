@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
 import {
   CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS, SOCIAL_LABELS, normalizeUrl,
-  socialHandleLabel, socialUrlPrefix,
+  socialHandleLabel,
   type CreatorNiche, type SocialPlatform,
 } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
@@ -15,7 +15,7 @@ import { Star } from 'lucide-react'
 import { socialIcon } from '@/components/SocialIcon'
 import type { SocialAccount } from '@/types'
 
-// Stable serialization of the editable fields — used to detect whether anything
+// Stable serialization of the editable fields - used to detect whether anything
 // changed since load so we can disable "Save profile" when there's no diff.
 // (Avatar and socials save on their own, so they're excluded here.)
 function profileSnapshot(f: {
@@ -50,7 +50,7 @@ export default function ProfilePage() {
   const [mediaKitUrl, setMediaKitUrl] = useState('')
   const [portfolioLinks, setPortfolioLinks] = useState<string[]>([])
   const [newPortfolioLink, setNewPortfolioLink] = useState('')
-  // Snapshot of the form as loaded — Save stays disabled until something differs.
+  // Snapshot of the form as loaded - Save stays disabled until something differs.
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null)
 
   // Social accounts (normalized, managed via /api/socials)
@@ -72,7 +72,7 @@ export default function ProfilePage() {
       setUserId(user.id)
       setEmailVerified(Boolean(user.email_confirmed_at))
 
-      // All three reads key off user.id and are independent — fetch concurrently.
+      // All three reads key off user.id and are independent - fetch concurrently.
       const [{ data: account }, { data }] = await Promise.all([
         supabase.from('users').select('display_name, avatar_url').eq('id', user.id).single(),
         supabase.from('creator_profiles')
@@ -110,7 +110,7 @@ export default function ProfilePage() {
     load()
   }, [])
 
-  // Keep the "add social" platform valid — skip ones already connected.
+  // Keep the "add social" platform valid - skip ones already connected.
   useEffect(() => {
     if (socials.some(s => s.platform === newPlatform)) {
       const next = SOCIAL_PLATFORMS.find(p => !socials.some(s => s.platform === p))
@@ -174,7 +174,7 @@ export default function ProfilePage() {
     const data = await res.json()
     if (!res.ok) { toast.error(data.error || 'Could not save profile'); setSaving(false); return }
     toast.success('Profile saved')
-    // Return to the public profile — the view brands actually see.
+    // Return to the public profile - the view brands actually see.
     if (creatorId) router.push(`/creators/${creatorId}`)
     else setSaving(false)
   }
@@ -250,7 +250,7 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Completion — circular ring + missing-item pills */}
+      {/* Completion - circular ring + missing-item pills */}
       <div className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
         <CompletionRing pct={completion.score} />
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -265,7 +265,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              All set — brands see a complete profile.
+              All set, brands see a complete profile.
             </div>
           )}
         </div>
@@ -355,7 +355,7 @@ export default function ProfilePage() {
         <h2 className="text-sm font-medium text-gray-900">Portfolio</h2>
         {portfolioLinks.length === 0 && (
           <p className="text-xs text-gray-400">
-            No links yet — add your best work so brands can see what you make.
+            No links yet, add your best work so brands can see what you make.
           </p>
         )}
         {portfolioLinks.map(link => (
@@ -397,7 +397,7 @@ export default function ProfilePage() {
           )}
         </div>
         {socials.length === 0 && (
-          <p className="text-xs text-gray-400">No accounts connected yet — add at least one to complete onboarding.</p>
+          <p className="text-xs text-gray-400">No accounts connected yet, add at least one to complete onboarding.</p>
         )}
         {socials.map(s => {
           const Icon = socialIcon(s.platform)
@@ -460,16 +460,11 @@ export default function ProfilePage() {
             {SOCIAL_PLATFORMS.filter(p => !socials.some(s => s.platform === p))
               .map(p => <option key={p} value={p}>{SOCIAL_LABELS[p]}</option>)}
           </select>
-          {newPlatform === 'xiaohongshu' ? (
-            <input className="input" inputMode="url" placeholder="Paste your RED (Xiaohongshu) profile link"
-              value={newHandle} onChange={e => setNewHandle(e.target.value)} />
-          ) : (
-            <div className="affix-field">
-              <span className="affix">{socialUrlPrefix(newPlatform)}</span>
-              <input inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                placeholder="username" value={newHandle} onChange={e => setNewHandle(e.target.value)} />
-            </div>
-          )}
+          <input className="input"
+            inputMode={newPlatform === 'xiaohongshu' ? 'url' : 'text'}
+            autoCapitalize="none" autoCorrect="off" spellCheck={false}
+            placeholder={newPlatform === 'xiaohongshu' ? 'Paste your RED (Xiaohongshu) profile link' : '@username'}
+            value={newHandle} onChange={e => setNewHandle(e.target.value)} />
           <div className="flex gap-2">
             <input className="input" type="number" min="0" placeholder="Follower count (optional)" style={{ flex: 1 }}
               value={newFollowers} onChange={e => setNewFollowers(e.target.value)} />
@@ -489,7 +484,7 @@ export default function ProfilePage() {
   )
 }
 
-// Circular completion ring — mirrors the dashboard CompletionNudge SVG tokens.
+// Circular completion ring - mirrors the dashboard CompletionNudge SVG tokens.
 function CompletionRing({ pct }: { pct: number }) {
   const size = 44, sw = 4
   const r = (size - sw) / 2

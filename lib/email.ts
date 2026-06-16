@@ -3,7 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '')
 
-/** Absolute app URL for a path — all CTAs use NEXT_PUBLIC_APP_URL. */
+/** Absolute app URL for a path - all CTAs use NEXT_PUBLIC_APP_URL. */
 export function link(path: string): string {
   return `${APP_URL}${path.startsWith('/') ? path : `/${path}`}`
 }
@@ -14,7 +14,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
   const from = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
 
   if (!key) {
-    console.warn(`[EMAIL] RESEND_API_KEY missing — skipping send to ${to}: "${subject}"`)
+    console.warn(`[EMAIL] RESEND_API_KEY missing, skipping send to ${to}: "${subject}"`)
     return
   }
   const resend = new Resend(key)
@@ -93,14 +93,14 @@ export type SendResult = 'sent' | 'duplicate' | 'skipped'
 
 export interface ProductEmail extends EmailContent {
   subject: string
-  /** Unique per (event × recipient) — guarantees no double-send on retries. */
+  /** Unique per (event × recipient) - guarantees no double-send on retries. */
   dedupeKey: string
   type: string
 }
 
 /**
  * Send a product email, deduped via `email_log`. Resolves the recipient from
- * `to` or `userId`. Never throws — failures are logged and the workflow
+ * `to` or `userId`. Never throws - failures are logged and the workflow
  * continues (returns 'skipped').
  */
 export async function sendProductEmail(
@@ -115,7 +115,7 @@ export async function sendProductEmail(
     }
     if (!to) return 'skipped'
 
-    // Claim the dedupe key first — a 23505 conflict means already sent.
+    // Claim the dedupe key first - a 23505 conflict means already sent.
     const { error } = await admin.from('email_log')
       .insert({ dedupe_key: opts.dedupeKey, recipient: to, email_type: opts.type })
     if (error) {
@@ -151,9 +151,9 @@ export const productEmails = {
     type: TYPE,
     dedupeKey: `email:invite:${d.inviteId}:accepted`,
     subject: `${d.creatorName} accepted your invite`,
-    preheader: 'Your collab has been created — fund escrow to begin.',
+    preheader: 'Your collab has been created, fund escrow to begin.',
     title: `${d.creatorName} accepted your invite`,
-    body: `${d.creatorName} accepted your invite and a collab has been created. Fund escrow to get the work started — the money stays protected until you approve.`,
+    body: `${d.creatorName} accepted your invite and a collab has been created. Fund escrow to get the work started, the money stays protected until you approve.`,
     ctaLabel: 'Open the collab',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -161,10 +161,10 @@ export const productEmails = {
   draftSubmitted: (d: { creatorName: string; collabId: string; key: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:draft-submitted:${d.key}`,
-    subject: `Draft submitted by ${d.creatorName} — review within 48h`,
+    subject: `Draft submitted by ${d.creatorName}, review within 48h`,
     preheader: 'You have 48 hours before it auto-approves.',
     title: `${d.creatorName} submitted a draft`,
-    body: `Review the draft and approve, request a revision, or reject. You have 48 hours — after that it auto-approves.`,
+    body: `Review the draft and approve, request a revision, or reject. You have 48 hours, after that it auto-approves.`,
     ctaLabel: 'Review draft',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -172,10 +172,10 @@ export const productEmails = {
   liveSubmitted: (d: { creatorName: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:live-submitted`,
-    subject: `${d.creatorName} posted live — confirm to release payment`,
+    subject: `${d.creatorName} posted live, confirm to release payment`,
     preheader: 'Confirm within 72 hours to settle payment.',
     title: `${d.creatorName} posted the content live`,
-    body: `Verify the live post and confirm to release payment. You have 72 hours — after that we attempt capture and payout automatically.`,
+    body: `Verify the live post and confirm to release payment. You have 72 hours, after that we attempt capture and payout automatically.`,
     ctaLabel: 'Confirm live post',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -186,7 +186,7 @@ export const productEmails = {
     subject: 'A dispute was opened on your collab',
     preheader: 'Escrow is frozen while we mediate.',
     title: 'A dispute was opened',
-    body: `A dispute has been raised on one of your collaborations and escrow is now frozen. Submit your evidence — a Collabr mediator reviews both sides within 3 business days.`,
+    body: `A dispute has been raised on one of your collaborations and escrow is now frozen. Submit your evidence, a Collabr mediator reviews both sides within 3 business days.`,
     ctaLabel: 'View the dispute',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -194,10 +194,10 @@ export const productEmails = {
   collabCompletedBrand: (d: { creatorName: string; amount: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:completed-brand`,
-    subject: `Collab complete — ${d.amount} released to ${d.creatorName}`,
+    subject: `Collab complete, ${d.amount} released to ${d.creatorName}`,
     preheader: 'Payment released from escrow. Leave a review.',
     title: 'Your collaboration is complete',
-    body: `${d.amount} has been released from escrow to ${d.creatorName}. Thanks for keeping it on Collabr — leave a review to build trust for future collabs.`,
+    body: `${d.amount} has been released from escrow to ${d.creatorName}. Thanks for keeping it on Collabr, leave a review to build trust for future collabs.`,
     ctaLabel: 'View the collab',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -206,10 +206,10 @@ export const productEmails = {
   applicationSubmitted: (d: { campaignTitle: string; applicationId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:application:${d.applicationId}:creator-confirm`,
-    subject: `Application sent — "${d.campaignTitle}"`,
+    subject: `Application sent, "${d.campaignTitle}"`,
     preheader: 'Most brands reply within 36 hours.',
     title: 'Your application is in',
-    body: `We sent your application for "${d.campaignTitle}" to the brand, with your full profile attached. Most brands reply within 36 hours — we'll let you know the moment they do.`,
+    body: `We sent your application for "${d.campaignTitle}" to the brand, with your full profile attached. Most brands reply within 36 hours, we'll let you know the moment they do.`,
     ctaLabel: 'Track applications',
     ctaUrl: link('/applications'),
   }),
@@ -218,7 +218,7 @@ export const productEmails = {
     type: TYPE,
     dedupeKey: `email:application:${d.applicationId}:selected`,
     subject: `You were selected for "${d.campaignTitle}" 🎉`,
-    preheader: 'A collab was created — escrow funding is next.',
+    preheader: 'A collab was created, escrow funding is next.',
     title: 'You were selected!',
     body: `The brand picked you for "${d.campaignTitle}" and a collab has been created. Once the brand funds escrow, your payment is secured and you can start the draft.`,
     ctaLabel: 'Open your collab',
@@ -229,9 +229,9 @@ export const productEmails = {
     type: TYPE,
     dedupeKey: `email:application:${d.applicationId}:rejected`,
     subject: `Update on your application for "${d.campaignTitle}"`,
-    preheader: 'New campaigns are posted regularly — keep applying.',
+    preheader: 'New campaigns are posted regularly, keep applying.',
     title: 'Not selected this time',
-    body: `The brand went in another direction for "${d.campaignTitle}". It happens — fresh campaigns that fit your niche are posted regularly. Keep applying.`,
+    body: `The brand went in another direction for "${d.campaignTitle}". It happens, fresh campaigns that fit your niche are posted regularly. Keep applying.`,
     ctaLabel: 'Browse campaigns',
     ctaUrl: link('/jobs'),
   }),
@@ -240,9 +240,9 @@ export const productEmails = {
     type: TYPE,
     dedupeKey: `email:invite:${d.inviteId}:received`,
     subject: `${d.brandName} invited you to "${d.campaignTitle}"`,
-    preheader: 'Accepting starts the collab — escrow protects the pay.',
+    preheader: 'Accepting starts the collab, escrow protects the pay.',
     title: `${d.brandName} wants to work with you`,
-    body: `${d.brandName} invited you to "${d.campaignTitle}". Review the offer and accept to start the collab instantly — your payment is held in escrow before you create anything.`,
+    body: `${d.brandName} invited you to "${d.campaignTitle}". Review the offer and accept to start the collab instantly, your payment is held in escrow before you create anything.`,
     ctaLabel: 'View the invite',
     ctaUrl: link('/invites'),
   }),
@@ -250,7 +250,7 @@ export const productEmails = {
   draftApproved: (d: { collabId: string; key: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:draft-approved:${d.key}`,
-    subject: 'Draft approved — post live and submit your link',
+    subject: 'Draft approved, post live and submit your link',
     preheader: 'Submit the live link to release your payment.',
     title: 'Your draft was approved',
     body: `Post your content publicly, then come back and submit the live link. Your payment releases automatically once the brand confirms.`,
@@ -261,10 +261,10 @@ export const productEmails = {
   revisionRequested: (d: { collabId: string; key: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:revision:${d.key}`,
-    subject: 'Revision requested — feedback is ready',
+    subject: 'Revision requested, feedback is ready',
     preheader: 'Review the feedback and resubmit your draft.',
     title: 'A revision was requested',
-    body: `The brand left feedback on your draft. Check the notes and submit an updated version — your escrowed payment stays locked in the whole time.`,
+    body: `The brand left feedback on your draft. Check the notes and submit an updated version, your escrowed payment stays locked in the whole time.`,
     ctaLabel: 'View feedback',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -273,8 +273,8 @@ export const productEmails = {
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:payment-released`,
     subject: `Your ${d.amount} is on the way`,
-    preheader: 'Escrow released — funds arrive in 1–2 business days.',
-    title: 'Your live post was confirmed — you got paid',
+    preheader: 'Escrow released, funds arrive in 1–2 business days.',
+    title: 'Your live post was confirmed, you got paid',
     body: `Your post was confirmed and ${d.amount} has been released from escrow. It usually lands in your account within 1–2 business days.`,
     ctaLabel: 'View earnings',
     ctaUrl: link('/earnings'),
@@ -287,7 +287,7 @@ export const productEmails = {
     subject: `New message from ${d.fromName}`,
     preheader: 'Keep the conversation on Collabr.',
     title: `${d.fromName} sent you a message`,
-    body: `You have a new message about your collab. Reply on Collabr to keep everything — and your escrow protection — in one place.`,
+    body: `You have a new message about your collab. Reply on Collabr to keep everything, and your escrow protection, in one place.`,
     ctaLabel: 'Open the chat',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -298,7 +298,7 @@ export const emails = {
   welcomeCreator: (name: string, email: string) =>
     sendEmail({
       to: email,
-      subject: "You're in — set up your profile to get your first collab",
+      subject: "You're in, set up your profile to get your first collab",
       html: renderEmail({
         title: `Welcome to Collabr, ${name}`,
         body: 'You’re one of our founding creators. Complete your profile to unlock the Verified badge and start getting selected by brands.',
@@ -309,7 +309,7 @@ export const emails = {
   welcomeBrand: (name: string, email: string) =>
     sendEmail({
       to: email,
-      subject: 'Your first campaign is waiting — post it in 5 minutes',
+      subject: 'Your first campaign is waiting, post it in 5 minutes',
       html: renderEmail({
         title: `Welcome to Collabr, ${name}`,
         body: 'Post your first campaign brief and start receiving creator applications within 48 hours. During beta, posting campaigns is free.',

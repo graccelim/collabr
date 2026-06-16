@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const reasons = detectContactInfo(note).reasons.filter(r => r !== 'social handle')
     if (reasons.length > 0) {
       return NextResponse.json(
-        { error: 'Please remove contact details from your review — keep feedback about the work.' },
+        { error: 'Please remove contact details from your review, keep feedback about the work.' },
         { status: 400 }
       )
     }
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   if (!isParty) return NextResponse.json({ error: 'Only collab parties can leave reviews' }, { status: 403 })
 
   // Eligibility: a real COMPLETED collaboration. Paid collabs must have actually
-  // settled; barter collabs (agreed_rate = 0) qualify on completion alone —
+  // settled; barter collabs (agreed_rate = 0) qualify on completion alone -
   // accountability doesn't require money to have changed hands.
   const settled = ['paid', 'manual_exception'].includes(collab.payment_status)
   const isBarter = (collab.agreed_rate ?? 0) === 0
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
         await sendNotification({
           userId: uid, type: 'review_revealed',
           title: 'Your collaboration review is now visible',
-          body: 'You both reviewed — feedback is now revealed on both sides.',
+          body: 'You both reviewed, feedback is now revealed on both sides.',
           payload: { collab_id: body.collab_id },
           dedupeKey: `review_revealed:${body.collab_id}:${uid}`,
         })

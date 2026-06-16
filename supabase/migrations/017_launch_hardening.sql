@@ -1,11 +1,11 @@
 -- ============================================================================
--- Phase 17 — Pre-launch hardening
+-- Phase 17 - Pre-launch hardening
 --
 -- Closes the red-team findings that need DB enforcement:
 --   1. total_earned must never be world-readable        (privacy leak)
 --   2. niche_tags must be capped so creators can't spam every category (ranking)
 --   3. verification_code must not be readable by clients (verification privacy)
---   4. boost_purchases — idempotent record of PAID boost activations (Stripe)
+--   4. boost_purchases - idempotent record of PAID boost activations (Stripe)
 --   5. avatars storage bucket + owner-scoped policies     (storage hardening)
 -- ============================================================================
 

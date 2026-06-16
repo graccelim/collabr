@@ -1,4 +1,4 @@
--- Rollback Phase 15 — social verification
+-- Rollback Phase 15 - social verification
 drop index if exists public.idx_social_accounts_pending;
 drop index if exists public.idx_verification_events_pending;
 drop index if exists public.idx_verification_events_account;

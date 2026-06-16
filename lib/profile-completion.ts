@@ -30,7 +30,7 @@ export function creatorCompletion(input: {
     { key: 'niche', label: 'Niche', done: Boolean(input.niche) },
     { key: 'bio', label: 'Bio', done: Boolean(input.bio?.trim()) },
     { key: 'location', label: 'Location', done: Boolean(input.location?.trim()) },
-    // Socials OR a portfolio link satisfies this — neither is required on its own.
+    // Socials OR a portfolio link satisfies this - neither is required on its own.
     {
       key: 'links',
       label: 'Socials or link',

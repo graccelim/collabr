@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 13 — Shared niche taxonomy (Discovery Foundation)
+-- Phase 13 - Shared niche taxonomy (Discovery Foundation)
 --
 -- One canonical vocabulary for BOTH creators and campaigns so matching is
 -- reliable. Free text ("F&B", "Food & Beverage", "fnb", "restaurant", "cafe")

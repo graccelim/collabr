@@ -27,7 +27,7 @@ export default function InviteActions({ inviteId }: Props) {
       return
     }
     if (action === 'accept') {
-      toast.success('Invite accepted — your collab has been created!')
+      toast.success('Invite accepted, your collab has been created!')
       if (data.collab_id) {
         router.push(`/collabs/${data.collab_id}`)
         return

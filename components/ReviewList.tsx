@@ -12,7 +12,7 @@ export interface ReviewItem {
   when?: string | null               // created_at
 }
 
-// Rotating avatar tints — warm, on-brand pops of colour.
+// Rotating avatar tints - warm, on-brand pops of colour.
 const TINTS = [
   { bg: 'var(--accent-tint)', fg: 'var(--accent-deep)', bar: 'var(--accent)' },
   { bg: 'var(--money-tint)', fg: 'var(--money-deep)', bar: 'var(--money)' },
@@ -23,7 +23,7 @@ const TINTS = [
 export default function ReviewList({
   reviews, heading = 'Reviews',
   emptyTitle = 'No reviews yet',
-  emptyBody = 'Feedback appears after completed collaborations — revealed once both sides submit, or after 7 days.',
+  emptyBody = 'Feedback appears after completed collaborations, revealed once both sides submit, or after 7 days.',
   ctaHref, ctaLabel,
 }: {
   reviews: ReviewItem[]

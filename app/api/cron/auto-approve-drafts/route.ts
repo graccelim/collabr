@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     const creatorUserId = (c.creator_profiles as any)?.user_id
     if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
-      title: 'Draft auto-approved — post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
+      title: 'Draft auto-approved, post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
       payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator` })
 
     const brandUserId = (c.brand_profiles as any)?.user_id

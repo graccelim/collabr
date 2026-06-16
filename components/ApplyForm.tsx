@@ -60,14 +60,14 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
           required
         />
         <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
-          Be specific about your audience and a past result. Brands skim — lead with why you fit.
+          Be specific about your audience and a past result. Brands skim, lead with why you fit.
         </p>
       </div>
 
       {/* Rate */}
       {isPaid && (
         <div>
-          <label className="label" htmlFor="apply-rate">Your rate (S$) — optional</label>
+          <label className="label" htmlFor="apply-rate">Your rate (S$), optional</label>
           <div style={{ position: 'relative' }}>
             <span style={{
               position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',

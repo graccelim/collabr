@@ -1,10 +1,10 @@
-// Derived "fit" score (Collabr Redesign): a real, explainable signal — NOT a
+// Derived "fit" score (Collabr Redesign): a real, explainable signal - NOT a
 // fabricated metric. Fit is computed only from data the platform already
 // stores: how well the creator's niche overlaps the campaign's target niches,
 // and whether the creator meets the campaign's follower minimum.
 //
 // Engagement % and audience demographics from the prototype are deliberately
-// NOT modelled here — they require platform-API / scraping data the app does
+// NOT modelled here - they require platform-API / scraping data the app does
 // not have, so we don't invent them.
 
 export interface FitResult {
@@ -25,7 +25,7 @@ function norm(s: string): string {
 /**
  * Compute a creator↔campaign fit score.
  *
- * @param creator.niches  the creator's niche(s) — pass `niche` and/or `niches[]`
+ * @param creator.niches  the creator's niche(s) - pass `niche` and/or `niches[]`
  * @param creator.followers  the creator's best/total follower count (0 if unknown)
  * @param campaign.niches  the campaign's target niche tags
  * @param campaign.minFollowers  the campaign's follower minimum (0 = none)
@@ -38,7 +38,7 @@ export function computeFit(
   const campaignNiches = campaign.niches.filter(Boolean).map(n => norm(n as string))
 
   const nicheMatch = campaignNiches.length === 0
-    ? true // untargeted campaign — every creator is on-niche
+    ? true // untargeted campaign - every creator is on-niche
     : campaignNiches.some(n => creatorNiches.has(n))
 
   const followersMet = campaign.minFollowers > 0

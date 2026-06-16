@@ -39,7 +39,7 @@ async function patch(config: StubConfig, action: 'accept' | 'decline') {
   return { res, calls: active.calls }
 }
 
-describe('PATCH /api/invites/[id] — acceptance converges into ONE collab', () => {
+describe('PATCH /api/invites/[id] - acceptance converges into ONE collab', () => {
   it('accept creates the application, then exactly one collab via select_application_atomic', async () => {
     const { res, calls } = await patch({
       user: verifiedUser('creator-user'),
@@ -80,7 +80,7 @@ describe('PATCH /api/invites/[id] — acceptance converges into ONE collab', () 
     expect((inviteUpdates[0].payload as any).status).toBe('accepted')
   })
 
-  it('accept when the application is already selected reuses the existing collab — no second atomic call', async () => {
+  it('accept when the application is already selected reuses the existing collab - no second atomic call', async () => {
     const { res, calls } = await patch({
       user: verifiedUser('creator-user'),
       tables: {
@@ -109,7 +109,7 @@ describe('PATCH /api/invites/[id] — acceptance converges into ONE collab', () 
     expect(res.status).toBe(409)
   })
 
-  it('unverified creators cannot accept (403) — invite path cannot bypass Phase 5 gates', async () => {
+  it('unverified creators cannot accept (403) - invite path cannot bypass Phase 5 gates', async () => {
     const { res, calls } = await patch({
       user: unverifiedUser('creator-user'),
       tables: {

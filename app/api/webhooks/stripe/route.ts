@@ -11,7 +11,7 @@ async function ensureWrite(result: PromiseLike<{ error: any }>) {
 
 // ── Phase 10: subscription sync ───────────────────────────────────────────────
 // Maps Stripe subscription state onto brand_profiles. Cancellation (including
-// cancel_at_period_end) keeps plan='pro' with status='cancelled' — resolvePlan
+// cancel_at_period_end) keeps plan='pro' with status='cancelled' - resolvePlan
 // grants access until subscription_current_period_end, then the brand reverts
 // to Free with all saved data retained.
 async function applySubscriptionToBrand(
@@ -45,11 +45,11 @@ async function applySubscriptionToBrand(
       // Terminal: the subscription is over (Stripe fires `deleted` at period
       // end for cancel_at_period_end). Revert to Free; the period-end grace
       // window was already covered by the cancelled+plan='pro' state above.
-      // Saved creators, invites and history are retained — only locked.
+      // Saved creators, invites and history are retained - only locked.
       status = 'cancelled'
       plan = 'free'
       break
-    default: // incomplete / paused — no access change yet
+    default: // incomplete / paused - no access change yet
       return
   }
 
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
     locked_at: nowIso,
   })
   if (eventError?.code === '23505') {
-    // The row already exists — another delivery beat us here.
+    // The row already exists - another delivery beat us here.
     const { data: prior } = await supabase.from('stripe_events')
       .select('processed_at').eq('id', event.id).single()
     if (prior?.processed_at) {
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
     }
     // Not processed yet. Only take over if the prior lock is STALE (the first
     // attempt likely crashed). A fresh lock means a concurrent delivery is still
-    // in-flight, so we exit early and let it finish — no double processing.
+    // in-flight, so we exit early and let it finish - no double processing.
     const staleBefore = new Date(Date.now() - 60_000).toISOString()
     const { data: claimed } = await supabase.from('stripe_events')
       .update({ locked_at: nowIso })
@@ -295,7 +295,7 @@ export async function POST(req: NextRequest) {
     }
 
     default:
-      // Unhandled event type — not an error
+      // Unhandled event type - not an error
       break
     }
   } catch (error) {

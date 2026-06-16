@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Create auth user — SSR client sets session cookie on the response.
+  // Create auth user - SSR client sets session cookie on the response.
   // Supabase sends the confirmation email when "Confirm email" is enabled.
   const { email, password, name } = parsed.data
   const supabase = createClient()
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Signup failed' }, { status: 500 })
   }
 
-  // With "Confirm email" enabled in Supabase, signUp returns no session — the
+  // With "Confirm email" enabled in Supabase, signUp returns no session - the
   // user must verify before logging in.
   const requiresEmailVerification = !data.session
 
@@ -129,12 +129,12 @@ export async function POST(req: NextRequest) {
       console.error('[SIGNUP] brand profile insert failed:', brandErr)
       return NextResponse.json({ error: 'Could not create profile' }, { status: 500 })
     }
-    // `location` is newer (migration 020) — set it best-effort so signup never
+    // `location` is newer (migration 020) - set it best-effort so signup never
     // fails on DBs where the column isn't applied yet.
     if (parsed.data.location) {
       await admin.from('brand_profiles').update({ location: parsed.data.location }).eq('user_id', data.user.id)
     }
-    // Fire-and-forget — don't block the response on email delivery
+    // Fire-and-forget - don't block the response on email delivery
     emails.welcomeBrand(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
   } else {
     const { data: creator, error: creatorErr } = await admin.from('creator_profiles').insert({
@@ -158,12 +158,12 @@ export async function POST(req: NextRequest) {
       }))
     )
     if (socialErr) {
-      // Account exists but onboarding is incomplete — the user finishes it at
+      // Account exists but onboarding is incomplete - the user finishes it at
       // /onboarding. Surface the duplicate-handle case clearly.
       console.error('[SIGNUP] social insert failed:', socialErr)
       const msg = socialErr.code === '23505'
-        ? 'A social handle was just taken — finish onboarding from your dashboard'
-        : 'Could not save social accounts — finish onboarding from your dashboard'
+        ? 'A social handle was just taken, finish onboarding from your dashboard'
+        : 'Could not save social accounts, finish onboarding from your dashboard'
       return NextResponse.json({ success: true, warning: msg, requiresEmailVerification })
     }
 

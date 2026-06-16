@@ -28,7 +28,7 @@ export default function DateField({ value, onChange }: Props) {
   const todayISO = isoOf(today)
   const selected = value ? new Date(value + 'T00:00:00') : null
 
-  // The month the calendar is showing — defaults to the selected month or now.
+  // The month the calendar is showing - defaults to the selected month or now.
   const [view, setView] = useState(() => {
     const d = selected || today
     return { y: d.getFullYear(), m: d.getMonth() }

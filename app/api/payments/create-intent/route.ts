@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       creator_payout: String(collab.creator_payout),
       platform_fee: String(collab.platform_fee),
     },
-    description: `collabr. escrow — collab ${collab_id}`,
+    description: `collabr. escrow, collab ${collab_id}`,
   }, {
     idempotencyKey: `collab:${collab_id}:payment-intent`,
   })

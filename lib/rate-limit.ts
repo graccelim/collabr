@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 
 // Lightweight in-memory sliding-window rate limiter. Per server instance and
-// reset on deploy — intentionally simple spam friction, not a hard guarantee.
+// reset on deploy - intentionally simple spam friction, not a hard guarantee.
 // Durable limits (e.g. applications/hour) are counted against the database
 // in the route itself.
 

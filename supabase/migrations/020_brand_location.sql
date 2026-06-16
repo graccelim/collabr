@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 20 — Brand location
+-- Phase 20 - Brand location
 --
 -- Brings brand_profiles to parity with creator_profiles: a free-text location
 -- (e.g. a restaurant's city / neighbourhood) shown on the public brand profile.

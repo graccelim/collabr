@@ -46,7 +46,7 @@ export default async function InvitesPage() {
           <EmptyState
             icon={Send}
             title="No invites sent yet"
-            body="Found a creator you like? Invite them to a campaign directly from their profile — if they accept, the collab is created instantly."
+            body="Found a creator you like? Invite them to a campaign directly from their profile, if they accept, the collab is created instantly."
             actionHref="/creators"
             actionLabel="Browse creators"
           />
@@ -105,11 +105,11 @@ export default async function InvitesPage() {
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Invites</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Brands that want to work with you. Accepting creates the collab instantly — escrow protects the payment.
+          Brands that want to work with you. Accepting creates the collab instantly, escrow protects the payment.
         </p>
       </div>
 
-      {/* Boost nudge — only once boost is configured AND the profile is complete. */}
+      {/* Boost nudge - only once boost is configured AND the profile is complete. */}
       {boostUiEnabled() && creator?.onboarding_completed_at && (
         <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
       )}

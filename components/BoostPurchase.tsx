@@ -12,12 +12,12 @@ const OPTIONS = [
 const BENEFITS = [
   { icon: ArrowUp, color: 'var(--money)', tint: 'var(--money-tint)', text: 'Jump to the top of applicant lists brands review first' },
   { icon: Eye, color: 'var(--accent)', tint: 'var(--accent-tint)', text: 'Get seen by brands browsing for creators like you' },
-  { icon: ShieldCheck, color: 'var(--warn)', tint: 'var(--warn-tint)', text: 'Clearly labelled — never touches your ratings or match quality' },
+  { icon: ShieldCheck, color: 'var(--warn)', tint: 'var(--warn-tint)', text: 'Clearly labelled, never touches your ratings or match quality' },
 ]
 
 /**
  * Minimal boost checkout: a short explanation + two price options. Picking one
- * goes straight to Stripe Checkout. No marketing hero — boost is a small,
+ * goes straight to Stripe Checkout. No marketing hero - boost is a small,
  * optional growth tool, reached only from the BoostHint or a direct URL.
  */
 export default function BoostPurchase({ initialBoostUntil, preview = false, returnTo }: { initialBoostUntil: string | null; preview?: boolean; returnTo?: string }) {
@@ -30,13 +30,13 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
 
   useEffect(() => {
     const r = params.get('boost')
-    if (r === 'success') toast.success('Payment received — your boost is now active.')
-    else if (r === 'canceled') toast('Checkout canceled — no charge was made.')
+    if (r === 'success') toast.success('Payment received, your boost is now active.')
+    else if (r === 'canceled') toast('Checkout canceled, no charge was made.')
   }, [params])
 
   async function purchase(type: 'monthly' | 'per_app') {
     if (preview) {
-      toast('Preview mode — checkout is disabled. No charge was made.')
+      toast('Preview mode, checkout is disabled. No charge was made.')
       return
     }
     setLoading(type)
@@ -72,7 +72,7 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
         </div>
       </div>
 
-      {/* What you get — colour-coded so the value lands at a glance */}
+      {/* What you get - colour-coded so the value lands at a glance */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
         {BENEFITS.map(b => (
           <div key={b.text} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
@@ -87,7 +87,7 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
       {preview && (
         <div className="card" style={{ padding: 12, marginTop: 16, background: 'var(--warn-tint)', border: '1px solid var(--warn)' }}>
           <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--warn-deep)' }}>Preview mode</span>
-          <span style={{ fontSize: 12.5, color: 'var(--warn-deep)', marginLeft: 6 }}>Checkout is disabled — no Stripe session is created.</span>
+          <span style={{ fontSize: 12.5, color: 'var(--warn-deep)', marginLeft: 6 }}>Checkout is disabled, no Stripe session is created.</span>
         </div>
       )}
 

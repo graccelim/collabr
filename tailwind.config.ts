@@ -33,7 +33,7 @@ const config: Config = {
           800: '#23262F',
           900: '#0E1016',
         },
-        /* Palette remap — existing `purple-*` / `teal-*` / `pink-*` utility
+        /* Palette remap - existing `purple-*` / `teal-*` / `pink-*` utility
            usage resolves to the redesign language: deep navy accent; green
            strictly semantic (escrow / money). */
         purple: {

@@ -13,7 +13,7 @@ export default async function CollabsPage() {
 
   const isBrand = profile?.role === 'brand'
 
-  // Resolve the viewer's own profile id first — the list query below uses the
+  // Resolve the viewer's own profile id first - the list query below uses the
   // admin client (counterparty display identity is RLS own-row-only for
   // session clients) and must always be scoped to the viewer's own collabs.
   let ownFilter: { column: 'brand_id' | 'creator_id'; id: string } | null = null
@@ -72,7 +72,7 @@ export default async function CollabsPage() {
           icon={Briefcase}
           title={isBrand ? 'Ready when you are' : 'No collabs yet'}
           body={isBrand
-            ? 'Accept a creator on one of your campaigns and fund escrow — your active collabs and their progress will light up here.'
+            ? 'Accept a creator on one of your campaigns and fund escrow, your active collabs and their progress will light up here.'
             : 'When a brand accepts you, the collab opens here with your payment already secured in escrow. Apply to a campaign to get started.'}
           actionHref={isBrand ? '/campaigns' : '/jobs'}
           actionLabel={isBrand ? 'Go to campaigns' : 'Browse campaigns'}

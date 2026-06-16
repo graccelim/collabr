@@ -73,7 +73,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   for (const uid of finalized === true ? [creatorUserId, brandUserId].filter(Boolean) : []) {
     await sendNotification({ userId: uid, type: 'dispute_resolved',
-      title: `Dispute resolved — ${outcomeLabel}`, payload: { collab_id: collab.id },
+      title: `Dispute resolved, ${outcomeLabel}`, payload: { collab_id: collab.id },
       dedupeKey: `dispute:${params.id}:resolved` })
   }
 

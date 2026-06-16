@@ -63,7 +63,7 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
       <div style={{ flex: 1, minWidth: 180 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)' }}>Connect your payout account to get paid</div>
         <div style={{ fontSize: 12.5, color: 'var(--warn-deep)', opacity: .85, lineHeight: 1.45, marginTop: 1 }}>
-          You haven&rsquo;t connected Stripe yet — payments can&rsquo;t reach you until you do. Takes about 2 minutes.
+          You haven&rsquo;t connected Stripe yet, payments can&rsquo;t reach you until you do. Takes about 2 minutes.
         </div>
       </div>
       <button onClick={startOnboarding} disabled={loading} className="btn-primary" style={{ flexShrink: 0 }}>

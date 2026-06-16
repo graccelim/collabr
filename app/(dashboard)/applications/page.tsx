@@ -52,7 +52,7 @@ export default async function ApplicationsPage() {
         <EmptyState
           icon={Send}
           title="Your pitches will track here"
-          body="Apply to open campaigns and watch each application here — you'll see the moment you're selected."
+          body="Apply to open campaigns and watch each application here, you'll see the moment you're selected."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />
@@ -73,14 +73,14 @@ export default async function ApplicationsPage() {
                       <div className="text-xs text-gray-500 mt-0.5">{campaign?.brand_profiles?.company_name}</div>
                       {(campaign?.budget_min || campaign?.budget_max) && (
                         <div className="text-xs text-gray-400 mt-0.5">
-                          {campaign.budget_min ? formatSGD(campaign.budget_min) : '—'}
+                          {campaign.budget_min ? formatSGD(campaign.budget_min) : '-'}
                           {campaign.budget_max ? ` – ${formatSGD(campaign.budget_max)}` : ''}
                         </div>
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       {(() => {
-                        // "shortlisted" is a private brand bookmark — show it as
+                        // "shortlisted" is a private brand bookmark - show it as
                         // "applied" to the creator so it never leaks.
                         const shown = app.status === 'shortlisted' ? 'applied' : app.status
                         const color = STATUS_COLORS[app.status === 'shortlisted' ? 'pending' : app.status] || 'badge-gray'

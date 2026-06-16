@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 14 — creator_scores (Discovery Foundation)
+-- Phase 14 - creator_scores (Discovery Foundation)
 --
 -- Precomputed quality / reliability / responsiveness inputs that POWER RANKING
 -- internally. Never displayed as a number. Refreshed by event-triggered and
@@ -51,7 +51,7 @@ drop policy if exists "scores_public_read" on public.creator_scores;
 drop policy if exists "scores_owner_read" on public.creator_scores;
 create policy "scores_owner_read" on public.creator_scores for select
   using (creator_id in (select id from public.creator_profiles where user_id = auth.uid()));
--- writes: service role only (recompute fn / event triggers) — no client policy.
+-- writes: service role only (recompute fn / event triggers) - no client policy.
 
 -- ── Recompute: all creators (p_creator_id null) or one ──────────────────────
 create or replace function public.recompute_creator_scores(p_creator_id uuid default null)

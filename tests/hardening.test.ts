@@ -7,7 +7,7 @@ import { normalizeNicheTags } from '@/lib/niches'
 import { creatorProfileUpdateSchema } from '@/lib/profiles'
 import { creatorOnboardingSchema } from '@/lib/onboarding'
 
-// Note: we deliberately do NOT import lib/discovery-data or lib/stripe here —
+// Note: we deliberately do NOT import lib/discovery-data or lib/stripe here -
 // lib/stripe instantiates the Stripe SDK at module load (needs a live key). The
 // boost-gating those modules apply is exercised at the data layer in the app;
 // here we test the pure ranking guarantees that protect against payment abuse.
@@ -32,14 +32,14 @@ describe('boost ranking is bounded and never inflates merit/trust', () => {
     const boosted = creator({ id: 'boosted', boostedUntil: FUTURE })
     const [ranked] = rankCreators([boosted], campaign(), NOW)
     const [unranked] = rankCreators([plain], campaign(), NOW)
-    // Same match quality — boost is additive on top, not part of the match.
+    // Same match quality - boost is additive on top, not part of the match.
     expect(ranked.match.score).toBeCloseTo(unranked.match.score)
     expect(ranked.match.tier).toBe(unranked.match.tier)
     expect(ranked.rankScore - unranked.rankScore).toBeCloseTo(BOOST_BUMP)
     expect(ranked.boosted).toBe(true)
   })
 
-  it('the bump is small — it cannot flip a weak match into a strong one', () => {
+  it('the bump is small - it cannot flip a weak match into a strong one', () => {
     // A boosted off-niche creator must not outrank a great on-niche match.
     const offNicheBoosted = creator({ id: 'paid', niches: ['gaming'], qualityScore: 30, boostedUntil: FUTURE })
     const onNicheStrong = creator({ id: 'merit', niches: ['food'], qualityScore: 90 })

@@ -16,7 +16,7 @@ describe('beta mode (BETA_FREE_PRO)', () => {
   it('only the literal string "false" activates paid mode', () => {
     process.env.BETA_FREE_PRO = 'false'
     expect(isBetaFreePro()).toBe(false)
-    process.env.BETA_FREE_PRO = 'FALSE' // not the literal — stays beta
+    process.env.BETA_FREE_PRO = 'FALSE' // not the literal - stays beta
     expect(isBetaFreePro()).toBe(true)
     process.env.BETA_FREE_PRO = 'true'
     expect(isBetaFreePro()).toBe(true)

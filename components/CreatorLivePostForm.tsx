@@ -39,7 +39,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Live post submitted — brand has 72 hours to confirm')
+      toast.success('Live post submitted, brand has 72 hours to confirm')
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'Submission failed')
@@ -60,7 +60,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
           Go live &amp; get paid
         </h2>
         <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginBottom: 20, lineHeight: 1.5 }}>
-          Run through this checklist as you post — it protects your payment and keeps the post compliant.
+          Run through this checklist as you post, it protects your payment and keeps the post compliant.
         </p>
 
         {/* checklist */}
@@ -119,7 +119,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
 
         <button type="submit" className="btn btn-block btn-lg" style={{ background: 'var(--creator)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius-pill)', justifyContent: 'center' }} disabled={!ready || submitting}>
           <Check size={18} strokeWidth={2.5} />
-          {submitting ? 'Submitting…' : "I've posted — submit the link"}
+          {submitting ? 'Submitting…' : "I've posted, submit the link"}
         </button>
 
         {/* 72h auto-release notice */}

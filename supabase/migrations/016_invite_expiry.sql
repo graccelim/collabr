@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 16 — Invite expiry (response-metric foundation)
+-- Phase 16 - Invite expiry (response-metric foundation)
 --
 -- Invites that sit `pending` past the window become `expired` so they count as
 -- a non-response in the creator response metric (Phase 14). Adds an explicit

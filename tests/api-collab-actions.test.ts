@@ -13,7 +13,7 @@ function useStub(config: StubConfig) {
 }
 
 // ─── 8: drafts are blocked before escrow is funded ──────────────────────────
-describe('POST /api/collabs/[id]/submit-draft — funding gate', () => {
+describe('POST /api/collabs/[id]/submit-draft - funding gate', () => {
   async function post(config: StubConfig) {
     useStub(config)
     const { POST } = await import('@/app/api/collabs/[id]/submit-draft/route')
@@ -75,7 +75,7 @@ describe('POST /api/collabs/[id]/submit-draft — funding gate', () => {
 })
 
 // ─── 11: settlement claims and exactly-once completion (route layer) ─────────
-describe('POST /api/collabs/[id]/confirm-live — settlement guards', () => {
+describe('POST /api/collabs/[id]/confirm-live - settlement guards', () => {
   async function post(config: StubConfig) {
     useStub(config)
     const { POST } = await import('@/app/api/collabs/[id]/confirm-live/route')

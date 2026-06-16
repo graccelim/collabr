@@ -38,7 +38,7 @@ export default function SettingsPage() {
       setRole(profile.role as 'brand' | 'creator')
 
       if (profile.role === 'brand') {
-        // `location` is newer (migration 020) — fall back if it isn't applied yet.
+        // `location` is newer (migration 020) - fall back if it isn't applied yet.
         const BCOLS = 'id, company_name, company_description, industry, website, social_url, logo_url, rating_avg, rating_count, completed_campaigns'
         let brand: any = null
         const r1 = await supabase.from('brand_profiles').select(`${BCOLS}, location`).eq('user_id', user.id).single()
@@ -123,7 +123,7 @@ export default function SettingsPage() {
         <h1 style={{ fontSize: 28 }}>{role === 'brand' ? 'Brand profile' : 'Settings'}</h1>
         {role === 'brand' && (
           <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            This is what creators see before applying — a complete profile gets 3× more replies.
+            This is what creators see before applying, a complete profile gets 3× more replies.
           </p>
         )}
       </div>
@@ -138,7 +138,7 @@ export default function SettingsPage() {
       </div>
 
 
-      {/* Brand profile — only shown for brand users */}
+      {/* Brand profile - only shown for brand users */}
       {role === 'brand' && (
         <div className="card space-y-4">
           <div>
@@ -256,8 +256,8 @@ export default function SettingsPage() {
       {/* Support */}
       <div className="card space-y-3">
         <h2 className="text-sm font-medium text-gray-900">Support</h2>
-        <p className="text-sm text-gray-500">hello@collabr.sg — we read every email.</p>
-        <p className="text-sm text-gray-500">disputes@collabr.sg — for active dispute cases.</p>
+        <p className="text-sm text-gray-500">hello@collabr.sg, we read every email.</p>
+        <p className="text-sm text-gray-500">disputes@collabr.sg, for active dispute cases.</p>
       </div>
     </div>
   )

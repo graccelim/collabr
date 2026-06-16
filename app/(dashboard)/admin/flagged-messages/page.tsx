@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { relativeTime } from '@/lib/utils'
 import { ShieldAlert } from 'lucide-react'
 
-// Phase 11 — moderation queue: messages the contact-info detector flagged as a
+// Phase 11 - moderation queue: messages the contact-info detector flagged as a
 // possible attempt to take a deal off-platform. Admins review and act manually.
 export default async function FlaggedMessagesPage() {
   const user = await requireAuth()

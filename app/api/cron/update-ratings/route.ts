@@ -39,7 +39,7 @@ export async function GET(req: NextRequest) {
       await sendNotification({
         userId: uid, type: 'review_revealed',
         title: 'Your collaboration review is now visible',
-        body: 'The 7-day window passed — feedback is now revealed.',
+        body: 'The 7-day window passed, feedback is now revealed.',
         payload: { collab_id: r.collab_id },
         dedupeKey: `review_revealed:${r.collab_id}:${uid}`,
       })

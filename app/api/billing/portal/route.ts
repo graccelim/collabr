@@ -22,7 +22,7 @@ export async function POST() {
     .select('id, stripe_customer_id').eq('user_id', user.id).single()
   if (!brand?.stripe_customer_id) {
     return NextResponse.json(
-      { error: 'No billing account yet — subscribe to Pro first.' },
+      { error: 'No billing account yet, subscribe to Pro first.' },
       { status: 404 }
     )
   }

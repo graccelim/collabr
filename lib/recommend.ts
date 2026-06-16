@@ -6,7 +6,7 @@ import { nicheOverlap, nicheLabel } from '@/lib/niches'
 //
 // Hard rule: never expose a numeric score (no "95% Match", "92 Reliability").
 // The UI shows tiers (Best Match / Strong Fit / Good Fit), boolean indicators
-// (Fits Your Budget, Available), and reasons — nothing else.
+// (Fits Your Budget, Available), and reasons - nothing else.
 
 export type Availability = 'available' | 'limited' | 'unavailable'
 export type CompType = 'paid' | 'barter' | 'both'
@@ -63,7 +63,7 @@ export function budgetFit(rate: number | null, min: number | null, max: number |
     if (min != null && rate < min * 0.5) return { fits: true, factor: 0.85 }
     return { fits: true, factor: 1 }
   }
-  // Above the ceiling — fades the further over they are.
+  // Above the ceiling - fades the further over they are.
   return { fits: false, factor: clamp01(max / rate) * 0.6 }
 }
 
@@ -77,7 +77,7 @@ const TIER_LABEL: Record<MatchTier, string | null> = {
 }
 
 export interface MatchResult {
-  /** Internal 0..1 — for ordering only, never shown. */
+  /** Internal 0..1 - for ordering only, never shown. */
   score: number
   tier: MatchTier
   /** Public label, or null when there isn't a credible fit to claim. */
@@ -131,7 +131,7 @@ function activeBoost(boostedUntil?: string | null, now: number = Date.parse('202
   return Boolean(boostedUntil && Date.parse(boostedUntil) > now)
 }
 
-/** Bounded, labelled paid bump — additive, never blended into trust signals. */
+/** Bounded, labelled paid bump - additive, never blended into trust signals. */
 export const BOOST_BUMP = 0.06
 
 export interface RankedCreator {

@@ -89,7 +89,7 @@ describe('rankCreators', () => {
     const ranked = rankCreators([weak, strong], campaign())
     expect(ranked[0].creator.id).toBe('strong')
 
-    // boost is additive and small — it lifts a tie but cannot invent quality
+    // boost is additive and small - it lifts a tie but cannot invent quality
     const boosted = baseCreator({ id: 'boosted', boostedUntil: '2999-01-01T00:00:00Z' })
     const plain = baseCreator({ id: 'plain' })
     const r2 = rankCreators([plain, boosted], campaign(), Date.parse('2026-06-14T00:00:00Z'))

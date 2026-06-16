@@ -3,7 +3,7 @@ import { computeFee, formatSGD } from '@/lib/utils'
 
 // The collab payment invariant enforced by select_application_atomic is
 // platform_fee + creator_payout === agreed_rate. computeFee is the only
-// producer of those numbers — it must never leak or create a cent.
+// producer of those numbers - it must never leak or create a cent.
 describe('computeFee', () => {
   const rates = [1, 99, 100, 12345, 25000, 99999, 100000, 7777777]
 

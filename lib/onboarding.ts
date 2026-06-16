@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-// Phase 5 vocabularies — must match the check constraints in
+// Phase 5 vocabularies - must match the check constraints in
 // supabase/migrations/007_trust_and_onboarding.sql.
 
 export const CREATOR_NICHES = [
@@ -39,7 +39,7 @@ export function socialHandleLabel(platform: SocialPlatform, handle: string): str
 /**
  * The fixed URL prefix shown before a username input, e.g. "instagram.com/" or
  * "tiktok.com/@". Derived from socialUrl() so the prefix and the stored URL can
- * never drift. (Xiaohongshu has no username — callers fall back to a link field.)
+ * never drift. (Xiaohongshu has no username - callers fall back to a link field.)
  */
 export function socialUrlPrefix(platform: SocialPlatform): string {
   return socialUrl(platform, '').replace(/^https?:\/\//, '')
@@ -74,7 +74,7 @@ export const NICHE_LABELS: Record<CreatorNiche, string> = {
   other: 'Other',
 }
 
-/** Lowercase, trim, strip leading '@' — the canonical stored form. */
+/** Lowercase, trim, strip leading '@' - the canonical stored form. */
 export function normalizeHandle(raw: string): string {
   return raw.trim().replace(/^@+/, '').toLowerCase()
 }
@@ -150,7 +150,7 @@ const optionalUrl = z.preprocess(
   z.string().trim().url('Must be a valid URL (include https://)').max(300).nullish()
 )
 
-/** Requires website OR social_url — apply to any object containing both. */
+/** Requires website OR social_url - apply to any object containing both. */
 export function requireWebsiteOrSocial<T extends { website?: string | null; social_url?: string | null }>(b: T): boolean {
   return Boolean(b.website || b.social_url)
 }

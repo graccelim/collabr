@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 19 — Expand social platforms (beta trust model)
+-- Phase 19 - Expand social platforms (beta trust model)
 --
 -- Adds X, Lemon8 and Xiaohongshu (RED) to the allowed social platforms so
 -- creators can list every profile brands actually check. Handles/URLs are still

@@ -13,7 +13,7 @@ interface Props {
 
 /**
  * Reusable workflow timeline: completed steps, current stage, next expected
- * action and who must act. Display-only — derives everything from the same
+ * action and who must act. Display-only - derives everything from the same
  * states the server enforces.
  */
 export default function WorkflowTimeline(props: Props) {

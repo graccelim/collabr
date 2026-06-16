@@ -8,7 +8,7 @@ import BoostModal from './BoostModal'
 /**
  * Small, low-key boost nudge for creator surfaces (Earnings, Invites). Its CTA
  * opens a lightweight modal (not a full page). When a boost is active it just
- * shows the status — no aggressive upsell. Callers gate with boostUiEnabled().
+ * shows the status - no aggressive upsell. Callers gate with boostUiEnabled().
  */
 export default function BoostHint({ boostUntil, preview = false }: { boostUntil: string | null; preview?: boolean }) {
   const [open, setOpen] = useState(false)
@@ -17,8 +17,8 @@ export default function BoostHint({ boostUntil, preview = false }: { boostUntil:
   // Confirmation when Stripe Checkout returns to this page.
   useEffect(() => {
     const r = params.get('boost')
-    if (r === 'success') toast.success('Boost active — you’re featured higher now.')
-    else if (r === 'canceled') toast('Checkout canceled — no charge was made.')
+    if (r === 'success') toast.success('Boost active, you’re featured higher now.')
+    else if (r === 'canceled') toast('Checkout canceled, no charge was made.')
   }, [params])
 
   const active = boostUntil ? new Date(boostUntil).getTime() > Date.now() : false

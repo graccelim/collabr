@@ -27,11 +27,11 @@ export default function OnboardingForm({ role, initial }: Props) {
   const router = useRouter()
   const [saving, setSaving] = useState(false)
 
-  // Creator state — multi-niche, capped. First selected is the primary niche.
+  // Creator state - multi-niche, capped. First selected is the primary niche.
   const [niches, setNiches] = useState<CreatorNiche[]>(
     (initial.niche_tags?.length ? initial.niche_tags : initial.niche ? [initial.niche] : []) as CreatorNiche[]
   )
-  // Repeatable social-profile builder — starts with one row. Order matters: the
+  // Repeatable social-profile builder - starts with one row. Order matters: the
   // first row is submitted first and the API marks it primary.
   const [socialRows, setSocialRows] = useState<SocialRow[]>([
     { platform: 'instagram', username: '', followers: '' },
@@ -112,7 +112,7 @@ export default function OnboardingForm({ role, initial }: Props) {
         <div className="card space-y-3">
           <h2 className="text-sm font-medium text-gray-900">Your niches</h2>
           <p className="text-xs text-gray-400">
-            Pick up to {MAX_NICHES} — brands use these to find you. Your first pick is your primary niche.
+            Pick up to {MAX_NICHES} - brands use these to find you. Your first pick is your primary niche.
             {' '}<span style={{ color: 'var(--ink-soft)' }}>{niches.length}/{MAX_NICHES} selected</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -129,7 +129,7 @@ export default function OnboardingForm({ role, initial }: Props) {
           <div>
             <h2 className="text-sm font-medium text-gray-900">Social profiles</h2>
             <p className="text-xs text-gray-400 mt-1">
-              Add at least one — this is what brands open to check you out. Your first profile is shown to brands as your primary.
+              Add at least one, this is what brands open to check you out. Your first profile is shown to brands as your primary.
             </p>
           </div>
 

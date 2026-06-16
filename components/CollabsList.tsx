@@ -24,7 +24,7 @@ const FILTERS = [
   { key: 'completed', label: 'Completed', dot: 'var(--money)', softBg: 'var(--money-tint)', softFg: 'var(--money-deep)' },
 ] as const
 
-// 5-step escrow as cute rounded segments — green where money-secured steps are
+// 5-step escrow as cute rounded segments - green where money-secured steps are
 // cleared, grey ahead. Friendlier than a single progress bar.
 function MiniSteps({ step }: { step: number }) {
   return (

@@ -1,4 +1,4 @@
-# Collabr — Beta Launch Checklist
+# Collabr - Beta Launch Checklist
 
 Work through this top-to-bottom before inviting real brands and creators.
 Every unchecked box is a silently-disabled safety system.
@@ -17,7 +17,7 @@ Every unchecked box is a silently-disabled safety system.
 - [ ] `007_trust_and_onboarding.sql`
 - [ ] `008_profile_quality.sql`
 - [ ] `009_creator_discovery.sql`
-- [ ] `010_monetization_architecture.sql` (idempotent — safe to re-run; the
+- [ ] `010_monetization_architecture.sql` (idempotent - safe to re-run; the
       final revision REVOKES subscription-column grants)
 - [ ] `011_chat.sql`
 - [ ] `012_email_log.sql`
@@ -25,7 +25,7 @@ Every unchecked box is a silently-disabled safety system.
 - [ ] `014_creator_scores.sql`
 - [ ] `015_social_verification.sql`
 - [ ] `016_invite_expiry.sql`
-- [ ] `017_launch_hardening.sql` — revokes public `total_earned` + `verification_code`,
+- [ ] `017_launch_hardening.sql` - revokes public `total_earned` + `verification_code`,
       caps `niche_tags` at 4, adds `boost_purchases` + webhook `locked_at`, and
       **creates the `avatars` bucket + owner-scoped policies**
 
@@ -38,10 +38,10 @@ Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be rev
 - [ ] Site URL / redirect URLs include the production domain (email links,
       password reset, `/earnings?connect=...` return).
 
-### Storage (created by migrations — verify in dashboard)
-- [ ] `draft-submissions` — **private**, 500 MB limit, video/image MIME only (006)
-- [ ] `brand-assets` — public, 2 MB, images (006)
-- [ ] `avatars` — **public**, created by migration **017** with owner-scoped
+### Storage (created by migrations - verify in dashboard)
+- [ ] `draft-submissions` - **private**, 500 MB limit, video/image MIME only (006)
+- [ ] `brand-assets` - public, 2 MB, images (006)
+- [ ] `avatars` - **public**, created by migration **017** with owner-scoped
       write. Verify a logged-in user can upload `<theirId>-*.jpg` but cannot
       overwrite another user's object (path prefix is enforced by policy).
 - [ ] Spot-check policies on `storage.objects`: `draft_creator_upload`,
@@ -72,12 +72,12 @@ Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be rev
       `checkout.session.completed`, `customer.subscription.created`,
       `customer.subscription.updated`, `customer.subscription.deleted`
       (or "all events"). Copy the signing secret → `STRIPE_WEBHOOK_SECRET`.
-- [ ] **Billing portal activated** (Settings → Billing → Customer portal) —
+- [ ] **Billing portal activated** (Settings → Billing → Customer portal) -
       `/api/billing/portal` errors until this is done. (Only matters in paid
       mode, but activate it now.)
-- [ ] **Connect enabled** (Express accounts) — creator payouts use
+- [ ] **Connect enabled** (Express accounts) - creator payouts use
       `stripe.transfers` to connected accounts; SGD supported.
-- [ ] `STRIPE_PRO_PRICE_ID` — **not needed during beta.** Create the recurring
+- [ ] `STRIPE_PRO_PRICE_ID` - **not needed during beta.** Create the recurring
       Price and set the env var on the day `BETA_FREE_PRO` flips to `false`.
 - [ ] **Test-mode rehearsal (mandatory, end-to-end):**
       1. Brand signs up, verifies email, posts a campaign
@@ -106,11 +106,11 @@ Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be rev
 |---|---|---|
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | |
-| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | server-only — never `NEXT_PUBLIC_` |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✅ | server-only - never `NEXT_PUBLIC_` |
 | `STRIPE_SECRET_KEY` | ✅ | live key in Production only |
 | `STRIPE_WEBHOOK_SECRET` | ✅ | per-endpoint |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | ✅ | wallet payment button |
-| `NEXT_PUBLIC_APP_URL` | ✅ | production URL — email links + Stripe redirects break on the localhost default |
+| `NEXT_PUBLIC_APP_URL` | ✅ | production URL - email links + Stripe redirects break on the localhost default |
 | `CRON_SECRET` | ✅ | long random string; crons are useless without it |
 | `BETA_FREE_PRO` | ✅ set `true` | only the literal `false` activates paid mode |
 | `RESEND_API_KEY` | ⚠️ recommended | emails silently skip if missing |
@@ -126,11 +126,11 @@ Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be rev
 > through Stripe Checkout → `checkout.session.completed` (kind=boost), idempotent
 > via the `boost_purchases` table.
 
-### Crons (vercel.json — verify they appear in the Vercel dashboard)
-- [ ] `auto-approve-drafts` — 48h draft auto-approval
-- [ ] `auto-release-live` — 72h payment auto-release (**money moves here — this
+### Crons (vercel.json - verify they appear in the Vercel dashboard)
+- [ ] `auto-approve-drafts` - 48h draft auto-approval
+- [ ] `auto-release-live` - 72h payment auto-release (**money moves here - this
       one being dead means creators don't get paid on brand silence**)
-- [ ] `notify-expiring` — deadline warnings
+- [ ] `notify-expiring` - deadline warnings
 - [ ] `expire-boosts`, `update-ratings`
 - [ ] Confirm each returns 200 in cron logs after first run (401 = bad `CRON_SECRET`)
 
@@ -158,7 +158,7 @@ Rollbacks for 002–017 live in `supabase/rollbacks/` if a migration must be rev
   nightly (and on events) over the existing indexes (`idx_collabs_creator`,
   `idx_campaign_invites_creator`, review joins) and is comfortably fast at beta
   scale (hundreds of creators). Deliberately **not** re-architected into a queue
-  or materialized pipeline yet — revisit only past a few thousand creators.
+  or materialized pipeline yet - revisit only past a few thousand creators.
 - **Creator Discovery** ranks the full candidate pool (capped at 300) in memory
   before paginating, so the best matches land on page 1. If a single filter ever
   matches more than 300 creators, the top 300 by DB order are ranked.

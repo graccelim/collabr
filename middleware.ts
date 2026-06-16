@@ -25,7 +25,7 @@ export async function middleware(req: NextRequest) {
     }
   )
 
-  // Always call getUser() — this refreshes the session token and writes updated cookies
+  // Always call getUser() - this refreshes the session token and writes updated cookies
   const { data: { user } } = await supabase.auth.getUser()
 
   const isProtected = PROTECTED_PREFIXES.some(prefix =>

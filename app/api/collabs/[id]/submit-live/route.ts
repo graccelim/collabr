@@ -41,7 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
 
   if (brandUserId && created) await sendNotification({ userId: brandUserId, type: 'live_submitted',
-    title: `${creatorName} posted live — confirm to release payment`, body: 'You have 72 hours',
+    title: `${creatorName} posted live, confirm to release payment`, body: 'You have 72 hours',
     payload: { collab_id: params.id },
     dedupeKey: `collab:${params.id}:live-submitted` })
   if (brandEmail && created) await sendProductEmail({ to: brandEmail, ...productEmails.liveSubmitted({ creatorName, collabId: params.id }) })

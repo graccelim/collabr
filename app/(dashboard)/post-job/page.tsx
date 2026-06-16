@@ -87,7 +87,7 @@ export default function PostJobPage() {
       })
     })
     if (!res.ok) { const d = await res.json(); toast.error(d.error); setLoading(false); return }
-    toast.success('Campaign is live — creators can apply now. Applications appear on the campaign page.')
+    toast.success('Campaign is live, creators can apply now. Applications appear on the campaign page.')
     router.push('/campaigns')
   }
 
@@ -109,14 +109,14 @@ export default function PostJobPage() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          {/* Section 1 — Basics */}
+          {/* Section 1 - Basics */}
           <div className="card" style={{ padding: 24 }}>
             <SectionHead n="1" label="The basics" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
                 <label className="label">Campaign title</label>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-                  Say it like a person would — creators see this first
+                  Say it like a person would, creators see this first
                 </p>
                 <input className="input" value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -152,14 +152,14 @@ export default function PostJobPage() {
             </div>
           </div>
 
-          {/* Section 2 — What you need */}
+          {/* Section 2 - What you need */}
           <div className="card" style={{ padding: 24 }}>
             <SectionHead n="2" label="What you need" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
                 <label className="label">Campaign brief</label>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-                  Be specific — this is the reference document for any dispute
+                  Be specific, this is the reference document for any dispute
                 </p>
                 <textarea className="input textarea" style={{ minHeight: 120 }} value={form.brief}
                   onChange={e => setForm(f => ({ ...f, brief: e.target.value }))}
@@ -189,7 +189,7 @@ export default function PostJobPage() {
             </div>
           </div>
 
-          {/* Section 3 — Budget */}
+          {/* Section 3 - Budget */}
           <div className="card" style={{ padding: 24 }}>
             <SectionHead n="3" label="Budget & escrow" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -203,7 +203,7 @@ export default function PostJobPage() {
                         onClick={() => setForm(f => ({ ...f, comp_type: o.value }))}
                         style={{
                           height: 36, padding: '0 14px', border: 'none', cursor: 'pointer',
-                          borderRadius: 'calc(var(--radius-sm) - 2px)',
+                          borderRadius: 'calc(var(--radius-sm), 2px)',
                           fontSize: 13, fontWeight: 530, letterSpacing: '-0.005em',
                           background: on ? 'var(--surface)' : 'transparent',
                           color: on ? 'var(--ink)' : 'var(--ink-faint-solid)',
@@ -282,7 +282,7 @@ export default function PostJobPage() {
           </div>
         </form>
 
-        {/* Live preview — exactly the card a creator sees */}
+        {/* Live preview - exactly the card a creator sees */}
         <div style={{ position: 'sticky', top: 24 }}>
           <div className="eyebrow" style={{ marginBottom: 12 }}>Creator sees</div>
           <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

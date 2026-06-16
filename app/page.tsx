@@ -4,7 +4,7 @@ import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
 import CountUp from '@/components/CountUp';
 
-/* ── Minimal line icons (no emoji — Linear/Stripe house style) ─────────────── */
+/* ── Minimal line icons (no emoji - Linear/Stripe house style) ─────────────── */
 const ico = {
   width: 18,
   height: 18,
@@ -66,7 +66,7 @@ const WHY = [
   {
     Icon: Target,
     title: 'Niche + budget matching',
-    body: 'Recommendations weigh niche, audience and budget — for both sides.',
+    body: 'Recommendations weigh niche, audience and budget, for both sides.',
   },
   {
     Icon: Send,
@@ -81,17 +81,17 @@ const WHY = [
   {
     Icon: Badge,
     title: 'Profiles you can check',
-    body: 'Every creator lists their social profiles — open them in one click to see the real account. Follower counts stay clearly self-reported.',
+    body: 'Every creator lists their social profiles, open them in one click to see the real account. Follower counts stay clearly self-reported.',
   },
   {
     Icon: Lock,
     title: 'Secure escrow',
-    body: 'Funds are held safely until content is approved — protected on both sides.',
+    body: 'Funds are held safely until content is approved, protected on both sides.',
   },
   {
     Icon: Star,
     title: 'Two-way reviews',
-    body: 'Both sides review each other after a paid collab — revealed together, so feedback stays honest. Reputation is built only through completed collaborations.',
+    body: 'Both sides review each other after a paid collab, revealed together, so feedback stays honest. Reputation is built only through completed collaborations.',
   },
 ];
 
@@ -106,7 +106,7 @@ const STEPS = {
     ['Release payment', 'Confirm and escrow releases automatically.'],
   ],
   creator: [
-    ['Get matched', 'Campaigns recommended for your niche — or get invited.'],
+    ['Get matched', 'Campaigns recommended for your niche, or get invited.'],
     ['Accept collaboration', 'Say yes to the fits worth your time.'],
     ['Submit content', 'Upload privately for the brand to approve.'],
     ['Get paid', 'Post, and escrow releases straight to you.'],
@@ -137,7 +137,7 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
 ];
 
 export default async function HomePage() {
-  // Logged-in users never see the public marketing page — bounce them into the
+  // Logged-in users never see the public marketing page - bounce them into the
   // app. This also stops an authed session lingering on a public route.
   const user = await getAuthUser();
   if (user) redirect('/dashboard');
@@ -209,9 +209,9 @@ export default async function HomePage() {
               marginBottom: 16,
             }}
           >
-            Collaborations made
+            Better matches.
             <br />
-            seamless and easy.
+            Better collaborations.
           </h1>
         </Reveal>
       </header>
@@ -636,7 +636,7 @@ export default async function HomePage() {
           overflow: 'hidden',
         }}
       >
-        {/* soft background atmosphere — pure CSS, no JS, no parallax */}
+        {/* soft background atmosphere - pure CSS, no JS, no parallax */}
         <div
           aria-hidden
           style={{

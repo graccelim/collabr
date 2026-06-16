@@ -3,7 +3,7 @@ import { Toaster, ToastBar, toast } from 'react-hot-toast'
 import { X } from 'lucide-react'
 
 /**
- * App toaster with an explicit dismiss button on every toast — the default
+ * App toaster with an explicit dismiss button on every toast - the default
  * react-hot-toast only shows a status icon (which users mistake for a close
  * control), so taps did nothing. Toasts still auto-dismiss.
  */

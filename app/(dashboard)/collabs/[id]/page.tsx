@@ -86,7 +86,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     supabase.from('submissions').select('*').eq('collab_id', params.id).order('version', { ascending: false }),
     supabase.from('live_posts').select('*').eq('collab_id', params.id).maybeSingle(),
     supabase.from('reviews').select('rating, note').eq('collab_id', params.id).eq('reviewer_id', user.id).maybeSingle(),
-    // The other side's review — RLS only returns it once it's REVEALED
+    // The other side's review - RLS only returns it once it's REVEALED
     // (both submitted, or 7 days). Session client respects the reveal gate.
     supabase.from('reviews').select('rating, note, created_at')
       .eq('collab_id', params.id)
@@ -189,7 +189,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             )}
           </div>
 
-          {/* Messages — on-platform chat (escrow stays in effect only here) */}
+          {/* Messages - on-platform chat (escrow stays in effect only here) */}
           {!['cancelled'].includes(collab.status) && (
             <CollabChat
               collabId={params.id}
@@ -235,7 +235,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                     )}
                     {/* Internal files open through the signed-URL route. External
                         links show their destination domain so the viewer knows
-                        they're leaving collabr — no opaque redirect to phishing. */}
+                        they're leaving collabr - no opaque redirect to phishing. */}
                     {(s.storage_path || s.file_url) ? (
                       <div style={{ padding: '0 14px 10px' }}>
                         <a href={`/api/submissions/${s.id}/file`} target="_blank" rel="noopener noreferrer"
@@ -250,7 +250,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                           External link: {externalHost(s.external_url)} ↗
                         </a>
                         <div style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 3 }}>
-                          Opens an external site in a new tab — verify the domain before continuing.
+                          Opens an external site in a new tab, verify the domain before continuing.
                         </div>
                       </div>
                     ) : null}
@@ -318,7 +318,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                   </div>
                 ) : existingReview ? (
                   <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', margin: '12px 0 0', lineHeight: 1.5 }}>
-                    {cpName}&rsquo;s review is hidden until you&rsquo;ve both reviewed — or 7 days after the collab. Reviews reveal together, so feedback stays honest.
+                    {cpName}&rsquo;s review is hidden until you&rsquo;ve both reviewed, or 7 days after the collab. Reviews reveal together, so feedback stays honest.
                   </p>
                 ) : null}
               </div>

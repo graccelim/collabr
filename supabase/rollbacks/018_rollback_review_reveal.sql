@@ -1,4 +1,4 @@
--- Rollback Phase 18 — restore open reviews, drop reveal/rating machinery.
+-- Rollback Phase 18 - restore open reviews, drop reveal/rating machinery.
 
 drop trigger if exists trg_reviews_reveal on public.reviews;
 drop trigger if exists trg_notify_review_available on public.collabs;

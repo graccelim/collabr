@@ -127,7 +127,7 @@ function QuietRow({
         width: '100%',
         textDecoration: 'none',
         padding: '16px 18px',
-        // Amber rail only when the creator/brand has to act — calm rows stay clean.
+        // Amber rail only when the creator/brand has to act - calm rows stay clean.
         borderLeft: statusColor === 'var(--warn)' ? '3px solid var(--warn)' : '3px solid transparent',
         display: 'flex',
         alignItems: 'center',
@@ -299,7 +299,7 @@ function CompletionNudge({
         />
       </svg>
       <span style={{ flex: 1 }}>
-        {label} — {done} of {total} steps
+        {label}, {done} of {total} steps
       </span>
       <ArrowRight size={16} />
     </Link>
@@ -307,7 +307,7 @@ function CompletionNudge({
 }
 
 export default async function DashboardPage() {
-  // Memoized — reuses the layout's getUser + profile read (no extra round-trips).
+  // Memoized - reuses the layout's getUser + profile read (no extra round-trips).
   const user = await getAuthUser();
   if (!user) redirect('/login');
   const profile = await getUserRow();
@@ -346,7 +346,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
       />
     );
 
-  // Independent reads — run concurrently. Admin client: creator display
+  // Independent reads - run concurrently. Admin client: creator display
   // identity is RLS own-row-only for session clients; scoped to this brand.
   const [{ data: campaigns }, { data: collabs }] = await Promise.all([
     supabase.from('campaigns').select('id, status').eq('brand_id', brand.id),
@@ -415,7 +415,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
           sub={
             inEscrow > 0
               ? `Across ${escrowed.length} collaboration${escrowed.length !== 1 ? 's' : ''} · released only when you approve the work.`
-              : 'Nothing secured yet — you’ll fund escrow when you accept your first creator.'
+              : 'Nothing secured yet, you’ll fund escrow when you accept your first creator.'
           }
         />
       </div>
@@ -424,7 +424,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
         <EmptyState
           icon={Megaphone}
           title="Your first collaboration starts here"
-          body="Post a campaign, pick a creator you love, and fund escrow — we’ll walk you through every step. It’s free during beta."
+          body="Post a campaign, pick a creator you love, and fund escrow, we’ll walk you through every step. It’s free during beta."
           steps={['Post a campaign', 'Pick a creator', 'Fund escrow']}
           actionHref="/post-job"
           actionLabel="Post a campaign"
@@ -454,7 +454,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
             <div style={{ marginBottom: 40 }} />
           )}
 
-          {/* active — quiet hairline list */}
+          {/* active - quiet hairline list */}
           <div
             style={{
               display: 'flex',
@@ -563,7 +563,7 @@ async function CreatorDashboard({
     );
 
   // Everything below depends only on the creator id (or user id), not on each
-  // other — fetch concurrently instead of in a 5-deep waterfall. Admin client
+  // other - fetch concurrently instead of in a 5-deep waterfall. Admin client
   // for the connect id (RLS hides it from session clients).
   const [
     { data: collabs },
@@ -626,7 +626,7 @@ async function CreatorDashboard({
   const outboundCount = (openApps || []).length;
 
   // "Matched to you": up to 3 active campaigns the creator hasn't applied to,
-  // ranked by the two-sided recommender. Shows an honest tier label + reasons —
+  // ranked by the two-sided recommender. Shows an honest tier label + reasons -
   // never a percentage or numeric score.
   const creatorSignals = toCreatorSignals(
     creator,
@@ -659,7 +659,7 @@ async function CreatorDashboard({
         brand: (c.brand_profiles as any)?.company_name || 'A brand',
         pay,
         label: r.label,
-        // Keep it tight on the dashboard — 1–2 reasons.
+        // Keep it tight on the dashboard - 1–2 reasons.
         reasons: r.reasons.slice(0, 2),
       };
     });
@@ -716,7 +716,7 @@ async function CreatorDashboard({
             : needsYou.length > 0
               ? `${needsYou.length} collab${needsYou.length > 1 ? 's need' : ' needs'} your next move.`
               : 'Everything is on track.'}
-          {isBoosted ? ' Boost is active — you appear first to brands.' : ''}
+          {isBoosted ? ' Boost is active, you appear first to brands.' : ''}
         </p>
       </div>
 
@@ -727,7 +727,7 @@ async function CreatorDashboard({
         total={completion.items.length}
       />
 
-      {/* Connect-your-payout nudge — sits with the profile nudge, above earnings */}
+      {/* Connect-your-payout nudge - sits with the profile nudge, above earnings */}
       {needsPayoutSetup && (
         <Link
           href="/earnings"
@@ -782,7 +782,7 @@ async function CreatorDashboard({
         </Link>
       )}
 
-      {/* earnings — the one dark anchor */}
+      {/* earnings - the one dark anchor */}
       <div className="money-panel" style={{ marginBottom: 14 }}>
         <div
           className="money-rows"
@@ -849,7 +849,7 @@ async function CreatorDashboard({
                 strong={
                   (needsYou[0].brand_profiles as any)?.company_name || 'A brand'
                 }
-                text={`is waiting on you — ${deriveWorkflow({ status: needsYou[0].status, paymentStatus: needsYou[0].payment_status, isBrand: false, counterpartName: 'the brand' }).next.split('.')[0].toLowerCase()}`}
+                text={`is waiting on you, ${deriveWorkflow({ status: needsYou[0].status, paymentStatus: needsYou[0].payment_status, isBrand: false, counterpartName: 'the brand' }).next.split('.')[0].toLowerCase()}`}
               />
             </div>
           )}
@@ -929,7 +929,7 @@ async function CreatorDashboard({
         </>
       )}
 
-      {/* Happening now — real pending invites + outbound application count */}
+      {/* Happening now - real pending invites + outbound application count */}
       {!happeningEmpty && (
         <div style={{ marginTop: isEmpty ? 40 : 48, marginBottom: 8 }}>
           <span
@@ -1093,7 +1093,7 @@ async function CreatorDashboard({
         </div>
       )}
 
-      {/* Matched to you — active campaigns ranked by the two-sided recommender;
+      {/* Matched to you - active campaigns ranked by the two-sided recommender;
           honest tier label + 1–2 reasons, never a percentage */}
       {matched.length > 0 && (
         <div
@@ -1236,7 +1236,7 @@ async function CreatorDashboard({
                     )}
                   </span>
                 </span>
-                {/* Honest tier label — only when there's a credible fit. */}
+                {/* Honest tier label - only when there's a credible fit. */}
                 {m.label && (
                   <span
                     className="badge badge-match"

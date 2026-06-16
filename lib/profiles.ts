@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { CREATOR_NICHES, BRAND_INDUSTRIES } from '@/lib/onboarding'
 
-// Phase 6 profile editing schemas — must match the check constraints in
+// Phase 6 profile editing schemas - must match the check constraints in
 // supabase/migrations/008_profile_quality.sql.
 
 export const AVAILABILITY_STATUSES = ['available', 'limited', 'unavailable'] as const
@@ -25,7 +25,7 @@ const optionalText = (max: number, label: string) => z.preprocess(
   z.string().trim().max(max, `${label} must be ${max} characters or less`).nullish()
 )
 
-// All fields optional — PATCH semantics. Monetary values are cents.
+// All fields optional - PATCH semantics. Monetary values are cents.
 export const creatorProfileUpdateSchema = z.object({
   bio: optionalText(1000, 'Bio'),
   niche: z.enum(CREATOR_NICHES).nullish(),

@@ -7,7 +7,7 @@ import { CREATOR_NICHES, NICHE_LABELS, type CreatorNiche } from '@/lib/onboardin
 // is folded onto a canonical slug via the alias map so matching is reliable.
 //
 // This runtime map MUST stay in sync with the `niche_aliases` seed in
-// migration 013 — both are seeded from the same list below.
+// migration 013 - both are seeded from the same list below.
 
 export const NICHE_SLUGS = CREATOR_NICHES
 export { NICHE_LABELS }
@@ -87,7 +87,7 @@ export function nicheLabel(slug: string): string {
 export function nicheOverlap(creatorSlugs: string[], campaignSlugs: string[]): number {
   const a = Array.from(new Set(normalizeNicheTags(creatorSlugs)))
   const b = Array.from(new Set(normalizeNicheTags(campaignSlugs)))
-  if (b.length === 0) return 1 // untargeted campaign — everyone is on-niche
+  if (b.length === 0) return 1 // untargeted campaign - everyone is on-niche
   if (a.length === 0) return 0
   const bSet = new Set(b)
   let inter = 0

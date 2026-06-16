@@ -35,7 +35,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   const user = await requireCreator()
   const supabase = createClient()
 
-  // Campaign (by id) and creator profile (by user.id) are independent — batch.
+  // Campaign (by id) and creator profile (by user.id) are independent - batch.
   const [{ data: campaign }, { data: creator }] = await Promise.all([
     supabase.from('campaigns')
       .select('*, brand_profiles(id, company_name, company_description, logo_url, website, social_url, industry, completed_campaigns, rating_avg, rating_count)')
@@ -50,7 +50,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
     </div>
   )
 
-  // Both depend only on creator.id (+ params.id) — batch.
+  // Both depend only on creator.id (+ params.id) - batch.
   const [{ data: socials }, { data: existing }] = await Promise.all([
     supabase.from('social_accounts')
       .select('follower_count').eq('creator_id', creator!.id),
@@ -77,7 +77,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
   const fitExplain = fit.nicheMatch && primaryNiche
     ? `Your ${nicheLabel(primaryNiche)} niche matches this brief.`
     : fit.followersMet
-      ? 'Your reach clears this brief — a clear, specific pitch wins it.'
+      ? 'Your reach clears this brief, a clear, specific pitch wins it.'
       : 'A specific pitch about your audience can still win this brief.'
 
   // Compensation display
@@ -89,7 +89,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
         : campaign.budget_max ? formatSGD(campaign.budget_max) : 'Paid'
 
   const briefMeta: { label: string; value: string }[] = [
-    { label: 'Deliverable', value: campaign.deliverable_types?.[0] ?? '—' },
+    { label: 'Deliverable', value: campaign.deliverable_types?.[0] ?? '-' },
     { label: 'Min followers', value: campaign.min_followers ? `${campaign.min_followers.toLocaleString()}+` : 'Any' },
     { label: 'Due', value: campaign.deadline ? new Date(campaign.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Flexible' },
     { label: 'Compensation', value: compValue },
@@ -121,7 +121,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
           <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 3 }}>
             {brandName}{platform ? ` · ${platform}` : ''}
           </div>
-          {/* Brand reputation — so creators know who they'd work with. */}
+          {/* Brand reputation - so creators know who they'd work with. */}
           <div style={{ marginTop: 7, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <RatingChip avg={brand?.rating_avg} count={brand?.rating_count} label="New to collabr" />
             {brand?.id && (
@@ -166,9 +166,9 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             </div>
           </div>
 
-          {/* Apply or sent state — compact status card (not a full-page medallion) */}
+          {/* Apply or sent state - compact status card (not a full-page medallion) */}
           {existing ? (() => {
-            // "shortlisted" is a private brand bookmark — to the creator it reads
+            // "shortlisted" is a private brand bookmark - to the creator it reads
             // exactly like a sent application (no false "you're shortlisted" signal).
             const selected = existing.status === 'selected'
             const tone = selected ? 'money' : 'accent'
@@ -177,7 +177,7 @@ export default async function JobDetailPage({ params }: { params: { id: string }
             const title = selected ? 'You were selected!' : `Application sent to ${brandName}`
             const body = selected
               ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
-              : 'Most brands reply within a few days. You’ll always get a definite answer — by the campaign deadline, or within 14 days.'
+              : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.'
             return (
               <div className="card" style={{ padding: 18, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
                 <span style={{ width: 42, height: 42, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: tile, color: ink, display: 'grid', placeItems: 'center' }}>

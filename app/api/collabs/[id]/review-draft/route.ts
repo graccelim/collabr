@@ -45,7 +45,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (decision === 'approved') {
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
-      title: 'Draft approved — post live now!', payload: { collab_id: params.id },
+      title: 'Draft approved, post live now!', payload: { collab_id: params.id },
       dedupeKey: `submission:${submissionId}:approved` })
     if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.draftApproved({ collabId: params.id, key: String(submissionId) }) })
 

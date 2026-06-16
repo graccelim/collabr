@@ -1,4 +1,4 @@
--- Rollback Phase 13 — niche taxonomy
+-- Rollback Phase 13 - niche taxonomy
 drop trigger if exists trg_campaign_niche_tags on public.campaigns;
 drop trigger if exists trg_creator_niche_tags on public.creator_profiles;
 drop function if exists public.enforce_niche_tags();

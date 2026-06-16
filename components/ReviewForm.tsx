@@ -38,7 +38,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
       setSubmitting(false)
       return
     }
-    toast.success('Review submitted — thanks for building trust on collabr')
+    toast.success('Review submitted, thanks for building trust on collabr')
     router.refresh()
   }
 
@@ -58,7 +58,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
         {existingReview.note && (
           <p className="text-xs text-gray-600">{existingReview.note}</p>
         )}
-        <p className="text-xs text-gray-400">Submitted ✓ — revealed once you&rsquo;ve both reviewed, or after 7 days.</p>
+        <p className="text-xs text-gray-400">Submitted ✓, revealed once you&rsquo;ve both reviewed, or after 7 days.</p>
       </div>
     )
   }
@@ -67,7 +67,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
     <div className="card space-y-3">
       <h2 className="text-sm font-medium text-gray-900">Leave a review</h2>
       <p className="text-xs text-gray-500">
-        The collab is complete. Reviews are double-blind — yours reveals once you&rsquo;ve both
+        The collab is complete. Reviews are double-blind, yours reveals once you&rsquo;ve both
         reviewed, or after 7 days, so feedback stays honest on both sides.
       </p>
       <form onSubmit={submit} className="space-y-3">
@@ -90,7 +90,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
           </p>
         </div>
         <div>
-          <label className="label">Note — optional</label>
+          <label className="label">Note, optional</label>
           <textarea
             className="input min-h-[70px] resize-none"
             value={note}

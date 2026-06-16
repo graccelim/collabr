@@ -18,7 +18,7 @@ interface NavItem {
   label: string
   icon: Icon
   exact?: boolean
-  /** Subtle premium marker — teaches which features are Pro without blocking. */
+  /** Subtle premium marker - teaches which features are Pro without blocking. */
   pro?: boolean
 }
 
@@ -50,7 +50,7 @@ const CREATOR_NAV: NavItem[] = [
   { href: '/earnings',      label: 'Earnings',           icon: Wallet },
 ]
 
-// Mobile bottom bar — Profile + Notifications live in the top bar, so these are
+// Mobile bottom bar - Profile + Notifications live in the top bar, so these are
 // the core sections only.
 const BRAND_TABS: NavItem[] = [
   { href: '/dashboard', label: 'Overview',  icon: LayoutGrid, exact: true },
@@ -73,7 +73,7 @@ interface AppNavProps {
   displayName: string
   email: string
   initials: string
-  /** Resolved plan label for brands, e.g. "Pro Beta" — empty hides the badge. */
+  /** Resolved plan label for brands, e.g. "Pro Beta" - empty hides the badge. */
   planLabel?: string
   /** Pending invites awaiting the creator's response. */
   inviteBadge?: number
@@ -147,7 +147,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
 
   return (
     <>
-      {/* ── Desktop Sidebar — quiet light chrome, indigo active state ── */}
+      {/* ── Desktop Sidebar - quiet light chrome, indigo active state ── */}
       <aside
         className="sidebar-desktop scroll-y"
         style={{
@@ -187,9 +187,9 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                   color: '#fff', display: 'inline-flex', alignItems: 'center',
                   justifyContent: 'center', fontWeight: 700, fontSize: 15, flexShrink: 0,
                 }}>c</span>
-                collabr<span style={{ color: 'var(--accent)' }}>.</span>
+                <span>collabr<span style={{ color: 'var(--accent)' }}>.</span></span>
               </Link>
-              {/* plan badge lives in the beta card below — keep the logo row calm */}
+              {/* plan badge lives in the beta card below - keep the logo row calm */}
             </div>
           )}
           <button
@@ -225,7 +225,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
           display: 'flex', flexDirection: 'column', gap: 1,
           overflowY: 'auto',
         }}>
-          {/* Quick access — Profile + Notifications at the top */}
+          {/* Quick access - Profile + Notifications at the top */}
           {topNav.map(renderItem)}
           {!collapsed && (
             <div style={{ height: 1, background: 'var(--line)', margin: '8px 8px' }} />

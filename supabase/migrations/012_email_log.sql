@@ -1,5 +1,5 @@
 -- ============================================================================
--- Phase 12 — Transactional product email dedupe log
+-- Phase 12 - Transactional product email dedupe log
 --
 -- Product (non-auth) emails are sent by the app via Resend. To guarantee a
 -- given email is never sent twice (route retries, cron re-runs, double clicks),
@@ -21,4 +21,4 @@ create table if not exists public.email_log (
 create index if not exists email_log_created_idx on public.email_log (created_at desc);
 
 alter table public.email_log enable row level security;
--- No policies on purpose — only the service role (which bypasses RLS) touches it.
+-- No policies on purpose - only the service role (which bypasses RLS) touches it.

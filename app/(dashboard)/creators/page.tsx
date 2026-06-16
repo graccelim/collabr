@@ -42,7 +42,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   const { data: brand } = await admin.from('brand_profiles')
     .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
 
-  // Creator Discovery is a Pro feature — complimentary for every brand while
+  // Creator Discovery is a Pro feature - complimentary for every brand while
   // in beta. In paid mode, Free brands see a calm gate (no pricing, no modal).
   const plan = resolvePlan(brand)
   if (!plan.isPro) {
@@ -125,7 +125,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
     case 'newest':
       query = query.order('created_at', { ascending: false })
       break
-    default: // most relevant — re-ranked in memory below; DB order is a fallback
+    default: // most relevant - re-ranked in memory below; DB order is a fallback
       query = query
         .order('boost_active_until', { ascending: false, nullsFirst: false })
         .order('rating_avg', { ascending: false })
@@ -133,7 +133,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   }
 
   // Fetch the whole candidate pool (capped), then rank BEFORE paginating so the
-  // best matches surface on page 1 — not stranded on a later DB-ordered page.
+  // best matches surface on page 1 - not stranded on a later DB-ordered page.
   const { data: creators } = await query.limit(CANDIDATE_CAP)
 
   // Socials + internal scores for ALL candidates (ranking needs the full pool).
@@ -142,8 +142,8 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
   const scoreById: Record<string, ScoreRow> = {}
   let savedSet = new Set<string>()
   if (pageIds.length > 0) {
-    // Socials, internal scores, and saved-state are independent — fetch concurrently.
-    // Explicit columns — verification_code is not client-readable (migration 017).
+    // Socials, internal scores, and saved-state are independent - fetch concurrently.
+    // Explicit columns - verification_code is not client-readable (migration 017).
     const [{ data: socials }, { data: scores }, savedRes] = await Promise.all([
       supabase.from('social_accounts')
         .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
@@ -220,7 +220,7 @@ export default async function CreatorsPage({ searchParams }: { searchParams: Sea
           title={searchParams.saved === '1' ? 'No saved creators yet' : 'No creators match these filters'}
           body={searchParams.saved === '1'
             ? 'Tap the bookmark on any creator to build your shortlist for future campaigns.'
-            : 'Try broadening your filters — fewer constraints usually surface great creators you might otherwise miss.'}
+            : 'Try broadening your filters, fewer constraints usually surface great creators you might otherwise miss.'}
           actionHref="/creators"
           actionLabel={searchParams.saved === '1' ? 'Browse all creators' : 'Clear filters'}
         />

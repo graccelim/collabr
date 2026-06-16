@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     title: 'A dispute has been raised on your collab', payload: { collab_id: params.id },
     dedupeKey: `dispute:${disputeId}:raised` })
   if (user.id && created) await sendNotification({ userId: user.id, type: 'dispute_raised',
-    title: 'Dispute submitted — we will review within 3 business days', payload: { collab_id: params.id },
+    title: 'Dispute submitted, we will review within 3 business days', payload: { collab_id: params.id },
     dedupeKey: `dispute:${disputeId}:raised` })
 
   if (created) {

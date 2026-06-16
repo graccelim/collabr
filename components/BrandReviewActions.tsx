@@ -51,7 +51,7 @@ export default function BrandReviewActions({ collabId, submissionId, creatorName
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      if (decision === 'approved') toast.success('Draft approved — creator can post live now')
+      if (decision === 'approved') toast.success('Draft approved, creator can post live now')
       else if (decision === 'revision') toast.success('Revision request sent')
       else toast.success('Draft rejected')
       router.refresh()
@@ -137,7 +137,7 @@ export default function BrandReviewActions({ collabId, submissionId, creatorName
           <>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>What needs to change?</div>
             <p style={{ fontSize: 13, color: 'var(--ink-soft)', marginBottom: 14, lineHeight: 1.5 }}>
-              Be specific — {creatorName} gets this as a checklist.
+              Be specific, {creatorName} gets this as a checklist.
               {revisionsLeft <= 1 && (
                 <span style={{ color: 'var(--warn-deep)' }}> (Last revision round.)</span>
               )}

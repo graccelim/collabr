@@ -3,7 +3,7 @@ import './globals.css'
 import Toasts from '@/components/Toasts'
 
 export const metadata: Metadata = {
-  title: 'collabr. — Connect creators and brands',
+  title: 'collabr., Connect creators and brands',
   description: 'The Singapore platform connecting content creators directly with brands. No agency needed.',
 }
 

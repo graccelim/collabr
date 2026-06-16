@@ -16,7 +16,7 @@ export default async function CampaignsPage() {
   const campaignIds = (campaigns || []).map(c => c.id)
 
   // Applications (count + a few applicant names per campaign) and funded
-  // escrow / filled spots per campaign — independent reads, issued concurrently.
+  // escrow / filled spots per campaign - independent reads, issued concurrently.
   // Admin client: applicant display identity and collabs are RLS-restricted for
   // session clients; both scoped to this brand's own campaigns. Applications
   // ordered so boosted/recent applicants surface.
@@ -94,7 +94,7 @@ export default async function CampaignsPage() {
         <EmptyState
           icon={Megaphone}
           title="Let's get your first campaign live"
-          body="Describe what you need and creators start applying — usually within hours. Your money stays in escrow until you approve the work. Live in under five minutes."
+          body="Describe what you need and creators start applying, usually within hours. Your money stays in escrow until you approve the work. Live in under five minutes."
           steps={['Write a brief', 'Set your budget', 'Go live']}
           actionHref="/post-job"
           actionLabel="Post your first campaign"

@@ -4,7 +4,7 @@ import type { LucideProps } from 'lucide-react'
 type Icon = React.ComponentType<Partial<LucideProps>>
 
 /**
- * The signature escrow object (Collabr Redesign): a horizontal 5-step rail —
+ * The signature escrow object (Collabr Redesign): a horizontal 5-step rail -
  * Funded → In progress → Draft approved → Posted live → Released. Completed
  * steps are secure-green, the current step is the accent blue with a soft glow,
  * upcoming steps are grey. Driven by `escrowStep()` (0–5) so it mirrors the
@@ -66,7 +66,7 @@ export default function EscrowTimeline({ current = 1, amount }: { current?: numb
               }}>
                 {done ? <Check size={15} strokeWidth={2.4} /> : <StepIcon size={15} />}
               </div>
-              {/* labels — per-step notes hide on mobile to cut clutter */}
+              {/* labels - per-step notes hide on mobile to cut clutter */}
               <div style={{ textAlign: 'center', marginTop: 8 }}>
                 <div className="escrow-step-label" style={{ fontSize: 12, fontWeight: 540, color: labelColor }}>{s.label}</div>
                 <div className="micro escrow-note" style={{ marginTop: 1 }}>{s.note}</div>

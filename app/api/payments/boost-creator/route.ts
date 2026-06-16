@@ -4,7 +4,7 @@ import { stripe, boostEnabled, boostPriceIds, BOOST_DAYS } from '@/lib/stripe'
 import { checkRateLimit } from '@/lib/rate-limit'
 
 // Creator purchases a paid Boost. This route ONLY creates a Stripe Checkout
-// session — the boost is activated by the webhook (checkout.session.completed,
+// session - the boost is activated by the webhook (checkout.session.completed,
 // kind=boost) after the payment actually succeeds. No payment, no boost.
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   // Return to the page the boost was started from (modal can be opened anywhere).
-  // Only allow safe in-app relative paths — never an external/absolute redirect.
+  // Only allow safe in-app relative paths - never an external/absolute redirect.
   const rt = typeof body?.returnTo === 'string' ? body.returnTo : ''
   const returnTo = rt.startsWith('/') && !rt.startsWith('//') ? rt : '/boost'
   const sep = returnTo.includes('?') ? '&' : '?'

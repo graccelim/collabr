@@ -23,7 +23,7 @@ interface Application {
   match?: MatchResult | null
   /** Boolean trust indicators (availability, completed collabs, etc). */
   indicators?: CreatorIndicators | null
-  /** Creator-provided social profiles — clickable so the brand can verify them. */
+  /** Creator-provided social profiles - clickable so the brand can verify them. */
   socials?: { platform: string; handle: string; url: string }[]
   creator_profiles?: {
     id?: string
@@ -74,14 +74,14 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         // Accept → fund is one motion: drop the brand straight onto the collab's
         // funding step so escrow gets secured (no stranded, unfunded collabs).
         if (data.collab_id) {
-          toast.success('Creator accepted — fund escrow to start')
+          toast.success('Creator accepted, fund escrow to start')
           router.push(`/collabs/${data.collab_id}`)
         } else {
-          toast.success('Creator accepted — collab created')
+          toast.success('Creator accepted, collab created')
           router.refresh()
         }
       } else if (status === 'shortlisted') {
-        toast.success('Saved — only you can see this')
+        toast.success('Saved, only you can see this')
       } else {
         toast.success('Applicant passed')
       }
@@ -123,7 +123,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
       {filtered.length === 0 ? (
         <div className="card" style={{ padding: 18, fontSize: 13.5, color: 'var(--ink-soft)' }}>
           {filter === 'saved'
-            ? 'No saved applicants yet — tap Save on an applicant to compare your favourites here.'
+            ? 'No saved applicants yet, tap Save on an applicant to compare your favourites here.'
             : filter === 'passed'
               ? 'No passed applicants.'
               : 'No active applicants right now.'}
@@ -181,7 +181,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     )}
                     {app.is_boosted && (
                       <span className="badge badge-warn" style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}
-                        title="Sponsored placement — paid by the creator. It does not affect quality or trust signals.">
+                        title="Sponsored placement, paid by the creator. It does not affect quality or trust signals.">
                         <Zap size={11} /> Boosted · Sponsored
                       </span>
                     )}
@@ -192,14 +192,14 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     {sub}
                     {showRating && creator?.rating_count ? ` · ${creator.rating_avg} ★ (${creator.rating_count})` : ''}
                   </div>
-                  {/* Creator-provided socials — one click to check each account */}
+                  {/* Creator-provided socials - one click to check each account */}
                   {socials.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
                       {socials.map(s => {
                         const Icon = socialIcon(s.platform)
                         return (
                           <a key={s.platform + s.handle} href={s.url} target="_blank" rel="noopener noreferrer"
-                            title={`${SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform} — opens in a new tab`}
+                            title={`${SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}, opens in a new tab`}
                             onClick={e => e.stopPropagation()}
                             style={{
                               display: 'inline-flex', alignItems: 'center', gap: 5, padding: '3px 9px',
@@ -256,14 +256,14 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
               <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
                 <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>Their rate</span>
                 <span className="mono-num" style={{ fontSize: 15, fontWeight: 560, color: 'var(--ink)' }}>
-                  {rateLabel || '—'}
+                  {rateLabel || '-'}
                 </span>
               </div>
 
               {isOpen && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   {status === 'shortlisted' && (
-                    <span title="Private to you — the creator isn't notified"
+                    <span title="Private to you, the creator isn't notified"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
                       <Bookmark size={13} fill="currentColor" /> Saved
                     </span>
@@ -273,7 +273,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       onClick={() => updateStatus(app.id, 'shortlisted')}
                       disabled={!!loading}
                       className="btn-secondary"
-                      title="Save privately to compare later — the creator isn't notified"
+                      title="Save privately to compare later, the creator isn't notified"
                       style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                     >
                       <Bookmark size={14} /> {loading === `${app.id}-shortlisted` ? '…' : 'Save'}
@@ -323,7 +323,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         )
       })}
 
-      {/* Sparse state — keep the page productive: invite creators directly. */}
+      {/* Sparse state - keep the page productive: invite creators directly. */}
       {filter === 'all' && spotsLeft > 0 && (applications.length - passedCount) <= 2 && (
         <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)' }}>
           <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: '#fff', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
@@ -332,7 +332,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
           <div style={{ flex: 1, minWidth: 200 }}>
             <div style={{ fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>Want more to choose from?</div>
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.45, marginTop: 2 }}>
-              Don&rsquo;t wait on applications — invite creators that fit this campaign directly. New applicants also appear here automatically.
+              Don&rsquo;t wait on applications, invite creators that fit this campaign directly. New applicants also appear here automatically.
             </div>
           </div>
           <Link href="/creators" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>

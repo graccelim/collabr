@@ -1,13 +1,13 @@
 -- ============================================================================
--- Phase 11 — Collab messaging (Chat)
+-- Phase 11 - Collab messaging (Chat)
 --
 -- A scoped message thread between the two parties of a collab. Off-platform
 -- contact-sharing (phone / email / handles / other-app names) is detected
--- server-side at send time and flagged for manual moderation review — we keep
+-- server-side at send time and flagged for manual moderation review - we keep
 -- the message (so context survives) but mark it for the admin queue.
 --
 -- RLS mirrors collabs' `collab_parties`: only the collab's creator and brand
--- can read the thread. Inserts are NOT granted to client roles — all sends go
+-- can read the thread. Inserts are NOT granted to client roles - all sends go
 -- through the server route (createAdminClient) so the `flagged`/`flag_reasons`
 -- moderation columns cannot be tampered with by the client.
 -- ============================================================================

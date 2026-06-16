@@ -1,10 +1,10 @@
 -- ============================================================================
--- Phase 18 — Double-blind reviews, honest aggregates, barter eligibility
+-- Phase 18 - Double-blind reviews, honest aggregates, barter eligibility
 --
 -- Reviews already exist (1 per side per collab). This migration makes the
 -- two-sided reputation system launch-ready:
 --
---  1. DOUBLE-BLIND via reviews.revealed_at — a review is hidden until BOTH sides
+--  1. DOUBLE-BLIND via reviews.revealed_at - a review is hidden until BOTH sides
 --     submit (revealed immediately, DB trigger) or 7 days pass (cron). Authors
 --     always see their own. No per-row function in RLS (cheap + scalable).
 --  2. HONEST AGGREGATES (fixes audit C-1): rating_avg/rating_count are computed
@@ -14,7 +14,7 @@
 --     reviews from the same pair can't inflate it) and rating_count = distinct
 --     collaborators. Preserves genuine repeat collabs and barter.
 --  4. BARTER ELIGIBILITY: reviews unlock on completion for paid (money moved)
---     AND barter (agreed_rate = 0) collabs — accountability without cash.
+--     AND barter (agreed_rate = 0) collabs - accountability without cash.
 --  5. NOTES: hard 1000-char DB cap (app also trims + moderates).
 --  6. BRAND REPUTATION columns added (creator_profiles already had them).
 -- ============================================================================
@@ -23,7 +23,7 @@
 alter table public.reviews
   add column if not exists revealed_at timestamptz;
 
--- Existing reviews were public under the old policy — keep them visible.
+-- Existing reviews were public under the old policy - keep them visible.
 update public.reviews set revealed_at = created_at where revealed_at is null;
 
 do $$ begin
@@ -88,7 +88,7 @@ begin
   end loop;
 end $$;
 
--- ── 3. Mutual reveal trigger — reveal both + refresh both aggregates ─────────
+-- ── 3. Mutual reveal trigger - reveal both + refresh both aggregates ─────────
 create or replace function public.reviews_reveal_and_rate()
 returns trigger language plpgsql security definer set search_path = public as $$
 declare v_creator uuid; v_brand uuid;
@@ -165,7 +165,7 @@ create policy "review_insert" on public.reviews for insert
     )
   );
 
--- ── 7. Grants — public reputation readable; recompute internal-only ──────────
+-- ── 7. Grants - public reputation readable; recompute internal-only ──────────
 grant select (rating_avg, rating_count) on table public.brand_profiles to anon, authenticated;
 revoke all on function public.recompute_creator_rating(uuid) from public, anon, authenticated;
 revoke all on function public.recompute_brand_rating(uuid)   from public, anon, authenticated;

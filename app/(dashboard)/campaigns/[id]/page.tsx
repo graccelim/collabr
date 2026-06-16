@@ -33,7 +33,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     )
   }
 
-  // Applicants and collabs are independent reads — issued concurrently.
+  // Applicants and collabs are independent reads - issued concurrently.
   // Admin client: applicant identity (users join) is RLS own-row-only and
   // collabs are party-scoped for session clients. Campaign ownership was
   // verified above; emails excluded. Used for the applicant list and the
@@ -87,7 +87,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
 
   // Build the campaign signal once, compute each applicant's match, and rank by
   // match score (best first). Boosted applicants get a small additive tie-break
-  // bump — they never leap above a clearly-better match.
+  // bump - they never leap above a clearly-better match.
   const campaignSignals = toCampaignSignals(campaign)
   const BOOST_TIEBREAK = 0.04
   const rankedApplications = (applications || [])
@@ -105,7 +105,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     })
     .sort((a, b) => b._rankScore - a._rankScore)
 
-  // Every brand sees every applicant — visibility is never gated (fair to creators
+  // Every brand sees every applicant - visibility is never gated (fair to creators
   // and required for honest auto-decline). Pro monetises via Discovery/invites/boost.
   const visibleApps = rankedApplications
 
@@ -115,14 +115,14 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     : null
   const budgetLabel = campaign.budget_min
     ? `${formatSGD(campaign.budget_min)}${campaign.budget_max ? `–${formatSGD(campaign.budget_max)}` : ''}`
-    : campaign.comp_type === 'barter' ? 'Barter' : '—'
+    : campaign.comp_type === 'barter' ? 'Barter' : '-'
 
   const deliverable = (campaign.deliverable_types && campaign.deliverable_types.length > 0)
     ? campaign.deliverable_types.join(', ')
-    : '—'
+    : '-'
   const platformsLabel = (campaign.niche_tags && campaign.niche_tags.length > 0)
     ? campaign.niche_tags.join(', ')
-    : '—'
+    : '-'
   const minFollowersLabel = campaign.min_followers > 0
     ? `${campaign.min_followers.toLocaleString()}+`
     : 'Any'
@@ -165,7 +165,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 28, alignItems: 'start' }} className="pc-grid">
-        {/* MAIN — applicants */}
+        {/* MAIN - applicants */}
         <div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
             <h2 style={{ fontSize: 18 }}>Applicants</h2>
@@ -176,7 +176,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
             <EmptyState
               icon={Inbox}
               title="Applications are on the way"
-              body="Creators are browsing right now — most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
+              body="Creators are browsing right now, most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
               actionHref="/creators"
               actionLabel="Invite creators"
             />
@@ -188,7 +188,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           )}
         </div>
 
-        {/* RAIL — brief + how accepting works */}
+        {/* RAIL - brief + how accepting works */}
         <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div className="card" style={{ padding: 20 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>The brief</div>

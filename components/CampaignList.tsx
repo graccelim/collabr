@@ -31,7 +31,7 @@ const FILTERS = [
 ] as const
 
 function fmtDeadline(deadline: string | null): string {
-  if (!deadline) return '—'
+  if (!deadline) return '-'
   return new Date(deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
 }
 
@@ -65,7 +65,7 @@ export default function CampaignList({ campaigns }: { campaigns: CampaignRow[] }
         {shown.map(c => {
           const budget = c.budget_min
             ? `${formatSGD(c.budget_min)}${c.budget_max ? `–${formatSGD(c.budget_max)}` : ''}`
-            : c.comp_type === 'barter' ? 'Barter' : '—'
+            : c.comp_type === 'barter' ? 'Barter' : '-'
           const isActive = c.status === 'active'
           const open = () => router.push(`/campaigns/${c.id}`)
 

@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = createClient()
 
   // Role-specific trust/plan state + the notification badge are independent of
-  // each other — run them concurrently instead of one waterfall.
+  // each other - run them concurrently instead of one waterfall.
   const [roleState, { count: unreadCount }] = await Promise.all([
     role === 'creator'
       ? (async () => {

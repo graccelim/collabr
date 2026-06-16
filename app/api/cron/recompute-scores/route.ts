@@ -2,7 +2,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Nightly full recompute of creator_scores (powers ranking; never displayed).
-// Idempotent — recomputes from source tables, so a missed run self-heals.
+// Idempotent - recomputes from source tables, so a missed run self-heals.
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

@@ -1,14 +1,14 @@
 import { Star, Sparkles } from 'lucide-react'
 
 /**
- * Colourful rating summary — big average + star-distribution bars (Airbnb-style).
+ * Colourful rating summary - big average + star-distribution bars (Airbnb-style).
  * `distribution[i]` = number of reviews with rating (i+1). Premium empty state
  * for new accounts (never "0.0"). Responsive: stacks on mobile.
  */
 export default function RatingSummaryCard({
   avg, count, distribution, totalReviews,
   emptyTitle = 'New to collabr',
-  emptyBody = 'Reviews appear here after completed collaborations — revealed once both sides submit, or after 7 days.',
+  emptyBody = 'Reviews appear here after completed collaborations, revealed once both sides submit, or after 7 days.',
 }: {
   avg?: number | null
   count?: number | null          // distinct collaborators

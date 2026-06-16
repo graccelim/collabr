@@ -11,7 +11,7 @@ export default async function JobsPage() {
   const supabase = createClient()
 
   // The active campaign list (by status) and the signed-in creator's profile
-  // (by user.id) are independent — batch them. The creator's niche, rate,
+  // (by user.id) are independent - batch them. The creator's niche, rate,
   // availability and social follower counts feed the two-sided recommender so
   // the browse list is ordered by real fit and labelled honestly.
   const [{ data: campaigns }, { data: creator }] = await Promise.all([
@@ -26,7 +26,7 @@ export default async function JobsPage() {
   ])
 
   // Social accounts (self-reported followers), the creator's existing
-  // applications, and the creator's score row all key off the creator id —
+  // applications, and the creator's score row all key off the creator id -
   // batch them.
   const [{ data: socials }, { data: myApps }, { data: scoreRow }] = await Promise.all([
     supabase.from('social_accounts').select('follower_count').eq('creator_id', creator?.id ?? ''),
@@ -81,7 +81,7 @@ export default async function JobsPage() {
       brand_rating_avg: brand?.rating_avg ?? null,
       brand_rating_count: brand?.rating_count ?? null,
       appliedStatus: (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ?? null,
-      // Honest fit signals from the recommender — tier label (or null) + reasons.
+      // Honest fit signals from the recommender - tier label (or null) + reasons.
       matchLabel: r.label,
       matchReasons: r.reasons,
     }
@@ -94,7 +94,7 @@ export default async function JobsPage() {
         <div className="eyebrow" style={{ marginBottom: 7 }}>Curated for you</div>
         <h1 style={{ fontSize: 28 }}>Campaigns picked for you</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          A shortlist matched to your niche, audience and rate — your strongest fits, first.
+          A shortlist matched to your niche, audience and rate - your strongest fits, first.
         </p>
       </div>
 
@@ -104,7 +104,7 @@ export default async function JobsPage() {
         <EmptyState
           icon={Compass}
           title="Fresh campaigns drop here daily"
-          body="New briefs from brands hiring now are posted regularly. Check back soon — or polish your profile so you're ready to apply the moment one fits."
+          body="New briefs from brands hiring now are posted regularly. Check back soon, or polish your profile so you're ready to apply the moment one fits."
           actionHref="/profile"
           actionLabel="Complete your profile"
         />

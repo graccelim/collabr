@@ -6,7 +6,7 @@ import { Bell, Plus, Compass, LogOut } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
-  /** Unread notifications — drives the bell dot. */
+  /** Unread notifications - drives the bell dot. */
   notificationBadge?: number
   /** For the mobile account menu (sidebar is hidden on mobile). */
   displayName?: string
@@ -24,7 +24,7 @@ interface Props {
  */
 export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', profileHref }: Props) {
   const isBrand = role === 'brand'
-  // Full mobile nav (the sidebar is hidden ≤768px) — same sections, same order.
+  // Full mobile nav (the sidebar is hidden ≤768px) - same sections, same order.
   const menuSections = isBrand
     ? [
         { href: '/dashboard', label: 'Overview' },
@@ -78,10 +78,10 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         padding: '0 20px 0 24px',
       }}
     >
-      {/* left — intentionally empty; controls live on the right */}
+      {/* left - intentionally empty; controls live on the right */}
       <div style={{ minWidth: 0 }} />
 
-      {/* right — notifications / primary action (search removed: it pointed to
+      {/* right - notifications / primary action (search removed: it pointed to
           the same screen as the primary CTA) */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         <IconButton href="/notifications" label="Notifications">
@@ -102,7 +102,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
           )}
         </IconButton>
 
-        {/* CTA — brands keep "Post a campaign" everywhere; creators' "Find
+        {/* CTA - brands keep "Post a campaign" everywhere; creators' "Find
             campaigns" is redundant with the Browse tab on mobile, so hide it
             there to declutter next to the account avatar. */}
         <motion.div
@@ -116,7 +116,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
           </Link>
         </motion.div>
 
-        {/* Mobile account menu — the sidebar (with sign out) is hidden ≤768px */}
+        {/* Mobile account menu - the sidebar (with sign out) is hidden ≤768px */}
         <div ref={menuRef} className="md:hidden" style={{ position: 'relative' }}>
           <motion.button
             whileTap={{ scale: 0.92 }}
