@@ -53,6 +53,9 @@ export default function ProfilePage() {
   const [newPortfolioLink, setNewPortfolioLink] = useState('')
   // Snapshot of the form as loaded - Save stays disabled until something differs.
   const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null)
+  // Avatar uploads and social add/remove save on their own, but they still count
+  // as "edits made" so the button reads Save changes (not Cancel edit).
+  const [touched, setTouched] = useState(false)
 
   // Social accounts (normalized, managed via /api/socials)
   const [socials, setSocials] = useState<SocialAccount[]>([])
@@ -131,7 +134,7 @@ export default function ProfilePage() {
     const { error: userErr } = await supabase.from('users')
       .update({ avatar_url: data.publicUrl }).eq('id', userId)
     if (userErr) toast.error('We couldn’t save your photo. Please try again.')
-    else { setAvatarUrl(data.publicUrl); toast.success('Photo updated') }
+    else { setAvatarUrl(data.publicUrl); setTouched(true); toast.success('Photo updated') }
     setAvatarUploading(false)
   }
 
@@ -199,7 +202,7 @@ export default function ProfilePage() {
     if (!res.ok) toast.error(data.error || 'Could not add account')
     else {
       toast.success('Account added')
-      setNewHandle(''); setNewFollowers('')
+      setNewHandle(''); setNewFollowers(''); setTouched(true)
       await loadSocials()
     }
     setAddingSocial(false)
@@ -209,7 +212,7 @@ export default function ProfilePage() {
     const res = await fetch(`/api/socials/${id}`, { method: 'DELETE' })
     const data = await res.json()
     if (!res.ok) toast.error(data.error || 'Could not remove account')
-    else { toast.success('Account removed'); await loadSocials() }
+    else { toast.success('Account removed'); setTouched(true); await loadSocials() }
   }
 
   async function makePrimary(id: string) {
@@ -219,7 +222,7 @@ export default function ProfilePage() {
       body: JSON.stringify({ is_primary: true }),
     })
     if (!res.ok) toast.error('Could not update')
-    else await loadSocials()
+    else { setTouched(true); await loadSocials() }
   }
 
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
@@ -237,6 +240,12 @@ export default function ProfilePage() {
   const isDirty = initialSnapshot !== null && profileSnapshot({
     bio, niches, location, rate, availability, mediaKitUrl, portfolioLinks, displayName,
   }) !== initialSnapshot
+  // Any edit (form fields, photo, socials) makes the profile dirty.
+  const dirty = isDirty || touched
+
+  function cancelEdit() {
+    if (creatorId) router.push(`/creators/${creatorId}`)
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -476,8 +485,12 @@ export default function ProfilePage() {
         <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
       </div>
 
-      <button onClick={save} className="btn-primary" disabled={saving || avatarUploading || !isDirty}>
-        {saving ? 'Saving…' : !isDirty ? 'No changes to save' : 'Save profile'}
+      <button
+        onClick={dirty ? save : cancelEdit}
+        className={dirty ? 'btn-primary' : 'btn-secondary'}
+        disabled={saving || avatarUploading}
+      >
+        {saving ? 'Saving…' : dirty ? 'Save changes' : 'Cancel edit'}
       </button>
     </div>
   )

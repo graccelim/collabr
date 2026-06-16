@@ -8,6 +8,24 @@ import { brandCompletion } from '@/lib/profile-completion'
 import { friendlyUploadError, MAX_IMAGE_BYTES, ALLOWED_IMAGE_TYPES } from '@/lib/utils'
 import Avatar from '@/components/Avatar'
 
+interface SettingsFields {
+  role: 'brand' | 'creator' | null
+  displayName: string; companyName: string; companyDescription: string
+  industry: string; location: string; website: string; socialUrl: string; logoUrl: string
+}
+
+// Serialized editable state, used to detect changes since load.
+function settingsSnapshot(f: SettingsFields): string {
+  if (f.role === 'brand') {
+    return JSON.stringify({
+      name: f.companyName.trim(), desc: f.companyDescription.trim(), industry: f.industry,
+      location: f.location.trim(), website: f.website.trim(), social: f.socialUrl.trim(),
+      logo: f.logoUrl.trim(), display: f.displayName.trim(),
+    })
+  }
+  return JSON.stringify({ display: f.displayName.trim() })
+}
+
 export default function SettingsPage() {
   const supabase = createClient()
   const router = useRouter()
@@ -26,6 +44,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState('')
   const [brandId, setBrandId] = useState('')
+  // Snapshot of the form as loaded; logo uploads count as an edit too. Together
+  // they drive the Save changes / Cancel edit button.
+  const [initialSnapshot, setInitialSnapshot] = useState<string | null>(null)
+  const [touched, setTouched] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -58,7 +80,18 @@ export default function SettingsPage() {
           setWebsite(brand.website || '')
           setSocialUrl(brand.social_url || '')
           setLogoUrl(brand.logo_url || '')
+          setInitialSnapshot(settingsSnapshot({
+            role: 'brand', displayName: profile.display_name || '',
+            companyName: brand.company_name || '', companyDescription: brand.company_description || '',
+            industry: brand.industry || '', location: (brand as any).location || '',
+            website: brand.website || '', socialUrl: brand.social_url || '', logoUrl: brand.logo_url || '',
+          }))
         }
+      } else {
+        setInitialSnapshot(settingsSnapshot({
+          role: profile.role as 'creator', displayName: profile.display_name || '',
+          companyName: '', companyDescription: '', industry: '', location: '', website: '', socialUrl: '', logoUrl: '',
+        }))
       }
     }
     load()
@@ -78,6 +111,7 @@ export default function SettingsPage() {
     if (error) { toast.error(friendlyUploadError(error, 'logo')); setLogoUploading(false); return }
     const { data } = supabase.storage.from('brand-assets').getPublicUrl(path)
     setLogoUrl(data.publicUrl)
+    setTouched(true)
     setLogoUploading(false)
     toast.success('Logo uploaded')
   }
@@ -123,6 +157,16 @@ export default function SettingsPage() {
     website,
     social_url: socialUrl,
   }) : null
+
+  // Any edit (fields or logo) makes the form dirty → Save changes; else Cancel edit.
+  const dirty = touched || (initialSnapshot !== null && settingsSnapshot({
+    role, displayName, companyName, companyDescription, industry, location, website, socialUrl, logoUrl,
+  }) !== initialSnapshot)
+
+  function cancelEdit() {
+    if (role === 'brand' && brandId) router.push(`/brands/${brandId}`)
+    else router.push('/dashboard')
+  }
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
@@ -251,8 +295,12 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <button onClick={save} className="btn-primary" disabled={saving || logoUploading}>
-        {saving ? 'Saving…' : 'Save changes'}
+      <button
+        onClick={dirty ? save : cancelEdit}
+        className={dirty ? 'btn-primary' : 'btn-secondary'}
+        disabled={saving || logoUploading}
+      >
+        {saving ? 'Saving…' : dirty ? 'Save changes' : 'Cancel edit'}
       </button>
 
       {/* Support */}

@@ -625,8 +625,10 @@ export default async function HomePage() {
       {/* ══ FINAL CTA ══ */}
       <section
         style={{
+          // Stays in the navy/indigo family (no desaturated grey) so it reads as
+          // one cohesive dark surface with the stats band above, just subtly lit.
           background:
-            'linear-gradient(125deg, color-mix(in srgb, var(--brand) 92%, #000) 0%, var(--brand) 48%, color-mix(in srgb, var(--brand) 76%, #fff) 100%)',
+            'linear-gradient(135deg, var(--brand) 0%, var(--brand) 52%, color-mix(in srgb, var(--brand) 82%, #4F46E5) 100%)',
           color: '#fff',
           padding: 'clamp(56px,8vw,88px) 20px',
           textAlign: 'center',
@@ -651,7 +653,7 @@ export default async function HomePage() {
             pointerEvents: 'none',
           }}
         />
-        {/* glossy reflection sweep - Revolut-style sheen + a faint glint at the far edge */}
+        {/* glossy reflection sweep - subtle Revolut-style sheen across the top-left */}
         <div
           aria-hidden
           style={{
@@ -659,7 +661,7 @@ export default async function HomePage() {
             inset: 0,
             pointerEvents: 'none',
             background:
-              'linear-gradient(120deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 34%, rgba(255,255,255,0) 76%, rgba(255,255,255,.06) 100%)',
+              'linear-gradient(120deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 32%)',
           }}
         />
         <Reveal style={{ position: 'relative', zIndex: 1 }}>
