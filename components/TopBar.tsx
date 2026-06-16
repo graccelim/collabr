@@ -24,24 +24,17 @@ interface Props {
  */
 export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', profileHref }: Props) {
   const isBrand = role === 'brand'
-  // Full mobile nav (the sidebar is hidden ≤768px) - same sections, same order.
+  // Only the destinations the mobile BOTTOM bar doesn't already show, so the
+  // account menu doesn't repeat the tabs (bottom bar = Overview / Campaigns /
+  // Collabs / Creators / Billing for brands; Overview / Discover / Invites /
+  // Collabs / Earnings for creators).
   const menuSections = isBrand
     ? [
-        { href: '/dashboard', label: 'Overview' },
-        { href: '/campaigns', label: 'Your campaigns' },
-        { href: '/collabs', label: 'Collabs' },
-        { href: '/creators', label: 'Discover creators' },
         { href: '/invites', label: 'Your invitations' },
-        { href: '/billing', label: 'Billing' },
         { href: '/notifications', label: 'Notifications' },
       ]
     : [
-        { href: '/dashboard', label: 'Overview' },
-        { href: '/jobs', label: 'Discover campaigns' },
-        { href: '/invites', label: 'Invites' },
-        { href: '/collabs', label: 'Collabs' },
         { href: '/applications', label: 'Applications' },
-        { href: '/earnings', label: 'Earnings' },
         { href: '/notifications', label: 'Notifications' },
       ]
   const ctaHref = isBrand ? '/post-job' : '/jobs'

@@ -40,6 +40,10 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState('')
   const [avatarUploading, setAvatarUploading] = useState(false)
+  // Staged photo: held locally and only committed when the user clicks Save, so
+  // navigating away (or Cancel edit) discards it - nothing saves implicitly.
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState('')
   const [emailVerified, setEmailVerified] = useState(false)
 
   const [bio, setBio] = useState('')
@@ -122,20 +126,31 @@ export default function ProfilePage() {
     }
   }, [socials, newPlatform])
 
-  async function uploadAvatar(file: File) {
+  // Stage a chosen photo locally (no upload yet) - it commits only on Save.
+  function selectAvatar(file: File) {
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) { toast.error('Please upload a PNG, JPG or WebP image.'); return }
     if (file.size > MAX_IMAGE_BYTES) { toast.error('That image is too large. Please upload one under 2 MB.'); return }
+    setAvatarPreview(prev => { if (prev) URL.revokeObjectURL(prev); return URL.createObjectURL(file) })
+    setAvatarFile(file)
+    setTouched(true)
+  }
+
+  // Upload the staged photo and persist it. Returns false on failure.
+  async function commitAvatar(): Promise<boolean> {
+    if (!avatarFile) return true
     setAvatarUploading(true)
-    const ext = file.name.split('.').pop()
+    const ext = avatarFile.name.split('.').pop()
     const path = `${userId}-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
-    if (error) { toast.error(friendlyUploadError(error, 'photo')); setAvatarUploading(false); return }
+    const { error } = await supabase.storage.from('avatars').upload(path, avatarFile, { upsert: true, contentType: avatarFile.type })
+    if (error) { toast.error(friendlyUploadError(error, 'photo')); setAvatarUploading(false); return false }
     const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     const { error: userErr } = await supabase.from('users')
       .update({ avatar_url: data.publicUrl }).eq('id', userId)
-    if (userErr) toast.error('We couldn’t save your photo. Please try again.')
-    else { setAvatarUrl(data.publicUrl); setTouched(true); toast.success('Photo updated') }
+    if (userErr) { toast.error('We couldn’t save your photo. Please try again.'); setAvatarUploading(false); return false }
+    setAvatarUrl(data.publicUrl)
+    setAvatarFile(null)
     setAvatarUploading(false)
+    return true
   }
 
   function toggleNiche(n: CreatorNiche) {
@@ -162,6 +177,8 @@ export default function ProfilePage() {
       toast.error('Rate must be a positive number'); return
     }
     setSaving(true)
+    // Commit the staged photo first; abort the save if it fails.
+    if (!(await commitAvatar())) { setSaving(false); return }
     const res = await fetch('/api/profile/creator', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -228,7 +245,7 @@ export default function ProfilePage() {
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
 
   const completion = creatorCompletion({
-    avatar_url: avatarUrl,
+    avatar_url: avatarUrl || avatarPreview,
     niche: niches[0] || '',
     bio,
     location,
@@ -288,7 +305,7 @@ export default function ProfilePage() {
       <div className="card space-y-4">
         <h2 className="text-sm font-medium text-gray-900">About you</h2>
         <div className="flex items-center gap-4">
-          <Avatar src={avatarUrl} name={displayName} size={64} />
+          <Avatar src={avatarPreview || avatarUrl} name={displayName} size={64} />
           <div>
             <button
               type="button"
@@ -296,16 +313,18 @@ export default function ProfilePage() {
               disabled={avatarUploading}
               className="btn-secondary text-sm"
             >
-              {avatarUploading ? 'Uploading…' : avatarUrl ? 'Replace photo' : 'Upload photo'}
+              {avatarPreview || avatarUrl ? 'Replace photo' : 'Upload photo'}
             </button>
-            <p className="text-xs text-gray-400 mt-1">PNG or JPG, max 2 MB. Brands see this first.</p>
+            <p className="text-xs text-gray-400 mt-1">
+              {avatarPreview ? 'Photo selected, click Save changes to apply.' : 'PNG or JPG, max 2 MB. Brands see this first.'}
+            </p>
           </div>
           <input
             ref={avatarInputRef}
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="hidden"
-            onChange={e => { const f = e.target.files?.[0]; if (f) uploadAvatar(f) }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) selectAvatar(f) }}
           />
         </div>
         <div>
@@ -485,13 +504,16 @@ export default function ProfilePage() {
         <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
       </div>
 
-      <button
-        onClick={dirty ? save : cancelEdit}
-        className={dirty ? 'btn-primary' : 'btn-secondary'}
-        disabled={saving || avatarUploading}
-      >
-        {saving ? 'Saving…' : dirty ? 'Save changes' : 'Cancel edit'}
-      </button>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
+          Cancel edit
+        </button>
+        {dirty && (
+          <button type="button" onClick={save} className="btn-primary" disabled={saving || avatarUploading}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        )}
+      </div>
     </div>
   )
 }

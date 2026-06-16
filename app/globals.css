@@ -215,6 +215,11 @@
   .workflow-step .workflow-title { transition: color .2s ease; }
   .workflow-step:hover .workflow-title { color: var(--accent-deep); }
 
+  /* Monochrome social glyphs (Simple Icons) - subtle Linear/Vercel hover dim. */
+  .social-glyph { transition: opacity .15s ease; }
+  .social-glyph:hover { opacity: .6; }
+  a:hover > .social-glyph, a:hover .social-glyph { opacity: .7; }
+
   /* ---- Dimensional dark "money" panel - the premium hero object ----
      Deep navy gradient + soft accent/secure glow + faint grain. The glow and
      grain are pseudo-elements so existing markup upgrades with no JSX change;

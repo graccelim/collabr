@@ -6,7 +6,7 @@ import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
-import { socialIcon, socialTint } from '@/components/SocialIcon'
+import { socialIcon } from '@/components/SocialIcon'
 import { chipColor } from '@/lib/niches'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
@@ -333,16 +333,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {socials.map(s => {
                     const Icon = socialIcon(s.platform)
-                    const tint = socialTint(s.platform)
                     return (
                       <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer"
                         className="card card-hover"
                         style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 13px', textDecoration: 'none' }}>
                         <span style={{
                           width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center',
-                          background: tint.bg, color: tint.fg,
+                          background: 'var(--surface-2)', color: 'var(--ink)',
                         }}>
-                          <Icon size={16} />
+                          <Icon size={18} />
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

@@ -106,10 +106,14 @@ export default function SettingsPage() {
     const uid = userId || (await supabase.auth.getUser()).data.user?.id
     if (!uid) { toast.error('Please sign in again to upload your logo.'); setLogoUploading(false); return }
     const ext = file.name.split('.').pop()
-    const path = `logos/${uid}-${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('brand-assets').upload(path, file, { upsert: true, contentType: file.type })
+    // Use the shared `avatars` bucket: its policy only requires the file be named
+    // `{uid}-...`, which every authenticated user satisfies. (The legacy
+    // brand-assets bucket needs a `logos/` folder policy that isn't reliably
+    // applied, which was causing the RLS rejection.)
+    const path = `${uid}-${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
     if (error) { toast.error(friendlyUploadError(error, 'logo')); setLogoUploading(false); return }
-    const { data } = supabase.storage.from('brand-assets').getPublicUrl(path)
+    const { data } = supabase.storage.from('avatars').getPublicUrl(path)
     setLogoUrl(data.publicUrl)
     setTouched(true)
     setLogoUploading(false)
@@ -295,13 +299,16 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <button
-        onClick={dirty ? save : cancelEdit}
-        className={dirty ? 'btn-primary' : 'btn-secondary'}
-        disabled={saving || logoUploading}
-      >
-        {saving ? 'Saving…' : dirty ? 'Save changes' : 'Cancel edit'}
-      </button>
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
+          Cancel edit
+        </button>
+        {dirty && (
+          <button type="button" onClick={save} className="btn-primary" disabled={saving || logoUploading}>
+            {saving ? 'Saving…' : 'Save changes'}
+          </button>
+        )}
+      </div>
 
       {/* Support */}
       <div className="card space-y-3">
