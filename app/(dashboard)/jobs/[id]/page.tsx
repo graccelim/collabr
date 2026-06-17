@@ -180,7 +180,6 @@ export default async function JobDetailPage({
           })
         : 'Flexible',
     },
-    { label: 'Compensation', value: compValue },
   ];
 
   return (
@@ -298,8 +297,8 @@ export default async function JobDetailPage({
             minWidth: 0,
           }}
         >
-          {/* The brief */}
-          <div className="card" style={{ padding: 22 }}>
+          {/* The brief - soft panel (no hard card border) for a calmer canvas */}
+          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--radius)', padding: 22 }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>
               The brief
             </div>
@@ -321,7 +320,7 @@ export default async function JobDetailPage({
                   marginTop: 16,
                   padding: 13,
                   borderRadius: 'var(--radius-sm)',
-                  background: 'var(--paper-2)',
+                  background: 'var(--surface)',
                   border: '1px solid var(--line)',
                 }}
               >
@@ -343,7 +342,7 @@ export default async function JobDetailPage({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
+                gridTemplateColumns: `repeat(${briefMeta.length}, 1fr)`,
                 gap: 14,
                 marginTop: 18,
                 paddingTop: 18,
@@ -370,17 +369,14 @@ export default async function JobDetailPage({
             </div>
           </div>
 
-          {/* Apply or sent state - compact status card (not a full-page medallion) */}
+          {/* Apply or sent state - soft tinted status panel that stands out */}
           {existing ? (
             (() => {
               // "shortlisted" is a private brand bookmark - to the creator it reads
               // exactly like a sent application (no false "you're shortlisted" signal).
               const selected = existing.status === 'selected';
-              const tone = selected ? 'money' : 'accent';
-              const tile =
-                tone === 'money' ? 'var(--money-tint)' : 'var(--accent-tint)';
-              const ink =
-                tone === 'money' ? 'var(--money)' : 'var(--accent-deep)';
+              const tint = selected ? 'var(--money-tint)' : 'var(--accent-tint)';
+              const solid = selected ? 'var(--money)' : 'var(--accent)';
               const title = selected
                 ? 'You were selected!'
                 : `Application sent to ${brandName}`;
@@ -389,9 +385,10 @@ export default async function JobDetailPage({
                 : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
-                  className="card"
                   style={{
                     padding: 18,
+                    borderRadius: 'var(--radius)',
+                    background: tint,
                     display: 'flex',
                     gap: 14,
                     alignItems: 'flex-start',
@@ -401,10 +398,10 @@ export default async function JobDetailPage({
                     style={{
                       width: 42,
                       height: 42,
-                      borderRadius: 'var(--radius-sm)',
+                      borderRadius: '50%',
                       flexShrink: 0,
-                      background: tile,
-                      color: ink,
+                      background: solid,
+                      color: '#fff',
                       display: 'grid',
                       placeItems: 'center',
                     }}
@@ -415,7 +412,7 @@ export default async function JobDetailPage({
                     <div
                       style={{
                         fontSize: 16,
-                        fontWeight: 600,
+                        fontWeight: 700,
                         color: 'var(--ink)',
                       }}
                     >
@@ -464,51 +461,47 @@ export default async function JobDetailPage({
             gap: 16,
           }}
         >
-          {/* Payment protected */}
-          <div
-            className="card"
-            style={{
-              padding: 20,
-              background: 'var(--money-tint)',
-              borderColor: 'var(--money-tint)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 9,
-                marginBottom: 12,
-              }}
-            >
-              <Shield size={18} color="var(--money)" />
-              <span
+          {/* Compensation hero - the standout. Navy "wallet" gradient: the amount
+              up top, escrow protection underneath, all in one premium panel. */}
+          <div className="money-panel" style={{ padding: '22px 22px' }}>
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--accent-on-dark)' }}>
+                Compensation
+              </div>
+              <div className="mono-num" style={{ fontSize: 27, fontWeight: 700, color: '#fff', letterSpacing: '-0.02em', lineHeight: 1.05 }}>
+                {compValue}
+              </div>
+              <div style={{ fontSize: 12.5, color: 'var(--accent-on-dark)', marginTop: 4 }}>
+                {isPaid ? 'Paid in SGD, released on approval' : 'Product or service exchange'}
+              </div>
+              <div
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: 'var(--money-deep)',
+                  marginTop: 16,
+                  paddingTop: 16,
+                  borderTop: '1px solid rgba(255,255,255,.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 11,
                 }}
               >
-                Your payment is protected
-              </span>
+                <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+                  <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12.5, color: 'var(--accent-on-dark)', lineHeight: 1.45 }}>
+                    Funded into escrow <strong style={{ color: '#fff' }}>before you create anything</strong>.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+                  <CheckCircle2 size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                  <span style={{ fontSize: 12.5, color: 'var(--accent-on-dark)', lineHeight: 1.45 }}>
+                    Released automatically once your post is approved.
+                  </span>
+                </div>
+              </div>
             </div>
-            <p
-              style={{
-                fontSize: 13,
-                color: 'var(--money-deep)',
-                margin: 0,
-                lineHeight: 1.55,
-              }}
-            >
-              If you’re selected, the brand funds escrow at your agreed rate{' '}
-              <strong>before you create anything</strong>. You’ll see the money
-              locked in. Post the approved content and it releases
-              automatically.
-            </p>
           </div>
 
-          {/* Your fit */}
-          <div className="card" style={{ padding: 20 }}>
+          {/* Your fit - soft panel matching the brief */}
+          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--radius)', padding: 20 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>
               Your fit for this
             </div>

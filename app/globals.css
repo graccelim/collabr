@@ -220,14 +220,22 @@
   .social-glyph:hover { opacity: .6; }
   a:hover > .social-glyph, a:hover .social-glyph { opacity: .7; }
 
-  /* Flat profile rail - sections divided by hairlines, no card boxes. The whole
-     rail reads as one quiet column matching the flat left content. */
-  .rail-section { padding: 20px 0; border-top: 1px solid var(--line); }
-  .rail-section:first-child { padding-top: 0; border-top: 0; }
-  /* Flat, hoverable link rows (socials, portfolio) - no bordered box. */
+  /* Profile rail - clean white cards (the page bg is white, so flat sections
+     read as plain; cards give the rail structure). A navy "money-panel" card is
+     used per-page for the one block that should stand out. */
+  .rail-section {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+    padding: 18px;
+    margin-bottom: 16px;
+  }
+  .rail-section:last-child { margin-bottom: 0; }
+  /* Hoverable link rows (socials, portfolio, campaigns) bleed into card padding. */
   .rail-link {
     display: flex; align-items: center; gap: 11px;
-    margin: 0 -10px; padding: 9px 10px;
+    margin: 0 -8px; padding: 9px 8px;
     text-decoration: none; border-radius: var(--radius-sm);
     transition: background .12s ease;
   }
@@ -576,14 +584,15 @@
 .tab-bar-btn {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
   border: 0; background: transparent;
-  color: rgba(255,255,255,.6);
+  color: #fff;
   font-size: 10px; font-weight: 550;
   padding: 4px 2px; min-height: 44px;
   font-family: var(--font-body); cursor: pointer;
   text-decoration: none;
-  transition: color .15s ease;
+  opacity: .68;
+  transition: opacity .15s ease;
 }
-.tab-bar-btn.active { color: #fff; }
+.tab-bar-btn.active { opacity: 1; font-weight: 650; }
 .tab-bar-btn svg { margin-bottom: 1px; }
 
 /* ============================================================
@@ -711,8 +720,10 @@
   .pc-grid, .resp-2col { grid-template-columns: 1fr !important; }
   .pc-grid > *, .resp-2col > * { position: static !important; top: auto !important; }
 
-  /* Dense numeric stat rows wrap to two columns; card pairs / N-up stack. */
+  /* Dense numeric stat rows wrap to two columns; card pairs / N-up stack. A lone
+     trailing card (odd count) spans the full width so there's no dead space. */
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
+  .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
 
   /* Profile stat band → tidy 2-up grid on phones. Equal-height cells (grid, not

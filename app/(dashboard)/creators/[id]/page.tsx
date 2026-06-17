@@ -125,17 +125,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   ]
 
 
-  return (
-    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
-      {!isOwner && (
-        <ProfileBackButton from={searchParams.from} fallback="/creators" />
-      )}
-
-      {/* two-column from the top: identity + content (left), rail (right) */}
-      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
-        {/* LEFT - identity, stats, content */}
-        <div style={{ minWidth: 0 }}>
-          {/* hero */}
+  // Hero (identity + primary action), the stat band, the long-form content, and
+  // the two rail sections are defined once, then arranged two ways: owners get a
+  // full-width header with the rail below; visitors get the rail from the top.
+  const heroBlock = (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
               <Avatar src={avatar} name={name} size={76} />
@@ -192,12 +185,16 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               )
             )}
           </div>
+  )
 
-          {/* premium stat band */}
+  const statsBlock = (
           <div style={{ marginBottom: 28 }}>
             <ProfileStats stats={stats} />
           </div>
+  )
 
+  const mainContent = (
+        <>
           {/* About */}
           {creator.bio && (
             <section style={{ marginBottom: 30 }}>
@@ -290,11 +287,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </>
             )
           })()}
-        </div>
+        </>
+  )
 
-        {/* RAIL - flat sections divided by hairlines (no card boxes) */}
-        <div style={{ position: 'sticky', top: 24 }}>
-          {/* Social profiles - creator-provided, clickable so brands verify themselves */}
+  // Social profiles - creator-provided, clickable so brands verify themselves.
+  const socialSection = (
           <div className="rail-section">
             <div className="eyebrow" style={{ marginBottom: 6 }}>{isOwner ? 'Your social profiles' : 'Social profiles'}</div>
             {socials.length > 0 ? (
@@ -355,8 +352,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </div>
             )}
           </div>
+  )
 
-          {/* Availability */}
+  const availabilitySection = (
           <div className="rail-section">
             <div className="eyebrow" style={{ marginBottom: 12 }}>Availability</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
@@ -385,8 +383,70 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </div>
             )}
           </div>
+  )
+
+  // Brand-facing reassurance (b-c) - the navy "wallet" card. Copy is written for
+  // the BRAND reading it: their money is safe, they approve before paying.
+  const brandReassurance = (
+    <div className="money-panel" style={{ padding: 20, borderRadius: 'var(--radius)', marginBottom: 16 }}>
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div className="eyebrow" style={{ marginBottom: 12, color: 'var(--accent-on-dark)' }}>Working with {name}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {([
+            ['Your funds stay protected', 'Held in escrow until the collab is done'],
+            ['You approve before you pay', 'Nothing is released until you sign off the content'],
+            ['Only pay for results', 'Funds release just for work you’ve approved'],
+          ] as [string, string][]).map(([t, sub]) => (
+            <div key={t} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+              <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#fff' }}>{t}</span>
+                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
+    </div>
+  )
+
+  // Owner sees availability first (their own status), then their socials; a
+  // visiting brand leads with the reassurance card, then socials, availability.
+  const rail = (
+    <div style={{ position: 'sticky', top: 24 }}>
+      {isOwner
+        ? <>{availabilitySection}{socialSection}</>
+        : <>{brandReassurance}{socialSection}{availabilitySection}</>}
+    </div>
+  )
+
+  return (
+    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
+      {!isOwner && (
+        <ProfileBackButton from={searchParams.from} fallback="/creators" />
+      )}
+
+      {isOwner ? (
+        // Own profile: full-width header, then content + rail below it.
+        <>
+          {heroBlock}
+          {statsBlock}
+          <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+            <div style={{ minWidth: 0 }}>{mainContent}</div>
+            {rail}
+          </div>
+        </>
+      ) : (
+        // Visitor: two-column from the top (identity + content left, rail right).
+        <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+          <div style={{ minWidth: 0 }}>
+            {heroBlock}
+            {statsBlock}
+            {mainContent}
+          </div>
+          {rail}
+        </div>
+      )}
     </div>
   )
 }

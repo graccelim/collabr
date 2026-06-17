@@ -70,13 +70,13 @@ export default async function BrandProfilePage({ params, searchParams }: { param
 
   const showRating = (brand.rating_count || 0) >= 1
 
-  // What a creator gets working with this brand - the platform's escrow
-  // protections, framed for the creator who is reading the brand's profile.
+  // What a creator gets working with this brand - the escrow promise, framed for
+  // the creator reading it: it's funded upfront, so approved work always pays.
   // (Only shown to visitors, never on the brand's own-profile view.)
   const brandTerms: [string, string][] = [
-    ['Payment held in escrow', 'Brand funds the collab before you start'],
-    ['48-hour review window', 'They approve or request changes'],
-    ['Released on approval', 'Paid once your post is confirmed live'],
+    ['Funded before you start', 'The brand locks payment in escrow upfront'],
+    ['Approved work always pays', 'Post the approved content and it’s yours'],
+    ['Released automatically', 'No chasing invoices, escrow pays out on approval'],
   ]
 
   const stats: ProfileStat[] = [
@@ -85,17 +85,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
     { label: 'Member', value: memberSince ? String(memberSince) : '–', sub: 'on collabr since', icon: CalendarDays, tone: 'neutral' },
   ]
 
-  return (
-    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
-      {!isOwner && (
-        <ProfileBackButton from={searchParams.from} fallback="/jobs" />
-      )}
-
-      {/* two-column from the top: identity + content (left), rail (right) */}
-      <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
-        {/* LEFT - identity, stats, content */}
-        <div style={{ minWidth: 0 }}>
-          {/* hero */}
+  // Defined once, arranged two ways: owners get a full-width header with the rail
+  // below; visitors get the rail from the top.
+  const heroBlock = (
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
               <Avatar src={brand.logo_url} name={name} size={76} />
@@ -123,12 +115,16 @@ export default async function BrandProfilePage({ params, searchParams }: { param
               </Link>
             )}
           </div>
+  )
 
-          {/* premium stat band */}
+  const statsBlock = (
           <div style={{ marginBottom: 28 }}>
             <ProfileStats stats={stats} />
           </div>
+  )
 
+  const mainContent = (
+        <>
           {brand.company_description && (
             <section style={{ marginBottom: 30 }}>
               <h2 className="h2" style={{ fontSize: 18, marginBottom: 12 }}>About</h2>
@@ -166,10 +162,12 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             ctaHref={isOwner ? '/post-job' : undefined}
             ctaLabel={isOwner ? 'Post a campaign' : undefined}
           />
-        </div>
+        </>
+  )
 
-        {/* RAIL - flat sections (no card boxes). The escrow pitch is for creators
-            reading the profile, so it's hidden on the brand's own-profile view. */}
+  // RAIL - flat sections (no card boxes). The escrow pitch is for creators
+  // reading the profile, so it's hidden on the brand's own-profile view.
+  const rail = (
         <div style={{ position: 'sticky', top: 24 }}>
           {/* Open campaigns - the most actionable thing a creator can do here.
               "See all" → brand's own manager (owner) or brand-scoped discover. */}
@@ -204,18 +202,20 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           )}
 
           {!isOwner && (
-            <div className="rail-section">
-              <div className="eyebrow" style={{ marginBottom: 12 }}>Working with {name}</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-                {brandTerms.map(([t, sub]) => (
-                  <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                    <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                    <span style={{ minWidth: 0 }}>
-                      <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
-                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>{sub}</span>
-                    </span>
-                  </div>
-                ))}
+            <div className="money-panel" style={{ padding: 20, borderRadius: 'var(--radius)', marginBottom: 16 }}>
+              <div style={{ position: 'relative', zIndex: 1 }}>
+                <div className="eyebrow" style={{ marginBottom: 12, color: 'var(--accent-on-dark)' }}>Working with {name}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {brandTerms.map(([t, sub]) => (
+                    <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
+                      <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#fff' }}>{t}</span>
+                        <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
@@ -254,7 +254,35 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             </div>
           )}
         </div>
-      </div>
+  )
+
+  return (
+    <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
+      {!isOwner && (
+        <ProfileBackButton from={searchParams.from} fallback="/jobs" />
+      )}
+
+      {isOwner ? (
+        // Own profile: full-width header, then content + rail below it.
+        <>
+          {heroBlock}
+          {statsBlock}
+          <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+            <div style={{ minWidth: 0 }}>{mainContent}</div>
+            {rail}
+          </div>
+        </>
+      ) : (
+        // Visitor: two-column from the top (identity + content left, rail right).
+        <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
+          <div style={{ minWidth: 0 }}>
+            {heroBlock}
+            {statsBlock}
+            {mainContent}
+          </div>
+          {rail}
+        </div>
+      )}
     </div>
   )
 }
