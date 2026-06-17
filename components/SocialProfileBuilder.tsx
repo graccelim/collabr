@@ -24,8 +24,8 @@ export function newSocialRow(used: SocialPlatform[] = []): SocialRow {
  * first and the API marks it primary. Prevents duplicate platforms.
  */
 export default function SocialProfileBuilder({
-  rows, onChange,
-}: { rows: SocialRow[]; onChange: (rows: SocialRow[]) => void }) {
+  rows, onChange, showFollowers = true,
+}: { rows: SocialRow[]; onChange: (rows: SocialRow[]) => void; showFollowers?: boolean }) {
   const used = new Set(rows.map(r => r.platform))
   const canAddMore = used.size < SOCIAL_PLATFORMS.length
 
@@ -73,9 +73,11 @@ export default function SocialProfileBuilder({
                 )}
               </div>
 
-              <input className="input" type="number" min="0" placeholder="Follower count" required
-                value={row.followers}
-                onChange={e => update(i, { followers: e.target.value })} />
+              {showFollowers && (
+                <input className="input" type="number" min="0" placeholder="Follower count" required
+                  value={row.followers}
+                  onChange={e => update(i, { followers: e.target.value })} />
+              )}
             </div>
           )
         })}

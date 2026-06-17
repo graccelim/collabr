@@ -445,7 +445,6 @@ export default async function JobDetailPage({
                 >
                   <span
                     style={{
-                      position: 'relative',
                       width: 42,
                       height: 42,
                       borderRadius: '50%',
@@ -456,13 +455,7 @@ export default async function JobDetailPage({
                       placeItems: 'center',
                     }}
                   >
-                    <CheckCircle2 size={22} />
-                    {selected && (
-                      <Sparkles
-                        size={15}
-                        style={{ position: 'absolute', top: -4, right: -4, color: '#FFD36B', fill: '#FFD36B' }}
-                      />
-                    )}
+                    {selected ? <Sparkles size={22} fill="currentColor" /> : <CheckCircle2 size={22} />}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>

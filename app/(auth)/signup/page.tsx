@@ -85,9 +85,6 @@ function SignupForm() {
       if (!websiteUrl && brandSocials.length === 0) {
         toast.error('Add a website, social profile, or Google Maps link'); return
       }
-      if (brandSocials.some(s => s.follower_count == null || !(s.follower_count >= 0))) {
-        toast.error('Add a follower count for each social profile'); return
-      }
       payload = {
         ...payload, industry, website: websiteUrl,
         social_url: brandSocials[0]?.url || null,
@@ -191,7 +188,7 @@ function SignupForm() {
               <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />
             </Field>
             <Field label="Brand socials" hint="Helps creators trust you faster. Pick a platform and enter your handle, we build the link. Your first profile is shown as primary.">
-              <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
+              <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} showFollowers={false} />
             </Field>
           </>
         ) : (

@@ -343,7 +343,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="label">Social profiles</label>
-            <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
+            <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} showFollowers={false} />
             <p className="text-xs text-gray-400 mt-2">
               Pick a platform and enter your handle, we build the link. Your first profile is shown as primary. A website or a social profile is required.
             </p>

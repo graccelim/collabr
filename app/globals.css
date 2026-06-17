@@ -221,22 +221,14 @@
   .social-glyph:hover { opacity: .6; }
   a:hover > .social-glyph, a:hover .social-glyph { opacity: .7; }
 
-  /* Profile rail - clean white cards (the page bg is white, so flat sections
-     read as plain; cards give the rail structure). A navy "money-panel" card is
-     used per-page for the one block that should stand out. */
-  .rail-section {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-sm);
-    padding: 18px;
-    margin-bottom: 16px;
-  }
-  .rail-section:last-child { margin-bottom: 0; }
-  /* Hoverable link rows (socials, portfolio, campaigns) bleed into card padding. */
+  /* Profile rail - flat sections divided by hairlines (no card boxes), sitting on
+     the light-blue canvas. */
+  .rail-section { padding: 20px 0; border-top: 1px solid var(--line); }
+  .rail-section:first-child { padding-top: 0; border-top: 0; }
+  /* Hoverable link rows (socials, portfolio, campaigns) - flat, no bordered box. */
   .rail-link {
     display: flex; align-items: center; gap: 11px;
-    margin: 0 -8px; padding: 9px 8px;
+    margin: 0 -10px; padding: 9px 10px;
     text-decoration: none; border-radius: var(--radius-sm);
     transition: background .12s ease;
   }
@@ -422,28 +414,18 @@
     font-size: 14px; color: var(--ink); font-family: var(--font-body);
   }
 
-  /* Profile stat band - a crisp white instrument panel that lifts off the blue
-     canvas. Hairline cell dividers + a faint top accent line give it a "tech /
-     dashboard readout" feel rather than a plain card. Reflows to 2-up on phones. */
+  /* Profile stat band - flat (no card): hairline top/bottom rules with vertical
+     cell dividers, sitting directly on the light-blue canvas. Reflows to 2-up on
+     phones. */
   .profile-stats {
-    position: relative;
     display: flex;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 6px 20px -12px rgba(13,18,45,.18);
-    overflow: hidden;
-  }
-  /* Thin gradient hairline across the top edge - the "tech" touch. */
-  .profile-stats::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent) 0%, #5b6fd6 45%, var(--money) 100%);
-    opacity: .55;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
   .profile-stats > .profile-stat {
     flex: 1; min-width: 0;
     display: flex; align-items: center; gap: 13px;
-    padding: 17px 20px;
+    padding: 16px 20px;
   }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
   /* Soft, tinted circular icon chip - colourful but muted (Linear/Notion feel). */

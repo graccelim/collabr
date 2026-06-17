@@ -382,10 +382,6 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      <Link href={`/brands/${brand.id}`} className="btn-secondary btn-sm md:hidden"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-        <UserRound size={14} /> View my profile
-      </Link>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Brand workspace
@@ -423,6 +419,10 @@ async function BrandDashboard({ userId }: { userId: string }) {
               : 'Nothing secured yet, you’ll fund escrow when you accept your first creator.'
           }
         />
+        <Link href={`/brands/${brand.id}`} className="md:hidden"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 10, fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+          <UserRound size={13} /> View my profile
+        </Link>
       </div>
 
       {isEmpty ? (
@@ -695,10 +695,6 @@ async function CreatorDashboard({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      <Link href={`/creators/${creator.id}`} className="btn-secondary btn-sm md:hidden"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
-        <UserRound size={14} /> View my profile
-      </Link>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Creator studio
@@ -835,6 +831,11 @@ async function CreatorDashboard({
             : ''}
         </div>
       </div>
+
+      <Link href={`/creators/${creator.id}`} className="md:hidden"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 14, fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+        <UserRound size={13} /> View my profile
+      </Link>
 
       {isEmpty ? (
         <EmptyState

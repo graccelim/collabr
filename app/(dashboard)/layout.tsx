@@ -46,13 +46,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
           const { data: brand } = await admin.from('brand_profiles')
             .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
           const plan = resolvePlan(brand)
-          // Best-effort: brand socials (jsonb) missing a follower count. Tolerates
-          // DBs where the `socials` column isn't applied yet.
-          let needsFollowers = false
-          const { data: bSoc } = await admin.from('brand_profiles').select('socials').eq('user_id', user.id).maybeSingle()
-          const socs = Array.isArray((bSoc as { socials?: unknown } | null)?.socials) ? (bSoc as { socials: { follower_count?: number | null }[] }).socials : []
-          needsFollowers = socs.length > 0 && socs.some(s => s.follower_count == null)
-          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers }
+          // Brands don't track follower counts, so no follower nudge for them.
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers: false }
         })(),
     supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
