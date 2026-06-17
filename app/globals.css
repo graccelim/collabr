@@ -358,7 +358,7 @@
   .badge-money   { background: var(--money-tint);   color: var(--money-deep); }
   .badge-pending { background: var(--pending-tint); color: var(--pending); }
   .badge-danger  { background: var(--danger-tint);  color: var(--danger); }
-  .badge-neutral { background: var(--paper-2);      color: var(--ink-soft); }
+  .badge-neutral { background: #e4ecfb;             color: #2f5fc0; }
   .badge-ink     { background: var(--ink);          color: #fff; }
   .badge-safe    { background: var(--safe-tint);    color: var(--safe-deep); }
   .badge-warn    { background: var(--warn-tint);    color: var(--warn); }
@@ -367,7 +367,7 @@
   .badge-teal    { background: var(--money-tint);   color: var(--money-deep); }
   .badge-coral   { background: var(--danger-tint);  color: var(--danger); }
   .badge-amber   { background: var(--pending-tint); color: var(--pending); }
-  .badge-gray    { background: var(--paper-2);      color: var(--ink-soft); }
+  .badge-gray    { background: #e4ecfb;             color: #2f5fc0; }
 
   /* ---- Form elements ---- */
   .label {
@@ -430,7 +430,7 @@
   }
   .profile-stats > .profile-stat {
     flex: 1; min-width: 0;
-    padding: 14px 18px;
+    padding: 22px 18px;
   }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
   .profile-stat-val {
@@ -714,7 +714,7 @@
   .resp-1col  { grid-template-columns: 1fr !important; }
 
   /* Profile stat band → stays a single compact 4-up row on phones; subs hidden. */
-  .profile-stats > .profile-stat { padding: 12px 10px; }
+  .profile-stats > .profile-stat { padding: 17px 10px; }
   .profile-stat-val { font-size: 15px; }
   .profile-stat-label { font-size: 10.5px; margin-top: 3px; }
   .profile-stat-sub { display: none; }

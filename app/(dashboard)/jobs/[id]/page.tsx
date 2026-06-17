@@ -4,7 +4,7 @@ import { formatSGD, getInitials } from '@/lib/utils';
 import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
-import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package, Sparkles } from 'lucide-react';
+import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
 
@@ -455,7 +455,13 @@ export default async function JobDetailPage({
                       placeItems: 'center',
                     }}
                   >
-                    {selected ? <Sparkles size={22} fill="currentColor" /> : <CheckCircle2 size={22} />}
+                    {selected ? (
+                      <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0C12 6 6 12 0 12C6 12 12 18 12 24C12 18 18 12 24 12C18 12 12 6 12 0Z" />
+                      </svg>
+                    ) : (
+                      <CheckCircle2 size={22} />
+                    )}
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>

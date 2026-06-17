@@ -88,7 +88,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   // Defined once, arranged two ways: owners get a full-width header with the rail
   // below; visitors get the rail from the top.
   const heroBlock = (
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
                 <Avatar src={brand.logo_url} name={name} size={76} />
@@ -111,28 +111,28 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                 </div>
               </div>
 
-              {/* Visitor: share sits top-right, inline with the name. */}
+              {/* Visitor (c-b): share sits top-right, inline with the name. */}
               {!isOwner && (
                 <div style={{ flexShrink: 0 }}>
                   <ShareProfileButton path={`/brands/${params.id}`} name={name} />
                 </div>
               )}
             </div>
-
-            {/* Owner: Edit + Share in a row below the identity. */}
-            {isOwner && (
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
-                <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                  <Pencil size={15} /> Edit profile
-                </Link>
-                <ShareProfileButton path={`/brands/${params.id}`} name={name} />
-              </div>
-            )}
           </div>
   )
 
+  // Owner (b-b): Edit + Share live below the stat strip.
+  const heroActions = isOwner ? (
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 30 }}>
+            <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Pencil size={15} /> Edit profile
+            </Link>
+            <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+          </div>
+  ) : null
+
   const statsBlock = (
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: isOwner ? 18 : 28 }}>
             <ProfileStats stats={stats} />
           </div>
   )
@@ -275,10 +275,11 @@ export default async function BrandProfilePage({ params, searchParams }: { param
       )}
 
       {isOwner ? (
-        // Own profile: full-width header, then content + rail below it.
+        // Own profile: full-width header, stat strip, actions, then content + rail.
         <>
           {heroBlock}
           {statsBlock}
+          {heroActions}
           <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
             <div style={{ minWidth: 0 }}>{mainContent}</div>
             {rail}

@@ -129,7 +129,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // the two rail sections are defined once, then arranged two ways: owners get a
   // full-width header with the rail below; visitors get the rail from the top.
   const heroBlock = (
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
               <Avatar src={avatar} name={name} size={76} />
               <div style={{ minWidth: 0 }}>
@@ -159,9 +159,13 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </div>
               </div>
             </div>
+          </div>
+  )
 
-            {/* action row - edit (owner) / invite + save (pro brand) + share (all) */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
+  // Actions live below the stat strip - edit (owner) / invite + save (pro brand) + share.
+  const heroActions = (
+          <div style={{ marginBottom: 30 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isOwner && (
                 <Link href="/profile" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                   <Pencil size={15} /> Edit profile
@@ -190,13 +194,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   )
 
   const statsBlock = (
-          <div style={{ marginBottom: 28 }}>
+          <div style={{ marginBottom: 18 }}>
             <ProfileStats stats={stats} />
-            {isNewCreator && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 10, fontSize: 12, color: 'var(--ink-faint-solid)' }}>
-                <Star size={12} /> New Creator badge indicates a growing presence on collabr.
-              </div>
-            )}
           </div>
   )
 
@@ -452,10 +451,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       )}
 
       {isOwner ? (
-        // Own profile: full-width header, then content + rail below it.
+        // Own profile: full-width header, stat strip, actions, then content + rail.
         <>
           {heroBlock}
           {statsBlock}
+          {heroActions}
           <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
             <div style={{ minWidth: 0 }}>{mainContent}</div>
             {rail}
@@ -467,6 +467,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           <div style={{ minWidth: 0 }}>
             {heroBlock}
             {statsBlock}
+            {heroActions}
             {mainContent}
           </div>
           {rail}
