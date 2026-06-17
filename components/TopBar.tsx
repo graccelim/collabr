@@ -78,15 +78,23 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
     >
       {/* left - primary action + notifications */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        {/* CTA - white pill, no border, label shown on every width (both roles). */}
+        {/* CTA - navy on desktop, white pill on mobile. */}
         <motion.div
           whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         >
-          <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-            <CtaIcon size={16} />
-            <span>{ctaLabel}</span>
-          </Link>
+          <div className="hidden md:block">
+            <Link href={ctaHref} className="btn-primary" style={{ height: 38, paddingInline: 16 }}>
+              <CtaIcon size={16} />
+              <span>{ctaLabel}</span>
+            </Link>
+          </div>
+          <div className="md:hidden">
+            <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+              <CtaIcon size={16} />
+              <span>{ctaLabel}</span>
+            </Link>
+          </div>
         </motion.div>
         <IconButton href="/notifications" label="Notifications">
           <Bell size={17} />

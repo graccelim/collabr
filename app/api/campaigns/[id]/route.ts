@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 import { normalizeNicheTags } from '@/lib/niches'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 // Fields whose change is worth telling applicants/creators about.
 const CONTENT_FIELDS = ['title', 'brief', 'deliverable_types', 'comp_type', 'budget_min',
@@ -42,6 +43,38 @@ async function notifyCampaignChange(admin: ReturnType<typeof createAdminClient>,
         body: 'A campaign you applied to changed its brief or terms.',
         payload: { campaign_id: campaignId, href: `/jobs/${campaignId}` },
       })
+    }
+  }
+}
+
+// On a manual close, give open applicants (pending/shortlisted) an instant,
+// definite answer instead of waiting for the expire-applications cron. Mirrors
+// the cron exactly (same status flip, notification + email, dedupe key) so the
+// two never double up. Selected creators are untouched - their collabs continue.
+async function notifyCampaignClosed(admin: ReturnType<typeof createAdminClient>, campaignId: string, title: string) {
+  const { data: open } = await admin.from('applications')
+    .select('id, creator_profiles(user_id, users(email))')
+    .eq('campaign_id', campaignId)
+    .in('status', ['pending', 'shortlisted'])
+  if (!open || open.length === 0) return
+  await admin.from('applications')
+    .update({ status: 'rejected' })
+    .in('id', open.map(a => a.id))
+    .in('status', ['pending', 'shortlisted'])
+  for (const a of open) {
+    const cp = a.creator_profiles as { user_id?: string; users?: { email?: string } } | null
+    if (cp?.user_id) {
+      await sendNotification({
+        userId: cp.user_id,
+        type: 'application_rejected',
+        title: `Application closed for "${title}"`,
+        body: 'This campaign is no longer accepting applicants. Thanks for applying, new campaigns are posted regularly.',
+        payload: { application_id: a.id },
+        dedupeKey: `application:${a.id}:rejected`,
+      })
+    }
+    if (cp?.users?.email) {
+      await sendProductEmail({ to: cp.users.email, ...productEmails.applicationRejected({ campaignTitle: title, applicationId: a.id }) })
     }
   }
 }
@@ -104,14 +137,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })
 
   // A content edit (not a pure status flip like close/reopen) notifies everyone
-  // who applied. Best-effort: never fail the save on a notification hiccup.
+  // who applied. A manual close instantly declines + notifies open applicants.
+  // Both best-effort: never fail the save on a notification hiccup.
   const isContentSave = CONTENT_FIELDS.some(k => k in updates)
-  if (isContentSave) {
-    try {
+  const isClosing = updates.status === 'closed' && campaign.status !== 'closed'
+  try {
+    if (isContentSave) {
       await notifyCampaignChange(admin, params.id, (updates.title as string) || campaign.title)
-    } catch (e) {
-      console.error('[campaign-update-notify]', e)
+    } else if (isClosing) {
+      await notifyCampaignClosed(admin, params.id, campaign.title)
     }
+  } catch (e) {
+    console.error('[campaign-update-notify]', e)
   }
 
   return NextResponse.json(data)
