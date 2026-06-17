@@ -38,23 +38,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
               ])
             : [{ count: 0 }, { data: [] as { follower_count: number | null }[] }]
           const needsFollowers = (socs || []).length > 0 && (socs || []).some(s => s.follower_count == null)
-          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile', needsFollowers }
+          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile', needsFollowers, avatarUrl: (profile.avatar_url as string | null) ?? null }
         })()
       : (async () => {
           // Admin client: subscription columns are not client-readable.
           const admin = createAdminClient()
           const { data: brand } = await admin.from('brand_profiles')
-            .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+            .select(`id, onboarding_completed_at, logo_url, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
           const plan = resolvePlan(brand)
           // Brands don't track follower counts, so no follower nudge for them.
-          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers: false }
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers: false, avatarUrl: (brand?.logo_url as string | null) ?? null }
         })(),
     supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id).eq('read', false),
   ])
 
-  const { onboardingComplete, planLabel, inviteBadge, profileHref, needsFollowers } = roleState
+  const { onboardingComplete, planLabel, inviteBadge, profileHref, needsFollowers, avatarUrl } = roleState
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
@@ -87,7 +87,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           flexDirection: 'column',
         }}
       >
-        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} profileHref={profileHref} />
+        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} avatarUrl={avatarUrl} profileHref={profileHref} />
         <div className="dash-pad" style={{
           maxWidth: 1080,
           margin: '0 auto',

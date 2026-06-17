@@ -118,9 +118,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                 </div>
               )}
 
-              {/* Owner desktop (b-b): edit + share inline with the name (hidden on mobile). */}
+              {/* Owner (b-b): edit + share inline with the name (all widths). */}
               {isOwner && (
-                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                   <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                     <Pencil size={15} /> Edit profile
                   </Link>
@@ -131,19 +131,8 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           </div>
   )
 
-  // Owner (b-b): full-width edit + share row below the stat strip, mobile only
-  // (the desktop set lives inline in the hero).
-  const heroActions = isOwner ? (
-          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
-            <Link href="/settings" className="btn-primary" style={{ flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-              <Pencil size={15} /> Edit profile
-            </Link>
-            <ShareProfileButton path={`/brands/${params.id}`} name={name} />
-          </div>
-  ) : null
-
   const statsBlock = (
-          <div style={{ marginBottom: isOwner ? 18 : 28 }}>
+          <div style={{ marginBottom: 28 }}>
             <ProfileStats stats={stats} />
           </div>
   )
@@ -290,7 +279,6 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         <>
           {heroBlock}
           {statsBlock}
-          {heroActions}
           <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
             <div style={{ minWidth: 0 }}>{mainContent}</div>
             {rail}

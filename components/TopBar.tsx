@@ -12,6 +12,8 @@ interface Props {
   displayName?: string
   email?: string
   initials?: string
+  /** Profile photo for the account avatar; falls back to initials when absent. */
+  avatarUrl?: string | null
   /** The user's own public profile (Profile link target). */
   profileHref?: string
 }
@@ -22,7 +24,11 @@ interface Props {
  * workspace action on the right. Sticks under the scroll container with a
  * blurred canvas backdrop. Framer drives the icon-button + CTA micro-presses.
  */
-export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', profileHref }: Props) {
+export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', avatarUrl = null, profileHref }: Props) {
+  // Account avatar visual - profile photo when set, initials otherwise.
+  const avatarInner = avatarUrl
+    ? <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+    : (initials || 'U')
   const isBrand = role === 'brand'
   // Only the destinations the mobile BOTTOM bar doesn't already show, so the
   // account menu doesn't repeat the tabs (bottom bar = Overview / Campaigns /
@@ -70,12 +76,20 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         padding: '0 20px 0 24px',
       }}
     >
-      {/* left - intentionally empty; controls live on the right */}
-      <div style={{ minWidth: 0 }} />
-
-      {/* right - notifications / primary action (search removed: it pointed to
-          the same screen as the primary CTA) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      {/* left - primary action + notifications */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+        {/* CTA - brands keep "Post a campaign" everywhere; creators' "Discover
+            campaigns" is redundant with the Browse tab on mobile, so hide it there. */}
+        <motion.div
+          className={isBrand ? '' : 'hidden md:block'}
+          whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
+          <Link href={ctaHref} className="btn-primary" style={{ height: 38, paddingInline: 16 }}>
+            <CtaIcon size={16} />
+            <span className="hidden sm:inline">{ctaLabel}</span>
+          </Link>
+        </motion.div>
         <IconButton href="/notifications" label="Notifications">
           <Bell size={17} />
           {notificationBadge > 0 && (
@@ -88,26 +102,15 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
                 height: 6,
                 borderRadius: 99,
                 background: 'var(--warn)',
-                border: '1.5px solid var(--paper)',
+                border: '1.5px solid var(--app-bg)',
               }}
             />
           )}
         </IconButton>
+      </div>
 
-        {/* CTA - brands keep "Post a campaign" everywhere; creators' "Find
-            campaigns" is redundant with the Browse tab on mobile, so hide it
-            there to declutter next to the account avatar. */}
-        <motion.div
-          className={isBrand ? '' : 'hidden md:block'}
-          whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        >
-          <Link href={ctaHref} className="btn-primary" style={{ height: 38, paddingInline: 16 }}>
-            <CtaIcon size={16} />
-            <span className="hidden sm:inline">{ctaLabel}</span>
-          </Link>
-        </motion.div>
-
+      {/* right - profile + sign-out (desktop) / account menu (mobile) */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
         {/* Desktop account controls - the sidebar no longer carries profile /
             notifications / sign-out, so they live here on ≥769px. */}
         <div className="hidden md:flex" style={{ alignItems: 'center', gap: 8 }}>
@@ -116,7 +119,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
             aria-label="Your profile"
             title="Your profile"
             style={{
-              width: 34, height: 34, borderRadius: '50%',
+              width: 34, height: 34, borderRadius: '50%', overflow: 'hidden',
               background: 'var(--ink)', color: '#fff',
               fontWeight: 600, fontSize: 12,
               display: 'grid', placeItems: 'center',
@@ -124,7 +127,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
               fontFamily: 'var(--font-body)',
             }}
           >
-            {initials || 'U'}
+            {avatarInner}
           </Link>
           <form action="/api/auth/signout" method="POST">
             <motion.button
@@ -152,12 +155,12 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
             onClick={() => setMenuOpen(o => !o)}
             aria-label="Account"
             style={{
-              width: 34, height: 34, borderRadius: '50%', border: 0, cursor: 'pointer',
+              width: 34, height: 34, borderRadius: '50%', border: 0, cursor: 'pointer', overflow: 'hidden',
               background: 'var(--ink)', color: '#fff', fontWeight: 600, fontSize: 12,
               display: 'grid', placeItems: 'center', fontFamily: 'var(--font-body)',
             }}
           >
-            {initials || 'U'}
+            {avatarInner}
           </motion.button>
           <AnimatePresence>
             {menuOpen && (

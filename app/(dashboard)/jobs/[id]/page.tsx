@@ -4,7 +4,7 @@ import { formatSGD, getInitials } from '@/lib/utils';
 import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
-import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package } from 'lucide-react';
+import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package, Sparkles } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
 
@@ -443,26 +443,37 @@ export default async function JobDetailPage({
                     alignItems: 'flex-start',
                   }}
                 >
-                  <span
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: '50%',
-                      flexShrink: 0,
-                      background: solid,
-                      color: '#fff',
-                      display: 'grid',
-                      placeItems: 'center',
-                    }}
-                  >
-                    {selected ? (
-                      <svg viewBox="0 0 24 24" width="23" height="23" fill="currentColor" aria-hidden="true">
-                        <path d="M12 0C12 6 6 12 0 12C6 12 12 18 12 24C12 18 18 12 24 12C18 12 12 6 12 0Z" />
-                      </svg>
-                    ) : (
+                  {selected ? (
+                    <span
+                      style={{
+                        position: 'relative',
+                        width: 46, height: 46,
+                        borderRadius: 14,
+                        flexShrink: 0,
+                        background: 'var(--surface)',
+                        color: 'var(--money-deep)',
+                        display: 'grid',
+                        placeItems: 'center',
+                      }}
+                    >
+                      <CheckCircle2 size={24} />
+                      <Sparkles size={16} style={{ position: 'absolute', top: -5, right: -5, color: 'var(--money-deep)' }} />
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        width: 42, height: 42,
+                        borderRadius: '50%',
+                        flexShrink: 0,
+                        background: solid,
+                        color: '#fff',
+                        display: 'grid',
+                        placeItems: 'center',
+                      }}
+                    >
                       <CheckCircle2 size={22} />
-                    )}
-                  </span>
+                    </span>
+                  )}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>
                       {title}

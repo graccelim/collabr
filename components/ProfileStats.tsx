@@ -19,6 +19,11 @@ export default function ProfileStats({ stats }: { stats: ProfileStat[] }) {
     <div className="profile-stats">
       {stats.map(s => (
         <div key={s.label} className="profile-stat">
+          {s.icon && (
+            <span className="profile-stat-ic" data-tone={s.tone || 'neutral'}>
+              <s.icon size={16} />
+            </span>
+          )}
           <div className="profile-stat-val">{s.value}</div>
           <div className="profile-stat-label">{s.label}</div>
           {s.sub && <div className="profile-stat-sub">{s.sub}</div>}

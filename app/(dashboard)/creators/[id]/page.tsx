@@ -174,9 +174,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </div>
               </div>
 
-              {/* Owner desktop: edit + share inline with the name (hidden on mobile). */}
+              {/* Owner: edit + share inline with the name (all widths). */}
               {isOwner && (
-                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
                   {ownerActions(false)}
                 </div>
               )}
@@ -184,13 +184,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
   )
 
-  // Actions below the stat strip. Owner: a full-width row on mobile only (the
-  // desktop set lives inline in the hero). Visitor: invite/save + share.
-  const heroActions = isOwner ? (
-          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
-            {ownerActions(true)}
-          </div>
-  ) : (
+  // Actions below the stat strip - visitor only (owner actions live inline in
+  // the hero). Visitor: invite/save + share.
+  const heroActions = isOwner ? null : (
           <div style={{ marginBottom: 30 }}>
             <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isBrandViewer && viewerIsPro && (
@@ -216,7 +212,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   )
 
   const statsBlock = (
-          <div style={{ marginBottom: 18 }}>
+          <div style={{ marginBottom: isOwner ? 28 : 18 }}>
             <ProfileStats stats={stats} />
           </div>
   )
