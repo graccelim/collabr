@@ -18,6 +18,7 @@ import {
   Check,
   Zap,
   UserRound,
+  Users,
 } from 'lucide-react';
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
@@ -533,6 +534,20 @@ async function BrandDashboard({ userId }: { userId: string }) {
             })}
           </div>
         </>
+      )}
+
+      {/* What's next - keeps the page useful when there's headroom below. */}
+      {!isEmpty && (
+        <div className="card" style={{ marginTop: 18, padding: 22, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Ready for more reach?</div>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>Post your next campaign or find creators to invite.</p>
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/post-job" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Megaphone size={15} /> Post a campaign</Link>
+            <Link href="/creators" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Users size={15} /> Discover creators</Link>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1258,6 +1273,17 @@ async function CreatorDashboard({
               </Link>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* What's next - nudge to keep browsing when there's headroom below. */}
+      {!isEmpty && (
+        <div className="card" style={{ marginTop: 18, padding: 22, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Find your next collab</div>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>Fresh campaigns drop daily, see what fits you now.</p>
+          </div>
+          <Link href="/jobs" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Compass size={15} /> Discover campaigns</Link>
         </div>
       )}
     </div>

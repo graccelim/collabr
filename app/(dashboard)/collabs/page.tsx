@@ -4,7 +4,8 @@ import { formatSGD, COLLAB_STATUSES, getInitials } from '@/lib/utils'
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow'
 import EmptyState from '@/components/EmptyState'
 import CollabsList, { type CollabRowData } from '@/components/CollabsList'
-import { Briefcase } from 'lucide-react'
+import { Briefcase, Compass, Megaphone } from 'lucide-react'
+import Link from 'next/link'
 
 export default async function CollabsPage() {
   const user = await requireAuth()
@@ -61,21 +62,38 @@ export default async function CollabsPage() {
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em' }}>Collaborations</h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8 }}>
-          Every active deal and exactly where its escrow sits. Open one to manage drafts and release.
+          {isBrand
+            ? 'Everyone you’re working with, in one place. Open a collab to review the work and pay out when you’re happy.'
+            : 'The brands you’re creating for, all here. Open a collab to share your work and get paid, safely.'}
         </p>
       </div>
 
       {rows.length > 0 ? (
-        <CollabsList rows={rows} />
+        <>
+          <CollabsList rows={rows} />
+          <div className="card" style={{ marginTop: 18, padding: 22, display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+                {isBrand ? 'Want more creators on board?' : 'Ready for your next collab?'}
+              </div>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>
+                {isBrand ? 'Post another campaign and the right creators will come to you.' : 'Fresh campaigns drop daily, find one that fits you.'}
+              </p>
+            </div>
+            <Link href={isBrand ? '/post-job' : '/jobs'} className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              {isBrand ? <><Megaphone size={15} /> Post a campaign</> : <><Compass size={15} /> Discover campaigns</>}
+            </Link>
+          </div>
+        </>
       ) : (
         <EmptyState
           icon={Briefcase}
-          title={isBrand ? 'Ready when you are' : 'No collabs yet'}
+          title={isBrand ? 'Your first collab starts here' : 'Your first collab is close'}
           body={isBrand
-            ? 'Accept a creator on one of your campaigns and fund escrow, your active collabs and their progress will light up here.'
-            : 'When a brand accepts you, the collab opens here with your payment already secured in escrow. Apply to a campaign to get started.'}
+            ? 'Pick a creator on one of your campaigns and we’ll lock the payment in escrow, then everything you’re running shows up here.'
+            : 'Start collaborating with brands and get paid for content you love making. Apply to a campaign and your collab opens right here.'}
           actionHref={isBrand ? '/campaigns' : '/jobs'}
-          actionLabel={isBrand ? 'Go to campaigns' : 'Browse campaigns'}
+          actionLabel={isBrand ? 'Go to campaigns' : 'Discover campaigns'}
         />
       )}
     </div>

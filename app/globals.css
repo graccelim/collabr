@@ -685,11 +685,13 @@
   }
   .split-hero      { flex-direction: column; min-height: auto; }
   .split-side      { min-height: 320px; padding: 32px 22px; }
+  /* Extra bottom room on the navy (top) side so its button clears the centred
+     medallion below it. */
+  .split-side-brand { padding-bottom: 70px; }
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
-  /* Bigger circle (more breathing room around "collabr.") nudged down so it
-     clears the "Find creators" button above it. Phones only. */
-  .split-medallion { width: 92px; height: 92px; top: 55%; }
+  /* Bigger circle (more breathing room around "collabr."), centred. Phones only. */
+  .split-medallion { width: 92px; height: 92px; top: 50%; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
 
