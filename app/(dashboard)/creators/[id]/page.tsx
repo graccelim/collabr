@@ -187,7 +187,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // Below the stat strip. Owner: a full-width row on mobile only (desktop set
   // lives inline in the hero). Visitor: invite/save + share.
   const heroActions = isOwner ? (
-          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+          <div className="flex md:hidden" style={{ gap: 10, marginBottom: 30 }}>
             {ownerActions(true)}
           </div>
   ) : (

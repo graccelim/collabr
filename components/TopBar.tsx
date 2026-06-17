@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Plus, Search, LogOut } from 'lucide-react'
+import { Bell, Plus, Compass, LogOut } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
@@ -45,7 +45,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
       ]
   const ctaHref = isBrand ? '/post-job' : '/jobs'
   const ctaLabel = isBrand ? 'Post a campaign' : 'Discover campaigns'
-  const CtaIcon = isBrand ? Plus : Search
+  const CtaIcon = isBrand ? Plus : Compass
 
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -78,17 +78,36 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
     >
       {/* left - primary action + notifications */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        {/* CTA - brands keep "Post a campaign" everywhere; creators' "Discover
-            campaigns" is redundant with the Browse tab on mobile, so hide it there. */}
-        <motion.div
-          whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
-          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-        >
-          <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)' }}>
-            <CtaIcon size={16} />
-            <span className="hidden sm:inline">{ctaLabel}</span>
-          </Link>
-        </motion.div>
+        {/* CTA - white pill, no border. Brands keep "+ Post a campaign" on all
+            widths; creators get the pill on desktop and a plain Compass icon
+            (no background, like the bell) on mobile. */}
+        {isBrand ? (
+          <motion.div
+            whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+          >
+            <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+              <CtaIcon size={16} />
+              <span className="hidden sm:inline">{ctaLabel}</span>
+            </Link>
+          </motion.div>
+        ) : (
+          <>
+            <motion.div
+              className="hidden md:block"
+              whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+            >
+              <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+                <CtaIcon size={16} />
+                <span>{ctaLabel}</span>
+              </Link>
+            </motion.div>
+            <IconButton href={ctaHref} label={ctaLabel} className="md:hidden">
+              <Compass size={18} />
+            </IconButton>
+          </>
+        )}
         <IconButton href="/notifications" label="Notifications">
           <Bell size={17} />
           {notificationBadge > 0 && (
@@ -210,9 +229,9 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
   )
 }
 
-function IconButton({ href, label, children }: { href: string; label: string; children: React.ReactNode }) {
+function IconButton({ href, label, children, className }: { href: string; label: string; children: React.ReactNode; className?: string }) {
   return (
-    <motion.div whileHover={{ y: -1 }} whileTap={{ scale: 0.92 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
+    <motion.div className={className} whileHover={{ y: -1 }} whileTap={{ scale: 0.92 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }}>
       <Link
         href={href}
         aria-label={label}

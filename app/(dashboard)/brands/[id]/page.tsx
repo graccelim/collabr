@@ -133,7 +133,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
 
   // Owner (b-b): full-width edit + share row below the stat strip, mobile only.
   const heroActions = isOwner ? (
-          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+          <div className="flex md:hidden" style={{ gap: 10, marginBottom: 30 }}>
             <Link href="/settings" className="btn-primary" style={{ flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <Pencil size={15} /> Edit profile
             </Link>
