@@ -259,6 +259,23 @@ export default function ProfilePage() {
     if (!res.ok) { toast.error('Could not update'); setSocials(prev) } // revert
   }
 
+  // Edit the follower count of an already-connected account (saved on blur).
+  async function updateFollowers(id: string, raw: string) {
+    const trimmed = raw.trim()
+    const value = trimmed === '' ? null : Math.max(0, parseInt(trimmed, 10) || 0)
+    const prev = socials
+    const target = socials.find(s => s.id === id)
+    if (!target || target.follower_count === value) return
+    setSocials(list => list.map(s => (s.id === id ? { ...s, follower_count: value } : s)))
+    setTouched(true)
+    const res = await fetch(`/api/socials/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ follower_count: value }),
+    })
+    if (!res.ok) { toast.error('Could not update followers'); setSocials(prev) }
+  }
+
   if (loading) return <div className="text-sm text-gray-400">Loading…</div>
 
   const completion = creatorCompletion({
@@ -484,8 +501,19 @@ export default function ProfilePage() {
                       </div>
                       <div style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         <a href={s.url} target="_blank" rel="noopener noreferrer" className="hover:underline">{socialHandleLabel(s.platform as SocialPlatform, s.handle)}</a>
-                        {s.follower_count != null && (
-                          <span style={{ color: 'var(--ink-faint-solid)' }} title="Self-reported"> · {s.follower_count.toLocaleString()} followers</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
+                        <input
+                          type="number" min="0" inputMode="numeric"
+                          className="input"
+                          style={{ height: 30, width: 130, fontSize: 12.5, padding: '4px 9px' }}
+                          placeholder="Follower count"
+                          defaultValue={s.follower_count ?? ''}
+                          onBlur={e => updateFollowers(s.id, e.target.value)}
+                        />
+                        <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>followers</span>
+                        {s.follower_count == null && (
+                          <span className="badge badge-gray" style={{ fontSize: 10 }}>add this</span>
                         )}
                       </div>
                     </div>

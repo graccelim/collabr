@@ -30,7 +30,9 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
     setSending(false)
   }
 
-  if (emailVerified && onboardingComplete && !needsFollowers) return null
+  // Don't nudge for followers on the very page where they'd add them.
+  const showFollowers = needsFollowers && pathname !== profileHref
+  if (emailVerified && onboardingComplete && !showFollowers) return null
 
   return (
     <div className="space-y-2 mb-5">
@@ -63,7 +65,7 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
           </Link>
         </div>
       )}
-      {needsFollowers && (
+      {showFollowers && (
         <div className="card flex items-center gap-3 py-2.5"
           style={{ borderColor: 'rgba(58,108,210,.25)', background: '#eef3fd' }}>
           <BarChart3 size={16} className="shrink-0" style={{ color: '#3a6cd2' }} />

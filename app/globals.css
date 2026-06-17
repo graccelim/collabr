@@ -753,16 +753,13 @@
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
 
-  /* Navy top bar on mobile (matches the navy bottom tab bar). Recolour its
-     contents for legibility on navy. Desktop keeps the white top bar. */
+  /* Light-blue top bar on mobile (matches the app canvas). Desktop keeps the
+     white translucent top bar. Default dark-on-light controls stay legible. */
   .app-topbar {
-    background: var(--brand) !important;
-    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+    background: var(--app-bg) !important;
+    border-bottom: 1px solid var(--line) !important;
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
   }
-  .app-topbar [aria-label="Notifications"] { color: #fff !important; }
-  .app-topbar .btn-primary { background: #fff !important; color: var(--brand) !important; }
-  .app-topbar [aria-label="Account"] { background: rgba(255,255,255,.18) !important; color: #fff !important; }
 
   /* "How it works" steps: 4-up on desktop → 2-up on phones. */
   .how-steps { grid-template-columns: 1fr 1fr !important; gap: 18px 16px !important; }
