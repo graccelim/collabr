@@ -11,7 +11,7 @@ import DateField from '@/components/DateField'
 
 const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
 const DELIVERABLES = ['IG Reel','TikTok video','IG Post','IG Stories','YouTube review','Blog post','Unboxing video']
-const PLATFORMS = ['Instagram','TikTok','YouTube']
+const PLATFORMS = ['Instagram','TikTok','YouTube','X','Lemon8','RED (Xiaohongshu)']
 
 const COMP_OPTIONS = [
   { value: 'paid', label: 'Paid' },

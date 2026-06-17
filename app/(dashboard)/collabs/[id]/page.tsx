@@ -11,7 +11,7 @@ import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
-import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star } from 'lucide-react'
+import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star, ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
 import RatingChip from '@/components/RatingChip'
 
@@ -119,6 +119,17 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
+
+      <Link
+        href="/collabs"
+        style={{
+          display: 'inline-flex', alignItems: 'center', gap: 6,
+          marginBottom: 18, color: 'var(--ink-faint-solid)',
+          fontSize: 13, textDecoration: 'none',
+        }}
+      >
+        <ChevronLeft size={15} /> All collabs
+      </Link>
 
       {/* ── Deal header ───────────────────────────────────── */}
       {/* Clean, single-row identity: avatar + title/counterpart + status badge.

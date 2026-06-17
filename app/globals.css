@@ -22,6 +22,7 @@
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* canvas + surfaces (cool, clean) */
+  --app-bg:         #F1F5FC;  /* super-light blue canvas so white cards lift off it */
   --paper:          #F6F7F9;
   --paper-2:        #EEF0F4;
   --surface:        #FFFFFF;
@@ -101,7 +102,7 @@
   body {
     font-family: var(--font-body);
     font-size: 14.5px;
-    background: var(--surface);
+    background: var(--app-bg);
     color: var(--ink);
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -751,6 +752,4 @@
 
 @media (min-width: 769px) {
   .tab-bar { display: none !important; }
-  /* Desktop has the full sidebar, so the top bar is redundant - hide it. */
-  .app-topbar { display: none !important; }
 }

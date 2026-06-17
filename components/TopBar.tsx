@@ -38,7 +38,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         { href: '/notifications', label: 'Notifications' },
       ]
   const ctaHref = isBrand ? '/post-job' : '/jobs'
-  const ctaLabel = isBrand ? 'Post a campaign' : 'Find campaigns'
+  const ctaLabel = isBrand ? 'Post a campaign' : 'Discover campaigns'
   const CtaIcon = isBrand ? Plus : Compass
 
   const [menuOpen, setMenuOpen] = useState(false)
@@ -109,6 +109,43 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
             <span className="hidden sm:inline">{ctaLabel}</span>
           </Link>
         </motion.div>
+
+        {/* Desktop account controls - the sidebar no longer carries profile /
+            notifications / sign-out, so they live here on ≥769px. */}
+        <div className="hidden md:flex" style={{ alignItems: 'center', gap: 8 }}>
+          <Link
+            href={profileHref || (isBrand ? '/settings' : '/profile')}
+            aria-label="Your profile"
+            title="Your profile"
+            style={{
+              width: 34, height: 34, borderRadius: '50%',
+              background: 'var(--ink)', color: '#fff',
+              fontWeight: 600, fontSize: 12,
+              display: 'grid', placeItems: 'center',
+              textDecoration: 'none', flexShrink: 0,
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            {initials || 'U'}
+          </Link>
+          <form action="/api/auth/signout" method="POST">
+            <motion.button
+              type="submit"
+              aria-label="Sign out"
+              title="Sign out"
+              whileTap={{ scale: 0.92 }}
+              style={{
+                width: 36, height: 36, borderRadius: 'var(--radius-sm)',
+                border: 0, background: 'transparent', cursor: 'pointer',
+                color: 'var(--ink-faint-solid)',
+                display: 'grid', placeItems: 'center',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              <LogOut size={17} />
+            </motion.button>
+          </form>
+        </div>
 
         {/* Mobile account menu - the sidebar (with sign out) is hidden ≤768px */}
         <div ref={menuRef} className="md:hidden" style={{ position: 'relative' }}>

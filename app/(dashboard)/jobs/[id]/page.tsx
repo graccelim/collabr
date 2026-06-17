@@ -4,7 +4,7 @@ import { formatSGD, getInitials } from '@/lib/utils';
 import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
-import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight } from 'lucide-react';
+import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
 
@@ -97,7 +97,7 @@ export default async function JobDetailPage({
     );
 
   // Both depend only on creator.id (+ params.id) - batch.
-  const [{ data: socials }, { data: existing }] = await Promise.all([
+  const [{ data: socials }, { data: existing }, { data: collab }] = await Promise.all([
     supabase
       .from('social_accounts')
       .select('follower_count')
@@ -109,7 +109,16 @@ export default async function JobDetailPage({
       .eq('campaign_id', params.id)
       .eq('creator_id', creator!.id)
       .maybeSingle(),
+    // The collab for this campaign+creator (exists once selected) so "View your
+    // collab" deep-links to the exact collab, not the list.
+    supabase
+      .from('collabs')
+      .select('id')
+      .eq('campaign_id', params.id)
+      .eq('creator_id', creator!.id)
+      .maybeSingle(),
   ]);
+  const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
 
   const brand = campaign.brand_profiles as {
     id?: string;
@@ -183,20 +192,34 @@ export default async function JobDetailPage({
     },
   ];
 
-  // Compensation reassurance ticks (rail hero).
-  const compTerms: [string, string][] = [
-    ['Funds held securely in escrow', 'The brand funds before you create anything'],
-    ['Get paid only after approval', 'Release happens automatically on sign-off'],
-    ['Safe, simple & transparent', 'No invoices, no chasing payment'],
-  ];
+  // Compensation reassurance ticks (rail hero) - escrow for paid, product
+  // exchange for barter.
+  const compTerms: { icon: typeof Shield; t: string; sub: string }[] = isPaid
+    ? [
+        { icon: Shield, t: 'Funds held securely in escrow', sub: 'The brand funds before you create anything' },
+        { icon: CheckCircle2, t: 'Get paid only after approval', sub: 'Release happens automatically on sign-off' },
+        { icon: CheckCircle2, t: 'Safe, simple & transparent', sub: 'No invoices, no chasing payment' },
+      ]
+    : [
+        { icon: Package, t: 'Product sent before you post', sub: 'The brand ships what was agreed to start' },
+        { icon: CheckCircle2, t: 'Post once you’ve received it', sub: 'Create the agreed content after delivery' },
+        { icon: CheckCircle2, t: 'Simple product-for-content swap', sub: 'No payment, no invoices to chase' },
+      ];
 
-  // The real escrow flow, shown as "How it works".
-  const steps: { icon: typeof Wallet; title: string; body: string }[] = [
-    { icon: Wallet, title: 'Brand funds escrow', body: 'The brand pays upfront and the money is locked in.' },
-    { icon: PenLine, title: 'Create content', body: 'Make the deliverable and submit your draft for review.' },
-    { icon: Send, title: 'Submit for approval', body: 'The brand reviews and approves, or requests changes.' },
-    { icon: Coins, title: 'Get paid', body: 'Once approved, escrow releases straight to you.' },
-  ];
+  // "How it works" - the real flow, which differs for barter (no escrow funding).
+  const steps: { icon: typeof Wallet; title: string; body: string }[] = isPaid
+    ? [
+        { icon: Wallet, title: 'Brand funds escrow', body: 'The brand pays upfront and the money is locked in.' },
+        { icon: PenLine, title: 'Create content', body: 'Make the deliverable and submit your draft for review.' },
+        { icon: Send, title: 'Submit for approval', body: 'The brand reviews and approves, or requests changes.' },
+        { icon: Coins, title: 'Get paid', body: 'Once approved, escrow releases straight to you.' },
+      ]
+    : [
+        { icon: Package, title: 'Brand sends the product', body: 'The agreed item ships to you so you can start.' },
+        { icon: PenLine, title: 'Create content', body: 'Make the deliverable and submit your draft for review.' },
+        { icon: Send, title: 'Submit for approval', body: 'The brand reviews and approves, or requests changes.' },
+        { icon: CheckCircle2, title: 'You’re done', body: 'Post the approved content and the collab wraps up.' },
+      ];
 
   // Brand reputation facts for the rail (only what we actually have - no
   // fabricated response-rate %). Each row: icon, value, label.
@@ -405,7 +428,9 @@ export default async function JobDetailPage({
                 ? 'You were selected!'
                 : `Application sent to ${brandName}`;
               const body = selected
-                ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
+                ? isPaid
+                  ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
+                  : 'A collab has been created. Once the brand sends the product, you can start the draft.'
                 : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
@@ -441,14 +466,11 @@ export default async function JobDetailPage({
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
                       <Link
-                        href={selected ? '/collabs' : '/applications'}
+                        href={selected ? collabHref : '/applications'}
                         className={selected ? 'btn-money btn-sm' : 'btn-secondary btn-sm'}
                       >
                         {selected ? 'View your collab' : 'Track applications'}
                       </Link>
-                      <a href="#how-it-works" className="btn-secondary btn-sm">
-                        What happens next?
-                      </a>
                     </div>
                   </div>
                 </div>
@@ -517,13 +539,9 @@ export default async function JobDetailPage({
                   gap: 12,
                 }}
               >
-                {compTerms.map(([t, sub], i) => (
+                {compTerms.map(({ icon: Icon, t, sub }) => (
                   <div key={t} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                    {i === 0 ? (
-                      <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                    ) : (
-                      <CheckCircle2 size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                    )}
+                    <Icon size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
                     <span style={{ minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#fff' }}>{t}</span>
                       <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>

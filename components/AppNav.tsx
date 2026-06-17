@@ -6,8 +6,8 @@ import { usePathname } from 'next/navigation'
 import type { LucideProps } from 'lucide-react'
 import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
-  Compass, FileText, Settings, Bell, User,
-  CreditCard, LogOut, ChevronLeft, ChevronRight,
+  Compass, FileText, Settings,
+  CreditCard, ChevronLeft, ChevronRight,
   Mail,
 } from 'lucide-react'
 
@@ -21,14 +21,6 @@ interface NavItem {
   /** Subtle premium marker - teaches which features are Pro without blocking. */
   pro?: boolean
 }
-
-// Profile + Notifications sit in a quick-access row at the TOP of the nav
-// (desktop sidebar + mobile top bar). Profile resolves to the user's own
-// public profile via the /__profile__ sentinel.
-const TOP_NAV: NavItem[] = [
-  { href: '/__profile__',   label: 'Profile',       icon: User },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-]
 
 const BRAND_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Overview',          icon: LayoutGrid, exact: true },
@@ -87,10 +79,6 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
   const isBrand = role === 'brand'
-  const fallbackProfile = isBrand ? '/settings' : '/profile'
-  const topNav = TOP_NAV.map(i =>
-    i.href === '/__profile__' ? { ...i, href: profileHref || fallbackProfile } : i
-  )
   const nav = isBrand ? BRAND_NAV : CREATOR_NAV
   const tabs = isBrand ? BRAND_TABS : CREATOR_TABS
 
@@ -226,11 +214,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
           display: 'flex', flexDirection: 'column', gap: 1,
           overflowY: 'auto',
         }}>
-          {/* Quick access - Profile + Notifications at the top */}
-          {topNav.map(renderItem)}
-          {!collapsed && (
-            <div style={{ height: 1, background: 'rgba(255,255,255,.1)', margin: '8px 8px' }} />
-          )}
+          {/* Profile / Notifications / Sign-out now live in the top bar. */}
           {!collapsed && (
             <div style={{
               fontFamily: 'var(--font-mono)',
@@ -278,17 +262,6 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                   {email}
                 </div>
               </div>
-              <form action="/api/auth/signout" method="POST">
-                <button type="submit" title="Sign out" style={{
-                  border: 0, background: 'transparent',
-                  color: 'rgba(255,255,255,.6)',
-                  cursor: 'pointer', padding: 4,
-                  display: 'grid', placeItems: 'center',
-                  borderRadius: 6, transition: 'color .15s ease',
-                }}>
-                  <LogOut size={14} />
-                </button>
-              </form>
             </div>
           </div>
         )}

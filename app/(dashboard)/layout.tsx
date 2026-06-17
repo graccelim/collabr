@@ -56,7 +56,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      background: 'var(--surface)',
+      background: 'var(--app-bg)',
     }}>
       <AppNav
         role={role}
