@@ -18,7 +18,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
+import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -120,7 +120,6 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   const stats: ProfileStat[] = [
     { label: 'Followers', value: totalFollowers > 0 ? totalFollowers.toLocaleString() : '–', sub: 'self-reported', icon: Users, tone: 'neutral' },
-    { label: 'Avg. rate', value: rate > 0 ? formatSGD(rate) : 'Negotiable', sub: 'per post', icon: Wallet, tone: 'money' },
     { label: 'Collabs', value: String(completedCollabs), sub: 'completed on collabr', icon: CheckCircle2, tone: 'accent' },
     { label: 'Rating', value: showRating ? String(creator.rating_avg) : '–', sub: showRating ? `${creator.rating_count} collaborator${creator.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
   ]
@@ -423,12 +422,25 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     </div>
   )
 
-  // Owner sees availability first (their own status), then their socials; a
-  // visiting brand leads with rates & terms, then socials, availability.
+  // Owner's rate card (c-c) - moved out of the stat band into a white rail card.
+  const rateCard = (
+    <div className="rail-section">
+      <div className="eyebrow" style={{ marginBottom: 10 }}>Your rate</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <span className="mono-num" style={{ fontSize: 24, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
+          {rate > 0 ? formatSGD(rate) : 'Negotiable'}
+        </span>
+        {rate > 0 && <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>/ post</span>}
+      </div>
+    </div>
+  )
+
+  // Owner leads with their rate, then availability, then socials; a visiting
+  // brand leads with rates & terms, then socials, availability.
   const rail = (
     <div style={{ position: 'sticky', top: 24 }}>
       {isOwner
-        ? <>{availabilitySection}{socialSection}</>
+        ? <>{rateCard}{availabilitySection}{socialSection}</>
         : <>{ratesTerms}{socialSection}{availabilitySection}</>}
     </div>
   )
