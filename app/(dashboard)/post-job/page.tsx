@@ -87,7 +87,7 @@ export default function PostJobPage() {
       })
     })
     if (!res.ok) { const d = await res.json(); toast.error(d.error); setLoading(false); return }
-    toast.success('Campaign is live, creators can apply now. Applications appear on the campaign page.')
+    toast.success('Your campaign is live. Creators can apply now, and you will see them on the campaign page.')
     router.push('/campaigns')
   }
 
@@ -116,7 +116,7 @@ export default function PostJobPage() {
               <div>
                 <label className="label">Campaign title</label>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-                  Say it like a person would, creators see this first
+                  Say it like you would to a friend. This is the first thing creators read.
                 </p>
                 <input className="input" value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -137,7 +137,7 @@ export default function PostJobPage() {
               <div>
                 <label className="label">Creator niche</label>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-                  We&apos;ll surface this to the right creators
+                  We&apos;ll show your campaign to creators who fit
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                   {NICHES.map(n => (
@@ -159,7 +159,7 @@ export default function PostJobPage() {
               <div>
                 <label className="label">Campaign brief</label>
                 <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>
-                  Be specific, this is the reference document for any dispute
+                  Be specific. If anything goes sideways later, this is what we both check.
                 </p>
                 <textarea className="input textarea" style={{ minHeight: 120 }} value={form.brief}
                   onChange={e => setForm(f => ({ ...f, brief: e.target.value }))}
@@ -269,7 +269,7 @@ export default function PostJobPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '13px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--money-tint)' }}>
                 <Shield size={18} style={{ color: 'var(--money-deep)', flexShrink: 0, marginTop: 1 }} />
                 <span style={{ fontSize: 13, color: 'var(--money-deep)', lineHeight: 1.45 }}>
-                  You&rsquo;re not charged now. You fund escrow only when you accept a specific creator.
+                  Nothing is charged now. You only pay into escrow once you pick a creator to work with.
                 </span>
               </div>
             </div>

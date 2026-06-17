@@ -38,7 +38,7 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
       setSubmitting(false)
       return
     }
-    toast.success('Review submitted, thanks for building trust on collabr')
+    toast.success('Review submitted, thanks for keeping collabr honest')
     router.refresh()
   }
 
@@ -67,8 +67,8 @@ export default function ReviewForm({ collabId, collabStatus, existingReview }: P
     <div className="card space-y-3">
       <h2 className="text-sm font-medium text-gray-900">Leave a review</h2>
       <p className="text-xs text-gray-500">
-        The collab is complete. Reviews are double-blind, yours reveals once you&rsquo;ve both
-        reviewed, or after 7 days, so feedback stays honest on both sides.
+        This collab is done. Neither side sees the other&rsquo;s review until you&rsquo;ve both
+        written one, or 7 days pass, so the feedback stays honest both ways.
       </p>
       <form onSubmit={submit} className="space-y-3">
         <div>

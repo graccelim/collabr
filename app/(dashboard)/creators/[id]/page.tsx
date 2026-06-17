@@ -208,7 +208,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             </div>
             {isBrandViewer && !viewerIsPro && (
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>
-                Inviting and saving creators is part of collabr Pro.{' '}
+                Inviting and saving creators comes with collabr Pro.{' '}
                 <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
               </p>
             )}
@@ -307,10 +307,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   reviews={items}
                   emptyTitle={isOwner ? 'No reviews yet, let’s get you started' : 'No reviews yet'}
                   emptyBody={isOwner
-                    ? 'Apply to campaigns and land your first collab, brands’ reviews will appear here and help you win more work.'
-                    : 'Reviews from brands appear after completed collaborations, revealed once both sides submit or after 7 days.'}
+                    ? 'Apply to campaigns and land your first collab, brands’ reviews will show up here and help you win more work.'
+                    : 'Reviews from brands show up once a collab wraps, both sides submit, or 7 days pass.'}
                   ctaHref={isOwner ? '/jobs' : undefined}
-                  ctaLabel={isOwner ? 'Discover campaigns' : undefined}
+                  ctaLabel={isOwner ? 'Browse campaigns' : undefined}
                 />
               </>
             )
@@ -351,8 +351,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 10, lineHeight: 1.5 }}>
                   {isOwner
-                    ? 'These are the profiles brands see. Follower counts are self-reported.'
-                    : 'Social profiles are creator-provided, open them to check the account yourself. Follower counts are self-reported.'}
+                    ? 'This is what brands see. Follower counts are self-reported.'
+                    : 'These links come straight from the creator, open them to check the account yourself. Follower counts are self-reported.'}
                 </p>
               </>
             ) : creator.platforms && Object.keys(creator.platforms).length > 0 ? (
@@ -427,9 +427,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       </div>
       <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {([
-          [ShieldCheck, 'Escrow protected', 'Payment is secured upfront'],
-          [Clock, '48h review window', 'Review and approve content'],
-          [CheckCircle2, 'Guaranteed payment', 'You get paid, every time'],
+          [ShieldCheck, 'Escrow protected', 'Payment is locked in before work starts'],
+          [Clock, '48h review window', 'Time to review and approve the content'],
+          [CheckCircle2, 'Guaranteed payment', 'Deliver the work and you get paid, every time'],
         ] as [typeof Clock, string, string][]).map(([Icon, t, sub]) => (
           <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Icon size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />

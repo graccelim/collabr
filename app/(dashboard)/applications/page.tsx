@@ -44,15 +44,15 @@ export default async function ApplicationsPage() {
         <div className="eyebrow" style={{ marginBottom: 7 }}>Outbound</div>
         <h1 style={{ fontSize: 28 }}>My applications</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          See where every campaign you’ve pitched stands, no guessing, no ghosting.
+          Every campaign you’ve pitched and exactly where it stands. No guessing, no ghosting.
         </p>
       </div>
 
       {(!applications || applications.length === 0) && (
         <EmptyState
           icon={Send}
-          title="Your pitches will track here"
-          body="Apply to open campaigns and watch each application here, you'll see the moment you're selected."
+          title="Your pitches show up here"
+          body="Apply to a campaign and you'll see it land here. The moment a brand picks you, you'll know."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />

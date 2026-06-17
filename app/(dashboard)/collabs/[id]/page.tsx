@@ -62,8 +62,8 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       <div style={{ maxWidth: 560, margin: '40px auto' }}>
         <EmptyState
           icon={SearchX}
-          title="Collab not found"
-          body="This collab doesn't exist or may have been removed."
+          title="We couldn't find this collab"
+          body="It doesn't exist, or it may have been removed. Head back and pick another from your list."
           actionHref="/collabs"
           actionLabel="Back to collabs"
         />

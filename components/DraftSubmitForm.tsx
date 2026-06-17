@@ -98,7 +98,7 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
       setSubmitting(false)
       return
     }
-    toast.success('Draft submitted, brand has 48 hours to review')
+    toast.success('Draft sent, the brand has 48 hours to take a look')
     router.refresh()
   }
 

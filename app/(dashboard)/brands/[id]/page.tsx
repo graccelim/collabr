@@ -181,8 +181,8 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             heading="What creators say"
             emptyTitle={isOwner ? 'No reviews yet, let’s change that' : 'No reviews yet'}
             emptyBody={isOwner
-              ? 'Run your first collaboration and creators’ reviews will show up here, building the trust that wins you better creators.'
-              : 'Reviews from creators appear after completed collaborations, revealed once both sides submit or after 7 days.'}
+              ? 'Run your first collab and creators’ reviews will show up here, building the trust that wins you better creators.'
+              : 'Reviews from creators show up once a collab wraps, both sides submit, or 7 days pass.'}
             ctaHref={isOwner ? '/post-job' : undefined}
             ctaLabel={isOwner ? 'Post a campaign' : undefined}
           />

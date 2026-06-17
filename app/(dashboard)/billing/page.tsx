@@ -79,9 +79,8 @@ export default async function BillingPage() {
         {/* Beta explanation - the one place this is spelled out */}
         {beta && (
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-border leading-relaxed">
-            You currently have complimentary Pro access while collabr is in beta.
-            We may introduce paid plans in the future. Existing beta users will be
-            notified in advance.
+            Pro is on us while collabr is in beta, so enjoy it. We might add paid
+            plans down the line, and if we do, we'll give you plenty of notice first.
           </p>
         )}
 
@@ -120,7 +119,7 @@ export default async function BillingPage() {
               <>
                 <div className="w-full">
                   <p className="text-sm text-gray-600 mb-1">
-                    Pro unlocks creator discovery, invites, saved creators, advanced filters
+                    Pro gives you creator discovery, invites, saved creators, advanced filters
                     and barter campaigns.
                   </p>
                   <p className="text-xs text-gray-400 mb-3">
@@ -158,8 +157,8 @@ export default async function BillingPage() {
         {(!collabs || collabs.length === 0) ? (
           <EmptyState
             icon={Receipt}
-            title="No settled payments yet"
-            body="Escrow payments appear here once a collab completes and the creator is paid."
+            title="No payments yet"
+            body="Once a collab wraps up and your creator is paid, the receipt shows up here."
           />
         ) : (
           <div className="space-y-2">

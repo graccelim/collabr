@@ -224,7 +224,7 @@ export default function SettingsPage() {
           <h1 style={{ fontSize: 28 }}>{role === 'brand' ? 'Brand profile' : 'Settings'}</h1>
           {role === 'brand' && (
             <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-              This is what creators see before applying, a complete profile gets 3× more replies.
+              This is what creators see before they apply. Fill it out and you will get a lot more replies.
             </p>
           )}
         </div>
@@ -312,7 +312,7 @@ export default function SettingsPage() {
               onChange={e => setCompanyDescription(e.target.value)}
               placeholder="What you sell, who it's for, and what creators should know about working with you."
             />
-            <p className="text-xs text-gray-400 mt-1">Creators see this before applying to your campaigns</p>
+            <p className="text-xs text-gray-400 mt-1">Creators read this before applying to your campaigns</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -345,7 +345,7 @@ export default function SettingsPage() {
             <label className="label">Social profiles</label>
             <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} showFollowers={false} />
             <p className="text-xs text-gray-400 mt-2">
-              Pick a platform and enter your handle, we build the link. Your first profile is shown as primary. A website or a social profile is required.
+              Pick a platform and pop in your handle, we&rsquo;ll build the link. Your first one shows as primary. Add at least a website or one social profile.
             </p>
           </div>
         </div>

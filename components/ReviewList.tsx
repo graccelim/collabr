@@ -23,7 +23,7 @@ const TINTS = [
 export default function ReviewList({
   reviews, heading = 'Reviews',
   emptyTitle = 'No reviews yet',
-  emptyBody = 'Feedback appears after completed collaborations, revealed once both sides submit, or after 7 days.',
+  emptyBody = 'Reviews show up after a collab wraps. Both sides write theirs in private, and they appear once you\'ve both submitted, or after 7 days.',
   ctaHref, ctaLabel,
 }: {
   reviews: ReviewItem[]

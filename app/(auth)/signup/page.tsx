@@ -58,19 +58,19 @@ function SignupForm() {
   function toggleNiche(n: CreatorNiche) {
     setNiches(prev => {
       if (prev.includes(n)) return prev.filter(x => x !== n)
-      if (prev.length >= MAX_SIGNUP_NICHES) { toast.error(`Pick up to ${MAX_SIGNUP_NICHES} niches`); return prev }
+      if (prev.length >= MAX_SIGNUP_NICHES) { toast.error(`You can pick up to ${MAX_SIGNUP_NICHES} niches`); return prev }
       return [...prev, n]
     })
   }
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
-    if (!agree) { toast.error('Please accept the terms'); return }
+    if (!agree) { toast.error('Please tick the box to accept the terms'); return }
     if (status !== 'idle') return
 
     let payload: Record<string, unknown> = { email, password, name, role }
     if (isBrand) {
-      if (!industry) { toast.error('Pick your industry'); return }
+      if (!industry) { toast.error('Pick your industry first'); return }
       // Brand socials (first row = primary); social_url mirrors the primary.
       const brandSocials = socialRows
         .filter(r => r.username.trim())
@@ -83,7 +83,7 @@ function SignupForm() {
         })
       const websiteUrl = normalizeUrl(website)
       if (!websiteUrl && brandSocials.length === 0) {
-        toast.error('Add a website, social profile, or Google Maps link'); return
+        toast.error('Add a website, a social profile, or a Google Maps link'); return
       }
       payload = {
         ...payload, industry, website: websiteUrl,
@@ -93,7 +93,7 @@ function SignupForm() {
         location: brandLocation.trim() || null,
       }
     } else {
-      if (niches.length === 0) { toast.error('Pick at least one niche'); return }
+      if (niches.length === 0) { toast.error('Pick at least one niche so we can match you'); return }
       // Row order preserved → first profile becomes primary server-side.
       const socials = socialRows
         .filter(r => r.username.trim())
@@ -120,7 +120,7 @@ function SignupForm() {
     if (data.warning) toast(data.warning)
     setStatus('success')
     if (data.requiresEmailVerification) {
-      toast.success('Check your inbox to verify your email, then log in')
+      toast.success('Check your inbox to verify your email, then log in.')
       router.push('/login')
       return
     }
@@ -134,7 +134,7 @@ function SignupForm() {
     <AuthShell>
       <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Create your account</h1>
       <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 22 }}>
-        {isBrand ? 'Post a campaign and find the right creators.' : 'Set up your studio and start earning.'}
+        {isBrand ? 'Post a campaign and find creators who fit.' : 'Set up your profile and start getting paid.'}
       </p>
 
       {/* role toggle */}
@@ -180,14 +180,14 @@ function SignupForm() {
                 </Field>
               </div>
             </div>
-            <Field label="About" optional hint="A line or two about your brand, creators see this on your profile.">
+            <Field label="About" optional hint="A line or two about your brand. Creators will see this on your profile.">
               <textarea className="textarea" value={brandAbout} onChange={e => setBrandAbout(e.target.value)}
                 placeholder="We're a neighbourhood kopitiam in Tiong Bahru serving…" disabled={busy} maxLength={2000} style={{ minHeight: 72 }} />
             </Field>
-            <Field label="Website or Google Maps" hint="Your site, or even your Google Maps listing, a website or a social below is required.">
+            <Field label="Website or Google Maps" hint="Your site or even your Google Maps listing works. We just need a website or a social below.">
               <input className="input" value={website} onChange={e => setWebsite(e.target.value)} placeholder="yourcompany.com  ·  or  maps.app.goo.gl/…" disabled={busy} />
             </Field>
-            <Field label="Brand socials" hint="Helps creators trust you faster. Pick a platform and enter your handle, we build the link. Your first profile is shown as primary.">
+            <Field label="Brand socials" hint="This helps creators trust you faster. Pick a platform and pop in your handle, we build the link. Your first profile shows as primary.">
               <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} showFollowers={false} />
             </Field>
           </>
@@ -202,7 +202,7 @@ function SignupForm() {
             <Field label="Password" hint="At least 8 characters.">
               <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••••" minLength={8} required disabled={busy} autoComplete="new-password" />
             </Field>
-            <Field label="Your niches" hint={`Pick up to ${MAX_SIGNUP_NICHES}, we match you to the right campaigns. ${niches.length}/${MAX_SIGNUP_NICHES} selected`}>
+            <Field label="Your niches" hint={`Pick up to ${MAX_SIGNUP_NICHES} so we can match you to the right campaigns. ${niches.length}/${MAX_SIGNUP_NICHES} selected`}>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {CREATOR_NICHES.map(n => (
                   <button key={n} type="button" onClick={() => toggleNiche(n)} className={`chip${niches.includes(n) ? ' on' : ''}`}>
@@ -211,7 +211,7 @@ function SignupForm() {
                 ))}
               </div>
             </Field>
-            <Field label="Connect your socials" hint="Add at least one, your first profile is shown to brands as primary.">
+            <Field label="Connect your socials" hint="Add at least one. Your first profile is the one brands see as primary.">
               <SocialProfileBuilder rows={socialRows} onChange={setSocialRows} />
             </Field>
           </>
@@ -223,8 +223,8 @@ function SignupForm() {
           <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
             I agree to collabr&rsquo;s terms.{' '}
             {isBrand
-              ? 'Payments are protected by escrow; you fund a collab only when you accept a creator.'
-              : 'A 12% platform fee applies to payouts.'}
+              ? 'Your payments are held in escrow, and you only fund a collab when you accept a creator.'
+              : 'We take a 12% fee from your payouts.'}
           </span>
         </label>
 

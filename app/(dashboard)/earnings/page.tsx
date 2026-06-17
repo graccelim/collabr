@@ -133,7 +133,7 @@ export default async function EarningsPage({
               title="Your first payout is on its way"
               body={inEscrow > 0
                 ? `${formatSGD(inEscrow)} is secured in escrow, it lands here the moment the brand confirms your live post.`
-                : 'Once a brand confirms your live post, escrow releases and Stripe transfers your earnings, payment is guaranteed before you start work.'}
+                : 'The moment a brand confirms your live post, escrow releases and the money is on its way to you. You always know the payment is locked in before you start.'}
               actionHref={inEscrow > 0 ? '/collabs' : '/jobs'}
               actionLabel={inEscrow > 0 ? 'Open active collab' : 'Browse campaigns'}
             />

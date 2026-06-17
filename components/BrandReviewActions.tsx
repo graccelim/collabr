@@ -51,8 +51,8 @@ export default function BrandReviewActions({ collabId, submissionId, creatorName
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      if (decision === 'approved') toast.success('Draft approved, creator can post live now')
-      else if (decision === 'revision') toast.success('Revision request sent')
+      if (decision === 'approved') toast.success('Approved, your creator can post live now')
+      else if (decision === 'revision') toast.success('Sent, your creator will see what to change')
       else toast.success('Draft rejected')
       router.refresh()
     } catch (e: any) {

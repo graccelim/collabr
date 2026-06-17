@@ -40,14 +40,14 @@ export default async function InvitesPage() {
       <div className="max-w-2xl mx-auto space-y-5">
         <div>
           <h1 className="text-xl font-semibold text-gray-900">Invites sent</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Creators you&apos;ve invited to your campaigns.</p>
+          <p className="text-sm text-gray-500 mt-0.5">Every creator you&apos;ve reached out to, and whether they&apos;ve said yes.</p>
         </div>
 
         {(!invites || invites.length === 0) ? (
           <EmptyState
             icon={Send}
-            title="No invites sent yet"
-            body="Found a creator you like? Invite them to a campaign directly from their profile, if they accept, the collab is created instantly."
+            title="You haven't invited anyone yet"
+            body="Spot a creator you'd love to work with? Invite them straight from their profile. If they accept, your collab opens on the spot."
             actionHref="/creators"
             actionLabel="Browse creators"
           />

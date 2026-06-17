@@ -165,7 +165,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
         <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
             <label className="label">Campaign brief</label>
-            <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>The reference document for any dispute.</p>
+            <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginBottom: 8 }}>Be clear here, this is what we check if anything goes sideways.</p>
             <textarea className="input textarea" style={{ minHeight: 120 }} value={form.brief} onChange={e => setForm(f => ({ ...f, brief: e.target.value }))} required />
           </div>
           <div>

@@ -39,7 +39,7 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
       setSubmitting(false)
       return
     }
-    toast.success('Application sent!')
+    toast.success('Application sent, good luck')
     router.refresh()
   }
 

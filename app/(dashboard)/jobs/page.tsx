@@ -114,10 +114,10 @@ export default async function JobsPage({ searchParams }: { searchParams: { brand
           </>
         ) : (
           <>
-            <div className="eyebrow" style={{ marginBottom: 7 }}>Curated for you</div>
-            <h1 style={{ fontSize: 28 }}>Campaigns picked for you</h1>
+            <div className="eyebrow" style={{ marginBottom: 7 }}>Picked for you</div>
+            <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
             <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-              Campaigns that actually fit your niche and audience, your best matches first.
+              Briefs that match your niche and audience, with your strongest matches up top.
             </p>
           </>
         )}

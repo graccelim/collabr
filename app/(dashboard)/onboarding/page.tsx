@@ -21,9 +21,9 @@ export default async function OnboardingPage() {
     return (
       <div className="max-w-2xl mx-auto space-y-6">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">Finish setting up</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Just a couple more things</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            Pick your niches and connect a social account to start applying to campaigns.
+            Pick your niches and add a social account, then you can start applying to campaigns.
           </p>
         </div>
         <OnboardingForm role="creator" initial={{ niche: creator?.niche, niche_tags: creator?.niche_tags }} />
@@ -41,7 +41,7 @@ export default async function OnboardingPage() {
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Finish setting up</h1>
         <p className="text-sm text-gray-500 mt-0.5">
-          Tell creators who you are before posting your first campaign.
+          Tell creators a bit about you before you post your first campaign.
         </p>
       </div>
       <OnboardingForm

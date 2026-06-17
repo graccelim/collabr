@@ -340,7 +340,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2 }}>
-              All set, brands see a complete profile.
+              Nicely done. Brands see a complete profile.
             </div>
           )}
         </div>
@@ -362,7 +362,7 @@ export default function ProfilePage() {
               {avatarPreview || avatarUrl ? 'Replace photo' : 'Upload photo'}
             </button>
             <p className="text-xs text-gray-400 mt-1">
-              {avatarPreview ? 'Photo selected, click Save changes to apply.' : 'PNG or JPG, max 2 MB. Brands see this first.'}
+              {avatarPreview ? 'Photo ready. Click Save changes to apply it.' : 'PNG or JPG, max 2 MB. This is the first thing brands see.'}
             </p>
           </div>
           <input
@@ -428,7 +428,7 @@ export default function ProfilePage() {
         <h2 className="text-sm font-medium text-gray-900">Portfolio</h2>
         {portfolioLinks.length === 0 && (
           <p className="text-xs text-gray-400">
-            No links yet, add your best work so brands can see what you make.
+            Nothing here yet. Add a few of your best posts so brands can see what you make.
           </p>
         )}
         {portfolioLinks.map(link => (
@@ -470,7 +470,7 @@ export default function ProfilePage() {
           )}
         </div>
         {socials.length === 0 && (
-          <p className="text-xs text-gray-400">No accounts connected yet, add at least one to complete onboarding.</p>
+          <p className="text-xs text-gray-400">No accounts yet. Add at least one so brands can find you.</p>
         )}
         {socials.length > 0 && (
           <div style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius)', overflow: 'hidden' }}>
@@ -559,7 +559,7 @@ export default function ProfilePage() {
           </div>
         </form>
         )}
-        <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
+        <p className="text-xs text-gray-400">Each handle can only be used once per platform on collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
       </div>
     </div>
   )

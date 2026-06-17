@@ -34,7 +34,7 @@ export default function CollabActions({
       const res = await fetch(`/api/collabs/${collabId}/confirm-live`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Payment released to creator!')
+      toast.success('Payment released to your creator')
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'Something went wrong')
@@ -94,7 +94,7 @@ export default function CollabActions({
           />
 
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.4 }}>
-            Your card is authorized first. Work cannot begin until funding is verified.
+            We check your card first. Work only starts once the money is safely in.
           </p>
         </div>
 
@@ -179,7 +179,7 @@ export default function CollabActions({
               : `Release ${formatSGD(creatorPayout)} to ${creatorName.split(' ')[0]}`}
           </button>
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '10px 0 0' }}>
-            The collab completes only after Stripe confirms capture and creator transfer.
+            The collab wraps up once the charge goes through and the money lands with the creator.
           </p>
         </div>
 
@@ -187,7 +187,7 @@ export default function CollabActions({
         <div style={{ padding: '13px 15px', background: 'var(--warn-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(217,119,6,.15)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <Clock size={16} color="var(--warn)" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 13, color: 'var(--warn-deep)', lineHeight: 1.5, margin: 0 }}>
-            <strong>Settlement is attempted automatically in 72 hours</strong> after the post went live. Spot a problem?{' '}
+            <strong>We release the payment automatically 72 hours</strong> after the post goes live. Spot a problem?{' '}
             <a href="#dispute-section" style={{ textDecoration: 'underline', color: 'var(--warn-deep)' }}>Raise a dispute</a> before then.
           </p>
         </div>
@@ -207,7 +207,7 @@ export default function CollabActions({
             Awaiting brand confirmation
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-            Stripe settlement is attempted within 72 hours if the brand doesn't respond. You are marked paid only after transfer succeeds.
+            If the brand doesn't respond within 72 hours, we release your payment automatically. You're marked paid once the money reaches you.
           </p>
         </div>
       </div>
@@ -235,10 +235,10 @@ export default function CollabActions({
     return (
       <div className="card" style={{ padding: 18 }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>
-          Payment authorization is being verified
+          Just confirming the payment
         </div>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>
-          Draft work remains locked until Stripe confirms the funds are authorized.
+          Draft work stays locked until the funds are confirmed. This usually only takes a moment.
         </p>
       </div>
     )
@@ -248,10 +248,10 @@ export default function CollabActions({
     return (
       <div className="card" style={{ padding: 18, border: '1px solid rgba(220,38,38,.25)' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--danger)', marginBottom: 4 }}>
-          Payment action failed
+          That payment didn't go through
         </div>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0 }}>
-          The collab has not been marked paid or completed. Retry the available action or contact support.
+          Nothing's been marked paid or completed yet. Try again, or reach out to us and we'll sort it out.
         </p>
       </div>
     )

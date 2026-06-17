@@ -35,7 +35,7 @@ export default function LoginPage() {
     <AuthShell>
       <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Welcome back</h1>
       <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 28 }}>
-        Sign in to pick up where you left off.
+        Log in and pick up right where you left off.
       </p>
 
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

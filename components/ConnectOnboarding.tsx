@@ -30,7 +30,7 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
       <div className="card bg-teal-50 border-teal-200">
         <p className="text-xs text-teal-600 font-medium mb-1">Payouts active</p>
         <p className="text-xs text-teal-500">
-          Your Stripe account is connected. Payments will be transferred automatically when brands confirm your live posts.
+          You're all set. Once a brand confirms your live post, your payment lands in your account automatically.
         </p>
       </div>
     )
@@ -41,7 +41,7 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
       <div className="card bg-teal-50 border-teal-200">
         <p className="text-xs text-teal-600 font-medium mb-1">Payout account connected</p>
         <p className="text-xs text-teal-500">
-          Payments are transferred to your Stripe account after brand confirmation.{' '}
+          Your payments land here once a brand confirms your post.{' '}
           <button onClick={startOnboarding} className="underline hover:no-underline">
             Update payout details
           </button>

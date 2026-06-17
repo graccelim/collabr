@@ -39,7 +39,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Live post submitted, brand has 72 hours to confirm')
+      toast.success('Live post sent, the brand has 72 hours to confirm')
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'Submission failed')
@@ -126,8 +126,8 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
         <div style={{ marginTop: 16, padding: '13px 15px', background: 'var(--safe-tint)', borderRadius: 'var(--radius-sm)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
           <Lock size={15} color="var(--safe)" style={{ flexShrink: 0, marginTop: 1 }} />
           <p style={{ fontSize: 12.5, color: 'var(--safe-deep)', lineHeight: 1.5, margin: 0 }}>
-            Once {brandName} confirms, <strong>{formatSGD(creatorPayout)}</strong> releases to you.
-            If they don't respond, Stripe settlement is <strong>attempted automatically in 72 hours</strong>. You are marked paid only after transfer succeeds.
+            Once {brandName} confirms, <strong>{formatSGD(creatorPayout)}</strong> is yours.
+            If they don't respond, we release it <strong>automatically after 72 hours</strong>. You're marked paid once the money reaches you.
           </p>
         </div>
       </form>
