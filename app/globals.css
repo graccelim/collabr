@@ -690,8 +690,9 @@
   .split-side-brand { padding-bottom: 70px; }
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
-  /* Bigger circle (more breathing room around "collabr."), centred. Phones only. */
-  .split-medallion { width: 92px; height: 92px; top: 50%; }
+  /* Bigger circle (more breathing room around "collabr."), nudged to visual
+     centre. Phones only. */
+  .split-medallion { width: 92px; height: 92px; top: 53%; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
 
