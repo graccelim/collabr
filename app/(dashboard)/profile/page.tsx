@@ -283,17 +283,29 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <div className="eyebrow" style={{ marginBottom: 7 }}>You</div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 style={{ fontSize: 28 }}>My profile</h1>
-          {emailVerified
-            ? <span className="badge badge-teal">Email verified</span>
-            : <span className="badge badge-gray">Email not verified</span>}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0 }}>
+          <div className="eyebrow" style={{ marginBottom: 7 }}>You</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 style={{ fontSize: 28 }}>My profile</h1>
+            {emailVerified
+              ? <span className="badge badge-teal">Email verified</span>
+              : <span className="badge badge-gray">Email not verified</span>}
+          </div>
+          <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+            Brands see this first. Make it easy to say yes.
+          </p>
         </div>
-        <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          Brands see this first. Make it easy to say yes.
-        </p>
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
+            Cancel edit
+          </button>
+          {dirty && (
+            <button type="button" onClick={save} className="btn-primary" disabled={saving || avatarUploading}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Completion - circular ring + missing-item pills */}
@@ -520,17 +532,6 @@ export default function ProfilePage() {
         </form>
         )}
         <p className="text-xs text-gray-400">Handles are unique per platform across collabr. Follower counts are self-reported. Your primary account is the one brands see first.</p>
-      </div>
-
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
-          Cancel edit
-        </button>
-        {dirty && (
-          <button type="button" onClick={save} className="btn-primary" disabled={saving || avatarUploading}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-        )}
       </div>
     </div>
   )

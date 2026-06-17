@@ -54,6 +54,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
 
   return (
     <header
+      className="app-topbar"
       style={{
         height: 58,
         flex: '0 0 auto',

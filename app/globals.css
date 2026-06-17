@@ -726,14 +726,13 @@
   .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
 
-  /* Profile stat band → tidy 2-up grid on phones. Equal-height cells (grid, not
-     wrap) keep the divider lines aligned; subs are hidden to stay compact. */
+  /* Profile stat band → tidy 2-up grid on phones. Only horizontal rules between
+     rows (no vertical dividers - they read as stray lines); subs hidden. */
   .profile-stats { display: grid; grid-template-columns: 1fr 1fr; }
-  .profile-stats > .profile-stat { padding: 13px 14px; gap: 11px; border-left: none; }
-  .profile-stats > .profile-stat:nth-child(even) { border-left: 1px solid var(--line); }
+  .profile-stats > .profile-stat { padding: 13px 14px; gap: 11px; border-left: none !important; }
   .profile-stats > .profile-stat:nth-child(n+3) { border-top: 1px solid var(--line); }
-  /* A lone trailing stat (e.g. 3rd of 3) spans the full row, centred. */
-  .profile-stats > .profile-stat:last-child:nth-child(odd) { grid-column: 1 / -1; border-left: none; }
+  /* A lone trailing stat (e.g. 3rd of 3) spans the full row. */
+  .profile-stats > .profile-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .profile-stat-icon { width: 36px; height: 36px; }
   .profile-stat-val { font-size: 18px; }
   .profile-stat-sub { display: none; }
@@ -749,4 +748,6 @@
 
 @media (min-width: 769px) {
   .tab-bar { display: none !important; }
+  /* Desktop has the full sidebar, so the top bar is redundant - hide it. */
+  .app-topbar { display: none !important; }
 }

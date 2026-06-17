@@ -17,7 +17,7 @@ import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
-import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star } from 'lucide-react'
+import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, Wallet, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -385,38 +385,43 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
   )
 
-  // Brand-facing reassurance (b-c) - the navy "wallet" card. Copy is written for
-  // the BRAND reading it: their money is safe, they approve before paying.
-  const brandReassurance = (
-    <div className="money-panel" style={{ padding: 20, borderRadius: 'var(--radius)', marginBottom: 16 }}>
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        <div className="eyebrow" style={{ marginBottom: 12, color: 'var(--accent-on-dark)' }}>Working with {name}</div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {([
-            ['Your funds stay protected', 'Held in escrow until the collab is done'],
-            ['You approve before you pay', 'Nothing is released until you sign off the content'],
-            ['Only pay for results', 'Funds release just for work you’ve approved'],
-          ] as [string, string][]).map(([t, sub]) => (
-            <div key={t} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-              <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-              <span style={{ minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#fff' }}>{t}</span>
-                <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>
-              </span>
-            </div>
-          ))}
-        </div>
+  // Rates & terms (b-c) - the creator's rate plus the platform protections, in a
+  // clean white card. Shown to a visiting brand.
+  const ratesTerms = (
+    <div className="rail-section">
+      <div className="eyebrow" style={{ marginBottom: 10 }}>Rates &amp; terms</div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 9, flexWrap: 'wrap' }}>
+        <span className="mono-num" style={{ fontSize: 25, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.02em' }}>
+          {rate > 0 ? formatSGD(rate) : 'Negotiable'}
+        </span>
+        {rate > 0 && <span style={{ fontSize: 13, color: 'var(--ink-faint-solid)' }}>/ post</span>}
+        <span className="badge badge-neutral" style={{ fontSize: 10.5, marginLeft: 'auto' }}>Negotiable</span>
+      </div>
+      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {([
+          [ShieldCheck, 'Escrow protected', 'Payment is secured upfront'],
+          [Clock, '48h review window', 'Review and approve content'],
+          [CheckCircle2, 'Guaranteed payment', 'You get paid, every time'],
+        ] as [typeof Clock, string, string][]).map(([Icon, t, sub]) => (
+          <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <Icon size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
+              <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)', lineHeight: 1.4 }}>{sub}</span>
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   )
 
   // Owner sees availability first (their own status), then their socials; a
-  // visiting brand leads with the reassurance card, then socials, availability.
+  // visiting brand leads with rates & terms, then socials, availability.
   const rail = (
     <div style={{ position: 'sticky', top: 24 }}>
       {isOwner
         ? <>{availabilitySection}{socialSection}</>
-        : <>{brandReassurance}{socialSection}{availabilitySection}</>}
+        : <>{ratesTerms}{socialSection}{availabilitySection}</>}
     </div>
   )
 

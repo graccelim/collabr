@@ -10,7 +10,7 @@ import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, 
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import Link from 'next/link'
-import { Globe, Briefcase, Pencil, MapPin, ExternalLink, Star, CalendarDays, CheckCircle2 } from 'lucide-react'
+import { Globe, Briefcase, Pencil, MapPin, ExternalLink, Star, CheckCircle2 } from 'lucide-react'
 
 export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
   const user = await requireAuth()
@@ -82,7 +82,6 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   const stats: ProfileStat[] = [
     { label: 'Completed', value: String(brand.completed_campaigns || 0), sub: 'campaigns on collabr', icon: Briefcase, tone: 'accent' },
     { label: 'Rating', value: showRating ? String(brand.rating_avg) : '–', sub: showRating ? `${brand.rating_count} creator${brand.rating_count !== 1 ? 's' : ''}` : 'no reviews yet', icon: Star, tone: 'warn' },
-    { label: 'Member', value: memberSince ? String(memberSince) : '–', sub: 'on collabr since', icon: CalendarDays, tone: 'neutral' },
   ]
 
   // Defined once, arranged two ways: owners get a full-width header with the rail
@@ -202,20 +201,18 @@ export default async function BrandProfilePage({ params, searchParams }: { param
           )}
 
           {!isOwner && (
-            <div className="money-panel" style={{ padding: 20, borderRadius: 'var(--radius)', marginBottom: 16 }}>
-              <div style={{ position: 'relative', zIndex: 1 }}>
-                <div className="eyebrow" style={{ marginBottom: 12, color: 'var(--accent-on-dark)' }}>Working with {name}</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {brandTerms.map(([t, sub]) => (
-                    <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 9 }}>
-                      <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                      <span style={{ minWidth: 0 }}>
-                        <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#fff' }}>{t}</span>
-                        <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
+            <div className="rail-section">
+              <div className="eyebrow" style={{ marginBottom: 12 }}>Working with {name}</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {brandTerms.map(([t, sub]) => (
+                  <div key={t} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <CheckCircle2 size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>{t}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)', lineHeight: 1.4 }}>{sub}</span>
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -218,14 +218,26 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-lg mx-auto space-y-6">
-      <div>
-        <div className="eyebrow" style={{ marginBottom: 7 }}>Workspace</div>
-        <h1 style={{ fontSize: 28 }}>{role === 'brand' ? 'Brand profile' : 'Settings'}</h1>
-        {role === 'brand' && (
-          <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            This is what creators see before applying, a complete profile gets 3× more replies.
-          </p>
-        )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ minWidth: 0 }}>
+          <div className="eyebrow" style={{ marginBottom: 7 }}>Workspace</div>
+          <h1 style={{ fontSize: 28 }}>{role === 'brand' ? 'Brand profile' : 'Settings'}</h1>
+          {role === 'brand' && (
+            <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+              This is what creators see before applying, a complete profile gets 3× more replies.
+            </p>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
+            Cancel edit
+          </button>
+          {dirty && (
+            <button type="button" onClick={save} className="btn-primary" disabled={saving || logoUploading}>
+              {saving ? 'Saving…' : 'Save changes'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Account */}
@@ -338,17 +350,6 @@ export default function SettingsPage() {
           </div>
         </div>
       )}
-
-      <div style={{ display: 'flex', gap: 10 }}>
-        <button type="button" onClick={cancelEdit} className="btn-secondary" disabled={saving}>
-          Cancel edit
-        </button>
-        {dirty && (
-          <button type="button" onClick={save} className="btn-primary" disabled={saving || logoUploading}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </button>
-        )}
-      </div>
 
       {/* Support */}
       <div className="card space-y-3">

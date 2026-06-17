@@ -297,8 +297,8 @@ export default async function JobDetailPage({
             minWidth: 0,
           }}
         >
-          {/* The brief - soft panel (no hard card border) for a calmer canvas */}
-          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--radius)', padding: 22 }}>
+          {/* The brief - clean white card */}
+          <div className="card" style={{ padding: 22 }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>
               The brief
             </div>
@@ -320,7 +320,7 @@ export default async function JobDetailPage({
                   marginTop: 16,
                   padding: 13,
                   borderRadius: 'var(--radius-sm)',
-                  background: 'var(--surface)',
+                  background: 'var(--surface-2)',
                   border: '1px solid var(--line)',
                 }}
               >
@@ -375,7 +375,6 @@ export default async function JobDetailPage({
               // "shortlisted" is a private brand bookmark - to the creator it reads
               // exactly like a sent application (no false "you're shortlisted" signal).
               const selected = existing.status === 'selected';
-              const tint = selected ? 'var(--money-tint)' : 'var(--accent-tint)';
               const solid = selected ? 'var(--money)' : 'var(--accent)';
               const title = selected
                 ? 'You were selected!'
@@ -385,10 +384,9 @@ export default async function JobDetailPage({
                 : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
+                  className="card"
                   style={{
                     padding: 18,
-                    borderRadius: 'var(--radius)',
-                    background: tint,
                     display: 'flex',
                     gap: 14,
                     alignItems: 'flex-start',
@@ -500,8 +498,8 @@ export default async function JobDetailPage({
             </div>
           </div>
 
-          {/* Your fit - soft panel matching the brief */}
-          <div style={{ background: 'var(--surface-2)', borderRadius: 'var(--radius)', padding: 20 }}>
+          {/* Your fit - clean white card matching the brief */}
+          <div className="card" style={{ padding: 20 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>
               Your fit for this
             </div>
