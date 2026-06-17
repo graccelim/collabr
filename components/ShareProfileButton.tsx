@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
  * desktop. Works for both creator and brand profiles - pass the public path.
  */
 export default function ShareProfileButton({
-  path, name, label = true,
+  path, name, label = false,
 }: { path: string; name: string; label?: boolean }) {
   const [copied, setCopied] = useState(false)
 
@@ -40,9 +40,13 @@ export default function ShareProfileButton({
       className="btn-secondary"
       aria-label="Share profile"
       title="Share profile"
-      style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}
+      style={
+        label
+          ? { display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }
+          : { display: 'grid', placeItems: 'center', flexShrink: 0, width: 40, height: 40, padding: 0 }
+      }
     >
-      {copied ? <Check size={15} /> : <Share2 size={15} />}
+      {copied ? <Check size={16} /> : <Share2 size={16} />}
       {label && <span>{copied ? 'Copied' : 'Share'}</span>}
     </button>
   )
