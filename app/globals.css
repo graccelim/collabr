@@ -430,11 +430,13 @@
   }
   .profile-stats > .profile-stat {
     flex: 1; min-width: 0;
-    padding: 22px 18px;
+    padding: 28px 16px;
+    text-align: center;
   }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
-  /* Icon chip sits inline, left of the figure. */
-  .profile-stat-top { display: flex; align-items: center; gap: 9px; }
+  /* Icon chip sits inline, centred with the figure; never wraps. */
+  .profile-stat-top { display: flex; align-items: center; justify-content: center; gap: 9px; flex-wrap: nowrap; }
+  .profile-stat-val { white-space: nowrap; }
   .profile-stat-ic {
     display: inline-grid; place-items: center; flex-shrink: 0;
     width: 30px; height: 30px; border-radius: 9px;
@@ -725,7 +727,7 @@
   .resp-1col  { grid-template-columns: 1fr !important; }
 
   /* Profile stat band → stays a single compact 4-up row on phones; subs hidden. */
-  .profile-stats > .profile-stat { padding: 16px 9px; }
+  .profile-stats > .profile-stat { padding: 22px 7px; }
   .profile-stat-top { gap: 6px; }
   .profile-stat-ic { width: 23px; height: 23px; border-radius: 6px; }
   .profile-stat-val { font-size: 15px; }
