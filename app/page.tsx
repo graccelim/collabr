@@ -741,10 +741,20 @@ export default async function HomePage() {
         >
           collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
         </span>
-        <div style={{ display: 'flex', gap: 22, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>
             © 2026 collabr. · Singapore
           </span>
+          <a
+            href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry"
+            style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,.45)',
+              fontWeight: 500,
+            }}
+          >
+            Contact us
+          </a>
           <Link
             href="/login"
             style={{

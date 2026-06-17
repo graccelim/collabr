@@ -354,8 +354,11 @@ export default function SettingsPage() {
       {/* Support */}
       <div className="card space-y-3">
         <h2 className="text-sm font-medium text-gray-900">Support</h2>
-        <p className="text-sm text-gray-500">hello@collabr.sg, we read every email.</p>
-        <p className="text-sm text-gray-500">disputes@collabr.sg, for active dispute cases.</p>
+        <p className="text-sm text-gray-500">
+          Questions, disputes, or anything else, email{' '}
+          <a href="mailto:joincollabr@gmail.com" style={{ color: 'var(--accent-deep)', fontWeight: 600 }}>joincollabr@gmail.com</a>{' '}
+          and we read every message.
+        </p>
       </div>
     </div>
   )

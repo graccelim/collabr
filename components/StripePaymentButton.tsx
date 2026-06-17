@@ -122,7 +122,7 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
     return (
       <div className="text-xs text-gray-500 border border-dashed border-gray-300 rounded-lg px-4 py-3 text-center">
         Apple Pay and Google Pay not available in this browser.{' '}
-        <a href="mailto:hello@collabr.sg" className="underline">Contact us</a> to pay by card or bank transfer.
+        <a href="mailto:joincollabr@gmail.com" className="underline">Contact us</a> to pay by card or bank transfer.
       </div>
     )
   }

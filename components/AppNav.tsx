@@ -7,7 +7,7 @@ import type { LucideProps } from 'lucide-react'
 import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
   Compass, FileText, Settings, Bell, User,
-  CreditCard, ChevronLeft, ChevronRight,
+  CreditCard, ChevronLeft, ChevronRight, LogOut,
   Mail,
 } from 'lucide-react'
 
@@ -277,6 +277,15 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                   {email}
                 </div>
               </div>
+              <form action="/api/auth/signout" method="POST">
+                <button type="submit" title="Sign out" aria-label="Sign out" style={{
+                  border: 0, background: 'transparent', color: 'rgba(255,255,255,.6)',
+                  cursor: 'pointer', padding: 4, display: 'grid', placeItems: 'center',
+                  borderRadius: 6, transition: 'color .15s ease', flexShrink: 0,
+                }}>
+                  <LogOut size={15} />
+                </button>
+              </form>
             </div>
           </div>
         )}

@@ -687,7 +687,9 @@
   .split-side      { min-height: 320px; padding: 32px 22px; }
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
-  .split-medallion { width: 72px; height: 72px; }
+  /* Bigger circle (more breathing room around "collabr.") nudged down so it
+     clears the "Find creators" button above it. Phones only. */
+  .split-medallion { width: 92px; height: 92px; top: 55%; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
 

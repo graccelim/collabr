@@ -11,7 +11,7 @@ import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
-import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star, ChevronLeft } from 'lucide-react'
+import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star, ChevronLeft, LifeBuoy } from 'lucide-react'
 import Link from 'next/link'
 import RatingChip from '@/components/RatingChip'
 
@@ -405,6 +405,25 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           )}
         </div>
 
+      </div>
+
+      {/* Per-collab support - a dispute or a question goes straight to our inbox,
+          pre-tagged with this collab. */}
+      <div style={{
+        marginTop: 28, paddingTop: 18, borderTop: '1px solid var(--line)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        gap: 12, flexWrap: 'wrap',
+      }}>
+        <span style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+          Need to raise a dispute or have a question about this collab?
+        </span>
+        <a
+          href={`mailto:joincollabr@gmail.com?subject=${encodeURIComponent(`Collab support: ${collab.campaigns?.title ?? params.id} (${params.id})`)}`}
+          className="btn-secondary btn-sm"
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}
+        >
+          <LifeBuoy size={15} /> Contact support
+        </a>
       </div>
     </div>
   )
