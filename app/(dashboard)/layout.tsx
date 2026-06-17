@@ -26,27 +26,40 @@ export default async function DashboardLayout({ children }: { children: React.Re
       ? (async () => {
           const { data: creator } = await supabase.from('creator_profiles')
             .select('id, onboarding_completed_at').eq('user_id', user.id).single()
-          // Invites awaiting this creator (RLS party policy scopes the rows).
-          const { count } = creator
-            ? await supabase.from('campaign_invites')
-                .select('*', { count: 'exact', head: true })
-                .eq('creator_id', creator.id).eq('status', 'pending')
-            : { count: 0 }
-          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile' }
+          // Invites awaiting this creator + any social profiles still missing a
+          // follower count (drives the "add your followers" nudge).
+          const [{ count }, { data: socs }] = creator
+            ? await Promise.all([
+                supabase.from('campaign_invites')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('creator_id', creator.id).eq('status', 'pending'),
+                supabase.from('social_accounts')
+                  .select('follower_count').eq('creator_id', creator.id),
+              ])
+            : [{ count: 0 }, { data: [] as { follower_count: number | null }[] }]
+          const needsFollowers = (socs || []).length > 0 && (socs || []).some(s => s.follower_count == null)
+          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile', needsFollowers }
         })()
       : (async () => {
           // Admin client: subscription columns are not client-readable.
-          const { data: brand } = await createAdminClient().from('brand_profiles')
+          const admin = createAdminClient()
+          const { data: brand } = await admin.from('brand_profiles')
             .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
           const plan = resolvePlan(brand)
-          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings' }
+          // Best-effort: brand socials (jsonb) missing a follower count. Tolerates
+          // DBs where the `socials` column isn't applied yet.
+          let needsFollowers = false
+          const { data: bSoc } = await admin.from('brand_profiles').select('socials').eq('user_id', user.id).maybeSingle()
+          const socs = Array.isArray((bSoc as { socials?: unknown } | null)?.socials) ? (bSoc as { socials: { follower_count?: number | null }[] }).socials : []
+          needsFollowers = socs.length > 0 && socs.some(s => s.follower_count == null)
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers }
         })(),
     supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id).eq('read', false),
   ])
 
-  const { onboardingComplete, planLabel, inviteBadge, profileHref } = roleState
+  const { onboardingComplete, planLabel, inviteBadge, profileHref, needsFollowers } = roleState
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
@@ -91,6 +104,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
               emailVerified={emailVerified}
               onboardingComplete={onboardingComplete}
               role={role}
+              needsFollowers={needsFollowers}
+              profileHref={role === 'brand' ? '/settings' : '/profile'}
             />
           )}
           <PageTransition>{children}</PageTransition>

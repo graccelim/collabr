@@ -99,18 +99,18 @@ export default async function EarningsPage({
         <Stat label="Completed collabs" value={String(creator?.collabs_completed || 0)} icon={CheckCircle2} />
       </div>
 
-      {/* Boost nudge - only once boost is configured AND the profile is complete
-          (no point boosting an undiscoverable profile). */}
-      {boostUiEnabled() && creator?.onboarding_completed_at && (
-        <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
-      )}
-
-      {/* Stripe Connect onboarding */}
+      {/* Stripe Connect onboarding - getting paid comes first, above the boost. */}
       <ConnectOnboarding
         hasConnectId={payoutsReady}
         justCompleted={connectComplete}
         needsRefresh={connectRefresh}
       />
+
+      {/* Boost nudge - only once boost is configured AND the profile is complete
+          (no point boosting an undiscoverable profile). */}
+      {boostUiEnabled() && creator?.onboarding_completed_at && (
+        <BoostHint boostUntil={creator?.boost_active_until ?? null} preview={boostPreview()} />
+      )}
 
       <div>
         <h2 className="text-sm font-medium text-gray-900 mb-3">Payout history</h2>

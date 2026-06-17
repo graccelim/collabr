@@ -73,7 +73,7 @@ export default function SocialProfileBuilder({
                 )}
               </div>
 
-              <input className="input" type="number" min="0" placeholder="Follower count (optional)"
+              <input className="input" type="number" min="0" placeholder="Follower count" required
                 value={row.followers}
                 onChange={e => update(i, { followers: e.target.value })} />
             </div>

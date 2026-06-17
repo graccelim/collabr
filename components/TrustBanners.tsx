@@ -3,15 +3,19 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { MailWarning, UserCheck } from 'lucide-react'
+import { MailWarning, UserCheck, BarChart3 } from 'lucide-react'
 
 interface Props {
   emailVerified: boolean
   onboardingComplete: boolean
   role: 'brand' | 'creator'
+  /** At least one social profile is missing a follower count. */
+  needsFollowers?: boolean
+  /** Where to send them to add followers (profile / settings). */
+  profileHref?: string
 }
 
-export default function TrustBanners({ emailVerified, onboardingComplete, role }: Props) {
+export default function TrustBanners({ emailVerified, onboardingComplete, role, needsFollowers = false, profileHref = '/profile' }: Props) {
   const pathname = usePathname()
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
@@ -26,7 +30,7 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role }
     setSending(false)
   }
 
-  if (emailVerified && onboardingComplete) return null
+  if (emailVerified && onboardingComplete && !needsFollowers) return null
 
   return (
     <div className="space-y-2 mb-5">
@@ -56,6 +60,20 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role }
           <Link href="/onboarding" className="text-sm font-medium"
             style={{ color: 'var(--accent-deep)' }}>
             Finish setup →
+          </Link>
+        </div>
+      )}
+      {needsFollowers && (
+        <div className="card flex items-center gap-3 py-2.5"
+          style={{ borderColor: 'rgba(58,108,210,.25)', background: '#eef3fd' }}>
+          <BarChart3 size={16} className="shrink-0" style={{ color: '#3a6cd2' }} />
+          <p className="text-sm text-gray-700 flex-1">
+            {role === 'creator'
+              ? 'Add your follower counts so brands can find and trust you faster.'
+              : 'Add your follower counts so creators can size up your reach.'}
+          </p>
+          <Link href={profileHref} className="text-sm font-medium" style={{ color: '#2a55b8' }}>
+            Add followers →
           </Link>
         </div>
       )}

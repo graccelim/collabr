@@ -104,8 +104,8 @@ export default async function JobsPage({ searchParams }: { searchParams: { brand
       <div>
         {brandName ? (
           <>
-            <Link href="/jobs" className="eyebrow" style={{ marginBottom: 7, display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-faint-solid)' }}>
-              <ArrowLeft size={12} /> All campaigns
+            <Link href={`/brands/${brandFilter}`} className="eyebrow" style={{ marginBottom: 7, display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-faint-solid)' }}>
+              <ArrowLeft size={12} /> Back to {brandName}
             </Link>
             <h1 style={{ fontSize: 28 }}>Campaigns from {brandName}</h1>
             <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>

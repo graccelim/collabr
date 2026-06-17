@@ -422,18 +422,28 @@
     font-size: 14px; color: var(--ink); font-family: var(--font-body);
   }
 
-  /* Profile stat band - flat (no card), hairline top/bottom rules with vertical
-     dividers between items. Each stat is icon-left, figures-right. Reflows to
-     2-up on phones. */
+  /* Profile stat band - a crisp white instrument panel that lifts off the blue
+     canvas. Hairline cell dividers + a faint top accent line give it a "tech /
+     dashboard readout" feel rather than a plain card. Reflows to 2-up on phones. */
   .profile-stats {
+    position: relative;
     display: flex;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 0 rgba(255,255,255,.6) inset, 0 6px 20px -12px rgba(13,18,45,.18);
+    overflow: hidden;
+  }
+  /* Thin gradient hairline across the top edge - the "tech" touch. */
+  .profile-stats::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent) 0%, #5b6fd6 45%, var(--money) 100%);
+    opacity: .55;
   }
   .profile-stats > .profile-stat {
     flex: 1; min-width: 0;
     display: flex; align-items: center; gap: 13px;
-    padding: 16px 20px;
+    padding: 17px 20px;
   }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
   /* Soft, tinted circular icon chip - colourful but muted (Linear/Notion feel). */
@@ -727,19 +737,32 @@
   .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
 
-  /* Profile stat band → tidy 2-up grid on phones. Only horizontal rules between
-     rows (no vertical dividers - they read as stray lines); subs hidden. */
+  /* Profile stat band → crisp 2×2 readout inside the white panel. Full cross
+     dividers (now framed by the panel, they read as a clean grid, not stray
+     lines); subs hidden to stay compact. */
   .profile-stats { display: grid; grid-template-columns: 1fr 1fr; }
-  .profile-stats > .profile-stat { padding: 13px 14px; gap: 11px; border-left: none !important; }
+  .profile-stats > .profile-stat { padding: 14px 15px; gap: 11px; border-left: none !important; }
+  .profile-stats > .profile-stat:nth-child(even) { border-left: 1px solid var(--line) !important; }
   .profile-stats > .profile-stat:nth-child(n+3) { border-top: 1px solid var(--line); }
   /* A lone trailing stat (e.g. 3rd of 3) spans the full row. */
-  .profile-stats > .profile-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .profile-stats > .profile-stat:last-child:nth-child(odd) { grid-column: 1 / -1; border-left: none !important; }
   .profile-stat-icon { width: 36px; height: 36px; }
   .profile-stat-val { font-size: 18px; }
   .profile-stat-sub { display: none; }
 
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
+
+  /* Navy top bar on mobile (matches the navy bottom tab bar). Recolour its
+     contents for legibility on navy. Desktop keeps the white top bar. */
+  .app-topbar {
+    background: var(--brand) !important;
+    border-bottom: 1px solid rgba(255,255,255,.08) !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+  .app-topbar [aria-label="Notifications"] { color: #fff !important; }
+  .app-topbar .btn-primary { background: #fff !important; color: var(--brand) !important; }
+  .app-topbar [aria-label="Account"] { background: rgba(255,255,255,.18) !important; color: #fff !important; }
 
   /* "How it works" steps: 4-up on desktop → 2-up on phones. */
   .how-steps { grid-template-columns: 1fr 1fr !important; gap: 18px 16px !important; }

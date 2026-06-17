@@ -85,6 +85,9 @@ function SignupForm() {
       if (!websiteUrl && brandSocials.length === 0) {
         toast.error('Add a website, social profile, or Google Maps link'); return
       }
+      if (brandSocials.some(s => s.follower_count == null || !(s.follower_count >= 0))) {
+        toast.error('Add a follower count for each social profile'); return
+      }
       payload = {
         ...payload, industry, website: websiteUrl,
         social_url: brandSocials[0]?.url || null,
@@ -103,6 +106,9 @@ function SignupForm() {
           follower_count: r.followers ? parseInt(r.followers, 10) : null,
         }))
       if (socials.length === 0) { toast.error('Add at least one social profile'); return }
+      if (socials.some(s => s.follower_count == null || !(s.follower_count >= 0))) {
+        toast.error('Add a follower count for each social profile'); return
+      }
       payload = { ...payload, niche: niches[0], niche_tags: niches, socials }
     }
 

@@ -523,9 +523,9 @@ export default function ProfilePage() {
             placeholder="@username"
             value={newHandle} onChange={e => setNewHandle(e.target.value)} />
           <div className="flex gap-2">
-            <input className="input" type="number" min="0" placeholder="Follower count (optional)" style={{ flex: 1 }}
+            <input className="input" type="number" min="0" placeholder="Follower count" style={{ flex: 1 }}
               value={newFollowers} onChange={e => setNewFollowers(e.target.value)} />
-            <button type="submit" className="btn-secondary text-sm shrink-0" disabled={addingSocial || !newHandle.trim()}>
+            <button type="submit" className="btn-secondary text-sm shrink-0" disabled={addingSocial || !newHandle.trim() || !newFollowers.trim()}>
               {addingSocial ? 'Adding…' : 'Add'}
             </button>
           </div>

@@ -65,9 +65,12 @@ export default async function ApplicationsPage() {
             {active.map(app => {
               const campaign = app.campaigns as any
               const collabId = collabsByApp[app.id]
+              // Whole card is clickable: to the collab if one exists, else back
+              // to the campaign brief.
+              const href = collabId ? `/collabs/${collabId}` : `/jobs/${campaign?.id}`
               return (
-                <div key={app.id} className="card">
-                  <div className="flex items-center justify-between">
+                <Link key={app.id} href={href} className="card card-hover block">
+                  <div className="flex items-center justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium text-gray-900">{campaign?.title}</div>
                       <div className="text-xs text-gray-500 mt-0.5">{campaign?.brand_profiles?.company_name}</div>
@@ -87,13 +90,13 @@ export default async function ApplicationsPage() {
                         return <span className={`badge ${color}`}>{shown}</span>
                       })()}
                       {collabId && (
-                        <Link href={`/collabs/${collabId}`} className="btn-primary btn-sm">
+                        <span className="btn-primary btn-sm" style={{ pointerEvents: 'none' }}>
                           View collab →
-                        </Link>
+                        </span>
                       )}
                     </div>
                   </div>
-                </div>
+                </Link>
               )
             })}
           </div>
