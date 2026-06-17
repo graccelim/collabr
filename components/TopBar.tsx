@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Plus, Compass, LogOut } from 'lucide-react'
+import { Bell, Plus, Search, LogOut } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
@@ -45,7 +45,7 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
       ]
   const ctaHref = isBrand ? '/post-job' : '/jobs'
   const ctaLabel = isBrand ? 'Post a campaign' : 'Discover campaigns'
-  const CtaIcon = isBrand ? Plus : Compass
+  const CtaIcon = isBrand ? Plus : Search
 
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -81,11 +81,10 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
         {/* CTA - brands keep "Post a campaign" everywhere; creators' "Discover
             campaigns" is redundant with the Browse tab on mobile, so hide it there. */}
         <motion.div
-          className={isBrand ? '' : 'hidden md:block'}
           whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
           transition={{ type: 'spring', stiffness: 500, damping: 30 }}
         >
-          <Link href={ctaHref} className="btn-primary" style={{ height: 38, paddingInline: 16 }}>
+          <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)' }}>
             <CtaIcon size={16} />
             <span className="hidden sm:inline">{ctaLabel}</span>
           </Link>

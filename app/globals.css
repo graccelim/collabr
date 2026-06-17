@@ -433,10 +433,11 @@
     padding: 22px 18px;
   }
   .profile-stats > .profile-stat + .profile-stat { border-left: 1px solid var(--line); }
-  /* Cute, soft-tinted icon chip above each figure. */
+  /* Icon chip sits inline, left of the figure. */
+  .profile-stat-top { display: flex; align-items: center; gap: 9px; }
   .profile-stat-ic {
-    display: inline-grid; place-items: center;
-    width: 30px; height: 30px; border-radius: 9px; margin-bottom: 10px;
+    display: inline-grid; place-items: center; flex-shrink: 0;
+    width: 30px; height: 30px; border-radius: 9px;
     background: var(--surface-2); color: var(--ink-faint-solid);
   }
   .profile-stat-ic[data-tone="accent"]  { background: #e8f0fe; color: #3a6cd2; }
@@ -447,7 +448,7 @@
     font-family: var(--font-money); font-variant-numeric: tabular-nums;
     font-size: 21px; font-weight: 700; letter-spacing: -0.02em; color: var(--ink); line-height: 1.1;
   }
-  .profile-stat-label { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-top: 4px; }
+  .profile-stat-label { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-top: 8px; }
   .profile-stat-sub { font-size: 11.5px; color: var(--ink-faint-solid); margin-top: 2px; }
 
   /* Selects: replace the cramped native arrow with a padded custom chevron. */
@@ -725,7 +726,8 @@
 
   /* Profile stat band → stays a single compact 4-up row on phones; subs hidden. */
   .profile-stats > .profile-stat { padding: 16px 9px; }
-  .profile-stat-ic { width: 26px; height: 26px; border-radius: 7px; margin-bottom: 7px; }
+  .profile-stat-top { gap: 6px; }
+  .profile-stat-ic { width: 23px; height: 23px; border-radius: 6px; }
   .profile-stat-val { font-size: 15px; }
   .profile-stat-label { font-size: 10.5px; margin-top: 3px; }
   .profile-stat-sub { display: none; }

@@ -174,9 +174,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </div>
               </div>
 
-              {/* Owner: edit + share inline with the name (all widths). */}
+              {/* Owner desktop: edit + share inline with the name. */}
               {isOwner && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
                   {ownerActions(false)}
                 </div>
               )}
@@ -184,9 +184,13 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
   )
 
-  // Actions below the stat strip - visitor only (owner actions live inline in
-  // the hero). Visitor: invite/save + share.
-  const heroActions = isOwner ? null : (
+  // Below the stat strip. Owner: a full-width row on mobile only (desktop set
+  // lives inline in the hero). Visitor: invite/save + share.
+  const heroActions = isOwner ? (
+          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+            {ownerActions(true)}
+          </div>
+  ) : (
           <div style={{ marginBottom: 30 }}>
             <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isBrandViewer && viewerIsPro && (

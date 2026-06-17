@@ -118,9 +118,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                 </div>
               )}
 
-              {/* Owner (b-b): edit + share inline with the name (all widths). */}
+              {/* Owner desktop (b-b): edit + share inline with the name. */}
               {isOwner && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
                   <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                     <Pencil size={15} /> Edit profile
                   </Link>
@@ -130,6 +130,16 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             </div>
           </div>
   )
+
+  // Owner (b-b): full-width edit + share row below the stat strip, mobile only.
+  const heroActions = isOwner ? (
+          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+            <Link href="/settings" className="btn-primary" style={{ flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+              <Pencil size={15} /> Edit profile
+            </Link>
+            <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+          </div>
+  ) : null
 
   const statsBlock = (
           <div style={{ marginBottom: 28 }}>
@@ -279,6 +289,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
         <>
           {heroBlock}
           {statsBlock}
+          {heroActions}
           <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 32, alignItems: 'start' }}>
             <div style={{ minWidth: 0 }}>{mainContent}</div>
             {rail}
