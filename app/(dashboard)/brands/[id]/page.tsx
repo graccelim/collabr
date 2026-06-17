@@ -89,36 +89,45 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   // below; visitors get the rail from the top.
   const heroBlock = (
           <div style={{ marginBottom: 22 }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
-              <Avatar src={brand.logo_url} name={name} size={76} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                  <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
-                  {brand.industry && (() => {
-                    const c = chipColor(brand.industry)
-                    return <span className="badge" style={{ fontSize: 11, background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
-                  })()}
-                </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-                  {brand.location && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <MapPin size={13} />{brand.location}
-                    </span>
-                  )}
-                  {memberSince && <span>Member since {memberSince}</span>}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
+                <Avatar src={brand.logo_url} name={name} size={76} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                    <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                    {brand.industry && (() => {
+                      const c = chipColor(brand.industry)
+                      return <span className="badge" style={{ fontSize: 11, background: c.bg, color: c.fg, fontWeight: 600 }}>{INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry}</span>
+                    })()}
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+                    {brand.location && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={13} />{brand.location}
+                      </span>
+                    )}
+                    {memberSince && <span>Member since {memberSince}</span>}
+                  </div>
                 </div>
               </div>
+
+              {/* Visitor: share sits top-right, inline with the name. */}
+              {!isOwner && (
+                <div style={{ flexShrink: 0 }}>
+                  <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+                </div>
+              )}
             </div>
 
-            {/* action row - edit (owner) + share (all) */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
-              {isOwner && (
+            {/* Owner: Edit + Share in a row below the identity. */}
+            {isOwner && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
                 <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                   <Pencil size={15} /> Edit profile
                 </Link>
-              )}
-              <ShareProfileButton path={`/brands/${params.id}`} name={name} />
-            </div>
+                <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+              </div>
+            )}
           </div>
   )
 
