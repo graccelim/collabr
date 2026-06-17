@@ -83,7 +83,7 @@ export default async function EarningsPage({
         <div className="eyebrow" style={{ marginBottom: 7 }}>Money</div>
         <h1 style={{ fontSize: 28 }}>Earnings</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          Every dollar you&rsquo;ve secured, released and withdrawn.
+          What you&rsquo;ve earned, what&rsquo;s safely held in escrow, and what&rsquo;s on its way to you.
         </p>
       </div>
 

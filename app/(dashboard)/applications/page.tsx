@@ -44,7 +44,7 @@ export default async function ApplicationsPage() {
         <div className="eyebrow" style={{ marginBottom: 7 }}>Outbound</div>
         <h1 style={{ fontSize: 28 }}>My applications</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          Track every pitch and where it stands.
+          See where every campaign you’ve pitched stands, no guessing, no ghosting.
         </p>
       </div>
 

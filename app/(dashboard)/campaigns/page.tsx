@@ -82,7 +82,7 @@ export default async function CampaignsPage() {
           <div className="eyebrow" style={{ marginBottom: 7 }}>Campaign manager</div>
           <h1 style={{ fontSize: 28 }}>Your campaigns</h1>
           <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            Track applicants, drafts and escrow across every brief.
+            Your campaigns, who&rsquo;s applied, and how each collab is coming along.
           </p>
         </div>
         <Link href="/post-job" className="btn-primary" style={{ flexShrink: 0 }}>

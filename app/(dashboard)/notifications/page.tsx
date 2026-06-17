@@ -61,7 +61,7 @@ export default async function NotificationsPage() {
           <div className="eyebrow" style={{ marginBottom: 7 }}>Activity</div>
           <h1 style={{ fontSize: 28 }}>Notifications</h1>
           <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            Applications, drafts, approvals and payments, as they happen.
+            Everything happening across your collabs, the moment it happens.
           </p>
         </div>
         {notifications && notifications.some(n => !n.read) && (
