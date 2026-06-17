@@ -66,71 +66,71 @@ const Star = () => (
 const WHY = [
   {
     Icon: Target,
-    title: 'Matched on niche and budget',
-    body: 'We weigh niche, audience and budget so both sides see fits that make sense.',
+    title: 'Niche + budget matching',
+    body: 'Recommendations weigh niche, audience and budget, for both sides.',
   },
   {
     Icon: Send,
-    title: 'Brands reach out first',
-    body: 'Brands invite creators who already fit, so you get found instead of ignored.',
+    title: 'Brand invitations',
+    body: 'Brands invite creators that already fit. Creators get found, not ignored.',
   },
   {
     Icon: Filter,
     title: 'Less noise, better fits',
-    body: 'No more sifting through off-topic applications or scrolling a giant directory.',
+    body: 'Skip the irrelevant applications and the endless directory scroll.',
   },
   {
     Icon: Badge,
-    title: 'See the real profiles',
-    body: 'Every creator lists their socials, so you can open them in one click and see for yourself.',
+    title: 'Profiles you can check',
+    body: 'Every creator lists their social profiles, open them in one click to view.',
   },
   {
     Icon: Lock,
-    title: 'Money held in escrow',
-    body: 'Funds sit safely until the content is approved, so both sides are covered.',
+    title: 'Secure escrow',
+    body: 'Funds are held safely until content is approved, protected on both sides.',
   },
   {
     Icon: Star,
-    title: 'Honest two-way reviews',
-    body: 'After a paid collab both sides review each other, revealed at the same time so feedback stays honest. Your reputation only grows from collabs you actually finish.',
+    title: 'Two-way reviews',
+    body: 'Both sides review each other after a paid collab, revealed together, so feedback stays honest. Reputation is built only through completed collaborations.',
   },
 ];
 
 const STEPS = {
   brand: [
     [
-      'Find your creators',
-      'Browse creators who fit your brand, audience and budget.',
+      'Discover creators',
+      'Find the right creators that fit your brand, audience, and budget.',
     ],
     [
-      'Work together, money safe',
-      'Your funds stay in escrow while you and the creator get to work.',
+      'Collaborate confidently',
+      'Your funds stay protected while both sides work together.',
     ],
     [
-      'Check the content',
-      'Look over the content and make sure it is right before it reaches your audience.',
+      'Review the content',
+      'Review content and ensure it meets your standards before it reaches your audience.',
     ],
     [
-      'Approve and you are done',
-      'Once you approve, we handle the payment, reviews and follow-up for you.',
+      'Approve and relax',
+      'Once approved, payment, reviews, and follow-up are handled automatically for you.',
     ],
   ],
   creator: [
     [
-      'Find campaigns',
-      'Browse campaigns that fit your niche and rates, or get invited straight by brands.',
+      'Discover campaigns',
+      'Find campaigns that fit your niche and rates, or get invited directly by brands.',
     ],
     [
-      'Say yes, payment locked in',
-      'The brand funds escrow before you start, so your payment is already set aside.',
+      'Accept with confidence',
+      'Funds are secured before you start, so you know your payment is protected.',
     ],
     [
-      'Send your content',
-      'Upload your drafts, get feedback and make tweaks before anything goes live.',
+      'Submit your content',
+      'Upload drafts, receive feedback, and make changes before anything goes live.',
     ],
     [
       'Get paid',
-      'Once your posts are live, your payment is released automatically. No chasing, no waiting.',
+      'Once posts are live, payment will automatically be released to you. No more chasing or waiting for payments.',
     ],
   ],
 } as const;
@@ -139,22 +139,22 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   {
     value: <CountUp to={100} suffix="%" />,
     label: 'Funds protected',
-    sub: 'held until you approve the content',
+    sub: 'held until content is approved',
   },
   {
     value: <CountUp to={48} suffix="h" />,
     label: 'Review window',
-    sub: 'auto-approves if nobody replies',
+    sub: 'auto-approves if no response',
   },
   {
     value: <CountUp to={3} suffix=" days" />,
     label: 'Dispute resolution',
-    sub: 'we step in and sort it out fairly',
+    sub: 'platform mediates fairly',
   },
   {
     value: 'Real',
     label: 'Reviews & ratings',
-    sub: 'only from collabs people finished',
+    sub: 'only from completed collabs',
   },
 ];
 
@@ -289,9 +289,9 @@ export default async function HomePage() {
             >
               {[
                 'Matched to your niche and budget',
-                'No more cold outreach or poor-fit applications',
-                'Your money is held safely until the content is delivered and approved',
-                'We have your back with dispute support if things go sideways',
+                'Skip the endless outreach and poor-fit applications',
+                'Funds protected until content is delivered and approved',
+                'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
                   key={t}
@@ -394,10 +394,10 @@ export default async function HomePage() {
               }}
             >
               {[
-                'Find campaigns matched to your niche and rates',
-                'Stop waiting to be found, apply to brands directly',
-                'Get paid safely once your content is approved',
-                'We have your back with dispute support if things go sideways',
+                'Discover campaigns matched to your niche and rates',
+                'Stop waiting to be found, apply directly to brands',
+                'Get paid securely once your content is approved',
+                'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
                   key={t}
@@ -459,8 +459,8 @@ export default async function HomePage() {
                 marginInline: 'auto',
               }}
             >
-              The same safe flow for both sides, from the first match to the
-              final payout.
+              The same protected flow on both sides, from first match to final
+              payout.
             </p>
           </Reveal>
           <div
@@ -517,7 +517,7 @@ export default async function HomePage() {
               letterSpacing: '-0.02em',
             }}
           >
-            We match you, you don&rsquo;t scroll a list.
+            A recommendation engine, not a list to scroll.
           </h2>
         </Reveal>
         <Reveal
@@ -683,7 +683,7 @@ export default async function HomePage() {
               marginBottom: 32,
             }}
           >
-            Better matches for both sides. Free during beta · No credit card
+            Better matches on both sides. Free during beta · No credit card
             needed.
           </p>
           <div
