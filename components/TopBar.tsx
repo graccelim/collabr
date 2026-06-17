@@ -78,36 +78,16 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
     >
       {/* left - primary action + notifications */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        {/* CTA - white pill, no border. Brands keep "+ Post a campaign" on all
-            widths; creators get the pill on desktop and a plain Compass icon
-            (no background, like the bell) on mobile. */}
-        {isBrand ? (
-          <motion.div
-            whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-          >
-            <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-              <CtaIcon size={16} />
-              <span className="hidden sm:inline">{ctaLabel}</span>
-            </Link>
-          </motion.div>
-        ) : (
-          <>
-            <motion.div
-              className="hidden md:block"
-              whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
-              transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-            >
-              <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-                <CtaIcon size={16} />
-                <span>{ctaLabel}</span>
-              </Link>
-            </motion.div>
-            <IconButton href={ctaHref} label={ctaLabel} className="md:hidden">
-              <Compass size={18} />
-            </IconButton>
-          </>
-        )}
+        {/* CTA - white pill, no border, label shown on every width (both roles). */}
+        <motion.div
+          whileHover={{ y: -1 }} whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        >
+          <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+            <CtaIcon size={16} />
+            <span>{ctaLabel}</span>
+          </Link>
+        </motion.div>
         <IconButton href="/notifications" label="Notifications">
           <Bell size={17} />
           {notificationBadge > 0 && (
