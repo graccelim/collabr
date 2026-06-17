@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
 import { formatSGD, getInitials } from '@/lib/utils';
-import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding';
+import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
-import { ChevronLeft, Shield, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
 
@@ -115,6 +115,7 @@ export default async function JobDetailPage({
     id?: string;
     company_name: string | null;
     logo_url: string | null;
+    industry?: string | null;
     completed_campaigns?: number | null;
     rating_avg?: number | null;
     rating_count?: number | null;
@@ -181,6 +182,29 @@ export default async function JobDetailPage({
         : 'Flexible',
     },
   ];
+
+  // Compensation reassurance ticks (rail hero).
+  const compTerms: [string, string][] = [
+    ['Funds held securely in escrow', 'The brand funds before you create anything'],
+    ['Get paid only after approval', 'Release happens automatically on sign-off'],
+    ['Safe, simple & transparent', 'No invoices, no chasing payment'],
+  ];
+
+  // The real escrow flow, shown as "How it works".
+  const steps: { icon: typeof Wallet; title: string; body: string }[] = [
+    { icon: Wallet, title: 'Brand funds escrow', body: 'The brand pays upfront and the money is locked in.' },
+    { icon: PenLine, title: 'Create content', body: 'Make the deliverable and submit your draft for review.' },
+    { icon: Send, title: 'Submit for approval', body: 'The brand reviews and approves, or requests changes.' },
+    { icon: Coins, title: 'Get paid', body: 'Once approved, escrow releases straight to you.' },
+  ];
+
+  // Brand reputation facts for the rail (only what we actually have - no
+  // fabricated response-rate %). Each row: icon, value, label.
+  const brandRated = (brand?.rating_count || 0) >= 1;
+  const brandStats: { icon: typeof Star; value: string; label: string }[] = [];
+  if (brandRated) brandStats.push({ icon: Star, value: String(brand?.rating_avg), label: `Brand rating · ${brand?.rating_count} creator${brand?.rating_count !== 1 ? 's' : ''}` });
+  if ((brand?.completed_campaigns || 0) > 0) brandStats.push({ icon: CheckCircle2, value: String(brand?.completed_campaigns), label: `Campaign${brand?.completed_campaigns !== 1 ? 's' : ''} completed` });
+  if (brand?.industry) brandStats.push({ icon: Briefcase, value: INDUSTRY_LABELS[brand.industry as BrandIndustry] || brand.industry, label: 'Industry' });
 
   return (
     <div
@@ -369,12 +393,13 @@ export default async function JobDetailPage({
             </div>
           </div>
 
-          {/* Apply or sent state - soft tinted status panel that stands out */}
+          {/* Apply or sent state */}
           {existing ? (
             (() => {
               // "shortlisted" is a private brand bookmark - to the creator it reads
               // exactly like a sent application (no false "you're shortlisted" signal).
               const selected = existing.status === 'selected';
+              const tint = selected ? 'var(--money-tint)' : 'var(--accent-tint)';
               const solid = selected ? 'var(--money)' : 'var(--accent)';
               const title = selected
                 ? 'You were selected!'
@@ -384,9 +409,10 @@ export default async function JobDetailPage({
                 : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
-                  className="card"
                   style={{
                     padding: 18,
+                    borderRadius: 'var(--radius)',
+                    background: tint,
                     display: 'flex',
                     gap: 14,
                     alignItems: 'flex-start',
@@ -407,34 +433,23 @@ export default async function JobDetailPage({
                     <CheckCircle2 size={22} />
                   </span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 700,
-                        color: 'var(--ink)',
-                      }}
-                    >
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>
                       {title}
                     </div>
-                    <p
-                      style={{
-                        fontSize: 13.5,
-                        color: 'var(--ink-soft)',
-                        margin: '4px 0 0',
-                        lineHeight: 1.5,
-                      }}
-                    >
+                    <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
                       {body}
                     </p>
-                    <Link
-                      href={selected ? '/collabs' : '/applications'}
-                      className={
-                        selected ? 'btn-money btn-sm' : 'btn-secondary btn-sm'
-                      }
-                      style={{ marginTop: 14 }}
-                    >
-                      {selected ? 'View your collab' : 'Track applications'}
-                    </Link>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+                      <Link
+                        href={selected ? '/collabs' : '/applications'}
+                        className={selected ? 'btn-money btn-sm' : 'btn-secondary btn-sm'}
+                      >
+                        {selected ? 'View your collab' : 'Track applications'}
+                      </Link>
+                      <a href="#how-it-works" className="btn-secondary btn-sm">
+                        What happens next?
+                      </a>
+                    </div>
                   </div>
                 </div>
               );
@@ -447,6 +462,27 @@ export default async function JobDetailPage({
               brandName={brandName}
             />
           )}
+
+          {/* How it works - the real escrow flow */}
+          <div id="how-it-works" className="card" style={{ padding: 22 }}>
+            <div className="eyebrow" style={{ marginBottom: 16 }}>How it works</div>
+            <div className="how-steps" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 18 }}>
+              {steps.map((s, i) => (
+                <div key={s.title} className="how-step" style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 9 }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
+                      <s.icon size={17} />
+                    </span>
+                    <span className="mono-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--ink-faint-solid)' }}>
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{s.title}</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 3, lineHeight: 1.45 }}>{s.body}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Sticky trust rail */}
@@ -459,8 +495,7 @@ export default async function JobDetailPage({
             gap: 16,
           }}
         >
-          {/* Compensation hero - the standout. Navy "wallet" gradient: the amount
-              up top, escrow protection underneath, all in one premium panel. */}
+          {/* Compensation hero - the standout navy "wallet" panel */}
           <div className="money-panel" style={{ padding: '22px 22px' }}>
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div className="eyebrow" style={{ marginBottom: 8, color: 'var(--accent-on-dark)' }}>
@@ -479,43 +514,61 @@ export default async function JobDetailPage({
                   borderTop: '1px solid rgba(255,255,255,.12)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 11,
+                  gap: 12,
                 }}
               >
-                <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                  <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12.5, color: 'var(--accent-on-dark)', lineHeight: 1.45 }}>
-                    Funded into escrow <strong style={{ color: '#fff' }}>before you create anything</strong>.
-                  </span>
-                </div>
-                <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
-                  <CheckCircle2 size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ fontSize: 12.5, color: 'var(--accent-on-dark)', lineHeight: 1.45 }}>
-                    Released automatically once your post is approved.
-                  </span>
-                </div>
+                {compTerms.map(([t, sub], i) => (
+                  <div key={t} style={{ display: 'flex', gap: 9, alignItems: 'flex-start' }}>
+                    {i === 0 ? (
+                      <Shield size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                    ) : (
+                      <CheckCircle2 size={15} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />
+                    )}
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 12.5, fontWeight: 600, color: '#fff' }}>{t}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--accent-on-dark)', lineHeight: 1.4 }}>{sub}</span>
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Your fit - clean white card matching the brief */}
+          {/* Your fit - clean white card */}
           <div className="card" style={{ padding: 20 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>
-              Your fit for this
+              Your fit for this campaign
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
               <FitRing pct={fit.pct} />
-              <span
-                style={{
-                  fontSize: 13,
-                  color: 'var(--ink-soft)',
-                  lineHeight: 1.5,
-                }}
-              >
+              <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
                 {fitExplain}
               </span>
             </div>
+            <Link href="/profile" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+              Tips to increase your chances <ArrowRight size={13} />
+            </Link>
           </div>
+
+          {/* Brand reputation - only real facts */}
+          {brandStats.length > 0 && (
+            <div className="card" style={{ padding: 20 }}>
+              <div className="eyebrow" style={{ marginBottom: 14 }}>About the brand</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                {brandStats.map((s) => (
+                  <div key={s.label} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+                    <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, background: 'var(--surface-2)', color: 'var(--ink-soft)', display: 'grid', placeItems: 'center' }}>
+                      <s.icon size={16} />
+                    </span>
+                    <span style={{ minWidth: 0 }}>
+                      <span style={{ display: 'block', fontSize: 15, fontWeight: 700, color: 'var(--ink)', lineHeight: 1.1 }}>{s.value}</span>
+                      <span style={{ display: 'block', fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 1 }}>{s.label}</span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
