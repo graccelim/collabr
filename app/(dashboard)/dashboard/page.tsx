@@ -17,6 +17,7 @@ import {
   Sparkles,
   Check,
   Zap,
+  UserRound,
 } from 'lucide-react';
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
@@ -381,6 +382,10 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <Link href={`/brands/${brand.id}`} className="btn-secondary btn-sm md:hidden"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+        <UserRound size={14} /> View my profile
+      </Link>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Brand workspace
@@ -690,6 +695,10 @@ async function CreatorDashboard({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <Link href={`/creators/${creator.id}`} className="btn-secondary btn-sm md:hidden"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+        <UserRound size={14} /> View my profile
+      </Link>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Creator studio

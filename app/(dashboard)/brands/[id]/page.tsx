@@ -9,6 +9,7 @@ import { chipColor } from '@/lib/niches'
 import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
+import ShareProfileButton from '@/components/ShareProfileButton'
 import Link from 'next/link'
 import { Globe, Briefcase, Pencil, MapPin, ExternalLink, Star, CheckCircle2 } from 'lucide-react'
 
@@ -87,7 +88,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   // Defined once, arranged two ways: owners get a full-width header with the rail
   // below; visitors get the rail from the top.
   const heroBlock = (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
+          <div style={{ marginBottom: 22 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
               <Avatar src={brand.logo_url} name={name} size={76} />
               <div style={{ minWidth: 0 }}>
@@ -108,11 +109,16 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                 </div>
               </div>
             </div>
-            {isOwner && (
-              <Link href="/settings" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                <Pencil size={15} /> Edit profile
-              </Link>
-            )}
+
+            {/* action row - edit (owner) + share (all) */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
+              {isOwner && (
+                <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <Pencil size={15} /> Edit profile
+                </Link>
+              )}
+              <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+            </div>
           </div>
   )
 

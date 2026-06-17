@@ -8,6 +8,7 @@ import SaveCreatorButton from '@/components/SaveCreatorButton'
 import InviteCreatorForm from '@/components/InviteCreatorForm'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
+import ShareProfileButton from '@/components/ShareProfileButton'
 import { chipColor } from '@/lib/niches'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
@@ -129,7 +130,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // the two rail sections are defined once, then arranged two ways: owners get a
   // full-width header with the rail below; visitors get the rail from the top.
   const heroBlock = (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
+          <div style={{ marginBottom: 22 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
               <Avatar src={avatar} name={name} size={76} />
               <div style={{ minWidth: 0 }}>
@@ -160,15 +161,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               </div>
             </div>
 
-            {/* owner edit OR brand actions */}
-            {isOwner && (
-              <Link href="/profile" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                <Pencil size={15} /> Edit profile
-              </Link>
-            )}
-            {isBrandViewer && (
-              viewerIsPro ? (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', flexShrink: 0 }}>
+            {/* action row - edit (owner) / invite + save (pro brand) + share (all) */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginTop: 16 }}>
+              {isOwner && (
+                <Link href="/profile" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  <Pencil size={15} /> Edit profile
+                </Link>
+              )}
+              {isBrandViewer && viewerIsPro && (
+                <>
                   <InviteCreatorForm
                     creatorId={params.id}
                     creatorName={name}
@@ -176,13 +177,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                     pendingCampaignIds={pendingInviteCampaignIds}
                   />
                   <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
-                </div>
-              ) : (
-                <p style={{ fontSize: 12, color: 'var(--ink-soft)', flexShrink: 0, maxWidth: 220 }}>
-                  Inviting and saving creators is part of collabr Pro.{' '}
-                  <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
-                </p>
-              )
+                </>
+              )}
+              <ShareProfileButton path={`/creators/${params.id}`} name={name} />
+            </div>
+            {isBrandViewer && !viewerIsPro && (
+              <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>
+                Inviting and saving creators is part of collabr Pro.{' '}
+                <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
+              </p>
             )}
           </div>
   )
@@ -190,6 +193,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const statsBlock = (
           <div style={{ marginBottom: 28 }}>
             <ProfileStats stats={stats} />
+            {isNewCreator && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 10, fontSize: 12, color: 'var(--ink-faint-solid)' }}>
+                <Star size={12} /> New Creator badge indicates a growing presence on collabr.
+              </div>
+            )}
           </div>
   )
 
