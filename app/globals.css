@@ -722,6 +722,13 @@
   /* Tighter gutters on phones. */
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
 
+  /* b-c profile actions: Invite/Save grow to fill the row width on phones; the
+     square Share button stays fixed. Desktop keeps its left-aligned wrap. */
+  .bc-actions > .btn-primary,
+  .bc-actions > .btn-secondary:not([aria-label="Share profile"]) {
+    flex: 1; justify-content: center;
+  }
+
   /* Light-blue top bar on mobile (matches the app canvas). Desktop keeps the
      white translucent top bar. Default dark-on-light controls stay legible. */
   .app-topbar {

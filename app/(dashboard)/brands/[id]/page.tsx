@@ -117,14 +117,25 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                   <ShareProfileButton path={`/brands/${params.id}`} name={name} />
                 </div>
               )}
+
+              {/* Owner desktop (b-b): edit + share inline with the name (hidden on mobile). */}
+              {isOwner && (
+                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                  <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                    <Pencil size={15} /> Edit profile
+                  </Link>
+                  <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+                </div>
+              )}
             </div>
           </div>
   )
 
-  // Owner (b-b): Edit + Share live below the stat strip.
+  // Owner (b-b): full-width edit + share row below the stat strip, mobile only
+  // (the desktop set lives inline in the hero).
   const heroActions = isOwner ? (
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 30 }}>
-            <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+            <Link href="/settings" className="btn-primary" style={{ flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <Pencil size={15} /> Edit profile
             </Link>
             <ShareProfileButton path={`/brands/${params.id}`} name={name} />

@@ -128,49 +128,71 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // Hero (identity + primary action), the stat band, the long-form content, and
   // the two rail sections are defined once, then arranged two ways: owners get a
   // full-width header with the rail below; visitors get the rail from the top.
+  // Owner edit + share, used in the desktop hero (inline) and the mobile row.
+  const ownerActions = (compact: boolean) => (
+    <>
+      <Link href="/profile" className="btn-primary"
+        style={compact
+          ? { flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }
+          : { display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+        <Pencil size={15} /> Edit profile
+      </Link>
+      <ShareProfileButton path={`/creators/${params.id}`} name={name} />
+    </>
+  )
+
   const heroBlock = (
           <div style={{ marginBottom: 20 }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
-              <Avatar src={avatar} name={name} size={76} />
-              <div style={{ minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                  <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
-                  {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
-                  {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
-                </div>
-                {primarySocial && (
-                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 540, marginTop: 5 }}>
-                    {socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
+                <Avatar src={avatar} name={name} size={76} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
+                    <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                    {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
+                    {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
                   </div>
-                )}
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
-                  {primaryNiche && <span>{primaryNiche} creator</span>}
-                  {creator.location && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      <MapPin size={13} />{creator.location}
-                    </span>
+                  {primarySocial && (
+                    <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 540, marginTop: 5 }}>
+                      {socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}
+                    </div>
                   )}
-                  {availability && (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
-                      <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
-                      {availability === 'available' ? 'Available for collaborations' : AVAILABILITY_LABELS[availability]}
-                    </span>
-                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
+                    {primaryNiche && <span>{primaryNiche} creator</span>}
+                    {creator.location && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={13} />{creator.location}
+                      </span>
+                    )}
+                    {availability && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: availability === 'available' ? 'var(--money-deep)' : 'var(--ink-faint-solid)' }}>
+                        <span style={{ width: 6, height: 6, borderRadius: 99, background: availability === 'available' ? 'var(--money)' : availability === 'limited' ? 'var(--warn)' : 'var(--ink-faint-solid)' }} />
+                        {availability === 'available' ? 'Available for collaborations' : AVAILABILITY_LABELS[availability]}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Owner desktop: edit + share inline with the name (hidden on mobile). */}
+              {isOwner && (
+                <div className="hidden md:flex" style={{ alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                  {ownerActions(false)}
+                </div>
+              )}
             </div>
           </div>
   )
 
-  // Actions live below the stat strip - edit (owner) / invite + save (pro brand) + share.
-  const heroActions = (
+  // Actions below the stat strip. Owner: a full-width row on mobile only (the
+  // desktop set lives inline in the hero). Visitor: invite/save + share.
+  const heroActions = isOwner ? (
+          <div className="md:hidden" style={{ display: 'flex', gap: 10, marginBottom: 30 }}>
+            {ownerActions(true)}
+          </div>
+  ) : (
           <div style={{ marginBottom: 30 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-              {isOwner && (
-                <Link href="/profile" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                  <Pencil size={15} /> Edit profile
-                </Link>
-              )}
+            <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isBrandViewer && viewerIsPro && (
                 <>
                   <InviteCreatorForm
