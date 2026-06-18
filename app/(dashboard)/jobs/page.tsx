@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
 import EmptyState from '@/components/EmptyState';
-import { Compass, ArrowLeft } from 'lucide-react';
+import { Compass, ArrowLeft, Bookmark } from 'lucide-react';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import {
   toCreatorSignals,
@@ -45,7 +45,7 @@ export default async function JobsPage({
   // Social accounts (self-reported followers), the creator's existing
   // applications, and the creator's score row all key off the creator id -
   // batch them.
-  const [{ data: socials }, { data: myApps }, { data: scoreRow }] =
+  const [{ data: socials }, { data: myApps }, { data: scoreRow }, { data: savedRows }] =
     await Promise.all([
       supabase
         .from('social_accounts')
@@ -60,10 +60,17 @@ export default async function JobsPage({
         .select('*')
         .eq('creator_id', creator?.id ?? '')
         .maybeSingle(),
+      supabase
+        .from('saved_campaigns')
+        .select('campaign_id')
+        .eq('creator_id', creator?.id ?? ''),
     ]);
   const appStatusByCampaign = new Map<string, string>();
   for (const a of myApps ?? [])
     appStatusByCampaign.set(a.campaign_id as string, a.status as string);
+  const savedCampaignIds = new Set(
+    (savedRows ?? []).map((s) => s.campaign_id as string)
+  );
 
   // Build the creator's ranking signals once; reuse for every campaign.
   const creatorRow: CreatorRow = (creator as CreatorRow | null) ?? { id: '' };
@@ -133,6 +140,7 @@ export default async function JobsPage({
       // Honest fit signals from the recommender - tier label (or null) + reasons.
       matchLabel: r.label,
       matchReasons: r.reasons,
+      saved: savedCampaignIds.has(c.id),
     };
   });
 
@@ -170,14 +178,25 @@ export default async function JobsPage({
           </>
         ) : (
           <>
-            <div className="eyebrow" style={{ marginBottom: 7 }}>
-              Picked for you
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+              <div>
+                <div className="eyebrow" style={{ marginBottom: 7 }}>
+                  Picked for you
+                </div>
+                <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
+                <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+                  Explore opportunities from brands looking for creators like you,
+                  with your best fits shown first.{' '}
+                </p>
+              </div>
+              <Link
+                href="/saved"
+                className="btn-secondary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}
+              >
+                <Bookmark size={15} /> Saved
+              </Link>
             </div>
-            <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
-            <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-              Explore opportunities from brands looking for creators like you,
-              with your best fits shown first.{' '}
-            </p>
           </>
         )}
       </div>

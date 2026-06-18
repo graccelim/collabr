@@ -5,6 +5,7 @@ const PROTECTED_PREFIXES = [
   '/dashboard', '/collabs', '/campaigns', '/jobs', '/profile',
   '/earnings', '/boost', '/billing', '/notifications', '/settings',
   '/applications', '/creators', '/post-job', '/admin', '/onboarding', '/invites',
+  '/saved',
 ]
 
 // Public detail pages: a creator/brand profile or a campaign, viewable while

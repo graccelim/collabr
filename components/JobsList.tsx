@@ -6,6 +6,7 @@ import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { chipColor } from '@/lib/niches'
+import SaveCampaignButton from '@/components/SaveCampaignButton'
 
 export interface JobsListCampaign {
   id: string
@@ -31,6 +32,8 @@ export interface JobsListCampaign {
   matchLabel: string | null
   /** Creator-facing reasons ("Matches your niche", …) rendered as a ✓ list. */
   matchReasons: string[]
+  /** Whether the signed-in creator has bookmarked this campaign. */
+  saved?: boolean
 }
 
 // Tier-specific colour for the fit label. Best Match gets the violet treatment;
@@ -248,6 +251,7 @@ export default function JobsList({
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
                   {c.appliedStatus ? (
                     <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       {c.appliedStatus === 'selected' && <Check size={12} />}

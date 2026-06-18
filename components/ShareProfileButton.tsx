@@ -9,8 +9,8 @@ import toast from 'react-hot-toast'
  * desktop. Works for both creator and brand profiles - pass the public path.
  */
 export default function ShareProfileButton({
-  path, name, label = false,
-}: { path: string; name: string; label?: boolean }) {
+  path, name, label = false, noun = 'Profile',
+}: { path: string; name: string; label?: boolean; noun?: string }) {
   const [copied, setCopied] = useState(false)
 
   async function share() {
@@ -26,7 +26,7 @@ export default function ShareProfileButton({
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
-      toast.success('Profile link copied')
+      toast.success(`${noun} link copied`)
       setTimeout(() => setCopied(false), 1800)
     } catch {
       toast.error('Could not copy the link')
@@ -38,8 +38,8 @@ export default function ShareProfileButton({
       type="button"
       onClick={share}
       className="btn-secondary"
-      aria-label="Share profile"
-      title="Share profile"
+      aria-label={`Share ${noun.toLowerCase()}`}
+      title={`Share ${noun.toLowerCase()}`}
       style={
         label
           ? { display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }

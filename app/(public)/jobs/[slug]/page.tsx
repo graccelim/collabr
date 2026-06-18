@@ -11,6 +11,8 @@ import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, 
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
 import AuthGateButton from '@/components/AuthGateButton';
+import SaveCampaignButton from '@/components/SaveCampaignButton';
+import ShareProfileButton from '@/components/ShareProfileButton';
 
 function nicheLabel(tag: string): string {
   return NICHE_LABELS[tag as CreatorNiche] ?? tag;
@@ -120,6 +122,7 @@ export default async function JobDetailPage({
       </div>
     );
   const campaignId = campaign.id as string
+  const campaignSlug = (campaign as { slug?: string | null }).slug || campaignId
   const campaignBrand = campaign.brand_profiles as { id?: string; slug?: string | null; company_name?: string | null } | null
   // Backfill a stable slug on first view if missing (side effect) so the public
   // /jobs/[slug] link and metadata resolve later.
@@ -129,7 +132,7 @@ export default async function JobDetailPage({
 
   // Both depend only on creator.id (+ campaignId) - batch. Guests and brand
   // viewers have no creator profile, so these stay empty for them.
-  const [{ data: socials }, { data: existing }, { data: collab }] = creator
+  const [{ data: socials }, { data: existing }, { data: collab }, { data: savedRow }] = creator
     ? await Promise.all([
         supabase
           .from('social_accounts')
@@ -150,9 +153,17 @@ export default async function JobDetailPage({
           .eq('campaign_id', campaignId)
           .eq('creator_id', creator.id)
           .maybeSingle(),
+        // Whether this creator has bookmarked the campaign.
+        supabase
+          .from('saved_campaigns')
+          .select('id')
+          .eq('campaign_id', campaignId)
+          .eq('creator_id', creator.id)
+          .maybeSingle(),
       ])
-    : [{ data: null }, { data: null }, { data: null }];
+    : [{ data: null }, { data: null }, { data: null }, { data: null }];
   const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
+  const isSavedCampaign = Boolean(savedRow);
 
   const brand = campaign.brand_profiles as {
     id?: string;
@@ -290,7 +301,7 @@ export default async function JobDetailPage({
       </Link>
 
       {/* Brand + title */}
-      <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
         <div
           style={{
             width: 68,
@@ -316,7 +327,7 @@ export default async function JobDetailPage({
             getInitials(brandName)
           )}
         </div>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div className="eyebrow" style={{ marginBottom: 4 }}>
             Campaign
           </div>
@@ -358,6 +369,18 @@ export default async function JobDetailPage({
               </Link>
             )}
           </div>
+        </div>
+
+        {/* Save + Share - inline with the title (desktop), wraps below on
+            mobile. Creators get a real Save; guests get the auth modal; brands
+            see only Share. Share is open to everyone (public link). */}
+        <div style={{ marginLeft: 'auto', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {isCreatorViewer && creator ? (
+            <SaveCampaignButton campaignId={campaignId} initialSaved={isSavedCampaign} />
+          ) : viewer?.role === 'brand' ? null : (
+            <SaveCampaignButton campaignId={campaignId} initialSaved={false} gated />
+          )}
+          <ShareProfileButton path={`/jobs/${campaignSlug}`} name={campaign.title} noun="Campaign" label />
         </div>
       </div>
 

@@ -8,7 +8,7 @@ import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
   Compass, FileText, Settings, Bell, User,
   CreditCard, ChevronLeft, ChevronRight, LogOut,
-  Mail,
+  Mail, Bookmark,
 } from 'lucide-react'
 
 type Icon = React.ComponentType<Partial<LucideProps>>
@@ -43,6 +43,7 @@ const BRAND_NAV: NavItem[] = [
 const CREATOR_NAV: NavItem[] = [
   { href: '/dashboard',     label: 'Overview',           icon: LayoutGrid, exact: true },
   { href: '/jobs',          label: 'Discover campaigns', icon: Compass },
+  { href: '/saved',         label: 'Saved campaigns',    icon: Bookmark },
   { href: '/invites',       label: 'Invites',            icon: Mail },
   { href: '/collabs',       label: 'Collabs',            icon: Link2 },
   { href: '/applications',  label: 'Applications',       icon: FileText },
