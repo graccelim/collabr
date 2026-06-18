@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { Sparkles, ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from 'lucide-react'
+import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
@@ -107,7 +107,7 @@ export default function JobsList({
           onClick={() => setFilter('__for_you')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          <Sparkles size={14} />
+          <img src="/for-you.png" alt="" width={18} height={18} style={{ display: 'block', flexShrink: 0 }} />
           For you
         </button>
         {niches.map(n => (
