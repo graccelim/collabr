@@ -46,11 +46,16 @@ export default async function CollabsPage() {
         .order('created_at', { ascending: false })
     : { data: [] };
 
-  // Creators only see a collab once escrow is secured — a briefed, unfunded
-  // collab is invisible to them (their application still reads "Applied").
-  const visibleCollabs = (collabs || []).filter(
-    (c) => isBrand || c.status !== 'briefed' || isPaymentSecured(c.payment_status)
-  );
+  // Creators only see a collab once escrow is secured. Hidden from them: a
+  // briefed/unfunded selection (their application still reads "Applied") and a
+  // never-funded cancellation (an undone/expired selection they never knew
+  // about). A genuinely-funded-then-cancelled collab still shows.
+  const visibleCollabs = (collabs || []).filter((c) => {
+    if (isBrand) return true;
+    if (c.status === 'briefed') return isPaymentSecured(c.payment_status);
+    if (c.status === 'cancelled') return Boolean(c.funded_at);
+    return true;
+  });
 
   // Build display rows + filter bucket (Needs you / In progress / Completed)
   // server-side; the chip filtering happens client-side in <CollabsList>.

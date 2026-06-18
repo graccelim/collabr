@@ -38,7 +38,9 @@ export default async function ApplicationsPage() {
       .select('id, application_id, payment_status, status')
       .in('application_id', selectedAppIds);
     collabs?.forEach((c) => {
-      if (c.application_id) collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status };
+      // Skip cancelled collabs: after an undo/expiry + re-select an application
+      // can have a dead collab alongside the live one — map to the live one.
+      if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status };
     });
   }
 

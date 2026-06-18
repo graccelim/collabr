@@ -153,6 +153,9 @@ export default async function JobDetailPage({
           .select('id, payment_status, status')
           .eq('campaign_id', campaignId)
           .eq('creator_id', creator.id)
+          // Exclude cancelled (undo/expiry) so a re-selected creator resolves to
+          // the live collab and maybeSingle() never trips on duplicate rows.
+          .neq('status', 'cancelled')
           .maybeSingle(),
         // Whether this creator has bookmarked the campaign.
         supabase
