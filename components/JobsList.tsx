@@ -107,7 +107,7 @@ export default function JobsList({
           onClick={() => setFilter('__for_you')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          <img src="/for-you.png" alt="" width={18} height={18} style={{ display: 'block', flexShrink: 0 }} />
+          <img src="/for-you.png" alt="" width={18} height={18} style={{ display: 'block', flexShrink: 0, filter: filter === '__for_you' ? 'brightness(0) invert(1)' : 'none' }} />
           For you
         </button>
         {niches.map(n => (
@@ -153,7 +153,13 @@ export default function JobsList({
                       : getInitials(c.brand_name)}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>{c.title}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>{c.title}</div>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, color: 'var(--accent-deep)',
+                        background: 'var(--accent-tint)', padding: '2px 8px', borderRadius: 99,
+                      }}>{c.creators_needed} {c.creators_needed === 1 ? 'spot' : 'spots'} open</span>
+                    </div>
                     <div style={{ fontSize: 13.5, color: 'var(--ink-faint-solid)', marginTop: 2 }}>
                       {c.brand_name}{c.platform ? ` · ${c.platform}` : ''}
                     </div>
@@ -214,7 +220,6 @@ export default function JobsList({
                     { k: 'Pays', v: pays.value, money: pays.money },
                     { k: 'Deliverable', v: deliverable, money: false },
                     { k: 'Due', v: dueLabel(c.deadline), money: false },
-                    { k: 'Spots', v: `${c.creators_needed} open`, money: false },
                   ].map(({ k, v, money }) => (
                     <div key={k}>
                       <div className="eyebrow" style={{ fontSize: 10 }}>{k}</div>
