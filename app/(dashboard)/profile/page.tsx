@@ -172,6 +172,9 @@ export default function ProfilePage() {
 
   async function save() {
     if (saving) return
+    if (displayName.trim().length < 2) {
+      toast.error('Your name is required, this is what brands see.'); return
+    }
     const parsedRate = rate ? Math.round(parseFloat(rate) * 100) : null
     if (parsedRate !== null && (!Number.isFinite(parsedRate) || parsedRate < 0)) {
       toast.error('Rate must be a positive number'); return
@@ -191,7 +194,7 @@ export default function ProfilePage() {
         media_kit_url: normalizeUrl(mediaKitUrl),
         average_rate_sgd: parsedRate,
         availability_status: availability,
-        display_name: displayName.trim() || null,
+        display_name: displayName.trim(),
       }),
     })
     const data = await res.json()
@@ -375,7 +378,7 @@ export default function ProfilePage() {
         </div>
         <div>
           <label className="label">Display name</label>
-          <input className="input" value={displayName}
+          <input className="input" value={displayName} required minLength={2}
             onChange={e => setDisplayName(e.target.value)} placeholder="Sara Reyes" />
         </div>
         <div>

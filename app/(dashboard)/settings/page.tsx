@@ -300,7 +300,7 @@ export default function SettingsPage() {
 
           <div>
             <label className="label">Company name</label>
-            <input className="input" value={companyName} onChange={e => setCompanyName(e.target.value)} placeholder="Acme Pte Ltd" />
+            <input className="input" value={companyName} required minLength={2} onChange={e => setCompanyName(e.target.value)} placeholder="Acme Pte Ltd" />
           </div>
 
           <div>

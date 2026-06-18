@@ -34,6 +34,11 @@ const optionalText = (max: number, label: string) => z.preprocess(
   z.string().trim().max(max, `${label} must be ${max} characters or less`).nullish()
 )
 
+// A name that can be omitted (PATCH semantics) but never set to empty - every
+// brand/creator must always have a name (it drives public profiles + slugs).
+const requiredName = (label = 'Your name') =>
+  z.string().trim().min(2, `${label} is required`).max(120).optional()
+
 // All fields optional - PATCH semantics. Monetary values are cents.
 export const creatorProfileUpdateSchema = z.object({
   bio: optionalText(1000, 'Bio'),
@@ -46,14 +51,11 @@ export const creatorProfileUpdateSchema = z.object({
   media_kit_url: optionalUrl,
   average_rate_sgd: z.number().int().min(0).max(100_000_000).nullish(),
   availability_status: z.enum(AVAILABILITY_STATUSES).optional(),
-  display_name: optionalText(120, 'Display name'),
+  display_name: requiredName(),
 }).strict()
 
 export const brandProfileUpdateSchema = z.object({
-  company_name: z.preprocess(
-    emptyToNull,
-    z.string().trim().min(2, 'Company name is required').max(120).optional()
-  ),
+  company_name: requiredName('Company name'),
   company_description: optionalText(2000, 'Description'),
   industry: z.enum(BRAND_INDUSTRIES).nullish(),
   location: optionalText(120, 'Location'),
@@ -61,6 +63,8 @@ export const brandProfileUpdateSchema = z.object({
   social_url: optionalUrl,
   socials: z.array(brandSocialSchema).max(6).optional(),
   logo_url: optionalUrl,
+  // A brand's public name is company_name (required above); the personal
+  // display_name stays optional.
   display_name: optionalText(120, 'Display name'),
 }).strict()
 
