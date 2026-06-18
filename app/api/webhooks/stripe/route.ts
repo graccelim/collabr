@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
+import { notifyCollabFunded } from '@/lib/collab-funding'
 import { stripe, BOOST_MAX_HORIZON_DAYS } from '@/lib/stripe'
 import { paymentStatusFromIntent } from '@/lib/payments'
 import Stripe from 'stripe'
@@ -174,6 +175,11 @@ export async function POST(req: NextRequest) {
           payment_failure_reason: null,
         }).eq('id', collabId)
           .in('payment_status', ['unfunded', 'authorizing', 'funded']))
+        // Escrow is now secured: confirm the creator (their first selection
+        // signal) and decline leftover applicants if the campaign is full.
+        // Best-effort and idempotent — never block the webhook ack.
+        try { await notifyCollabFunded(supabase, collabId) }
+        catch (e) { console.error('[WEBHOOK] notifyCollabFunded failed:', e) }
       }
       break
     }

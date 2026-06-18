@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
+import { remainingSpots } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import { Compass, ArrowLeft, Bookmark } from 'lucide-react';
 import { rankCampaignsForCreator } from '@/lib/recommend';
@@ -91,6 +92,21 @@ export default async function JobsPage({
     ? (scopedCampaigns[0]?.brand_profiles as any)?.company_name || 'this brand'
     : null;
 
+  // Remaining spots per campaign = creators_needed − funded collabs. Counts come
+  // from the admin client (collabs RLS hides other people's collabs from the
+  // session client). Filled campaigns are dropped from Discover below.
+  const scopedIds = scopedCampaigns.map((c) => c.id);
+  const { data: campaignCollabs } = scopedIds.length
+    ? await createAdminClient().from('collabs')
+        .select('campaign_id, status, payment_status').in('campaign_id', scopedIds)
+    : { data: [] as { campaign_id: string; status: string; payment_status: string }[] };
+  const collabsByCampaign = new Map<string, { status: string; payment_status: string }[]>();
+  for (const cc of campaignCollabs ?? []) {
+    const arr = collabsByCampaign.get(cc.campaign_id) ?? [];
+    arr.push(cc);
+    collabsByCampaign.set(cc.campaign_id, arr);
+  }
+
   // Rank active campaigns for this creator (best-first), then map each ranked
   // entry to the card props the list renders. The recommender already orders by
   // real fit, so we keep that order.
@@ -141,8 +157,11 @@ export default async function JobsPage({
       matchLabel: r.label,
       matchReasons: r.reasons,
       saved: savedCampaignIds.has(c.id),
+      spots_left: remainingSpots(c.creators_needed ?? 1, collabsByCampaign.get(c.id) ?? []),
     };
-  });
+  })
+  // Hide filled campaigns from Discover - they aren't actionable.
+  .filter((c) => (c.spots_left ?? 1) > 0);
 
   return (
     <div

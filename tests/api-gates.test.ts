@@ -87,17 +87,40 @@ describe('POST /api/applications - trust gates', () => {
     expect((await res.json()).error).toMatch(/no longer accepting/i)
   })
 
-  it('rejects a cash rate on a barter-only campaign (400)', async () => {
+  it('a PAID campaign requires an expected rate (400)', async () => {
+    useStub({
+      user: verifiedUser(),
+      tables: { creator_profiles: [onboardedCreator], campaigns: [activeCampaign] },
+    })
+    const res = await post(VALID_BODY) // paid campaign, no proposed_rate
+    expect(res.status).toBe(400)
+    expect((await res.json()).error).toMatch(/expected rate/i)
+  })
+
+  it('a BARTER campaign does not require a rate (201)', async () => {
     useStub({
       user: verifiedUser(),
       tables: {
         creator_profiles: [onboardedCreator],
         campaigns: [{ data: { ...activeCampaign.data, comp_type: 'barter' } }],
+        applications: [{ count: 0 }, { data: { id: 'app-1' }, error: null }],
+      },
+    })
+    const res = await post(VALID_BODY) // no rate — allowed for barter
+    expect(res.status).toBe(201)
+  })
+
+  it('a BARTER campaign allows an optional cash rate (201)', async () => {
+    useStub({
+      user: verifiedUser(),
+      tables: {
+        creator_profiles: [onboardedCreator],
+        campaigns: [{ data: { ...activeCampaign.data, comp_type: 'barter' } }],
+        applications: [{ count: 0 }, { data: { id: 'app-2' }, error: null }],
       },
     })
     const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
-    expect(res.status).toBe(400)
-    expect((await res.json()).error).toMatch(/barter/i)
+    expect(res.status).toBe(201)
   })
 
   it('rate-limits at 10 applications per hour (429)', async () => {
@@ -109,7 +132,8 @@ describe('POST /api/applications - trust gates', () => {
         applications: [{ count: 10 }],
       },
     })
-    expect((await post()).status).toBe(429)
+    // Paid campaign, so include a rate to clear the rate gate first.
+    expect((await post({ ...VALID_BODY, proposed_rate: 10000 })).status).toBe(429)
   })
 
   it('maps a duplicate application (23505) to a human 409, creating nothing twice', async () => {
@@ -124,9 +148,24 @@ describe('POST /api/applications - trust gates', () => {
         ],
       },
     })
-    const res = await post()
+    const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
     expect(res.status).toBe(409)
     expect((await res.json()).error).toMatch(/already applied/i)
+  })
+
+  it('a filled paid campaign cannot be applied to (409)', async () => {
+    useStub({
+      user: verifiedUser(),
+      tables: {
+        creator_profiles: [onboardedCreator],
+        campaigns: [{ data: { ...activeCampaign.data, creators_needed: 1 } }],
+        // one funded collab already → 0 spots left
+        collabs: [{ data: [{ status: 'draft_submitted', payment_status: 'funded' }] }],
+      },
+    })
+    const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toMatch(/filled/i)
   })
 })
 

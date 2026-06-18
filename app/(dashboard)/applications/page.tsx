@@ -4,13 +4,7 @@ import Link from 'next/link';
 import { formatSGD } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
 import { Send } from 'lucide-react';
-
-const STATUS_COLORS: Record<string, string> = {
-  pending: 'badge-gray',
-  shortlisted: 'badge-amber',
-  selected: 'badge-teal',
-  rejected: 'badge-gray',
-};
+import { creatorApplicationState, CREATOR_APP_LABEL } from '@/lib/collab-status';
 
 export default async function ApplicationsPage() {
   const user = await requireCreator();
@@ -30,21 +24,25 @@ export default async function ApplicationsPage() {
     .eq('creator_id', creator!.id)
     .order('created_at', { ascending: false });
 
-  // For selected applications, find the corresponding collab
+  // For selected applications, load the collab WITH its payment_status — a
+  // selected-but-unfunded collab is never surfaced to the creator (their app
+  // still reads "Applied"); only a funded one becomes "Confirmed".
   const selectedAppIds = (applications || [])
     .filter((a) => a.status === 'selected')
     .map((a) => a.id);
 
-  const collabsByApp: Record<string, string> = {};
+  const collabByApp: Record<string, { id: string; payment_status: string; status: string }> = {};
   if (selectedAppIds.length > 0) {
     const { data: collabs } = await supabase
       .from('collabs')
-      .select('id, application_id')
+      .select('id, application_id, payment_status, status')
       .in('application_id', selectedAppIds);
     collabs?.forEach((c) => {
-      collabsByApp[c.application_id] = c.id;
+      if (c.application_id) collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status };
     });
   }
+
+  const STATE_BADGE: Record<string, string> = { applied: 'badge-gray', confirmed: 'badge-teal' };
 
   const active = (applications || []).filter(
     (a) => !['rejected'].includes(a.status)
@@ -82,11 +80,13 @@ export default async function ApplicationsPage() {
           <div className="space-y-2">
             {active.map((app) => {
               const campaign = app.campaigns as any;
-              const collabId = collabsByApp[app.id];
-              // Whole card is clickable: to the collab if one exists, else back
-              // to the campaign brief.
-              const href = collabId
-                ? `/collabs/${collabId}`
+              const collab = collabByApp[app.id];
+              // Creator-facing state: selected-but-unfunded reads "Applied" and
+              // does NOT expose the collab; only a funded collab is "Confirmed".
+              const state = creatorApplicationState(app.status, collab);
+              const confirmed = state === 'confirmed';
+              const href = confirmed && collab
+                ? `/collabs/${collab.id}`
                 : `/jobs/${campaign?.id}`;
               return (
                 <Link
@@ -114,22 +114,10 @@ export default async function ApplicationsPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      {(() => {
-                        // "shortlisted" is a private brand bookmark - show it as
-                        // "applied" to the creator so it never leaks.
-                        const shown =
-                          app.status === 'shortlisted' ? 'applied' : app.status;
-                        const color =
-                          STATUS_COLORS[
-                            app.status === 'shortlisted'
-                              ? 'pending'
-                              : app.status
-                          ] || 'badge-gray';
-                        return (
-                          <span className={`badge ${color}`}>{shown}</span>
-                        );
-                      })()}
-                      {collabId && (
+                      <span className={`badge ${STATE_BADGE[state] || 'badge-gray'}`}>
+                        {CREATOR_APP_LABEL[state]}
+                      </span>
+                      {confirmed && (
                         <span
                           className="btn-primary btn-sm"
                           style={{ pointerEvents: 'none' }}

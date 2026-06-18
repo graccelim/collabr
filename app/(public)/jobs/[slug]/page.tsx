@@ -3,6 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { getAuthUser, getUserRow } from '@/lib/auth';
 import { isUuid } from '@/lib/slug';
 import { ensureCampaignSlug } from '@/lib/slug-server';
+import { consumesSpot, isCampaignFilled } from '@/lib/collab-status';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
@@ -149,7 +150,7 @@ export default async function JobDetailPage({
         // your collab" deep-links to the exact collab, not the list.
         supabase
           .from('collabs')
-          .select('id')
+          .select('id, payment_status, status')
           .eq('campaign_id', campaignId)
           .eq('creator_id', creator.id)
           .maybeSingle(),
@@ -164,6 +165,12 @@ export default async function JobDetailPage({
     : [{ data: null }, { data: null }, { data: null }, { data: null }];
   const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
   const isSavedCampaign = Boolean(savedRow);
+
+  // Capacity: filled once enough creators are FUNDED. A filled campaign can't
+  // be applied to (existing applicants still see their own state).
+  const { data: campaignCollabs } = await admin.from('collabs')
+    .select('status, payment_status').eq('campaign_id', campaignId);
+  const campaignFilled = isCampaignFilled((campaign as { creators_needed?: number }).creators_needed, campaignCollabs || []);
 
   const brand = campaign.brand_profiles as {
     id?: string;
@@ -477,18 +484,17 @@ export default async function JobDetailPage({
           {/* Apply or sent state */}
           {existing ? (
             (() => {
-              // "shortlisted" is a private brand bookmark - to the creator it reads
-              // exactly like a sent application (no false "you're shortlisted" signal).
-              const selected = existing.status === 'selected';
-              const tint = selected ? 'var(--money-tint)' : 'var(--accent-tint)';
-              const solid = selected ? 'var(--money)' : 'var(--accent)';
-              const title = selected
-                ? 'You were selected!'
+              // The creator only ever sees "Applied" until escrow is secured.
+              // Shortlisted and selected-but-unfunded both read as a sent
+              // application; only a FUNDED collab shows "Confirmed".
+              const confirmed = existing.status === 'selected' && !!collab && consumesSpot(collab);
+              const tint = confirmed ? 'var(--money-tint)' : 'var(--accent-tint)';
+              const solid = confirmed ? 'var(--money)' : 'var(--accent)';
+              const title = confirmed
+                ? 'Confirmed · payment secured'
                 : `Application sent to ${brandName}`;
-              const body = selected
-                ? isPaid
-                  ? 'A collab has been created. Once the brand funds escrow, you can start the draft.'
-                  : 'A collab has been created. Once the brand sends the product, you can start the draft.'
+              const body = confirmed
+                ? 'Escrow is secured. Open your collab to submit your first draft.'
                 : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
@@ -501,7 +507,7 @@ export default async function JobDetailPage({
                     alignItems: 'flex-start',
                   }}
                 >
-                  {selected ? (
+                  {confirmed ? (
                     <span
                       style={{
                         position: 'relative',
@@ -541,10 +547,10 @@ export default async function JobDetailPage({
                     </p>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
                       <Link
-                        href={selected ? collabHref : '/applications'}
-                        className={selected ? 'btn-money btn-sm' : 'btn-secondary btn-sm'}
+                        href={confirmed ? collabHref : '/applications'}
+                        className={confirmed ? 'btn-money btn-sm' : 'btn-secondary btn-sm'}
                       >
-                        {selected ? 'View your collab' : 'Track applications'}
+                        {confirmed ? 'View your collab' : 'Track applications'}
                       </Link>
                     </div>
                   </div>
@@ -552,12 +558,22 @@ export default async function JobDetailPage({
               );
             })()
           ) : isCreatorViewer && creator ? (
-            <ApplyForm
-              campaignId={campaignId}
-              creatorId={creator.id}
-              isPaid={isPaid}
-              brandName={brandName}
-            />
+            campaignFilled ? (
+              <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>This campaign is filled</div>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+                  All spots have been secured. Browse other campaigns that fit you.
+                </p>
+                <Link href="/jobs" className="btn-secondary" style={{ alignSelf: 'flex-start', marginTop: 6 }}>Browse campaigns</Link>
+              </div>
+            ) : (
+              <ApplyForm
+                campaignId={campaignId}
+                creatorId={creator.id}
+                isPaid={isPaid}
+                brandName={brandName}
+              />
+            )
           ) : viewer?.role === 'brand' ? (
             // A brand viewing a public campaign - applying isn't for them.
             <div className="card" style={{ padding: 18, fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>

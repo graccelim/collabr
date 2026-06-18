@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
+import { consumesSpot } from '@/lib/collab-status'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Guarantees every applicant a DEFINITE answer instead of being ghosted.
@@ -27,14 +28,16 @@ export async function GET(req: NextRequest) {
     .in('status', ['pending', 'shortlisted'])
   if (!open || open.length === 0) return NextResponse.json({ declined: 0 })
 
-  // How many slots each campaign has already filled (any non-cancelled collab).
+  // How many slots each campaign has already filled. A slot is only consumed
+  // once escrow is secured (funded) — a selected-but-unfunded collab does not
+  // count, so applicants aren't declined before any real commitment exists.
   const campaignIds = Array.from(new Set(open.map(a => a.campaign_id).filter(Boolean)))
   const filled: Record<string, number> = {}
   if (campaignIds.length > 0) {
     const { data: collabs } = await admin.from('collabs')
-      .select('campaign_id, status').in('campaign_id', campaignIds)
+      .select('campaign_id, status, payment_status').in('campaign_id', campaignIds)
     for (const c of collabs || []) {
-      if (c.status !== 'cancelled') filled[c.campaign_id] = (filled[c.campaign_id] || 0) + 1
+      if (consumesSpot(c)) filled[c.campaign_id] = (filled[c.campaign_id] || 0) + 1
     }
   }
 

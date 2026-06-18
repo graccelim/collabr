@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
+import { isCampaignFilled, requiresExpectedRate } from '@/lib/collab-status'
 
 const applicationSchema = z.object({
   campaign_id: z.string().uuid('Invalid campaign'),
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   // The campaign must exist and still be accepting applications.
   const { data: campaign } = await admin.from('campaigns')
-    .select('id, title, status, comp_type, brand_profiles(user_id)')
+    .select('id, title, status, comp_type, creators_needed, brand_profiles(user_id)')
     .eq('id', body.campaign_id).maybeSingle()
   if (!campaign) {
     return NextResponse.json({ error: 'This campaign no longer exists' }, { status: 404 })
@@ -65,10 +66,22 @@ export async function POST(req: NextRequest) {
       { status: 409 }
     )
   }
-  // Compensation requirements: barter-only campaigns carry no cash rate.
-  if (campaign.comp_type === 'barter' && body.proposed_rate) {
+  // Capacity: a campaign is filled once enough creators are FUNDED (selected but
+  // unfunded collabs don't count). A filled campaign can't be applied to.
+  const { data: campaignCollabs } = await admin.from('collabs')
+    .select('status, payment_status').eq('campaign_id', body.campaign_id)
+  if (isCampaignFilled(campaign.creators_needed, campaignCollabs || [])) {
     return NextResponse.json(
-      { error: 'This is a barter campaign, it does not pay a cash rate' },
+      { error: 'This campaign is already filled' },
+      { status: 409 }
+    )
+  }
+
+  // Compensation requirements: a PAID campaign needs an expected rate; a BARTER
+  // campaign carries no required cash rate but may include an optional one.
+  if (requiresExpectedRate(campaign.comp_type) && (!body.proposed_rate || body.proposed_rate <= 0)) {
+    return NextResponse.json(
+      { error: 'Add your expected rate to apply to this paid campaign' },
       { status: 400 }
     )
   }

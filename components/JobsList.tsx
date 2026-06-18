@@ -35,6 +35,9 @@ export interface JobsListCampaign {
   matchReasons: string[]
   /** Whether the signed-in creator has bookmarked this campaign. */
   saved?: boolean
+  /** Remaining spots = creators_needed − funded collabs. Falls back to
+   *  creators_needed when not provided. <= 0 renders as "Filled". */
+  spots_left?: number | null
 }
 
 // Tier-specific colour for the fit label. Best Match gets the violet treatment;
@@ -136,6 +139,9 @@ export default function JobsList({
         {visible.map((c) => {
           const pays = paysLabel(c)
           const deliverable = c.deliverable_types?.[0] ?? '-'
+          // Remaining spots (funded-aware) when provided; else the raw count.
+          const left = c.spots_left ?? c.creators_needed
+          const spotsText = left <= 0 ? 'Filled' : `${left} ${left === 1 ? 'spot' : 'spots'} left`
           return (
             <Link
               key={c.id}
@@ -168,7 +174,7 @@ export default function JobsList({
                       <span className="md:hidden" style={{
                         fontSize: 12, fontWeight: 600, color: 'var(--ink-faint-solid)',
                         flexShrink: 0, whiteSpace: 'nowrap',
-                      }}>{c.creators_needed} {c.creators_needed === 1 ? 'spot' : 'spots'} open</span>
+                      }}>{spotsText}</span>
                     </div>
                     <div style={{ fontSize: 13.5, color: 'var(--ink-faint-solid)', marginTop: 2 }}>
                       {c.brand_name}{c.platform ? ` · ${c.platform}` : ''}
@@ -255,7 +261,7 @@ export default function JobsList({
                   {/* Spots stays a meta column on desktop; on mobile it's the chip by the title. */}
                   <div className="hidden md:block">
                     <div className="eyebrow" style={{ fontSize: 10 }}>Spots</div>
-                    <div style={{ fontSize: 14, fontWeight: 540, marginTop: 2, color: 'var(--ink)' }}>{c.creators_needed} open</div>
+                    <div style={{ fontSize: 14, fontWeight: 540, marginTop: 2, color: 'var(--ink)' }}>{spotsText}</div>
                   </div>
                 </div>
                 {/* On MOBILE this row goes full-width so save + share sit

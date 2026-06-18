@@ -23,6 +23,11 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
       toast.error('Pitch must be at least 30 characters')
       return
     }
+    // Paid campaigns require an expected rate; barter campaigns leave it optional.
+    if (isPaid && !(rate && parseFloat(rate) > 0)) {
+      toast.error('Add your expected rate to apply')
+      return
+    }
     setSubmitting(true)
     const res = await fetch('/api/applications', {
       method: 'POST',
@@ -64,32 +69,35 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
         </p>
       </div>
 
-      {/* Rate */}
-      {isPaid && (
-        <div>
-          <label className="label" htmlFor="apply-rate">Your rate (S$), optional</label>
-          <div style={{ position: 'relative' }}>
-            <span style={{
-              position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
-              color: 'var(--ink-faint-solid)', fontSize: 14, pointerEvents: 'none',
-            }}>S$</span>
-            <input
-              id="apply-rate"
-              type="number"
-              min="0"
-              step="1"
-              className="input"
-              style={{ paddingLeft: 36 }}
-              value={rate}
-              onChange={e => setRate(e.target.value)}
-              placeholder="Leave blank to negotiate"
-            />
-          </div>
-          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
-            Leave blank to negotiate. The brand funds escrow at your agreed rate.
-          </p>
+      {/* Expected rate - required for paid campaigns, optional for barter */}
+      <div>
+        <label className="label" htmlFor="apply-rate">
+          Expected rate (S$){isPaid ? '' : ', optional'}
+        </label>
+        <div style={{ position: 'relative' }}>
+          <span style={{
+            position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
+            color: 'var(--ink-faint-solid)', fontSize: 14, pointerEvents: 'none',
+          }}>S$</span>
+          <input
+            id="apply-rate"
+            type="number"
+            min="0"
+            step="1"
+            className="input"
+            style={{ paddingLeft: 36 }}
+            value={rate}
+            onChange={e => setRate(e.target.value)}
+            placeholder={isPaid ? 'e.g. 150' : 'Optional, e.g. a top-up on the barter'}
+            required={isPaid}
+          />
         </div>
-      )}
+        <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
+          {isPaid
+            ? 'The brand funds escrow at your agreed rate before any work starts.'
+            : 'This is a barter campaign. Add a rate only if you want to propose a cash top-up.'}
+        </p>
+      </div>
 
       <button
         type="submit"

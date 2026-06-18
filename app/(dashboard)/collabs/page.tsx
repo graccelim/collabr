@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireAuth, getUserRow } from '@/lib/auth';
 import { formatSGD, COLLAB_STATUSES, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow';
+import { isPaymentSecured } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import CollabsList, { type CollabRowData } from '@/components/CollabsList';
 import { Briefcase, Compass, Megaphone } from 'lucide-react';
@@ -45,9 +46,15 @@ export default async function CollabsPage() {
         .order('created_at', { ascending: false })
     : { data: [] };
 
+  // Creators only see a collab once escrow is secured — a briefed, unfunded
+  // collab is invisible to them (their application still reads "Applied").
+  const visibleCollabs = (collabs || []).filter(
+    (c) => isBrand || c.status !== 'briefed' || isPaymentSecured(c.payment_status)
+  );
+
   // Build display rows + filter bucket (Needs you / In progress / Completed)
   // server-side; the chip filtering happens client-side in <CollabsList>.
-  const rows: CollabRowData[] = (collabs || []).map((c) => {
+  const rows: CollabRowData[] = visibleCollabs.map((c) => {
     const counterparty = isBrand
       ? (c.creator_profiles as any)?.users?.display_name || 'Creator'
       : (c.brand_profiles as any)?.company_name || 'Brand';

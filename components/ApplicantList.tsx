@@ -9,6 +9,7 @@ import Avatar from '@/components/Avatar'
 import { matchClass, reasonStyle } from '@/components/JobsList'
 import { socialIcon } from '@/components/SocialIcon'
 import { SOCIAL_LABELS, socialHandleLabel, type SocialPlatform } from '@/lib/onboarding'
+import { isPaymentSecured } from '@/lib/collab-status'
 import type { MatchResult, CreatorIndicators } from '@/lib/recommend'
 
 interface Application {
@@ -82,7 +83,9 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
           router.refresh()
         }
       } else if (status === 'shortlisted') {
-        toast.success('Saved, only you can see this')
+        toast.success('Shortlisted, only you can see this')
+      } else if (status === 'pending') {
+        toast.success('Removed from shortlist')
       } else {
         toast.success('Applicant passed')
       }
@@ -93,20 +96,24 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
     }
   }
 
-  // Live triage buckets (reflect Save/Pass/Accept as they happen).
-  const savedCount = applications.filter(a => statuses[a.id] === 'shortlisted').length
-  const passedCount = applications.filter(a => statuses[a.id] === 'rejected').length
+  // Live triage buckets (reflect Shortlist/Pass/Accept as they happen). "Applied"
+  // = active applicants who aren't shortlisted or rejected (incl. selected).
+  const shortlistedCount = applications.filter(a => statuses[a.id] === 'shortlisted').length
+  const rejectedCount = applications.filter(a => statuses[a.id] === 'rejected').length
+  const appliedCount = applications.filter(a => {
+    const s = statuses[a.id]; return s !== 'rejected' && s !== 'shortlisted'
+  }).length
   const filtered = applications.filter(a => {
     const s = statuses[a.id]
     if (filter === 'saved') return s === 'shortlisted'
     if (filter === 'passed') return s === 'rejected'
-    return s !== 'rejected' // "all" = everyone still in the running
+    return s !== 'rejected' && s !== 'shortlisted' // "Applied" tab
   })
-  const showTabs = savedCount > 0 || passedCount > 0
+  const showTabs = applications.length > 0
   const tabs: { key: 'all' | 'saved' | 'passed'; label: string; n: number }[] = [
-    { key: 'all', label: 'In the running', n: applications.length - passedCount },
-    { key: 'saved', label: 'Saved', n: savedCount },
-    { key: 'passed', label: 'Passed', n: passedCount },
+    { key: 'all', label: 'Applied', n: appliedCount },
+    { key: 'saved', label: 'Shortlisted', n: shortlistedCount },
+    { key: 'passed', label: 'Rejected', n: rejectedCount },
   ]
 
   return (
@@ -177,8 +184,12 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                         <Zap size={11} /> Boosted · Sponsored
                       </span>
                     )}
-                    {status === 'selected' && <span className="badge badge-money">Selected</span>}
-                    {status === 'rejected' && <span className="badge badge-neutral">Passed</span>}
+                    {status === 'selected' && (
+                      isPaymentSecured(app.collab_payment_status)
+                        ? <span className="badge badge-money">Confirmed · Payment Secured</span>
+                        : <span className="badge badge-amber">Selected · awaiting payment</span>
+                    )}
+                    {status === 'rejected' && <span className="badge badge-neutral">Rejected</span>}
                   </div>
                   <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 1 }}>
                     {sub}
@@ -255,20 +266,25 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
               {isOpen && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                   {status === 'shortlisted' && (
-                    <span title="Private to you, the creator isn't notified"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
-                      <Bookmark size={13} fill="currentColor" /> Saved
-                    </span>
+                    <button
+                      onClick={() => updateStatus(app.id, 'pending')}
+                      disabled={!!loading}
+                      className="btn-ghost"
+                      title="Remove from your private shortlist, the creator isn't notified"
+                      style={{ height: 32, fontSize: 13, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--ink-faint-solid)' }}
+                    >
+                      <Bookmark size={13} fill="currentColor" /> {loading === `${app.id}-pending` ? '…' : 'Remove from shortlist'}
+                    </button>
                   )}
                   {status === 'pending' && (
                     <button
                       onClick={() => updateStatus(app.id, 'shortlisted')}
                       disabled={!!loading}
                       className="btn-secondary"
-                      title="Save privately to compare later, the creator isn't notified"
+                      title="Shortlist privately to compare later, the creator isn't notified"
                       style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                     >
-                      <Bookmark size={14} /> {loading === `${app.id}-shortlisted` ? '…' : 'Save'}
+                      <Bookmark size={14} /> {loading === `${app.id}-shortlisted` ? '…' : 'Shortlist'}
                     </button>
                   )}
                   <button
@@ -277,7 +293,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     className="btn-ghost"
                     style={{ height: 32, fontSize: 13, padding: '0 10px', color: 'var(--ink-faint-solid)' }}
                   >
-                    {loading === `${app.id}-rejected` ? '…' : 'Pass'}
+                    {loading === `${app.id}-rejected` ? '…' : 'Decline'}
                   </button>
                   <button
                     onClick={() => updateStatus(app.id, 'selected')}
@@ -301,12 +317,12 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                   ) : (
                     <Link href={`/collabs/${app.collab_id}`}
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
-                      <Check size={15} /> Escrow secured · open collab →
+                      <Check size={15} /> Confirmed · Payment Secured · open collab →
                     </Link>
                   )
                 ) : (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
-                    <Check size={15} /> Selected · collab created
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--warn-deep)' }}>
+                    <Check size={15} /> Selected · awaiting payment
                   </span>
                 )
               )}
@@ -316,7 +332,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
       })}
 
       {/* Sparse state - keep the page productive: invite creators directly. */}
-      {filter === 'all' && spotsLeft > 0 && (applications.length - passedCount) <= 2 && (
+      {filter === 'all' && spotsLeft > 0 && appliedCount <= 2 && (
         <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)' }}>
           <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: '#fff', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
             <UserPlus size={20} />

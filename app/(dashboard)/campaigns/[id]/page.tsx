@@ -7,6 +7,7 @@ import EmptyState from '@/components/EmptyState'
 import { PLAN_COLUMNS } from '@/lib/plans'
 import { computeMatch, creatorIndicators } from '@/lib/recommend'
 import { toCreatorSignals, toCampaignSignals, type ScoreRow } from '@/lib/discovery-data'
+import { consumesSpot } from '@/lib/collab-status'
 import { ChevronLeft, Calendar, Users, DollarSign, Inbox, SearchX, Shield } from 'lucide-react'
 
 export default async function CampaignDetailPage({ params }: { params: { id: string } }) {
@@ -47,7 +48,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     createAdminClient().from('collabs')
       .select('id, application_id, status, payment_status').eq('campaign_id', params.id),
   ])
-  const spotsFilled = (collabs || []).filter(c => c.status !== 'cancelled').length
+  // A spot is only consumed once escrow is secured (funded), not at mere
+  // selection. Selected-but-unfunded collabs don't count toward "filled".
+  const spotsFilled = (collabs || []).filter(consumesSpot).length
   // Map each selected application to its collab so the card can deep-link the
   // brand straight to funding (Accept → Fund is one continuous motion).
   const collabByApp: Record<string, { id: string; payment_status: string }> = {}

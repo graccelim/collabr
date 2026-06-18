@@ -1,9 +1,10 @@
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import EmptyState from '@/components/EmptyState'
 import { Bookmark, ArrowLeft } from 'lucide-react'
 import JobsList, { type JobsListCampaign } from '@/components/JobsList'
+import { remainingSpots } from '@/lib/collab-status'
 
 export default async function SavedCampaignsPage() {
   const user = await requireCreator()
@@ -29,9 +30,24 @@ export default async function SavedCampaignsPage() {
 
   // Only active briefs are actionable; a saved campaign that has since closed is
   // dropped from the list rather than dead-ending on the detail page.
-  const list: JobsListCampaign[] = (savedRows ?? [])
+  const activeCampaigns = (savedRows ?? [])
     .map((r) => r.campaigns as any)
     .filter((c) => c && c.status === 'active')
+
+  // Funded-aware remaining spots per saved campaign (admin: collabs RLS).
+  const savedIds = activeCampaigns.map((c) => c.id)
+  const { data: savedCollabs } = savedIds.length
+    ? await createAdminClient().from('collabs')
+        .select('campaign_id, status, payment_status').in('campaign_id', savedIds)
+    : { data: [] as { campaign_id: string; status: string; payment_status: string }[] }
+  const collabsByCampaign = new Map<string, { status: string; payment_status: string }[]>()
+  for (const cc of savedCollabs ?? []) {
+    const arr = collabsByCampaign.get(cc.campaign_id) ?? []
+    arr.push(cc)
+    collabsByCampaign.set(cc.campaign_id, arr)
+  }
+
+  const list: JobsListCampaign[] = activeCampaigns
     .map((c) => {
       const brand = c.brand_profiles as any
       const platform = typeof c.platform === 'string' ? c.platform : null
@@ -58,6 +74,7 @@ export default async function SavedCampaignsPage() {
         matchLabel: null,
         matchReasons: [],
         saved: true,
+        spots_left: remainingSpots(c.creators_needed ?? 1, collabsByCampaign.get(c.id) ?? []),
       }
     })
 

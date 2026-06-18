@@ -1,5 +1,7 @@
+import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireAuth, getUserRow } from '@/lib/auth'
+import { isPaymentSecured } from '@/lib/collab-status'
 import { formatSGD, COLLAB_STATUSES, relativeTime, getInitials } from '@/lib/utils'
 import CollabActions from '@/components/CollabActions'
 import DraftSubmitForm from '@/components/DraftSubmitForm'
@@ -105,6 +107,14 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         />
       </div>
     )
+  }
+
+  // Product promise: creators only enter the workspace once escrow is secured.
+  // Before funding the collab is invisible to the creator — their application
+  // still reads "Applied" — so bounce them back rather than expose it. The brand
+  // keeps access here so they can fund.
+  if (!isBrand && collab.status === 'briefed' && !isPaymentSecured(collab.payment_status)) {
+    redirect('/applications')
   }
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]
   const paymentInfo = PAYMENT_TRUTH[collab.payment_status] ?? PAYMENT_TRUTH.unfunded
