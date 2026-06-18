@@ -1,5 +1,6 @@
+import type { Metadata } from 'next';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { requireCreator } from '@/lib/auth';
+import { getAuthUser, getUserRow } from '@/lib/auth';
 import { isUuid } from '@/lib/slug';
 import { ensureCampaignSlug } from '@/lib/slug-server';
 import { formatSGD, getInitials } from '@/lib/utils';
@@ -62,30 +63,49 @@ function FitRing({ pct }: { pct: number }) {
   );
 }
 
+// SEO: "[Campaign title] by [Brand name] | Collabr". Slug or UUID, same as page.
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const admin = createAdminClient()
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
+  const { data } = await admin.from('campaigns')
+    .select('title, brand_profiles(company_name)').eq(byCol, params.slug).maybeSingle()
+  const brandName = (data?.brand_profiles as any)?.company_name || 'a brand'
+  const title = data?.title ? `${data.title} by ${brandName} | Collabr` : 'Campaign | Collabr'
+  return { title, description: data?.title ? `Apply to "${data.title}" by ${brandName} on Collabr.` : undefined, openGraph: { title }, twitter: { title } }
+}
+
 export default async function JobDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: { slug: string };
 }) {
-  const user = await requireCreator();
+  // Public page: open to logged-out visitors. The creator-only bits (fit ring,
+  // apply form, application status) render only for a signed-in creator.
+  const user = await getAuthUser();
   const supabase = createClient();
+  const admin = createAdminClient();
+  const viewer = user ? await getUserRow() : null;
+  const isCreatorViewer = viewer?.role === 'creator';
 
-  // Campaign (by slug or UUID) and creator profile (by user.id) are independent.
-  const byCol = isUuid(params.id) ? 'id' : 'slug'
+  // Campaign is public (admin read so anon + the slug column always resolve).
+  // The creator profile only exists for a signed-in creator - fetch it only then.
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const [{ data: campaign }, { data: creator }] = await Promise.all([
-    supabase
+    admin
       .from('campaigns')
       .select(
         '*, brand_profiles(id, slug, company_name, company_description, logo_url, website, social_url, industry, completed_campaigns, rating_avg, rating_count)'
       )
-      .eq(byCol, params.id)
+      .eq(byCol, params.slug)
       .eq('status', 'active')
       .single(),
-    supabase
-      .from('creator_profiles')
-      .select('id, niche, niches')
-      .eq('user_id', user.id)
-      .single(),
+    isCreatorViewer && user
+      ? supabase
+          .from('creator_profiles')
+          .select('id, niche, niches')
+          .eq('user_id', user.id)
+          .single()
+      : Promise.resolve({ data: null }),
   ]);
   if (!campaign)
     return (
@@ -106,28 +126,31 @@ export default async function JobDetailPage({
     await ensureCampaignSlug(createAdminClient(), campaignId, campaign.title, campaignBrand?.company_name || '')
   }
 
-  // Both depend only on creator.id (+ campaignId) - batch.
-  const [{ data: socials }, { data: existing }, { data: collab }] = await Promise.all([
-    supabase
-      .from('social_accounts')
-      .select('follower_count')
-      .eq('creator_id', creator!.id),
-    // Check if already applied
-    supabase
-      .from('applications')
-      .select('id, status')
-      .eq('campaign_id', campaignId)
-      .eq('creator_id', creator!.id)
-      .maybeSingle(),
-    // The collab for this campaign+creator (exists once selected) so "View your
-    // collab" deep-links to the exact collab, not the list.
-    supabase
-      .from('collabs')
-      .select('id')
-      .eq('campaign_id', campaignId)
-      .eq('creator_id', creator!.id)
-      .maybeSingle(),
-  ]);
+  // Both depend only on creator.id (+ campaignId) - batch. Guests and brand
+  // viewers have no creator profile, so these stay empty for them.
+  const [{ data: socials }, { data: existing }, { data: collab }] = creator
+    ? await Promise.all([
+        supabase
+          .from('social_accounts')
+          .select('follower_count')
+          .eq('creator_id', creator.id),
+        // Check if already applied
+        supabase
+          .from('applications')
+          .select('id, status')
+          .eq('campaign_id', campaignId)
+          .eq('creator_id', creator.id)
+          .maybeSingle(),
+        // The collab for this campaign+creator (exists once selected) so "View
+        // your collab" deep-links to the exact collab, not the list.
+        supabase
+          .from('collabs')
+          .select('id')
+          .eq('campaign_id', campaignId)
+          .eq('creator_id', creator.id)
+          .maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }, { data: null }];
   const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
 
   const brand = campaign.brand_profiles as {
@@ -504,13 +527,37 @@ export default async function JobDetailPage({
                 </div>
               );
             })()
-          ) : (
+          ) : isCreatorViewer && creator ? (
             <ApplyForm
               campaignId={campaignId}
-              creatorId={creator!.id}
+              creatorId={creator.id}
               isPaid={isPaid}
               brandName={brandName}
             />
+          ) : viewer?.role === 'brand' ? (
+            // A brand viewing a public campaign - applying isn't for them.
+            <div className="card" style={{ padding: 18, fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+              You’re viewing this campaign as a brand. Applications come from creators.
+            </div>
+          ) : (
+            // Logged-out visitor: invite them to join to apply. The auth modal
+            // (Stage C) takes over the action; this is the guest entry point.
+            <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Apply for this campaign</div>
+                <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
+                  Create a free creator account to apply, get paid through escrow, and manage your collabs.
+                </p>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                <Link href={`/signup?next=${encodeURIComponent(`/jobs/${(campaign as { slug?: string | null }).slug || campaignId}`)}`} className="btn-primary">
+                  Join free to apply
+                </Link>
+                <Link href={`/login?next=${encodeURIComponent(`/jobs/${(campaign as { slug?: string | null }).slug || campaignId}`)}`} className="btn-secondary">
+                  Log in
+                </Link>
+              </div>
+            </div>
           )}
 
           {/* How it works - the real escrow flow */}
@@ -580,21 +627,24 @@ export default async function JobDetailPage({
             </div>
           </div>
 
-          {/* Your fit - clean white card */}
-          <div className="card" style={{ padding: 20 }}>
-            <div className="eyebrow" style={{ marginBottom: 12 }}>
-              Your fit for this campaign
+          {/* Your fit - clean white card. Only meaningful for a signed-in
+              creator (real niche/reach signals); hidden for guests and brands. */}
+          {isCreatorViewer && creator && (
+            <div className="card" style={{ padding: 20 }}>
+              <div className="eyebrow" style={{ marginBottom: 12 }}>
+                Your fit for this campaign
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <FitRing pct={fit.pct} />
+                <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
+                  {fitExplain}
+                </span>
+              </div>
+              <Link href="/profile" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
+                Tips to increase your chances <ArrowRight size={13} />
+              </Link>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <FitRing pct={fit.pct} />
-              <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-                {fitExplain}
-              </span>
-            </div>
-            <Link href="/profile" style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 14, fontSize: 12.5, fontWeight: 600, color: 'var(--accent-deep)' }}>
-              Tips to increase your chances <ArrowRight size={13} />
-            </Link>
-          </div>
+          )}
 
           {/* Brand reputation - only real facts */}
           {brandStats.length > 0 && (

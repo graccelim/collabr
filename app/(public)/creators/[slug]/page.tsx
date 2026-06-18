@@ -1,5 +1,6 @@
+import type { Metadata } from 'next'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth, getUserRow } from '@/lib/auth'
+import { getAuthUser, getUserRow } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Avatar from '@/components/Avatar'
 import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
@@ -22,18 +23,31 @@ import RatingSummaryCard from '@/components/RatingSummaryCard'
 import Link from 'next/link'
 import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
 
-export default async function CreatorProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
-  const user = await requireAuth()
+// SEO: "[Creator name] on Collabr". Resolves by slug or UUID, same as the page.
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const admin = createAdminClient()
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
+  const { data } = await admin.from('creator_profiles')
+    .select('users(display_name)').eq(byCol, params.slug).maybeSingle()
+  const name = (data?.users as any)?.display_name || 'Creator'
+  const title = `${name} on Collabr`
+  return { title, description: `${name}'s creator profile on Collabr — work, niches and rates.`, openGraph: { title }, twitter: { title } }
+}
+
+export default async function CreatorProfilePage({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string } }) {
+  // Public page: viewing is open to logged-out visitors (no redirect). `user`
+  // may be null - only owner/brand actions below depend on it.
+  const user = await getAuthUser()
   const supabase = createClient()
   const admin = createAdminClient()
 
   // Admin client: public profile data, but the users join (display name /
   // avatar) is RLS-limited to own-row for session clients. Resolve by slug or
   // UUID so both /creators/girl-devours and /creators/<uuid> work.
-  const byCol = isUuid(params.id) ? 'id' : 'slug'
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const { data: creator } = await admin.from('creator_profiles')
     .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
-    .eq(byCol, params.id).single()
+    .eq(byCol, params.slug).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
   const creatorId = creator.id
   // Backfill a stable slug on first view if missing; the canonical URL uses it.
@@ -70,14 +84,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   // Owner viewing their own profile (Profile nav lands here) → show Edit, not
   // brand actions. "This is how brands see you."
-  const isOwner = creator.user_id === user.id
+  const isOwner = !!user && creator.user_id === user.id
   // Brand viewer: saved state + invitable campaigns (active, paid).
-  const isBrandViewer = viewer?.role === 'brand' && !isOwner
+  const isBrandViewer = !!user && viewer?.role === 'brand' && !isOwner
   let isSaved = false
   let viewerIsPro = false
   let inviteCampaigns: { id: string; title: string }[] = []
   let pendingInviteCampaignIds: string[] = []
-  if (isBrandViewer) {
+  if (isBrandViewer && user) {
     const { data: brand } = await admin.from('brand_profiles')
       .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
     viewerIsPro = resolvePlan(brand).isPro

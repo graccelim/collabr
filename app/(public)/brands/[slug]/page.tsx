@@ -1,5 +1,6 @@
+import type { Metadata } from 'next'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
+import { getAuthUser } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Avatar from '@/components/Avatar'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
@@ -15,32 +16,45 @@ import ShareProfileButton from '@/components/ShareProfileButton'
 import Link from 'next/link'
 import { Globe, Briefcase, Pencil, MapPin, ExternalLink, Star, CheckCircle2 } from 'lucide-react'
 
-export default async function BrandProfilePage({ params, searchParams }: { params: { id: string }; searchParams: { from?: string } }) {
-  const user = await requireAuth()
+// SEO: "[Brand name] on Collabr". Resolves by slug or UUID, same as the page.
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+  const admin = createAdminClient()
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
+  const { data } = await admin.from('brand_profiles')
+    .select('company_name').eq(byCol, params.slug).maybeSingle()
+  const name = data?.company_name || 'Brand'
+  const title = `${name} on Collabr`
+  return { title, description: `${name}'s brand profile on Collabr — campaigns, reputation and reviews.`, openGraph: { title }, twitter: { title } }
+}
+
+export default async function BrandProfilePage({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string } }) {
+  // Public page: open to logged-out visitors (no redirect). `user` may be null;
+  // only the owner-edit affordance depends on it.
+  const user = await getAuthUser()
   const supabase = createClient()
   const admin = createAdminClient()
 
   // Brand identity + public reputation (public data → admin read is fine).
   // Resolve by slug or UUID so /brands/wild-coco and /brands/<uuid> both work.
-  const byCol = isUuid(params.id) ? 'id' : 'slug'
+  const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const BRAND_COLS = 'id, slug, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at'
   // `location` is newer (migration 020). Tolerate DBs where it isn't applied yet
   // so brand profiles never 404 during the migration window.
   let brand: any = null
   {
-    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url, socials`).eq(byCol, params.id).single()
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url, socials`).eq(byCol, params.slug).single()
     brand = r.data
   }
   if (!brand) {
-    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url`).eq(byCol, params.id).single()
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url`).eq(byCol, params.slug).single()
     brand = r.data
   }
   if (!brand) {
-    const r = await admin.from('brand_profiles').select(BRAND_COLS).eq(byCol, params.id).single()
+    const r = await admin.from('brand_profiles').select(BRAND_COLS).eq(byCol, params.slug).single()
     brand = r.data
   }
   if (!brand) return <p className="text-sm" style={{ color: 'var(--danger)' }}>Brand not found.</p>
-  const isOwner = brand.user_id === user.id
+  const isOwner = !!user && brand.user_id === user.id
   const brandId = brand.id as string
   const slug = (brand.slug as string | null)
     || (await ensureBrandSlug(admin, brandId, brand.company_name || '')) || brandId

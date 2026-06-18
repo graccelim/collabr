@@ -7,6 +7,13 @@ const PROTECTED_PREFIXES = [
   '/applications', '/creators', '/post-job', '/admin', '/onboarding', '/invites',
 ]
 
+// Public detail pages: a creator/brand profile or a campaign, viewable while
+// logged out (SEO + shareable links). These are SUB-PATHS only - the bare list
+// routes (/creators, /jobs) stay gated, but /creators/<slug>, /jobs/<slug> and
+// /brands/<slug> are open. Listed with a trailing slash so the exact list route
+// (e.g. "/creators") never matches.
+const PUBLIC_DETAIL_PREFIXES = ['/creators/', '/jobs/', '/brands/']
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
@@ -28,7 +35,12 @@ export async function middleware(req: NextRequest) {
   // Always call getUser() - this refreshes the session token and writes updated cookies
   const { data: { user } } = await supabase.auth.getUser()
 
-  const isProtected = PROTECTED_PREFIXES.some(prefix =>
+  // A public detail page wins over the protected-prefix match (e.g. "/creators/"
+  // beats the "/creators" gate), so logged-out visitors are never redirected.
+  const isPublicDetail = PUBLIC_DETAIL_PREFIXES.some(prefix =>
+    pathname.startsWith(prefix)
+  )
+  const isProtected = !isPublicDetail && PROTECTED_PREFIXES.some(prefix =>
     pathname === prefix || pathname.startsWith(prefix + '/')
   )
 
