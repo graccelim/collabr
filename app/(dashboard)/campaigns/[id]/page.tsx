@@ -53,9 +53,12 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   const spotsFilled = (collabs || []).filter(consumesSpot).length
   // Map each selected application to its collab so the card can deep-link the
   // brand straight to funding (Accept → Fund is one continuous motion).
+  // Map each application to its LIVE collab. Skip cancelled ones: after an
+  // undo/expiry an application can have a cancelled collab plus a fresh one, and
+  // the card must point at the live collab, not the dead one.
   const collabByApp: Record<string, { id: string; payment_status: string }> = {}
-  for (const c of (collabs || []) as { id: string; application_id: string | null; payment_status: string }[]) {
-    if (c.application_id) collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status }
+  for (const c of (collabs || []) as { id: string; application_id: string | null; status: string; payment_status: string }[]) {
+    if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status }
   }
 
   // Honest ranking inputs: socials (self-reported reach) and the creator_scores
