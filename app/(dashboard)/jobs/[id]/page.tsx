@@ -1,5 +1,7 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
+import { isUuid } from '@/lib/slug';
+import { ensureCampaignSlug } from '@/lib/slug-server';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
@@ -68,14 +70,15 @@ export default async function JobDetailPage({
   const user = await requireCreator();
   const supabase = createClient();
 
-  // Campaign (by id) and creator profile (by user.id) are independent - batch.
+  // Campaign (by slug or UUID) and creator profile (by user.id) are independent.
+  const byCol = isUuid(params.id) ? 'id' : 'slug'
   const [{ data: campaign }, { data: creator }] = await Promise.all([
     supabase
       .from('campaigns')
       .select(
-        '*, brand_profiles(id, company_name, company_description, logo_url, website, social_url, industry, completed_campaigns, rating_avg, rating_count)'
+        '*, brand_profiles(id, slug, company_name, company_description, logo_url, website, social_url, industry, completed_campaigns, rating_avg, rating_count)'
       )
-      .eq('id', params.id)
+      .eq(byCol, params.id)
       .eq('status', 'active')
       .single(),
     supabase
@@ -95,8 +98,15 @@ export default async function JobDetailPage({
         </Link>
       </div>
     );
+  const campaignId = campaign.id as string
+  const campaignBrand = campaign.brand_profiles as { id?: string; slug?: string | null; company_name?: string | null } | null
+  // Backfill a stable slug on first view if missing (side effect) so the public
+  // /jobs/[slug] link and metadata resolve later.
+  if (!(campaign as { slug?: string | null }).slug) {
+    await ensureCampaignSlug(createAdminClient(), campaignId, campaign.title, campaignBrand?.company_name || '')
+  }
 
-  // Both depend only on creator.id (+ params.id) - batch.
+  // Both depend only on creator.id (+ campaignId) - batch.
   const [{ data: socials }, { data: existing }, { data: collab }] = await Promise.all([
     supabase
       .from('social_accounts')
@@ -106,7 +116,7 @@ export default async function JobDetailPage({
     supabase
       .from('applications')
       .select('id, status')
-      .eq('campaign_id', params.id)
+      .eq('campaign_id', campaignId)
       .eq('creator_id', creator!.id)
       .maybeSingle(),
     // The collab for this campaign+creator (exists once selected) so "View your
@@ -114,7 +124,7 @@ export default async function JobDetailPage({
     supabase
       .from('collabs')
       .select('id')
-      .eq('campaign_id', params.id)
+      .eq('campaign_id', campaignId)
       .eq('creator_id', creator!.id)
       .maybeSingle(),
   ]);
@@ -122,6 +132,7 @@ export default async function JobDetailPage({
 
   const brand = campaign.brand_profiles as {
     id?: string;
+    slug?: string | null;
     company_name: string | null;
     logo_url: string | null;
     industry?: string | null;
@@ -312,7 +323,7 @@ export default async function JobDetailPage({
             />
             {brand?.id && (
               <Link
-                href={`/brands/${brand.id}`}
+                href={`/brands/${brand.slug || brand.id}`}
                 style={{
                   fontSize: 12.5,
                   fontWeight: 600,
@@ -495,7 +506,7 @@ export default async function JobDetailPage({
             })()
           ) : (
             <ApplyForm
-              campaignId={params.id}
+              campaignId={campaignId}
               creatorId={creator!.id}
               isPaid={isPaid}
               brandName={brandName}

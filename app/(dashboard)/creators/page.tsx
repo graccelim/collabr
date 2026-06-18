@@ -140,7 +140,7 @@ export default async function CreatorsPage({
   let query = admin
     .from('creator_profiles')
     .select(
-      'id, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
+      'id, slug, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
       { count: 'exact' }
     );
 
@@ -345,7 +345,7 @@ export default async function CreatorsPage({
             return (
               <Link
                 key={c.id}
-                href={`/creators/${c.id}`}
+                href={`/creators/${(c as { slug?: string | null }).slug || c.id}`}
                 className="card card-hover"
                 style={{
                   display: 'flex',

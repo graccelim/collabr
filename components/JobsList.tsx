@@ -8,6 +8,7 @@ import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 
 export interface JobsListCampaign {
   id: string
+  slug?: string | null
   title: string
   comp_type: 'paid' | 'barter' | 'both'
   budget_min: number | null
@@ -129,7 +130,7 @@ export default function JobsList({
           return (
             <Link
               key={c.id}
-              href={`/jobs/${c.id}`}
+              href={`/jobs/${c.slug || c.id}`}
               className="card hover-lift"
               style={{
                 padding: 20,
@@ -155,7 +156,7 @@ export default function JobsList({
                   <div style={{ minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>{c.title}</div>
-                      <span style={{
+                      <span className="md:hidden" style={{
                         fontSize: 11, fontWeight: 600, color: 'var(--accent-deep)',
                         background: 'var(--accent-tint)', padding: '2px 8px', borderRadius: 99,
                       }}>{c.creators_needed} {c.creators_needed === 1 ? 'spot' : 'spots'} open</span>
@@ -232,6 +233,11 @@ export default function JobsList({
                       >{v}</div>
                     </div>
                   ))}
+                  {/* Spots stays a meta column on desktop; on mobile it's the chip by the title. */}
+                  <div className="hidden md:block">
+                    <div className="eyebrow" style={{ fontSize: 10 }}>Spots</div>
+                    <div style={{ fontSize: 14, fontWeight: 540, marginTop: 2, color: 'var(--ink)' }}>{c.creators_needed} open</div>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {c.appliedStatus ? (

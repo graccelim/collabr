@@ -12,6 +12,8 @@ import ShareProfileButton from '@/components/ShareProfileButton'
 import { chipColor } from '@/lib/niches'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
+import { isUuid } from '@/lib/slug'
+import { ensureCreatorSlug } from '@/lib/slug-server'
 import type { SocialAccount } from '@/types'
 import { responseStanding } from '@/lib/recommend'
 import { boostEnabled } from '@/lib/stripe'
@@ -26,11 +28,18 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const admin = createAdminClient()
 
   // Admin client: public profile data, but the users join (display name /
-  // avatar) is RLS-limited to own-row for session clients.
+  // avatar) is RLS-limited to own-row for session clients. Resolve by slug or
+  // UUID so both /creators/girl-devours and /creators/<uuid> work.
+  const byCol = isUuid(params.id) ? 'id' : 'slug'
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
-    .eq('id', params.id).single()
+    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
+    .eq(byCol, params.id).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
+  const creatorId = creator.id
+  // Backfill a stable slug on first view if missing; the canonical URL uses it.
+  const slug = creator.slug
+    || (await ensureCreatorSlug(admin, creatorId, (creator.users as any)?.display_name || ''))
+    || creatorId
 
   // Independent reads - connected socials, email verification, brand reviews,
   // and the memoized current-user row - issued concurrently.
@@ -43,19 +52,19 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   ] = await Promise.all([
     supabase.from('social_accounts')
       .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
-      .eq('creator_id', params.id)
+      .eq('creator_id', creatorId)
       .order('is_primary', { ascending: false }).order('created_at'),
     supabase.rpc('user_email_verified', { p_user_id: creator.user_id }),
     supabase.from('reviews')
       .select('id, rating, note, created_at, collabs!inner(id, creator_id, campaigns(title), brand_profiles(company_name))')
       .eq('reviewer_type', 'brand')
-      .eq('collabs.creator_id', params.id)
+      .eq('collabs.creator_id', creatorId)
       .order('created_at', { ascending: false })
       .limit(50),
     // Internal score row - ONLY for the categorical response standing below.
     // Never rendered as a number; raw inputs stay server-side.
     admin.from('creator_scores')
-      .select('invites_concluded, response_rate_shrunk').eq('creator_id', params.id).maybeSingle(),
+      .select('invites_concluded, response_rate_shrunk').eq('creator_id', creatorId).maybeSingle(),
     getUserRow(),
   ])
 
@@ -75,12 +84,12 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     if (brand) {
       const [{ data: saved }, { data: campaigns }, { data: pendingInvites }] = await Promise.all([
         supabase.from('saved_creators')
-          .select('id').eq('brand_id', brand.id).eq('creator_id', params.id).maybeSingle(),
+          .select('id').eq('brand_id', brand.id).eq('creator_id', creatorId).maybeSingle(),
         supabase.from('campaigns')
           .select('id, title').eq('brand_id', brand.id).eq('status', 'active')
           .in('comp_type', ['paid', 'both']).order('created_at', { ascending: false }),
         supabase.from('campaign_invites')
-          .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', params.id)
+          .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', creatorId)
           .eq('status', 'pending'),
       ])
       isSaved = Boolean(saved)
@@ -137,7 +146,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           : { display: 'inline-flex', alignItems: 'center', gap: 7 }}>
         <Pencil size={15} /> Edit profile
       </Link>
-      <ShareProfileButton path={`/creators/${params.id}`} name={name} />
+      <ShareProfileButton path={`/creators/${slug}`} name={name} />
     </>
   )
 
@@ -196,15 +205,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               {isBrandViewer && viewerIsPro && (
                 <>
                   <InviteCreatorForm
-                    creatorId={params.id}
+                    creatorId={creatorId}
                     creatorName={name}
                     campaigns={inviteCampaigns}
                     pendingCampaignIds={pendingInviteCampaignIds}
                   />
-                  <SaveCreatorButton creatorId={params.id} initialSaved={isSaved} />
+                  <SaveCreatorButton creatorId={creatorId} initialSaved={isSaved} />
                 </>
               )}
-              <ShareProfileButton path={`/creators/${params.id}`} name={name} />
+              <ShareProfileButton path={`/creators/${slug}`} name={name} />
             </div>
             {isBrandViewer && !viewerIsPro && (
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>

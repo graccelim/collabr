@@ -111,6 +111,7 @@ export default async function JobsPage({
         : null;
     return {
       id: c.id,
+      slug: (c as { slug?: string | null }).slug,
       title: c.title,
       comp_type: c.comp_type,
       budget_min: c.budget_min,

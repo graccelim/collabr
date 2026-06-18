@@ -1,4 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { ensureCampaignSlug } from '@/lib/slug-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 import { normalizeNiche, normalizeNicheTags } from '@/lib/niches'
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   // Admin client: subscription columns are server-only; own row by user_id.
   const { data: brand } = await createAdminClient().from('brand_profiles')
-    .select(`id, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+    .select(`id, company_name, onboarding_completed_at, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
   if (!brand) return NextResponse.json({ error: 'Brand profile not found' }, { status: 404 })
 
   // Onboarding (company name, industry, website or social) must be complete.
@@ -91,5 +92,11 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Public, shareable slug from title + brand name (best-effort).
+  if (data?.id) {
+    const slug = await ensureCampaignSlug(admin, data.id, body.title, brand.company_name || '')
+    if (slug) (data as { slug?: string }).slug = slug
+  }
   return NextResponse.json(data, { status: 201 })
 }

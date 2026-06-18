@@ -7,6 +7,7 @@ import {
   brandOnboardingFields, creatorOnboardingSchema, requireWebsiteOrSocial, socialUrl,
 } from '@/lib/onboarding'
 import { brandSocialSchema } from '@/lib/profiles'
+import { ensureBrandSlug, ensureCreatorSlug } from '@/lib/slug-server'
 
 const baseSchema = z.object({
   email: z.string().trim().email().max(254),
@@ -118,7 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (parsed.data.role === 'brand') {
-    const { error: brandErr } = await admin.from('brand_profiles').insert({
+    const { data: brand, error: brandErr } = await admin.from('brand_profiles').insert({
       user_id: data.user.id,
       company_name: name,
       industry: parsed.data.industry,
@@ -126,11 +127,13 @@ export async function POST(req: NextRequest) {
       website: parsed.data.website || null,
       social_url: parsed.data.social_url || null,
       onboarding_completed_at: new Date().toISOString(),
-    })
-    if (brandErr) {
+    }).select('id').single()
+    if (brandErr || !brand) {
       console.error('[SIGNUP] brand profile insert failed:', brandErr)
       return NextResponse.json({ error: 'Could not create profile' }, { status: 500 })
     }
+    // Generate the public, shareable slug from the company name (best-effort).
+    await ensureBrandSlug(admin, brand.id, name)
     // `location` (020) and `socials` (021) are newer columns - set them
     // best-effort and separately so signup never fails on DBs where one of the
     // columns isn't applied yet.
@@ -176,6 +179,9 @@ export async function POST(req: NextRequest) {
     await admin.from('creator_profiles')
       .update({ onboarding_completed_at: new Date().toISOString() })
       .eq('id', creator.id)
+
+    // Generate the public, shareable slug from the display name (best-effort).
+    await ensureCreatorSlug(admin, creator.id, name)
 
     emails.welcomeCreator(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
   }

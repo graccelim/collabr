@@ -7,6 +7,8 @@ import RatingSummaryCard from '@/components/RatingSummaryCard'
 import ProfileBackButton from '@/components/ProfileBackButton'
 import { chipColor } from '@/lib/niches'
 import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding'
+import { isUuid } from '@/lib/slug'
+import { ensureBrandSlug } from '@/lib/slug-server'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -19,24 +21,29 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   const admin = createAdminClient()
 
   // Brand identity + public reputation (public data → admin read is fine).
-  const BRAND_COLS = 'id, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at'
+  // Resolve by slug or UUID so /brands/wild-coco and /brands/<uuid> both work.
+  const byCol = isUuid(params.id) ? 'id' : 'slug'
+  const BRAND_COLS = 'id, slug, user_id, company_name, company_description, industry, website, logo_url, completed_campaigns, rating_avg, rating_count, created_at'
   // `location` is newer (migration 020). Tolerate DBs where it isn't applied yet
   // so brand profiles never 404 during the migration window.
   let brand: any = null
   {
-    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url, socials`).eq('id', params.id).single()
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url, socials`).eq(byCol, params.id).single()
     brand = r.data
   }
   if (!brand) {
-    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url`).eq('id', params.id).single()
+    const r = await admin.from('brand_profiles').select(`${BRAND_COLS}, location, social_url`).eq(byCol, params.id).single()
     brand = r.data
   }
   if (!brand) {
-    const r = await admin.from('brand_profiles').select(BRAND_COLS).eq('id', params.id).single()
+    const r = await admin.from('brand_profiles').select(BRAND_COLS).eq(byCol, params.id).single()
     brand = r.data
   }
   if (!brand) return <p className="text-sm" style={{ color: 'var(--danger)' }}>Brand not found.</p>
   const isOwner = brand.user_id === user.id
+  const brandId = brand.id as string
+  const slug = (brand.slug as string | null)
+    || (await ensureBrandSlug(admin, brandId, brand.company_name || '')) || brandId
 
   // REVEALED reviews + active campaigns. Reviews go through the SESSION client so
   // the double-blind reveal RLS is enforced (admin would bypass it).
@@ -44,12 +51,12 @@ export default async function BrandProfilePage({ params, searchParams }: { param
     supabase.from('reviews')
       .select('id, rating, note, created_at, collabs!inner(brand_id, campaigns(title), creator_profiles(users(display_name)))')
       .eq('reviewer_type', 'creator')
-      .eq('collabs.brand_id', params.id)
+      .eq('collabs.brand_id', brandId)
       .order('created_at', { ascending: false })
       .limit(50),
     admin.from('campaigns')
-      .select('id, title, comp_type, budget_min, budget_max, niche_tags')
-      .eq('brand_id', params.id).eq('status', 'active')
+      .select('id, slug, title, comp_type, budget_min, budget_max, niche_tags')
+      .eq('brand_id', brandId).eq('status', 'active')
       .order('created_at', { ascending: false }).limit(6),
   ])
 
@@ -114,7 +121,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
               {/* Visitor (c-b): share sits top-right, inline with the name. */}
               {!isOwner && (
                 <div style={{ flexShrink: 0 }}>
-                  <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+                  <ShareProfileButton path={`/brands/${slug}`} name={name} />
                 </div>
               )}
 
@@ -124,7 +131,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                   <Link href="/settings" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
                     <Pencil size={15} /> Edit profile
                   </Link>
-                  <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+                  <ShareProfileButton path={`/brands/${slug}`} name={name} />
                 </div>
               )}
             </div>
@@ -137,7 +144,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             <Link href="/settings" className="btn-primary" style={{ flex: 1, justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
               <Pencil size={15} /> Edit profile
             </Link>
-            <ShareProfileButton path={`/brands/${params.id}`} name={name} />
+            <ShareProfileButton path={`/brands/${slug}`} name={name} />
           </div>
   ) : null
 
@@ -199,7 +206,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             <div className="rail-section">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                 <div className="eyebrow">{isOwner ? 'Your campaigns' : 'Open campaigns'}</div>
-                <Link href={isOwner ? '/campaigns' : `/jobs?brand=${params.id}`}
+                <Link href={isOwner ? '/campaigns' : `/jobs?brand=${brandId}`}
                   style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--accent-deep)', flexShrink: 0 }}>
                   See all
                 </Link>
@@ -210,7 +217,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
                     ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
                     : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
                   return (
-                    <Link key={c.id} href={`/jobs/${c.id}`} className="rail-link">
+                    <Link key={c.id} href={`/jobs/${(c as { slug?: string }).slug || c.id}`} className="rail-link">
                       <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
                         <Briefcase size={15} />
                       </span>
