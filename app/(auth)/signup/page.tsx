@@ -135,6 +135,20 @@ function SignupForm() {
 
   const busy = status !== 'idle'
 
+  // The submit button stays disabled until EVERY required field is filled (not
+  // just the terms box). Mirrors the server-side validation in handleSignup.
+  const filledSocials = socialRows.filter(r => r.username.trim())
+  const emailLooksValid = /.+@.+\..+/.test(email.trim())
+  const baseComplete = name.trim().length >= 2 && emailLooksValid && password.length >= 8
+  const creatorComplete = baseComplete
+    && niches.length > 0
+    && filledSocials.length > 0
+    && filledSocials.every(r => r.followers.trim() !== '' && Number(r.followers) >= 0)
+  const brandComplete = baseComplete
+    && industry.trim() !== ''
+    && (Boolean(normalizeUrl(website)) || filledSocials.length > 0)
+  const formComplete = isBrand ? brandComplete : creatorComplete
+
   return (
     <AuthShell>
       <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Create your account</h1>
@@ -233,7 +247,7 @@ function SignupForm() {
           </span>
         </label>
 
-        <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy || !agree}>
+        <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy || !agree || !formComplete}>
           {status === 'success' ? (
             <><Loader2 size={17} className="animate-spin" /> Taking you in…</>
           ) : status === 'loading' ? (
