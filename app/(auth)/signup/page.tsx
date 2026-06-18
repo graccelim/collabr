@@ -226,10 +226,10 @@ function SignupForm() {
           <input type="checkbox" checked={agree} onChange={e => setAgree(e.target.checked)}
             style={{ width: 17, height: 17, marginTop: 1, accentColor: 'var(--accent)', flexShrink: 0 }} />
           <span style={{ fontSize: 13, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            I agree to collabr&rsquo;s terms.{' '}
-            {isBrand
-              ? 'Your payments are held in escrow, and you only fund a collab when you accept a creator.'
-              : 'You get paid securely through escrow once your work is approved.'}
+            I agree to collabr&rsquo;s{' '}
+            <Link href="/terms" target="_blank" style={{ color: 'var(--accent)', fontWeight: 530, textDecoration: 'underline' }}>
+              terms and conditions
+            </Link>.
           </span>
         </label>
 
