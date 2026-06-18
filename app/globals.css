@@ -734,7 +734,7 @@
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }
   .profile-stat-top { gap: 6px; justify-content: center; }
   .profile-stat-ic { width: 23px; height: 23px; border-radius: 6px; }
-  .profile-stat-val { font-size: 15px; }
+  .profile-stat-val { font-size: 20px; }
   .profile-stat-label { font-size: 10.5px; margin-top: 3px; }
   .profile-stat-sub { display: none; }
 

@@ -295,20 +295,30 @@ export default async function JobDetailPage({
         gap: 18,
       }}
     >
-      <Link
-        href="/jobs"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          alignSelf: 'flex-start',
-          color: 'var(--ink-faint-solid)',
-          fontSize: 13,
-          textDecoration: 'none',
-        }}
-      >
-        <ChevronLeft size={15} /> Browse campaigns
-      </Link>
+      {/* Browsing all campaigns needs an account. A guest who got here from a
+          shared link gets the auth modal instead of a hard bounce to /login. */}
+      {user ? (
+        <Link
+          href="/jobs"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+            color: 'var(--ink-faint-solid)', fontSize: 13, textDecoration: 'none',
+          }}
+        >
+          <ChevronLeft size={15} /> Browse campaigns
+        </Link>
+      ) : (
+        <AuthGateButton
+          className=""
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 6, alignSelf: 'flex-start',
+            color: 'var(--ink-faint-solid)', fontSize: 13,
+            background: 'transparent', border: 'none', padding: 0, cursor: 'pointer',
+          }}
+        >
+          <ChevronLeft size={15} /> Browse campaigns
+        </AuthGateButton>
+      )}
 
       {/* Brand + title */}
       <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
@@ -381,16 +391,24 @@ export default async function JobDetailPage({
           </div>
         </div>
 
-        {/* Save + Share - inline with the title (desktop), wraps below on
-            mobile. Creators get a real Save; guests get the auth modal; brands
-            see only Share. Share is open to everyone (public link). */}
-        <div style={{ marginLeft: 'auto', alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        {/* Save + Share - inline with the title. Desktop shows labelled
+            buttons; mobile shows icon-only buttons. Creators get a real Save;
+            guests get the auth modal; brands see only Share. */}
+        <div className="hidden md:flex" style={{ marginLeft: 'auto', alignSelf: 'flex-start', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           {isCreatorViewer && creator ? (
             <SaveCampaignButton campaignId={campaignId} initialSaved={isSavedCampaign} />
           ) : viewer?.role === 'brand' ? null : (
             <SaveCampaignButton campaignId={campaignId} initialSaved={false} gated />
           )}
           <ShareProfileButton path={`/jobs/${campaignSlug}`} name={campaign.title} noun="Campaign" label />
+        </div>
+        <div className="flex md:hidden" style={{ marginLeft: 'auto', alignSelf: 'flex-start', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {isCreatorViewer && creator ? (
+            <SaveCampaignButton campaignId={campaignId} initialSaved={isSavedCampaign} compact />
+          ) : viewer?.role === 'brand' ? null : (
+            <SaveCampaignButton campaignId={campaignId} initialSaved={false} gated compact />
+          )}
+          <ShareProfileButton path={`/jobs/${campaignSlug}`} name={campaign.title} noun="Campaign" compact />
         </div>
       </div>
 
