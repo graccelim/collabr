@@ -1,79 +1,114 @@
-import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
-import { requireCreator } from '@/lib/auth'
-import EmptyState from '@/components/EmptyState'
-import { Compass, ArrowLeft } from 'lucide-react'
-import { rankCampaignsForCreator } from '@/lib/recommend'
-import { toCreatorSignals, toCampaignForCreator, type CreatorRow } from '@/lib/discovery-data'
-import JobsList, { type JobsListCampaign } from '@/components/JobsList'
+import Link from 'next/link';
+import { createClient } from '@/lib/supabase/server';
+import { requireCreator } from '@/lib/auth';
+import EmptyState from '@/components/EmptyState';
+import { Compass, ArrowLeft } from 'lucide-react';
+import { rankCampaignsForCreator } from '@/lib/recommend';
+import {
+  toCreatorSignals,
+  toCampaignForCreator,
+  type CreatorRow,
+} from '@/lib/discovery-data';
+import JobsList, { type JobsListCampaign } from '@/components/JobsList';
 
-export default async function JobsPage({ searchParams }: { searchParams: { brand?: string } }) {
-  const user = await requireCreator()
-  const supabase = createClient()
-  const brandFilter = searchParams?.brand || null
+export default async function JobsPage({
+  searchParams,
+}: {
+  searchParams: { brand?: string };
+}) {
+  const user = await requireCreator();
+  const supabase = createClient();
+  const brandFilter = searchParams?.brand || null;
 
   // The active campaign list (by status) and the signed-in creator's profile
   // (by user.id) are independent - batch them. The creator's niche, rate,
   // availability and social follower counts feed the two-sided recommender so
   // the browse list is ordered by real fit and labelled honestly.
   const [{ data: campaigns }, { data: creator }] = await Promise.all([
-    supabase.from('campaigns')
-      .select('*, brand_profiles(id, company_name, logo_url, completed_campaigns, rating_avg, rating_count)')
+    supabase
+      .from('campaigns')
+      .select(
+        '*, brand_profiles(id, company_name, logo_url, completed_campaigns, rating_avg, rating_count)'
+      )
       .eq('status', 'active')
       .order('is_featured', { ascending: false })
       .order('created_at', { ascending: false }),
-    supabase.from('creator_profiles')
-      .select('id, niche, niches, niche_tags, average_rate_sgd, base_rate, availability_status, collabs_completed, rating_avg, rating_count, boost_active_until')
-      .eq('user_id', user.id).single(),
-  ])
+    supabase
+      .from('creator_profiles')
+      .select(
+        'id, niche, niches, niche_tags, average_rate_sgd, base_rate, availability_status, collabs_completed, rating_avg, rating_count, boost_active_until'
+      )
+      .eq('user_id', user.id)
+      .single(),
+  ]);
 
   // Social accounts (self-reported followers), the creator's existing
   // applications, and the creator's score row all key off the creator id -
   // batch them.
-  const [{ data: socials }, { data: myApps }, { data: scoreRow }] = await Promise.all([
-    supabase.from('social_accounts').select('follower_count').eq('creator_id', creator?.id ?? ''),
-    supabase.from('applications').select('campaign_id, status').eq('creator_id', creator?.id ?? ''),
-    supabase.from('creator_scores').select('*').eq('creator_id', creator?.id ?? '').maybeSingle(),
-  ])
-  const appStatusByCampaign = new Map<string, string>()
-  for (const a of myApps ?? []) appStatusByCampaign.set(a.campaign_id as string, a.status as string)
+  const [{ data: socials }, { data: myApps }, { data: scoreRow }] =
+    await Promise.all([
+      supabase
+        .from('social_accounts')
+        .select('follower_count')
+        .eq('creator_id', creator?.id ?? ''),
+      supabase
+        .from('applications')
+        .select('campaign_id, status')
+        .eq('creator_id', creator?.id ?? ''),
+      supabase
+        .from('creator_scores')
+        .select('*')
+        .eq('creator_id', creator?.id ?? '')
+        .maybeSingle(),
+    ]);
+  const appStatusByCampaign = new Map<string, string>();
+  for (const a of myApps ?? [])
+    appStatusByCampaign.set(a.campaign_id as string, a.status as string);
 
   // Build the creator's ranking signals once; reuse for every campaign.
-  const creatorRow: CreatorRow = (creator as CreatorRow | null) ?? { id: '' }
+  const creatorRow: CreatorRow = (creator as CreatorRow | null) ?? { id: '' };
   const creatorSignals = toCreatorSignals(
     creatorRow,
     (socials ?? []) as { follower_count: number | null }[],
-    scoreRow,
-  )
+    scoreRow
+  );
 
   // Optional brand scope: when arriving from a brand's profile ("See all"),
   // narrow to that brand's active campaigns. Name comes from the matched rows.
   const scopedCampaigns = brandFilter
-    ? (campaigns ?? []).filter(c => (c.brand_profiles as any)?.id === brandFilter)
-    : (campaigns ?? [])
+    ? (campaigns ?? []).filter(
+        (c) => (c.brand_profiles as any)?.id === brandFilter
+      )
+    : (campaigns ?? []);
   const brandName = brandFilter
-    ? ((scopedCampaigns[0]?.brand_profiles as any)?.company_name || 'this brand')
-    : null
+    ? (scopedCampaigns[0]?.brand_profiles as any)?.company_name || 'this brand'
+    : null;
 
   // Rank active campaigns for this creator (best-first), then map each ranked
   // entry to the card props the list renders. The recommender already orders by
   // real fit, so we keep that order.
   const ranked = rankCampaignsForCreator(
     creatorSignals,
-    scopedCampaigns.map(c => {
-      const brand = (c.brand_profiles as any) ?? null
-      return toCampaignForCreator(c, brand?.completed_campaigns ?? 0)
-    }),
-  )
-  const campaignById = new Map(scopedCampaigns.map(c => [c.id, c]))
+    scopedCampaigns.map((c) => {
+      const brand = (c.brand_profiles as any) ?? null;
+      return toCampaignForCreator(c, brand?.completed_campaigns ?? 0);
+    })
+  );
+  const campaignById = new Map(scopedCampaigns.map((c) => [c.id, c]));
 
-  const list: JobsListCampaign[] = ranked.map(r => {
-    const c = campaignById.get(r.campaign.id)!
-    const brand = c.brand_profiles as { company_name: string | null; logo_url: string | null; rating_avg?: number | null; rating_count?: number | null } | null
+  const list: JobsListCampaign[] = ranked.map((r) => {
+    const c = campaignById.get(r.campaign.id)!;
+    const brand = c.brand_profiles as {
+      company_name: string | null;
+      logo_url: string | null;
+      rating_avg?: number | null;
+      rating_count?: number | null;
+    } | null;
     // campaigns have no platform column; surface one only if present.
-    const platform = typeof (c as { platform?: unknown }).platform === 'string'
-      ? (c as { platform: string }).platform
-      : null
+    const platform =
+      typeof (c as { platform?: unknown }).platform === 'string'
+        ? (c as { platform: string }).platform
+        : null;
     return {
       id: c.id,
       title: c.title,
@@ -91,20 +126,40 @@ export default async function JobsPage({ searchParams }: { searchParams: { brand
       brand_logo: brand?.logo_url ?? null,
       brand_rating_avg: brand?.rating_avg ?? null,
       brand_rating_count: brand?.rating_count ?? null,
-      appliedStatus: (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ?? null,
+      appliedStatus:
+        (appStatusByCampaign.get(c.id) as JobsListCampaign['appliedStatus']) ??
+        null,
       // Honest fit signals from the recommender - tier label (or null) + reasons.
       matchLabel: r.label,
       matchReasons: r.reasons,
-    }
-  })
+    };
+  });
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 880, margin: '0 auto' }}>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 22,
+        maxWidth: 880,
+        margin: '0 auto',
+      }}
+    >
       {/* Header */}
       <div>
         {brandName ? (
           <>
-            <Link href={`/brands/${brandFilter}`} className="eyebrow" style={{ marginBottom: 7, display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-faint-solid)' }}>
+            <Link
+              href={`/brands/${brandFilter}`}
+              className="eyebrow"
+              style={{
+                marginBottom: 7,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 5,
+                color: 'var(--ink-faint-solid)',
+              }}
+            >
               <ArrowLeft size={12} /> Back to {brandName}
             </Link>
             <h1 style={{ fontSize: 28 }}>Campaigns from {brandName}</h1>
@@ -114,10 +169,13 @@ export default async function JobsPage({ searchParams }: { searchParams: { brand
           </>
         ) : (
           <>
-            <div className="eyebrow" style={{ marginBottom: 7 }}>Picked for you</div>
+            <div className="eyebrow" style={{ marginBottom: 7 }}>
+              Picked for you
+            </div>
             <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
             <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-              Briefs that match your niche and audience, with your strongest matches up top.
+              Explore opportunities from brands looking for creators like you,
+              with your best fits shown first.{' '}
             </p>
           </>
         )}
@@ -143,5 +201,5 @@ export default async function JobsPage({ searchParams }: { searchParams: { brand
         />
       )}
     </div>
-  )
+  );
 }
