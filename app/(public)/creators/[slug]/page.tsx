@@ -492,7 +492,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   return (
     <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
       {!isOwner && (
-        <ProfileBackButton from={searchParams.from} fallback="/creators" />
+        <ProfileBackButton from={searchParams.from} fallback="/creators" authed={!!user} />
       )}
 
       {isOwner ? (

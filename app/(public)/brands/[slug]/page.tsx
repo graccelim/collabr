@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar'
 import ReviewList, { type ReviewItem } from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import ProfileBackButton from '@/components/ProfileBackButton'
+import AuthGateLink from '@/components/AuthGateLink'
 import { chipColor } from '@/lib/niches'
 import { INDUSTRY_LABELS, SOCIAL_LABELS, socialHandleLabel, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding'
 import { isUuid } from '@/lib/slug'
@@ -220,10 +221,18 @@ export default async function BrandProfilePage({ params, searchParams }: { param
             <div className="rail-section">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 6 }}>
                 <div className="eyebrow">{isOwner ? 'Your campaigns' : 'Open campaigns'}</div>
-                <Link href={isOwner ? '/campaigns' : `/jobs?brand=${brandId}`}
-                  style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--accent-deep)', flexShrink: 0 }}>
-                  See all
-                </Link>
+                {isOwner ? (
+                  <Link href="/campaigns"
+                    style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--accent-deep)', flexShrink: 0 }}>
+                    See all
+                  </Link>
+                ) : (
+                  // Brand-scoped discover is gated — guests get the auth modal.
+                  <AuthGateLink href={`/jobs?brand=${brandId}`} authed={!!user}
+                    style={{ fontSize: 11.5, fontWeight: 600, color: 'var(--accent-deep)', flexShrink: 0 }}>
+                    See all
+                  </AuthGateLink>
+                )}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {campaigns.slice(0, 4).map(c => {
@@ -302,7 +311,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   return (
     <div className="screen-in" style={{ maxWidth: 1040, margin: '0 auto' }}>
       {!isOwner && (
-        <ProfileBackButton from={searchParams.from} fallback="/jobs" />
+        <ProfileBackButton from={searchParams.from} fallback="/jobs" authed={!!user} />
       )}
 
       {isOwner ? (
