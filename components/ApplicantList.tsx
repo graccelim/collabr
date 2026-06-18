@@ -96,6 +96,24 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
     }
   }
 
+  // Undo a selection before funding: cancels the hidden collab and returns the
+  // applicant to "pending" (Applied). Only offered while unfunded.
+  async function undoSelection(appId: string, collabId: string) {
+    setLoading(`${appId}-undo`)
+    try {
+      const res = await fetch(`/api/collabs/${collabId}/unselect`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setStatuses(prev => ({ ...prev, [appId]: 'pending' }))
+      toast.success('Selection undone, applicant is back in Applied')
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message || 'Could not undo the selection')
+    } finally {
+      setLoading(null)
+    }
+  }
+
   // Live triage buckets (reflect Shortlist/Pass/Accept as they happen). "Applied"
   // = active applicants who aren't shortlisted or rejected (incl. selected).
   const shortlistedCount = applications.filter(a => statuses[a.id] === 'shortlisted').length
@@ -310,15 +328,33 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
               {status === 'selected' && (
                 app.collab_id ? (
                   ['unfunded', 'authorizing'].includes(app.collab_payment_status || 'unfunded') ? (
-                    <Link href={`/collabs/${app.collab_id}`} className="btn-primary"
-                      style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <Shield size={14} /> Fund escrow{rateLabel ? ` ${rateLabel}` : ''} →
-                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                      {/* Before funding the brand can still back out. */}
+                      <button
+                        onClick={() => undoSelection(app.id, app.collab_id!)}
+                        disabled={!!loading}
+                        className="btn-ghost"
+                        title="Return this applicant to the pool, they were never notified"
+                        style={{ height: 32, fontSize: 13, padding: '0 11px', color: 'var(--ink-faint-solid)' }}
+                      >
+                        {loading === `${app.id}-undo` ? '…' : 'Undo selection'}
+                      </button>
+                      <Link href={`/collabs/${app.collab_id}`} className="btn-primary"
+                        style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        <Shield size={14} /> Fund escrow{rateLabel ? ` ${rateLabel}` : ''} →
+                      </Link>
+                    </div>
                   ) : (
-                    <Link href={`/collabs/${app.collab_id}`}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
-                      <Check size={15} /> Confirmed · Payment Secured · open collab →
-                    </Link>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                      <Link href={`/collabs/${app.collab_id}`}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
+                        <Check size={15} /> Confirmed · Payment Secured · open collab →
+                      </Link>
+                      {/* Funded: undo is gone — escrow changes go through support. */}
+                      <a href="mailto:joincollabr@gmail.com" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>
+                        Contact support
+                      </a>
+                    </div>
                   )
                 ) : (
                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--warn-deep)' }}>
