@@ -12,6 +12,7 @@ import {
   type CreatorNiche,
 } from '@/lib/onboarding'
 import SocialProfileBuilder, { type SocialRow } from '@/components/SocialProfileBuilder'
+import { safeNextPath } from '@/lib/nav'
 
 const MAX_SIGNUP_NICHES = 3
 
@@ -34,6 +35,10 @@ function Field({ label, hint, optional, children }: {
 function SignupForm() {
   const router = useRouter()
   const params = useSearchParams()
+  // After signup, return to the page the visitor came from (?next=), falling
+  // back to the dashboard. Sanitized to block open redirects.
+  const next = safeNextPath(params.get('next'))
+  const loginHref = next === '/dashboard' ? '/login' : `/login?next=${encodeURIComponent(next)}`
   const defaultRole = (params.get('role') as 'brand' | 'creator') || 'creator'
   const [role, setRole] = useState<'brand' | 'creator'>(defaultRole)
   const [name, setName] = useState('')
@@ -121,10 +126,10 @@ function SignupForm() {
     setStatus('success')
     if (data.requiresEmailVerification) {
       toast.success('Check your inbox to verify your email, then log in.')
-      router.push('/login')
+      router.push(loginHref)
       return
     }
-    router.push('/dashboard')
+    router.push(next)
     router.refresh()
   }
 
@@ -241,7 +246,7 @@ function SignupForm() {
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
         Already have an account?{' '}
-        <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 530 }}>Sign in</Link>
+        <Link href={loginHref} style={{ color: 'var(--accent)', fontWeight: 530 }}>Sign in</Link>
       </p>
     </AuthShell>
   )

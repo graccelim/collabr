@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package, Sparkles } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
 import RatingChip from '@/components/RatingChip';
+import AuthGateButton from '@/components/AuthGateButton';
 
 function nicheLabel(tag: string): string {
   return NICHE_LABELS[tag as CreatorNiche] ?? tag;
@@ -540,8 +541,8 @@ export default async function JobDetailPage({
               You’re viewing this campaign as a brand. Applications come from creators.
             </div>
           ) : (
-            // Logged-out visitor: invite them to join to apply. The auth modal
-            // (Stage C) takes over the action; this is the guest entry point.
+            // Logged-out visitor: the Apply action opens the "Sign in to
+            // continue" modal (viewing stays open; only the action gates).
             <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Apply for this campaign</div>
@@ -549,14 +550,9 @@ export default async function JobDetailPage({
                   Create a free creator account to apply, get paid through escrow, and manage your collabs.
                 </p>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                <Link href={`/signup?next=${encodeURIComponent(`/jobs/${(campaign as { slug?: string | null }).slug || campaignId}`)}`} className="btn-primary">
-                  Join free to apply
-                </Link>
-                <Link href={`/login?next=${encodeURIComponent(`/jobs/${(campaign as { slug?: string | null }).slug || campaignId}`)}`} className="btn-secondary">
-                  Log in
-                </Link>
-              </div>
+              <AuthGateButton className="btn-primary" style={{ alignSelf: 'flex-start' }}>
+                Apply for this campaign
+              </AuthGateButton>
             </div>
           )}
 

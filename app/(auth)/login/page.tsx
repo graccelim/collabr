@@ -1,14 +1,20 @@
 'use client'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { safeNextPath } from '@/lib/nav'
 import toast from 'react-hot-toast'
 import { ArrowRight, Loader2 } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
+  const params = useSearchParams()
+  // After login, return to the page the visitor came from (?next=), falling back
+  // to the dashboard. Sanitized to block open redirects.
+  const next = safeNextPath(params.get('next'))
+  const signupHref = next === '/dashboard' ? '/signup' : `/signup?next=${encodeURIComponent(next)}`
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
@@ -25,7 +31,7 @@ export default function LoginPage() {
       return
     }
     setStatus('success')
-    router.push('/dashboard')
+    router.push(next)
     router.refresh()
   }
 
@@ -72,7 +78,7 @@ export default function LoginPage() {
         </div>
         <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy}>
           {status === 'success' ? (
-            <><Loader2 size={16} className="animate-spin" /> Taking you to your dashboard…</>
+            <><Loader2 size={16} className="animate-spin" /> Taking you back…</>
           ) : status === 'loading' ? (
             <><Loader2 size={16} className="animate-spin" /> Signing in…</>
           ) : (
@@ -83,8 +89,12 @@ export default function LoginPage() {
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
         New here?{' '}
-        <Link href="/signup" style={{ color: 'var(--accent)', fontWeight: 530 }}>Create an account</Link>
+        <Link href={signupHref} style={{ color: 'var(--accent)', fontWeight: 530 }}>Create an account</Link>
       </p>
     </AuthShell>
   )
+}
+
+export default function LoginPage() {
+  return <Suspense><LoginForm /></Suspense>
 }
