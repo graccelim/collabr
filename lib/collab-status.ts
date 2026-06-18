@@ -73,3 +73,21 @@ export const CREATOR_APP_LABEL: Record<CreatorAppState, string> = {
 export function requiresExpectedRate(compType?: string | null): boolean {
   return compType === 'paid' || compType === 'both'
 }
+
+/**
+ * Can this collab be unwound back to the applicant pool (undo-selection /
+ * funding-deadline)? Only a hidden, not-yet-funded collab: briefed, payment
+ * still unfunded/authorizing, and nothing captured/transferred. After funding
+ * this is false — the path becomes complete-or-dispute, not undo.
+ */
+export function canReleaseUnfunded(collab: {
+  status?: string | null
+  payment_status?: string | null
+  stripe_transfer_id?: string | null
+}): boolean {
+  return (
+    collab.status === 'briefed' &&
+    (collab.payment_status === 'unfunded' || collab.payment_status === 'authorizing') &&
+    !collab.stripe_transfer_id
+  )
+}

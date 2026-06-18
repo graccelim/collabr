@@ -1,9 +1,54 @@
 import type { createAdminClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { isCampaignFilled } from '@/lib/collab-status'
+import { cancelOrRefundPayment } from '@/lib/payments'
+import { isCampaignFilled, canReleaseUnfunded } from '@/lib/collab-status'
 
 type Admin = ReturnType<typeof createAdminClient>
+
+type ReleasableCollab = {
+  id: string
+  application_id: string | null
+  status: string
+  payment_status: string
+  stripe_payment_intent_id?: string | null
+  stripe_transfer_id?: string | null
+}
+
+/**
+ * Unwind a hidden, unfunded collab and return its applicant to the pool. Shared
+ * by brand "Undo selection" and the funding-deadline cron.
+ *
+ * - releases/cancels any uncaptured PaymentIntent (no-op when never funded)
+ * - sets the collab to 'cancelled' (frees capacity — the unique index + capacity
+ *   count both ignore cancelled, so the applicant is re-selectable)
+ * - reverts the application to 'pending'
+ * - NO creator notification — to the creator the application stays "Applied"
+ *
+ * Idempotent: guards on briefed/unfunded, and the writes are CAS-guarded so a
+ * second call (or an overlapping cron) is a no-op.
+ */
+export async function releaseUnfundedCollab(
+  admin: Admin,
+  collab: ReleasableCollab,
+): Promise<{ ok: boolean; reason?: string }> {
+  if (!canReleaseUnfunded(collab)) return { ok: false, reason: 'not_unfunded' }
+
+  // Cancel the authorization hold if one exists (unfunded → no intent → no-op).
+  const settlement = await cancelOrRefundPayment(admin, collab as never)
+  if (!settlement.ok) return { ok: false, reason: 'payment' }
+
+  // Cancel the collab (guard: still briefed, payment now cancelled/unfunded).
+  await admin.from('collabs').update({ status: 'cancelled' })
+    .eq('id', collab.id).eq('status', 'briefed')
+
+  // Return the applicant to the pool (guard: only flip a still-selected app).
+  if (collab.application_id) {
+    await admin.from('applications').update({ status: 'pending' })
+      .eq('id', collab.application_id).eq('status', 'selected')
+  }
+  return { ok: true }
+}
 
 /**
  * Runs when a collab's escrow becomes secured (the Stripe `funded` webhook).
