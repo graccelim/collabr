@@ -194,7 +194,7 @@ export default async function JobsPage({
                 className="btn-secondary"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}
               >
-                <Bookmark size={15} /> Saved
+                <Bookmark size={15} /> View Saved
               </Link>
             </div>
           </>

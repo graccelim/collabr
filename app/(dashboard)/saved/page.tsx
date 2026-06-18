@@ -1,7 +1,8 @@
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { requireCreator } from '@/lib/auth'
 import EmptyState from '@/components/EmptyState'
-import { Bookmark } from 'lucide-react'
+import { Bookmark, ArrowLeft } from 'lucide-react'
 import JobsList, { type JobsListCampaign } from '@/components/JobsList'
 
 export default async function SavedCampaignsPage() {
@@ -63,7 +64,13 @@ export default async function SavedCampaignsPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 22, maxWidth: 880, margin: '0 auto' }}>
       <div>
-        <div className="eyebrow" style={{ marginBottom: 7 }}>Saved campaigns</div>
+        <Link
+          href="/jobs"
+          className="eyebrow"
+          style={{ marginBottom: 7, display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-faint-solid)' }}
+        >
+          <ArrowLeft size={12} /> Browse all campaigns
+        </Link>
         <h1 style={{ fontSize: 28 }}>Your saved campaigns</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
           Campaigns you bookmarked to apply to later. Only active briefs are shown.

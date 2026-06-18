@@ -7,6 +7,7 @@ import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { chipColor } from '@/lib/niches'
 import SaveCampaignButton from '@/components/SaveCampaignButton'
+import ShareProfileButton from '@/components/ShareProfileButton'
 
 export interface JobsListCampaign {
   id: string
@@ -193,13 +194,20 @@ export default function JobsList({
                     )}
                   </div>
                 </div>
-                {/* Honest fit tier - only shown when there's a credible match
-                    to claim. No numbers, ever. Null → no pill. */}
-                {c.matchLabel && (
-                  <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, fontSize: 12 }}>
-                    <span>{c.matchLabel}</span>
-                  </span>
-                )}
+                {/* Top-right cluster: honest fit tier (only when there's a
+                    credible match - no numbers, ever) plus, on DESKTOP, the
+                    save + share buttons inline with the campaign name. */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                  {c.matchLabel && (
+                    <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, fontSize: 12 }}>
+                      <span>{c.matchLabel}</span>
+                    </span>
+                  )}
+                  <div className="hidden md:flex" style={{ alignItems: 'center', gap: 6 }}>
+                    <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
+                    <ShareProfileButton path={`/jobs/${c.slug || c.id}`} name={c.title} noun="Campaign" compact />
+                  </div>
+                </div>
               </div>
 
               {/* Why it fits - compact ✓ list of honest, categorical reasons. */}
@@ -250,8 +258,11 @@ export default function JobsList({
                     <div style={{ fontSize: 14, fontWeight: 540, marginTop: 2, color: 'var(--ink)' }}>{c.creators_needed} open</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
+                {/* On MOBILE this row goes full-width so save + share sit
+                    space-between, to the right of the applied/selected badge.
+                    On DESKTOP it's content-width (save + share live up by the
+                    name), so only the badge/Apply shows here. */}
+                <div className="w-full md:w-auto justify-between md:justify-end" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   {c.appliedStatus ? (
                     <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       {c.appliedStatus === 'selected' && <Check size={12} />}
@@ -265,6 +276,11 @@ export default function JobsList({
                       Apply <ArrowRight size={15} />
                     </span>
                   )}
+                  {/* Mobile only - desktop shows these by the campaign name. */}
+                  <span className="md:hidden" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                    <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
+                    <ShareProfileButton path={`/jobs/${c.slug || c.id}`} name={c.title} noun="Campaign" compact />
+                  </span>
                 </div>
               </div>
             </Link>
