@@ -11,6 +11,7 @@ import CreatorLivePostForm from '@/components/CreatorLivePostForm'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
 import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
+import DisputeStatusCard from '@/components/DisputeStatusCard'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star, ChevronLeft, LifeBuoy } from 'lucide-react'
@@ -126,6 +127,20 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   const latestFeedback = latestSubmission?.brand_feedback ?? null
 
   const canDispute = ['draft_submitted', 'in_revision', 'draft_approved', 'live_submitted'].includes(collab.status)
+
+  // Open/resolved dispute + its evidence thread (surfaces the dispute instead of
+  // the page going dark once a dispute is raised).
+  const { data: dispute } = await adminForRead.from('disputes')
+    .select('id, raised_by, reason, created_at, outcome, resolved_at, split_percentage')
+    .eq('collab_id', params.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+  let disputeEvidence: { author_type: 'brand' | 'creator'; body: string | null; attachment_urls: string[]; created_at: string }[] = []
+  if (dispute) {
+    const { data: ev } = await adminForRead.from('dispute_evidence')
+      .select('author_type, body, attachment_urls, created_at')
+      .eq('dispute_id', dispute.id).order('created_at', { ascending: true })
+    disputeEvidence = (ev as typeof disputeEvidence) || []
+  }
+  const showDisputeCard = !!dispute && (collab.status === 'disputed' || (!!dispute.resolved_at && ['completed', 'cancelled'].includes(collab.status)))
 
   return (
     <div style={{ maxWidth: 960, margin: '0 auto' }}>
@@ -352,6 +367,21 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             collabStatus={collab.status}
             existingReview={existingReview ?? null}
           />
+
+          {/* Open or resolved dispute — status, evidence thread, add-evidence form */}
+          {showDisputeCard && dispute && (
+            <DisputeStatusCard
+              collabId={params.id}
+              isBrand={isBrand}
+              raisedByType={dispute.raised_by as 'brand' | 'creator'}
+              reason={dispute.reason}
+              openedAt={dispute.created_at}
+              outcome={dispute.outcome}
+              resolvedAt={dispute.resolved_at}
+              splitPercentage={dispute.split_percentage}
+              evidence={disputeEvidence}
+            />
+          )}
 
           {/* Dispute section */}
           {canDispute && (
