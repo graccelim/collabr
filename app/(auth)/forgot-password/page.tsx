@@ -3,70 +3,90 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import toast from 'react-hot-toast'
+import { ArrowRight, Loader2, MailCheck } from 'lucide-react'
+import AuthShell from '@/components/AuthShell'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [status, setStatus] = useState<'idle' | 'loading' | 'sent'>('idle')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setLoading(true)
+    if (status === 'loading') return
+    setStatus('loading')
     const supabase = createClient()
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     })
-    if (error) { toast.error(error.message); setLoading(false); return }
-    setSent(true)
-    setLoading(false)
+    if (error) {
+      // Surface delivery/config errors so the user can retry; don't reveal
+      // whether the email exists for any other case.
+      const friendly = /sending.*email|recovery email/i.test(error.message)
+        ? "We couldn't send the email right now. Please try again in a few minutes."
+        : error.message
+      toast.error(friendly)
+      setStatus('idle')
+      return
+    }
+    setStatus('sent')
   }
 
-  if (sent) {
+  if (status === 'sent') {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center p-4">
-        <div className="w-full max-w-sm text-center">
-          <Link href="/" className="text-2xl font-semibold text-gray-900">collabr.</Link>
-          <div className="card mt-8 space-y-3">
-            <p className="text-sm font-medium text-gray-900">Check your email</p>
-            <p className="text-sm text-gray-500">
-              We sent a reset link to <strong>{email}</strong>. Check your spam folder if it doesn't arrive.
-            </p>
-          </div>
-          <p className="text-center text-sm text-gray-500 mt-4">
-            <Link href="/login" className="text-purple-600 hover:underline">Back to sign in</Link>
-          </p>
+      <AuthShell>
+        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 44, height: 44, borderRadius: 12, background: 'var(--money-tint)', color: 'var(--money-deep)', marginBottom: 18 }}>
+          <MailCheck size={20} />
         </div>
-      </div>
+        <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Check your email</h1>
+        <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 28, lineHeight: 1.6 }}>
+          If an account exists for <strong style={{ color: 'var(--ink)' }}>{email}</strong>, we&rsquo;ve sent a link to reset your password. It expires in 1 hour — check your spam folder if it doesn&rsquo;t arrive.
+        </p>
+        <button type="button" onClick={() => setStatus('idle')} className="btn-secondary btn-lg btn-block" style={{ justifyContent: 'center' }}>
+          Use a different email
+        </button>
+        <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
+          <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 530 }}>Back to sign in</Link>
+        </p>
+      </AuthShell>
     )
   }
 
+  const busy = status === 'loading'
+
   return (
-    <div className="min-h-screen bg-surface flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-semibold text-gray-900">collabr.</Link>
-          <p className="text-gray-500 text-sm mt-1">Reset your password</p>
+    <AuthShell>
+      <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Reset your password</h1>
+      <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 28 }}>
+        Enter your email and we&rsquo;ll send you a secure link to set a new password.
+      </p>
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
+          <span style={{ fontSize: 13, fontWeight: 550, color: 'var(--ink)' }}>Email</span>
+          <input
+            className="input"
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            disabled={busy}
+            autoComplete="email"
+          />
         </div>
-        <form onSubmit={handleSubmit} className="card space-y-4">
-          <div>
-            <label className="label">Email</label>
-            <input
-              className="input"
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              required
-            />
-          </div>
-          <button type="submit" className="btn-primary w-full justify-center py-2.5" disabled={loading}>
-            {loading ? 'Sending…' : 'Send reset link'}
-          </button>
-        </form>
-        <p className="text-center text-sm text-gray-500 mt-4">
-          <Link href="/login" className="text-purple-600 hover:underline">Back to sign in</Link>
-        </p>
-      </div>
-    </div>
+        <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy}>
+          {busy ? (
+            <><Loader2 size={16} className="animate-spin" /> Sending…</>
+          ) : (
+            <>Send reset link <ArrowRight size={16} /></>
+          )}
+        </button>
+      </form>
+
+      <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
+        Remembered it?{' '}
+        <Link href="/login" style={{ color: 'var(--accent)', fontWeight: 530 }}>Sign in</Link>
+      </p>
+    </AuthShell>
   )
 }
