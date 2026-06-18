@@ -149,7 +149,7 @@ export default function JobsList({
             >
               {/* Top zone */}
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', minWidth: 0 }}>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', minWidth: 0, flex: 1 }}>
                   {/* Brand avatar */}
                   <div style={{
                     width: 46, height: 46, borderRadius: 'var(--radius-sm)',
@@ -162,7 +162,7 @@ export default function JobsList({
                       ? <img src={c.brand_logo} alt={c.brand_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       : getInitials(c.brand_name)}
                   </div>
-                  <div style={{ minWidth: 0 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'space-between' }}>
                       <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)', minWidth: 0 }}>{c.title}</div>
                       <span className="md:hidden" style={{
@@ -276,8 +276,10 @@ export default function JobsList({
                       Apply <ArrowRight size={15} />
                     </span>
                   )}
-                  {/* Mobile only - desktop shows these by the campaign name. */}
-                  <span className="md:hidden" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  {/* Mobile only - desktop shows these by the campaign name.
+                      Display lives in the class (not inline) so `md:hidden`
+                      can actually hide it on desktop. */}
+                  <span className="flex md:hidden items-center" style={{ gap: 8 }}>
                     <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
                     <ShareProfileButton path={`/jobs/${c.slug || c.id}`} name={c.title} noun="Campaign" compact />
                   </span>
