@@ -538,14 +538,14 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
       {/* What's next - keeps the page useful when there's headroom below. */}
       {!isEmpty && (
-        <div className="money-panel" style={{ marginTop: 18, padding: '22px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-          <div style={{ minWidth: 0, position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Ready for more reach?</div>
-            <p style={{ fontSize: 13.5, color: 'var(--accent-on-dark)', margin: '3px 0 0' }}>Post your next campaign or find creators to invite.</p>
+        <div style={{ marginTop: 18, padding: '22px 24px', background: 'linear-gradient(135deg, var(--accent-tint-2), var(--accent-tint))', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Ready for more reach?</div>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>Post your next campaign or find creators to invite.</p>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-            <Link href="/post-job" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: '#fff', color: 'var(--accent-deep)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', fontSize: 13.5, fontWeight: 700, textDecoration: 'none' }}><Megaphone size={15} /> Post a campaign</Link>
-            <Link href="/creators" style={{ display: 'inline-flex', alignItems: 'center', gap: 7, background: 'rgba(255,255,255,.12)', color: '#fff', border: '1px solid rgba(255,255,255,.22)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', fontSize: 13.5, fontWeight: 600, textDecoration: 'none' }}><Users size={15} /> Discover creators</Link>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <Link href="/post-job" className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Megaphone size={15} /> Post a campaign</Link>
+            <Link href="/creators" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Users size={15} /> Discover creators</Link>
           </div>
         </div>
       )}
@@ -1278,12 +1278,12 @@ async function CreatorDashboard({
 
       {/* What's next - nudge to keep browsing when there's headroom below. */}
       {!isEmpty && (
-        <div className="money-panel" style={{ marginTop: 18, padding: '22px 24px', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
-          <div style={{ minWidth: 0, position: 'relative', zIndex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>Find your next collab</div>
-            <p style={{ fontSize: 13.5, color: 'var(--accent-on-dark)', margin: '3px 0 0' }}>Fresh campaigns drop daily, see what fits you now.</p>
+        <div style={{ marginTop: 18, padding: '22px 24px', background: 'linear-gradient(135deg, var(--accent-tint-2), var(--accent-tint))', border: '1px solid var(--line)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Find your next collab</div>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>Fresh campaigns drop daily, see what fits you now.</p>
           </div>
-          <Link href="/jobs" style={{ position: 'relative', zIndex: 1, flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7, background: '#fff', color: 'var(--accent-deep)', borderRadius: 'var(--radius-sm)', padding: '10px 16px', fontSize: 13.5, fontWeight: 700, textDecoration: 'none' }}><Compass size={15} /> Discover campaigns</Link>
+          <Link href="/jobs" className="btn-primary" style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}><Compass size={15} /> Discover campaigns</Link>
         </div>
       )}
     </div>

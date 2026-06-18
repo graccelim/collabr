@@ -98,10 +98,13 @@ export default async function CollabsPage() {
         <>
           <CollabsList rows={rows} />
           <div
-            className="money-panel"
             style={{
               marginTop: 18,
               padding: '22px 24px',
+              background: 'linear-gradient(135deg, var(--accent-tint-2), var(--accent-tint))',
+              border: '1px solid var(--line)',
+              borderRadius: 'var(--radius-lg)',
+              boxShadow: 'var(--shadow-sm)',
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
@@ -109,19 +112,13 @@ export default async function CollabsPage() {
               gap: 14,
             }}
           >
-            <div style={{ minWidth: 0, position: 'relative', zIndex: 1 }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
                 {isBrand
                   ? 'Want more creators on board?'
                   : 'Ready for your next collab?'}
               </div>
-              <p
-                style={{
-                  fontSize: 13.5,
-                  color: 'var(--accent-on-dark)',
-                  margin: '3px 0 0',
-                }}
-              >
+              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '3px 0 0' }}>
                 {isBrand
                   ? 'Post another campaign and the right creators will come to you.'
                   : 'Fresh campaigns drop daily, find one that fits you.'}
@@ -129,13 +126,8 @@ export default async function CollabsPage() {
             </div>
             <Link
               href={isBrand ? '/post-job' : '/jobs'}
-              style={{
-                position: 'relative', zIndex: 1, flexShrink: 0,
-                display: 'inline-flex', alignItems: 'center', gap: 7,
-                background: '#fff', color: 'var(--accent-deep)',
-                borderRadius: 'var(--radius-sm)', padding: '10px 16px',
-                fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
-              }}
+              className="btn-primary"
+              style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center', gap: 7 }}
             >
               {isBrand ? (
                 <>
