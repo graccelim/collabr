@@ -5,6 +5,7 @@ import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { chipColor } from '@/lib/niches'
 
 export interface JobsListCampaign {
   id: string
@@ -108,7 +109,11 @@ export default function JobsList({
           onClick={() => setFilter('__for_you')}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
         >
-          <img src="/for-you.png" alt="" width={18} height={18} style={{ display: 'block', flexShrink: 0, filter: filter === '__for_you' ? 'brightness(0) invert(1)' : 'none' }} />
+          <svg viewBox="0 0 32 32" width={15} height={15} fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+            <path d="M18,11a1,1,0,0,1-1,1,5,5,0,0,0-5,5,1,1,0,0,1-2,0,5,5,0,0,0-5-5,1,1,0,0,1,0-2,5,5,0,0,0,5-5,1,1,0,0,1,2,0,5,5,0,0,0,5,5A1,1,0,0,1,18,11Z" />
+            <path d="M19,24a1,1,0,0,1-1,1,2,2,0,0,0-2,2,1,1,0,0,1-2,0,2,2,0,0,0-2-2,1,1,0,0,1,0-2,2,2,0,0,0,2-2,1,1,0,0,1,2,0,2,2,0,0,0,2,2A1,1,0,0,1,19,24Z" />
+            <path d="M28,17a1,1,0,0,1-1,1,4,4,0,0,0-4,4,1,1,0,0,1-2,0,4,4,0,0,0-4-4,1,1,0,0,1,0-2,4,4,0,0,0,4-4,1,1,0,0,1,2,0,4,4,0,0,0,4,4A1,1,0,0,1,28,17Z" />
+          </svg>
           For you
         </button>
         {niches.map(n => (
@@ -154,11 +159,11 @@ export default function JobsList({
                       : getInitials(c.brand_name)}
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>{c.title}</div>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'space-between' }}>
+                      <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)', minWidth: 0 }}>{c.title}</div>
                       <span className="md:hidden" style={{
-                        fontSize: 11, fontWeight: 600, color: 'var(--accent-deep)',
-                        background: 'var(--accent-tint)', padding: '2px 8px', borderRadius: 99,
+                        fontSize: 12, fontWeight: 600, color: 'var(--ink-faint-solid)',
+                        flexShrink: 0, whiteSpace: 'nowrap',
                       }}>{c.creators_needed} {c.creators_needed === 1 ? 'spot' : 'spots'} open</span>
                     </div>
                     <div style={{ fontSize: 13.5, color: 'var(--ink-faint-solid)', marginTop: 2 }}>
@@ -171,13 +176,16 @@ export default function JobsList({
                     )}
                     {c.niche_tags && c.niche_tags.length > 0 && (
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                        {c.niche_tags.map(t => (
-                          <span key={t} style={{
-                            fontSize: 11.5, fontWeight: 500, color: 'var(--accent-deep)',
-                            background: 'var(--accent-tint)', padding: '3px 9px',
-                            borderRadius: 'var(--radius-pill)',
-                          }}>{nicheLabel(t)}</span>
-                        ))}
+                        {c.niche_tags.map(t => {
+                          const cc = chipColor(t)
+                          return (
+                            <span key={t} style={{
+                              fontSize: 11.5, fontWeight: 600, color: cc.fg,
+                              background: cc.bg, padding: '3px 9px',
+                              borderRadius: 'var(--radius-pill)',
+                            }}>{nicheLabel(t)}</span>
+                          )
+                        })}
                       </div>
                     )}
                   </div>
