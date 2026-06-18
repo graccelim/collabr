@@ -98,10 +98,10 @@ export default async function CollabsPage() {
         <>
           <CollabsList rows={rows} />
           <div
-            className="card"
+            className="money-panel"
             style={{
               marginTop: 18,
-              padding: 22,
+              padding: '22px 24px',
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
@@ -109,10 +109,8 @@ export default async function CollabsPage() {
               gap: 14,
             }}
           >
-            <div style={{ minWidth: 0 }}>
-              <div
-                style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}
-              >
+            <div style={{ minWidth: 0, position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
                 {isBrand
                   ? 'Want more creators on board?'
                   : 'Ready for your next collab?'}
@@ -120,7 +118,7 @@ export default async function CollabsPage() {
               <p
                 style={{
                   fontSize: 13.5,
-                  color: 'var(--ink-soft)',
+                  color: 'var(--accent-on-dark)',
                   margin: '3px 0 0',
                 }}
               >
@@ -131,8 +129,13 @@ export default async function CollabsPage() {
             </div>
             <Link
               href={isBrand ? '/post-job' : '/jobs'}
-              className="btn-primary"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}
+              style={{
+                position: 'relative', zIndex: 1, flexShrink: 0,
+                display: 'inline-flex', alignItems: 'center', gap: 7,
+                background: '#fff', color: 'var(--accent-deep)',
+                borderRadius: 'var(--radius-sm)', padding: '10px 16px',
+                fontSize: 13.5, fontWeight: 700, textDecoration: 'none',
+              }}
             >
               {isBrand ? (
                 <>
