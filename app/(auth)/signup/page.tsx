@@ -229,7 +229,7 @@ function SignupForm() {
             I agree to collabr&rsquo;s terms.{' '}
             {isBrand
               ? 'Your payments are held in escrow, and you only fund a collab when you accept a creator.'
-              : 'We take a 12% fee from your payouts.'}
+              : 'You get paid securely through escrow once your work is approved.'}
           </span>
         </label>
 
