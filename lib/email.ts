@@ -172,11 +172,55 @@ export const productEmails = {
   liveSubmitted: (d: { creatorName: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:live-submitted`,
-    subject: `${d.creatorName} posted live, confirm to release payment`,
-    preheader: 'Confirm within 72 hours to settle payment.',
-    title: `${d.creatorName} posted the content live`,
-    body: `Verify the live post and confirm to release payment. You have 72 hours, after that we attempt capture and payout automatically.`,
-    ctaLabel: 'Confirm live post',
+    subject: `${d.creatorName} submitted live content for review`,
+    preheader: 'Review within 72 hours or payment auto-releases.',
+    title: `${d.creatorName} submitted live content for review`,
+    body: `Your creator has submitted live content for review. Please review within 72 hours. If no action is taken, payment will automatically be released when the review window expires.`,
+    ctaLabel: 'Review live post',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
+  liveReviewReminder: (d: { creatorName: string; collabId: string; hoursLeft: number }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:live-remind:${d.hoursLeft}h`,
+    subject: `${d.hoursLeft}h left to review ${d.creatorName}'s live post`,
+    preheader: 'Payment auto-releases when the review window closes.',
+    title: `About ${d.hoursLeft} hours left to review`,
+    body: `${d.creatorName}'s live content is still awaiting your review. You have about ${d.hoursLeft} hours left — confirm the post or raise an issue. If no action is taken, payment releases automatically when the window expires.`,
+    ctaLabel: 'Review live post',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
+  reviewReceived: (d: { collabId: string; recipientId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:review-received:${d.recipientId}`,
+    subject: 'You received a review on Collabr',
+    preheader: 'Leave yours to reveal both.',
+    title: 'You got a review',
+    body: `Someone you collaborated with left you a review. Reviews stay hidden until both sides submit (or 7 days pass) — leave yours to reveal both and keep feedback honest.`,
+    ctaLabel: 'View the collab',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
+  disputeEvidenceAdded: (d: { collabId: string; disputeId: string; evidenceId: string; recipientId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:dispute:${d.disputeId}:evidence:${d.evidenceId}:${d.recipientId}`,
+    subject: 'New evidence was added to your dispute',
+    preheader: 'A Collabr mediator is reviewing both sides.',
+    title: 'New evidence was added',
+    body: `New evidence was submitted on a dispute for one of your collaborations. Escrow stays frozen while a Collabr mediator reviews both sides. You can add your own evidence anytime.`,
+    ctaLabel: 'View the dispute',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
+  disputeResolved: (d: { collabId: string; disputeId: string; outcomeLabel: string; recipientId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:dispute:${d.disputeId}:resolved:${d.recipientId}`,
+    subject: `Your dispute has been resolved: ${d.outcomeLabel}`,
+    preheader: 'See the outcome and what happens next.',
+    title: 'Your dispute has been resolved',
+    body: `A Collabr mediator reviewed both sides and reached a decision. Outcome: ${d.outcomeLabel}. Open your collab to see the details and what happens to the escrowed payment.`,
+    ctaLabel: 'View the collab',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
@@ -291,6 +335,22 @@ export const productEmails = {
     ctaLabel: 'Open the chat',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
+}
+
+// ── Dispute mediation inbox (joincollabr@gmail.com) ─────────────────────────
+// Disputes are mediated manually, so each event is mirrored to the support
+// inbox with the full context (parties, campaign, reason/evidence, collab link).
+const DISPUTE_INBOX = 'joincollabr@gmail.com'
+
+export async function sendDisputeAdminEmail(subject: string, rows: Record<string, string>) {
+  const body = Object.entries(rows)
+    .map(([k, v]) => `<p style="margin:0 0 6px"><strong>${esc(k)}:</strong> ${esc(v)}</p>`)
+    .join('')
+  await sendEmail({
+    to: DISPUTE_INBOX,
+    subject,
+    html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#111217">${body}</div>`,
+  })
 }
 
 // ── Legacy onboarding welcomes (kept; routed through the premium layout) ─────

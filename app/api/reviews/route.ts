@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 import { detectContactInfo } from '@/lib/moderation'
 
 const MAX_NOTE = 1000
@@ -73,6 +74,7 @@ export async function POST(req: NextRequest) {
   const { data: types } = await admin.from('reviews').select('reviewer_type').eq('collab_id', body.collab_id)
   const mutual = (types || []).length >= 2
 
+  const counterpartyUserId = role === 'brand' ? creatorUserId : brandUserId
   try {
     if (mutual) {
       for (const uid of [brandUserId, creatorUserId].filter(Boolean)) {
@@ -84,17 +86,18 @@ export async function POST(req: NextRequest) {
           dedupeKey: `review_revealed:${body.collab_id}:${uid}`,
         })
       }
-    } else {
-      const counterpartyUserId = role === 'brand' ? creatorUserId : brandUserId
-      if (counterpartyUserId) {
-        await sendNotification({
-          userId: counterpartyUserId, type: 'review_waiting',
-          title: 'Feedback is waiting',
-          body: 'Leave your review to unlock both sides.',
-          payload: { collab_id: body.collab_id },
-          dedupeKey: `review_waiting:${body.collab_id}:${counterpartyUserId}`,
-        })
-      }
+    } else if (counterpartyUserId) {
+      await sendNotification({
+        userId: counterpartyUserId, type: 'review_waiting',
+        title: 'Feedback is waiting',
+        body: 'Leave your review to unlock both sides.',
+        payload: { collab_id: body.collab_id },
+        dedupeKey: `review_waiting:${body.collab_id}:${counterpartyUserId}`,
+      })
+    }
+    // Email the counterparty that they received a review (both cases).
+    if (counterpartyUserId) {
+      await sendProductEmail({ userId: counterpartyUserId, ...productEmails.reviewReceived({ collabId: body.collab_id, recipientId: counterpartyUserId }) })
     }
   } catch { /* notifications never block a review */ }
 

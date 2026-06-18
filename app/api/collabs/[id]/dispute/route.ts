@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
-import { sendProductEmail, productEmails } from '@/lib/email'
+import { sendProductEmail, productEmails, sendDisputeAdminEmail, link } from '@/lib/email'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -9,7 +9,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: collab } = await supabase.from('collabs')
-    .select('*, creator_profiles(id, user_id, users(email)), brand_profiles(user_id, users(email))')
+    .select('*, campaigns(title), creator_profiles(id, user_id, users(display_name, email)), brand_profiles(user_id, company_name, users(email))')
     .eq('id', params.id).single()
   if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -58,6 +58,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (created) {
     if (otherEmail && otherUserId) await sendProductEmail({ to: otherEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: otherUserId }) })
     if (raisingEmail) await sendProductEmail({ to: raisingEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: user.id }) })
+
+    // Mirror to the mediation inbox with full context (disputes are manual).
+    await sendDisputeAdminEmail(`New dispute opened — ${(collab.campaigns as any)?.title || 'collab'}`, {
+      Campaign: (collab.campaigns as any)?.title || '—',
+      Creator: (collab.creator_profiles as any)?.users?.display_name || '—',
+      Brand: (collab.brand_profiles as any)?.company_name || '—',
+      'Opened by': isBrand ? 'Brand' : 'Creator',
+      Reason: reason,
+      Collab: link(`/collabs/${params.id}`),
+    }).catch(() => {})
   }
 
   return NextResponse.json({ success: true, created, dispute_id: disputeId })

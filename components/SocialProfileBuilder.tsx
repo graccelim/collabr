@@ -1,5 +1,5 @@
 'use client'
-import { Plus, X } from 'lucide-react'
+import { Plus, X, ShieldAlert } from 'lucide-react'
 import {
   SOCIAL_PLATFORMS, SOCIAL_LABELS,
   type SocialPlatform,
@@ -44,6 +44,17 @@ export default function SocialProfileBuilder({
 
   return (
     <div className="space-y-3">
+      {/* Trust warning - impersonating accounts is grounds for removal. */}
+      <div style={{
+        display: 'flex', alignItems: 'flex-start', gap: 9,
+        padding: '10px 12px', borderRadius: 'var(--radius-sm)',
+        background: 'var(--warn-tint)', border: '1px solid rgba(217,119,6,.22)',
+      }}>
+        <ShieldAlert size={16} style={{ color: 'var(--warn-deep)', flexShrink: 0, marginTop: 1 }} />
+        <span style={{ fontSize: 12.5, lineHeight: 1.45, color: 'var(--warn-deep)' }}>
+          Providing social accounts you do not own may result in account suspension and removal from the platform.
+        </span>
+      </div>
       <div className="space-y-3">
         {rows.map((row, i) => {
           return (
