@@ -95,6 +95,17 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) {
+    // Supabase couldn't send the confirmation email (built-in email rate limit,
+    // or no custom SMTP configured). This is transient infrastructure, not bad
+    // input — surface it as such so the user retries instead of seeing a raw
+    // provider string. Fix: configure SMTP in Supabase Auth, or disable email
+    // confirmation for beta.
+    if (/sending.*email|confirmation email/i.test(error.message)) {
+      return NextResponse.json(
+        { error: "We couldn't send your verification email right now. Please try again in a few minutes." },
+        { status: 503 }
+      )
+    }
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
   if (!data.user) {
