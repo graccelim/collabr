@@ -12,7 +12,7 @@ export const CONTENT_FIELDS = ['title', 'brief', 'deliverable_types', 'comp_type
 // (with an active collab) are nudged into the collab chat; plain applicants get a
 // heads-up. Best-effort - never blocks the edit.
 export async function notifyCampaignChange(admin: Admin, campaignId: string, title: string) {
-  const [{ data: apps }, { data: collabs }] = await Promise.all([
+  const [{ data: apps }, { data: collabs }, { data: camp }] = await Promise.all([
     admin.from('applications')
       .select('status, creator_profiles(id, user_id)')
       .eq('campaign_id', campaignId)
@@ -20,7 +20,10 @@ export async function notifyCampaignChange(admin: Admin, campaignId: string, tit
     admin.from('collabs')
       .select('id, creator_id, status').eq('campaign_id', campaignId)
       .not('status', 'in', '(cancelled,completed)'),
+    admin.from('campaigns').select('slug').eq('id', campaignId).maybeSingle(),
   ])
+  // Prefer the SEO slug for the public campaign link; UUID stays a valid fallback.
+  const campaignHref = `/jobs/${(camp as { slug?: string | null } | null)?.slug || campaignId}`
   const collabByCreator = new Map((collabs || []).map((c: { creator_id: string; id: string }) => [c.creator_id, c.id]))
   for (const a of apps || []) {
     const cp = a.creator_profiles as { id?: string; user_id?: string } | null
@@ -40,7 +43,7 @@ export async function notifyCampaignChange(admin: Admin, campaignId: string, tit
         type: 'campaign_updated',
         title: `“${title}” was updated`,
         body: 'A campaign you applied to changed its brief or terms.',
-        payload: { campaign_id: campaignId, href: `/jobs/${campaignId}` },
+        payload: { campaign_id: campaignId, href: campaignHref },
       })
     }
   }

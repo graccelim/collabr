@@ -29,6 +29,7 @@ function makeAdmin(tables: Record<string, any[]>, sink: { updates: any[] }) {
         in() { return q },
         not() { return q },
         update(patch: any) { q._update = patch; sink.updates.push({ table, patch }); return q },
+        maybeSingle() { return Promise.resolve({ data: (tables[table] || [])[0] || null, error: null }) },
         then(resolve: any) { return resolve({ data: tables[table] || [], error: null }) },
       }
       return q
@@ -80,6 +81,18 @@ describe('campaign edit/close notifications', () => {
     await notifyCampaignChange(admin, CID, 'Title')
     expect(sent).toHaveLength(1)
     expect(sent[0].payload.collab_id).toBeUndefined()
+  })
+
+  it('uses the campaign slug for the public link when present (UUID fallback otherwise)', async () => {
+    const admin = makeAdmin({
+      applications: [{ status: 'pending', creator_profiles: { id: 'cr-a', user_id: 'u-a' } }],
+      collabs: [],
+      campaigns: [{ slug: 'spring-launch-wild-coco' }],
+    }, { updates: [] })
+
+    await notifyCampaignChange(admin, CID, 'Spring launch')
+    expect(sent).toHaveLength(1)
+    expect(sent[0].payload.href).toBe('/jobs/spring-launch-wild-coco')
   })
 
   it('close declines open applicants (status → rejected) + notifies + emails them', async () => {

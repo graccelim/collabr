@@ -574,7 +574,7 @@ export default async function JobDetailPage({
                 </p>
               </div>
               <AuthGateButton className="btn-primary" style={{ alignSelf: 'flex-start' }}>
-                Apply for this campaign
+                Apply now
               </AuthGateButton>
             </div>
           )}

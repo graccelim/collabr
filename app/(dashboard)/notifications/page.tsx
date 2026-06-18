@@ -89,7 +89,11 @@ export default async function NotificationsPage() {
                   ? `/campaigns/${payload.campaign_id}`
                   : payload.application_id
                     ? '/applications'
-                    : null
+                    // Slug-based public link stored on the notification (e.g. a
+                    // campaign-updated nudge → the public campaign page).
+                    : typeof payload.href === 'string' && payload.href.startsWith('/')
+                      ? payload.href
+                      : null
 
             const content = (
               <div style={{
