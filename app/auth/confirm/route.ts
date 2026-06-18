@@ -24,7 +24,11 @@ export async function GET(req: NextRequest) {
 
   if (token_hash && type) {
     const cookieStore = cookies()
-    const res = NextResponse.redirect(new URL(next, origin))
+    // For recovery, signal the reset page that THIS session was just established
+    // by the recovery token (so it never resets a pre-existing, different account).
+    const dest = new URL(next, origin)
+    if (type === 'recovery') dest.searchParams.set('verified', '1')
+    const res = NextResponse.redirect(dest)
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

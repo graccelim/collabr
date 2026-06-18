@@ -21,24 +21,37 @@ export default function ResetPasswordPage() {
     let resolved = false
     const ready = () => { resolved = true; setPhase('ready') }
 
-    // An expired/used link comes back with an error in the URL.
     const search = new URLSearchParams(window.location.search)
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+
+    // An expired/used/invalid link comes back with an error in the URL.
     if (search.get('error') || search.get('error_description') || hash.get('error') || hash.get('error_description')) {
       setPhase('invalid')
       return
     }
 
-    // The @supabase/ssr browser client auto-exchanges the recovery code in the
-    // URL and emits PASSWORD_RECOVERY / SIGNED_IN. Listen for it, and also probe
-    // the session directly in case it resolved before we subscribed.
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && ['PASSWORD_RECOVERY', 'SIGNED_IN', 'INITIAL_SESSION', 'USER_UPDATED'].includes(event)) ready()
-    })
-    supabase.auth.getSession().then(({ data }) => { if (data.session) ready() })
+    // SECURITY: we must NEVER reset whatever account happens to already be signed
+    // in on this browser. Only treat the session as a recovery session if auth
+    // actually happened on THIS page load:
+    //
+    //  - verified=1: the server token_hash flow (/auth/confirm) just verified the
+    //    recovery token and set the correct user's session, then redirected here.
+    //  - SIGNED_IN / PASSWORD_RECOVERY: the PKCE `?code` was exchanged on load for
+    //    the link's user (this fires even if a different user was signed in
+    //    before — the exchange replaces the session).
+    //
+    // A bare pre-existing session (INITIAL_SESSION) is intentionally ignored.
+    if (search.get('verified') === '1') {
+      supabase.auth.getSession().then(({ data }) => { data.session ? ready() : setPhase('invalid') })
+      return
+    }
 
-    // If nothing established a session, the link is invalid or expired.
-    const t = setTimeout(() => { if (!resolved) setPhase('invalid') }, 3000)
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN') ready()
+    })
+
+    // If no recovery auth happened, the link is missing/invalid/expired.
+    const t = setTimeout(() => { if (!resolved) setPhase('invalid') }, 4000)
     return () => { sub.subscription.unsubscribe(); clearTimeout(t) }
   }, [])
 
