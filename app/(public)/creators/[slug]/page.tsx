@@ -5,8 +5,7 @@ import { formatSGD } from '@/lib/utils'
 import Avatar from '@/components/Avatar'
 import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
-import SaveCreatorButton from '@/components/SaveCreatorButton'
-import InviteCreatorForm from '@/components/InviteCreatorForm'
+import BrandCreatorActions from '@/components/BrandCreatorActions'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -228,25 +227,23 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
   ) : (
           <div className={isBrandViewer ? undefined : 'vis-actions-empty'} style={{ marginBottom: 30 }}>
-            <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
-              {isBrandViewer && viewerIsPro && (
-                <>
-                  <InviteCreatorForm
-                    creatorId={creatorId}
-                    creatorName={name}
-                    campaigns={inviteCampaigns}
-                    pendingCampaignIds={pendingInviteCampaignIds}
-                  />
-                  <SaveCreatorButton creatorId={creatorId} initialSaved={isSaved} />
-                </>
-              )}
-              {/* With CTAs (pro brand): Share stays inline with Invite/Save on
-                  every width. Without CTAs: it's desktop-only here (phones show
-                  it beside the name via .vis-hero-share). */}
-              <span className={hasProfileCtas ? undefined : 'vis-row-share'}>
-                <ShareProfileButton path={`/creators/${slug}`} name={name} />
-              </span>
-            </div>
+            {hasProfileCtas ? (
+              // Pro brand: Invite + Save + Share, with invite-open state lifted so
+              // Save/Share hide/show instantly (no :has flicker).
+              <BrandCreatorActions
+                inviteProps={{ creatorId, creatorName: name, campaigns: inviteCampaigns, pendingCampaignIds: pendingInviteCampaignIds }}
+                saveProps={{ creatorId, initialSaved: isSaved }}
+                shareProps={{ path: `/creators/${slug}`, name }}
+              />
+            ) : (
+              <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+                {/* No CTAs: Share is desktop-only here (phones show it beside the
+                    name via .vis-hero-share). */}
+                <span className="vis-row-share">
+                  <ShareProfileButton path={`/creators/${slug}`} name={name} />
+                </span>
+              </div>
+            )}
             {isBrandViewer && !viewerIsPro && (
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>
                 Inviting and saving creators comes with collabr Pro.{' '}

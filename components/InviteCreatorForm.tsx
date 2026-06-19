@@ -16,11 +16,14 @@ interface Props {
   campaigns: CampaignOption[]
   /** Campaign ids that already have a pending invite for this creator. */
   pendingCampaignIds: string[]
+  /** Notified when the form opens/closes (lets the parent hide Save/Share). */
+  onOpenChange?: (open: boolean) => void
 }
 
-export default function InviteCreatorForm({ creatorId, creatorName, campaigns, pendingCampaignIds }: Props) {
+export default function InviteCreatorForm({ creatorId, creatorName, campaigns, pendingCampaignIds, onOpenChange }: Props) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
+  const [open, _setOpen] = useState(false)
+  const setOpen = (v: boolean) => { _setOpen(v); onOpenChange?.(v) }
   const [campaignId, setCampaignId] = useState(campaigns[0]?.id || '')
   const [rate, setRate] = useState('')
   const [message, setMessage] = useState('')
