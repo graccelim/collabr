@@ -765,6 +765,17 @@
      so every value aligns. Desktop labels fit on one line — left untouched. */
   .brief-grid .brief-label { min-height: 24px; }
 
+  /* Creator profile (visitor): the share button leaves the actions row and sits
+     top-right next to the name on phones, so it never wraps below the stats. */
+  .vis-hero-share    { display: flex !important; }
+  .vis-row-share     { display: none !important; }
+  .vis-actions-empty { display: none !important; }
+
+  /* Page header action button (e.g. "Post a campaign"): drop below the title
+     text and span the full width on phones instead of sitting inline. */
+  .page-head-row              { flex-direction: column; align-items: stretch !important; }
+  .page-head-row > .btn-primary { width: 100%; justify-content: center; }
+
   /* Escrow timeline: drop the per-step notes on mobile (too wordy) and tighten
      the step labels so the 5 steps read cleanly. Web keeps the full version. */
   .escrow-note { display: none !important; }
@@ -774,3 +785,10 @@
 @media (min-width: 769px) {
   .tab-bar { display: none !important; }
 }
+
+/* Desktop defaults for the mobile-only toggles above: on desktop the visitor
+   share lives in the actions row (not by the name), and the visitor actions row
+   is visible. Phones flip these via the max-width:768px rules above. */
+.vis-hero-share    { display: none; }
+.vis-row-share     { display: inline-flex; }
+.vis-actions-empty { display: block; }

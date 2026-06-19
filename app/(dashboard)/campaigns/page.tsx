@@ -77,7 +77,7 @@ export default async function CampaignsPage() {
 
   return (
     <div style={{ maxWidth: 880, margin: '0 auto' }}>
-      <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+      <div className="page-head-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
         <div>
           <div className="eyebrow" style={{ marginBottom: 7 }}>Campaign manager</div>
           <h1 style={{ fontSize: 28 }}>Your campaigns</h1>

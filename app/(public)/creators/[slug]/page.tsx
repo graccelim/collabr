@@ -205,9 +205,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               )}
 
               {/* Visitor (anyone-c, not c-c) on phones: share sits top-right,
-                  inline with the name. Desktop keeps it in the actions row. */}
+                  inline with the name. Desktop keeps it in the actions row.
+                  Toggled via globals.css (.vis-hero-share) so it's robust on
+                  mobile regardless of Tailwind responsive build state. */}
               {!isOwner && (
-                <div className="flex md:hidden" style={{ flexShrink: 0 }}>
+                <div className="vis-hero-share" style={{ flexShrink: 0 }}>
                   <ShareProfileButton path={`/creators/${slug}`} name={name} />
                 </div>
               )}
@@ -222,7 +224,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             {ownerActions(true)}
           </div>
   ) : (
-          <div className={isBrandViewer ? undefined : 'hidden md:block'} style={{ marginBottom: 30 }}>
+          <div className={isBrandViewer ? undefined : 'vis-actions-empty'} style={{ marginBottom: 30 }}>
             <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isBrandViewer && viewerIsPro && (
                 <>
@@ -235,8 +237,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   <SaveCreatorButton creatorId={creatorId} initialSaved={isSaved} />
                 </>
               )}
-              {/* Share moves to the hero top-right on phones; keep it here on desktop. */}
-              <span className="hidden md:inline-flex">
+              {/* Share moves to the hero top-right on phones; stays here on desktop. */}
+              <span className="vis-row-share">
                 <ShareProfileButton path={`/creators/${slug}`} name={name} />
               </span>
             </div>
