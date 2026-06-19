@@ -32,16 +32,16 @@ export default async function ApplicationsPage() {
     .filter((a) => a.status === 'selected')
     .map((a) => a.id);
 
-  const collabByApp: Record<string, { id: string; payment_status: string; status: string; agreed_rate: number }> = {};
+  const collabByApp: Record<string, { id: string; payment_status: string; status: string; agreed_rate: number; from_invite: boolean }> = {};
   if (selectedAppIds.length > 0) {
     const { data: collabs } = await supabase
       .from('collabs')
-      .select('id, application_id, payment_status, status, agreed_rate')
+      .select('id, application_id, payment_status, status, agreed_rate, from_invite')
       .in('application_id', selectedAppIds);
     collabs?.forEach((c) => {
       // Skip cancelled collabs: after an undo/expiry + re-select an application
       // can have a dead collab alongside the live one — map to the live one.
-      if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status, agreed_rate: c.agreed_rate };
+      if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status, agreed_rate: c.agreed_rate, from_invite: !!c.from_invite };
     });
   }
 
@@ -88,7 +88,11 @@ export default async function ApplicationsPage() {
               // does NOT expose the collab; only a funded collab is "Confirmed".
               const state = creatorApplicationState(app.status, collab);
               const confirmed = state === 'confirmed';
-              const href = confirmed && collab
+              // Invite-accepted collabs are visible to the creator pre-funding —
+              // they read "Invite accepted" and link to the collab (not "Applied").
+              const inviteAccepted = !!collab?.from_invite && !confirmed;
+              const showsCollab = (confirmed || inviteAccepted) && !!collab;
+              const href = showsCollab && collab
                 ? `/collabs/${collab.id}`
                 : `/jobs/${campaign?.id}`;
               const info = (
@@ -108,14 +112,16 @@ export default async function ApplicationsPage() {
                 </div>
               );
               const badge = (
-                <span className={`badge ${STATE_BADGE[state] || 'badge-gray'}`}>
-                  {confirmed && collab?.agreed_rate === 0 ? 'Confirmed' : CREATOR_APP_LABEL[state]}
+                <span className={`badge ${inviteAccepted ? 'badge-teal' : STATE_BADGE[state] || 'badge-gray'}`}>
+                  {inviteAccepted
+                    ? 'Invite accepted'
+                    : confirmed && collab?.agreed_rate === 0 ? 'Confirmed' : CREATOR_APP_LABEL[state]}
                 </span>
               );
-              // Confirmed → whole card links to the collab. Applied (still open)
-              // → card links to the campaign, with a Withdraw control alongside
-              // (kept OUTSIDE the link so it isn't a nested interactive element).
-              if (confirmed) {
+              // Confirmed / invite-accepted → whole card links to the collab.
+              // Applied (still open) → card links to the campaign, with a Withdraw
+              // control alongside (kept OUTSIDE the link, not a nested interactive).
+              if (showsCollab) {
                 return (
                   <Link key={app.id} href={href} className="card card-hover block">
                     <div className="flex items-center justify-between gap-3">

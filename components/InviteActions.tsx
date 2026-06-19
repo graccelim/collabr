@@ -28,13 +28,14 @@ export default function InviteActions({ inviteId }: Props) {
     }
     if (action === 'accept') {
       toast.success('Invite accepted, your collab has been created!')
-      if (data.collab_id) {
-        router.push(`/collabs/${data.collab_id}`)
-        return
-      }
-    } else {
-      toast.success('Invite declined')
+      // Always leave the invites tab for the collab (the specific one if we have
+      // its id, otherwise the collabs list). refresh() first so any cached
+      // invites view is invalidated behind us.
+      router.refresh()
+      router.push(data.collab_id ? `/collabs/${data.collab_id}` : '/collabs')
+      return
     }
+    toast.success('Invite declined')
     router.refresh()
     setBusy(null)
   }
