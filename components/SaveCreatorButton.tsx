@@ -61,7 +61,7 @@ export default function SaveCreatorButton({ creatorId, initialSaved, compact = f
 
   return (
     <button type="button" onClick={toggle} disabled={busy} className="btn-secondary">
-      <Bookmark size={14} fill={saved ? 'currentColor' : 'none'} />
+      <Bookmark className="bc-save-icon" size={14} fill={saved ? 'currentColor' : 'none'} />
       {saved ? 'Saved' : 'Save creator'}
     </button>
   )

@@ -778,6 +778,9 @@
   .page-head-row              { flex-direction: column; align-items: stretch !important; }
   .page-head-row > .btn-primary { width: 100%; justify-content: center; }
 
+  /* Save-creator icon reads too small at 14px on phones. */
+  .bc-save-icon { width: 18px !important; height: 18px !important; }
+
   /* Escrow timeline: drop the per-step notes on mobile (too wordy) and tighten
      the step labels so the 5 steps read cleanly. Web keeps the full version. */
   .escrow-note { display: none !important; }
@@ -794,6 +797,13 @@
 .vis-hero-share    { display: none; }
 .vis-row-share     { display: inline-flex; }
 .vis-actions-empty { display: block; }
+
+/* Creator action row: while the Invite form is open, hide Save + Share (all
+   widths) so the form spans the full width. */
+.bc-actions:has(.invite-open) > .btn-secondary,
+.bc-actions:has(.invite-open) > span {
+  display: none !important;
+}
 
 /* Discover-creators filters: inline bar on desktop, a single Filters button +
    bottom-sheet on phones. */

@@ -89,7 +89,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const isBrandViewer = !!user && viewer?.role === 'brand' && !isOwner
   let isSaved = false
   let viewerIsPro = false
-  let inviteCampaigns: { id: string; title: string }[] = []
+  let inviteCampaigns: { id: string; title: string; comp_type: string | null }[] = []
   let pendingInviteCampaignIds: string[] = []
   if (isBrandViewer && user) {
     const { data: brand } = await admin.from('brand_profiles')
@@ -100,8 +100,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         supabase.from('saved_creators')
           .select('id').eq('brand_id', brand.id).eq('creator_id', creatorId).maybeSingle(),
         supabase.from('campaigns')
-          .select('id, title').eq('brand_id', brand.id).eq('status', 'active')
-          .in('comp_type', ['paid', 'both']).order('created_at', { ascending: false }),
+          .select('id, title, comp_type').eq('brand_id', brand.id).eq('status', 'active')
+          .in('comp_type', ['paid', 'both', 'barter']).order('created_at', { ascending: false }),
         supabase.from('campaign_invites')
           .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', creatorId)
           .eq('status', 'pending'),

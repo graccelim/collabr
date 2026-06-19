@@ -9,7 +9,7 @@ import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 const inviteSchema = z.object({
   creator_id: z.string().uuid(),
   campaign_id: z.string().uuid(),
-  proposed_rate: z.number().int().positive().max(100_000_000), // cents
+  proposed_rate: z.number().int().min(0).max(100_000_000), // cents (0 = pure barter)
   message: z.string().trim().max(1000).optional().or(z.literal('').transform(() => undefined)),
 })
 
@@ -72,11 +72,12 @@ export async function POST(req: NextRequest) {
   if (campaign.status !== 'active') {
     return NextResponse.json({ error: 'Only active campaigns can send invites' }, { status: 400 })
   }
-  if (!['paid', 'both'].includes(campaign.comp_type)) {
-    return NextResponse.json(
-      { error: 'Invites require a paid campaign, barter-only campaigns are not supported yet' },
-      { status: 400 }
-    )
+  if (!['paid', 'both', 'barter'].includes(campaign.comp_type)) {
+    return NextResponse.json({ error: 'This campaign type cannot send invites' }, { status: 400 })
+  }
+  // Paid/both invites need a positive rate; barter invites may be rate-0.
+  if (campaign.comp_type !== 'barter' && parsed.data.proposed_rate <= 0) {
+    return NextResponse.json({ error: 'Enter the rate you’re offering for this campaign' }, { status: 400 })
   }
 
   const { data: creator } = await admin.from('creator_profiles')

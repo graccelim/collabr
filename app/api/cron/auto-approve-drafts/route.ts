@@ -40,9 +40,13 @@ export async function GET(req: NextRequest) {
     }
 
     const brandUserId = (c.brand_profiles as any)?.user_id
-    if (brandUserId) await sendNotification({ userId: brandUserId, type: 'draft_auto_approved',
-      title: 'Draft auto-approved', body: 'You did not review within 48h, so the draft was auto-approved.',
-      payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:brand` })
+    if (brandUserId) {
+      await sendNotification({ userId: brandUserId, type: 'draft_auto_approved',
+        title: 'A draft was automatically approved',
+        body: 'A creator’s draft was automatically approved because the review window ended. The collaboration can now continue to the live-post stage.',
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:brand` })
+      await sendProductEmail({ userId: brandUserId, ...productEmails.draftAutoApprovedBrand({ collabId: c.id }) })
+    }
     processed++
   }
 

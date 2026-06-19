@@ -7,6 +7,7 @@ import { Send } from 'lucide-react'
 interface CampaignOption {
   id: string
   title: string
+  comp_type: string | null
 }
 
 interface Props {
@@ -26,6 +27,9 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
   const [sending, setSending] = useState(false)
 
   const first = creatorName.split(' ')[0]
+  const selectedCampaign = campaigns.find(c => c.id === campaignId)
+  // A pure barter campaign has no cash rate; the offer field becomes optional.
+  const isBarter = selectedCampaign?.comp_type === 'barter'
 
   if (campaigns.length === 0) {
     return (
@@ -40,11 +44,13 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    const cents = Math.round(parseFloat(rate) * 100)
     if (!campaignId) { toast.error('Pick a campaign'); return }
-    if (!rate || !Number.isFinite(cents) || cents <= 0) {
+    const cents = Math.round(parseFloat(rate) * 100)
+    // Barter: rate optional (0 = pure barter). Paid/both: a positive rate.
+    if (!isBarter && (!rate || !Number.isFinite(cents) || cents <= 0)) {
       toast.error('Enter the rate you’re offering'); return
     }
+    const proposedRate = isBarter ? (rate && Number.isFinite(cents) && cents > 0 ? cents : 0) : cents
     setSending(true)
     const res = await fetch('/api/invites', {
       method: 'POST',
@@ -52,7 +58,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
       body: JSON.stringify({
         creator_id: creatorId,
         campaign_id: campaignId,
-        proposed_rate: cents,
+        proposed_rate: proposedRate,
         message: message.trim() || undefined,
       }),
     })
@@ -73,13 +79,15 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     return (
       <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
         <Send size={14} />
-        Invite to campaign
+        Invite
       </button>
     )
   }
 
   return (
-    <form onSubmit={submit} className="card space-y-3" style={{ width: '100%' }}>
+    // `invite-open` lets the action row hide Save/Share on phones (CSS :has)
+    // so the open form spans the full width.
+    <form onSubmit={submit} className="card space-y-3 invite-open" style={{ width: '100%' }}>
       <h2 style={{ fontSize: 14, fontWeight: 600 }}>Invite {first} to a campaign</h2>
       <div>
         <label className="label">Campaign</label>
@@ -92,11 +100,13 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
         </select>
       </div>
       <div>
-        <label className="label">Your offer (SGD)</label>
-        <input className="input" type="number" min="1" step="1" value={rate}
-          onChange={e => setRate(e.target.value)} placeholder="250" required />
+        <label className="label">Your offer (SGD){isBarter ? ', optional' : ''}</label>
+        <input className="input" type="number" min={isBarter ? '0' : '1'} step="1" value={rate}
+          onChange={e => setRate(e.target.value)} placeholder={isBarter ? 'Leave blank for pure barter' : '250'} required={!isBarter} />
         <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 4 }}>
-          This becomes the escrowed deal value if {first} accepts.
+          {isBarter
+            ? `Barter campaign — no cash changes hands. Leave blank for a pure product/service exchange.`
+            : `This becomes the escrowed deal value if ${first} accepts.`}
         </p>
       </div>
       <div>

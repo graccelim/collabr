@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
+import { notifyCollabFunded } from '@/lib/collab-funding'
 import { computeFee } from '@/lib/utils'
 
 // Creator accepts or declines an invite. Acceptance converges into the
@@ -80,12 +81,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       { status: 409 }
     )
   }
-  if (!['paid', 'both'].includes(campaign.comp_type)) {
+  if (!['paid', 'both', 'barter'].includes(campaign.comp_type)) {
     return NextResponse.json(
-      { error: 'This campaign no longer pays a cash rate, so the invite can\'t be accepted.' },
+      { error: 'This campaign can no longer be accepted from an invite.' },
       { status: 409 }
     )
   }
+  // A rate-0 invite on a barter/both campaign is a true barter deal.
+  const isBarterDeal = (!invite.proposed_rate || invite.proposed_rate <= 0)
+    && ['barter', 'both'].includes(campaign.comp_type)
 
   // Ensure an application exists with the invited rate, then reuse the
   // existing atomic selection to create the collab.
@@ -123,23 +127,38 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     applicationId = newApp.id
   }
 
-  const plan: 'free' | 'pro' = campaign.brand_profiles?.plan || 'free'
-  const { fee, payout } = computeFee(invite.proposed_rate, plan)
-
-  const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
-    p_application_id: applicationId,
-    p_agreed_rate: invite.proposed_rate,
-    p_platform_fee: fee,
-    p_creator_payout: payout,
-  }).single()
-  if (collabErr) {
-    console.error('[INVITE ACCEPT]', collabErr)
-    const friendly = collabErr.message.includes('capacity')
-      ? 'This campaign has already filled all its creator slots.'
-      : 'Could not accept the invite. Please try again or contact support.'
-    return NextResponse.json({ error: friendly }, { status: 409 })
+  let collabId: string | undefined
+  if (isBarterDeal) {
+    // True barter: no cash, no escrow — same atomic path as brand-side barter.
+    const { data: selection, error: barterErr } = await admin.rpc('select_barter_collab', {
+      p_application_id: applicationId,
+    }).single()
+    if (barterErr) {
+      console.error('[INVITE ACCEPT BARTER]', barterErr)
+      const friendly = barterErr.message.includes('capacity')
+        ? 'This campaign has already filled all its creator slots.'
+        : 'Could not accept the invite. Please try again or contact support.'
+      return NextResponse.json({ error: friendly }, { status: 409 })
+    }
+    collabId = (selection as any)?.collab_id
+  } else {
+    const plan: 'free' | 'pro' = campaign.brand_profiles?.plan || 'free'
+    const { fee, payout } = computeFee(invite.proposed_rate, plan)
+    const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
+      p_application_id: applicationId,
+      p_agreed_rate: invite.proposed_rate,
+      p_platform_fee: fee,
+      p_creator_payout: payout,
+    }).single()
+    if (collabErr) {
+      console.error('[INVITE ACCEPT]', collabErr)
+      const friendly = collabErr.message.includes('capacity')
+        ? 'This campaign has already filled all its creator slots.'
+        : 'Could not accept the invite. Please try again or contact support.'
+      return NextResponse.json({ error: friendly }, { status: 409 })
+    }
+    collabId = (selection as any)?.collab_id
   }
-  const collabId = (selection as any)?.collab_id
 
   const { data: updatedInvite } = await admin.from('campaign_invites')
     .update({ status: 'accepted', responded_at: new Date().toISOString() })
@@ -149,12 +168,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     console.warn('[INVITE ACCEPT] invite already transitioned:', invite.id)
   }
 
+  // Barter is committed at acceptance (no funding step): confirm the creator +
+  // free leftover applicants now, exactly like the brand-side barter path.
+  if (isBarterDeal && collabId) {
+    try { await notifyCollabFunded(admin, collabId) } catch (e) { console.error('[INVITE BARTER NOTIFY]', e) }
+  }
+
   if (brandUserId) {
     await sendNotification({
       userId: brandUserId,
       type: 'invite_accepted',
       title: `${creatorName} accepted your invite 🎉`,
-      body: 'The collab has been created, fund escrow to get work started.',
+      body: isBarterDeal
+        ? 'Your barter collab is confirmed — the creator can start now.'
+        : 'The collab has been created, fund escrow to get work started.',
       payload: { invite_id: invite.id, collab_id: collabId },
       dedupeKey: `invite:${invite.id}:accepted`,
     })

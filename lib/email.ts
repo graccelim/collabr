@@ -313,6 +313,17 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
+  draftAutoApprovedBrand: (d: { collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:draft-auto-approved:brand`,
+    subject: 'A draft was auto-approved — the collab continues',
+    preheader: 'The review window ended, so it auto-approved.',
+    title: 'A draft was automatically approved',
+    body: `A creator's draft was automatically approved because the review window ended. The collaboration can now continue to the live-post stage.`,
+    ctaLabel: 'View the collab',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
   draftAutoApproved: (d: { collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:draft-auto-approved`,
