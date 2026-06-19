@@ -779,7 +779,7 @@
   .page-head-row > .btn-primary { width: 100%; justify-content: center; }
 
   /* Save-creator icon reads too small at 14px on phones. */
-  .bc-save-icon { width: 18px !important; height: 18px !important; }
+  .bc-save-icon { width: 22px !important; height: 22px !important; flex-shrink: 0; }
 
   /* Escrow timeline: drop the per-step notes on mobile (too wordy) and tighten
      the step labels so the 5 steps read cleanly. Web keeps the full version. */
