@@ -12,6 +12,7 @@ import WorkflowTimeline from '@/components/WorkflowTimeline'
 import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
 import DisputeStatusCard from '@/components/DisputeStatusCard'
+import InfoTip, { TERMS } from '@/components/InfoTip'
 import EmptyState from '@/components/EmptyState'
 import { escrowStep } from '@/lib/workflow'
 import { Lock, CheckCircle2, AlertCircle, SearchX, ShieldAlert, Star, ChevronLeft, LifeBuoy } from 'lucide-react'
@@ -190,7 +191,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       {isBarter ? (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--accent-tint)', borderRadius: 'var(--radius-sm)', marginBottom: 28, border: '1px solid var(--accent-tint-2)' }}>
           <CheckCircle2 size={16} color="var(--accent-deep)" style={{ flexShrink: 0 }} />
-          <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--accent-deep)' }}>Barter collaboration — no payment</span>
+          <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center' }}>
+            Barter collaboration — no payment <InfoTip text={TERMS.barter} />
+          </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)' }}>Product / service exchange</span>
         </div>
       ) : (
@@ -200,7 +203,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: paymentInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${paymentInfo.color}22` }}>
             <Lock size={16} color={paymentInfo.color} style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color }}>{paymentInfo.label}</span>
+            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color, display: 'inline-flex', alignItems: 'center' }}>
+              {paymentInfo.label} <InfoTip text={TERMS.escrow} />
+            </span>
             <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: paymentInfo.color }}>{formatSGD(collab.agreed_rate)}</span>
           </div>
         </>

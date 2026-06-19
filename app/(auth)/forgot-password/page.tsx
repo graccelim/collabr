@@ -15,8 +15,12 @@ export default function ForgotPasswordPage() {
     if (status === 'loading') return
     setStatus('loading')
     const supabase = createClient()
+    // Production domain when configured; falls back to the current origin.
+    // (With the token_hash recovery template this redirectTo is ignored — the
+    // template's own ?next= controls where the link lands.)
+    const base = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '')
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${base}/reset-password`,
     })
     if (error) {
       // Surface delivery/config errors so the user can retry; don't reveal

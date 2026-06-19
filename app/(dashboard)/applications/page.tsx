@@ -31,16 +31,16 @@ export default async function ApplicationsPage() {
     .filter((a) => a.status === 'selected')
     .map((a) => a.id);
 
-  const collabByApp: Record<string, { id: string; payment_status: string; status: string }> = {};
+  const collabByApp: Record<string, { id: string; payment_status: string; status: string; agreed_rate: number }> = {};
   if (selectedAppIds.length > 0) {
     const { data: collabs } = await supabase
       .from('collabs')
-      .select('id, application_id, payment_status, status')
+      .select('id, application_id, payment_status, status, agreed_rate')
       .in('application_id', selectedAppIds);
     collabs?.forEach((c) => {
       // Skip cancelled collabs: after an undo/expiry + re-select an application
       // can have a dead collab alongside the live one — map to the live one.
-      if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status };
+      if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, status: c.status, agreed_rate: c.agreed_rate };
     });
   }
 
@@ -68,7 +68,7 @@ export default async function ApplicationsPage() {
         <EmptyState
           icon={Send}
           title="Your pitches show up here"
-          body="Apply to a campaign and you'll see it land here. The moment a brand picks you, you'll know."
+          body="Campaigns you apply to will appear here."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />
@@ -117,7 +117,7 @@ export default async function ApplicationsPage() {
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span className={`badge ${STATE_BADGE[state] || 'badge-gray'}`}>
-                        {CREATOR_APP_LABEL[state]}
+                        {confirmed && collab?.agreed_rate === 0 ? 'Confirmed' : CREATOR_APP_LABEL[state]}
                       </span>
                       {confirmed && (
                         <span

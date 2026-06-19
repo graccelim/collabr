@@ -294,12 +294,12 @@ export default async function CreatorsPage({
           title={
             searchParams.saved === '1'
               ? 'No saved creators yet'
-              : 'No creators match these filters'
+              : 'No creators found yet'
           }
           body={
             searchParams.saved === '1'
               ? 'Tap the bookmark on any creator to build your shortlist for future campaigns.'
-              : 'Try broadening your filters, fewer constraints usually surface great creators you might otherwise miss.'
+              : 'More creators are joining every day. Try broadening your filters or check back soon.'
           }
           actionHref="/creators"
           actionLabel={

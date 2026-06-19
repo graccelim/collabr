@@ -5,6 +5,7 @@ import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow';
 import { isPaymentSecured } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import CollabsList, { type CollabRowData } from '@/components/CollabsList';
+import InfoTip, { TERMS } from '@/components/InfoTip';
 import { Briefcase, Compass, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 
@@ -97,7 +98,7 @@ export default async function CollabsPage() {
     <div style={{ maxWidth: 780, margin: '0 auto' }}>
       <div style={{ marginBottom: 22 }}>
         <h1 style={{ fontSize: 26, fontWeight: 600, letterSpacing: '-0.02em' }}>
-          Collaborations
+          Collaborations <InfoTip text={TERMS.collab} />
         </h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8 }}>
           {isBrand
@@ -161,11 +162,7 @@ export default async function CollabsPage() {
               ? 'Your first collab starts here'
               : 'Your first collab is close'
           }
-          body={
-            isBrand
-              ? 'Pick a creator on one of your campaigns and we’ll lock the payment in escrow, then everything you’re running shows up here.'
-              : 'Start collaborating with brands and get paid for content you love making. Apply to a campaign and your collab opens right here.'
-          }
+          body="Confirmed collaborations will appear here once payment is secured."
           actionHref={isBrand ? '/campaigns' : '/jobs'}
           actionLabel={isBrand ? 'Go to campaigns' : 'Discover campaigns'}
         />

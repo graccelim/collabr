@@ -233,8 +233,8 @@ export default async function JobsPage({
       ) : (
         <EmptyState
           icon={Compass}
-          title="Fresh campaigns drop here daily"
-          body="New briefs from brands hiring now are posted regularly. Check back soon, or polish your profile so you're ready to apply the moment one fits."
+          title="No campaigns available yet"
+          body="Check back soon, or complete your profile to get discovered by brands."
           actionHref="/profile"
           actionLabel="Complete your profile"
         />

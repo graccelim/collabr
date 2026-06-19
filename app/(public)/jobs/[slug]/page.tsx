@@ -150,7 +150,7 @@ export default async function JobDetailPage({
         // your collab" deep-links to the exact collab, not the list.
         supabase
           .from('collabs')
-          .select('id, payment_status, status')
+          .select('id, payment_status, status, agreed_rate')
           .eq('campaign_id', campaignId)
           .eq('creator_id', creator.id)
           // Exclude cancelled (undo/expiry) so a re-selected creator resolves to
@@ -509,14 +509,19 @@ export default async function JobDetailPage({
               // Shortlisted and selected-but-unfunded both read as a sent
               // application; only a FUNDED collab shows "Confirmed".
               const confirmed = existing.status === 'selected' && !!collab && consumesSpot(collab);
+              const confirmedBarter = confirmed && (collab?.agreed_rate ?? 0) === 0;
               const tint = confirmed ? 'var(--money-tint)' : 'var(--accent-tint)';
               const solid = confirmed ? 'var(--money)' : 'var(--accent)';
-              const title = confirmed
-                ? 'Confirmed · payment secured'
-                : `Application sent to ${brandName}`;
-              const body = confirmed
-                ? 'Escrow is secured. Open your collab to submit your first draft.'
-                : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
+              const title = confirmedBarter
+                ? 'You’re confirmed'
+                : confirmed
+                  ? 'Confirmed · payment secured'
+                  : `Application sent to ${brandName}`;
+              const body = confirmedBarter
+                ? 'You’re in for this barter collab. Open it to submit your first draft.'
+                : confirmed
+                  ? 'Escrow is secured. Open your collab to submit your first draft.'
+                  : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
                   style={{

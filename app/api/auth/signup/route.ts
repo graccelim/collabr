@@ -91,9 +91,16 @@ export async function POST(req: NextRequest) {
 
   // Create auth user - SSR client sets session cookie on the response.
   // Supabase sends the confirmation email when "Confirm email" is enabled.
+  // emailRedirectTo is the post-verification landing for the DEFAULT
+  // ({{ .ConfirmationURL }}) template; with the token_hash template it's ignored
+  // and the template's own ?next= controls the redirect.
+  const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'https://joincollabr.com').replace(/\/+$/, '')
   const { email, password, name } = parsed.data
   const supabase = createClient()
-  const { data, error } = await supabase.auth.signUp({ email, password })
+  const { data, error } = await supabase.auth.signUp({
+    email, password,
+    options: { emailRedirectTo: `${APP_URL}/dashboard` },
+  })
   if (error) {
     // Supabase couldn't send the confirmation email (built-in email rate limit,
     // or no custom SMTP configured). This is transient infrastructure, not bad

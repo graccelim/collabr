@@ -100,7 +100,7 @@ export default async function SavedCampaignsPage() {
         <EmptyState
           icon={Bookmark}
           title="No saved campaigns yet"
-          body="Tap the bookmark on any campaign to save it here, so you can come back and apply when you're ready."
+          body="Save campaigns you’re interested in and come back to them later."
           actionHref="/jobs"
           actionLabel="Discover campaigns"
         />
