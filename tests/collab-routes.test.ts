@@ -130,33 +130,17 @@ describe('POST /api/saved-campaigns', () => {
   })
 })
 
-// ─── collab cancel: party-only + stage gate ──────────────────────────────────
+// ─── collab cancel: self-serve cancellation is disabled after acceptance ──────
 describe('POST /api/collabs/[id]/cancel', () => {
-  async function post(id = 'co-1') {
+  async function post() {
     const { POST } = await import('@/app/api/collabs/[id]/cancel/route')
-    return POST(jsonRequest('POST'), { params: { id } })
+    return POST(jsonRequest('POST'))
   }
-  const collab = (over = {}) => ({
-    data: {
-      id: 'co-1', status: 'briefed', payment_status: 'funded', stripe_transfer_id: null,
-      creator_profiles: { user_id: 'creator-u' }, brand_profiles: { user_id: 'brand-u' }, ...over,
-    },
-  })
 
-  it('blocks a non-party (403)', async () => {
-    useStub({ user: verifiedUser('intruder'), tables: { collabs: [collab()] } })
-    expect((await post()).status).toBe(403)
-  })
-
-  it('cannot cancel after the work is live (400)', async () => {
-    useStub({ user: verifiedUser('brand-u'), tables: { collabs: [collab({ status: 'live_submitted' })] } })
-    expect((await post()).status).toBe(400)
-  })
-
-  it('a party can cancel a cancellable collab (200)', async () => {
-    const calls = useStub({ user: verifiedUser('creator-u'), tables: { collabs: [collab()] } })
+  it('refuses self-serve cancellation of an accepted collab (403)', async () => {
     const res = await post()
-    expect(res.status).toBe(200)
-    expect(calls.writes.some(w => w.table === 'collabs' && w.op === 'update')).toBe(true)
+    expect(res.status).toBe(403)
+    const body = await res.json()
+    expect(String(body.error).toLowerCase()).toContain('dispute')
   })
 })

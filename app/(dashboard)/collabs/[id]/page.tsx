@@ -258,22 +258,24 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             />
           )}
 
-          {/* Financials */}
-          <div className="card">
-            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Payment breakdown</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
-              {[
-                { label: 'Agreed rate', value: formatSGD(collab.agreed_rate), sub: null },
-                { label: 'Platform fee', value: formatSGD(collab.platform_fee), sub: null },
-                { label: 'Creator payout', value: formatSGD(collab.creator_payout), green: true },
-              ].map(({ label, value, green }) => (
-                <div key={label} style={{ textAlign: 'center', padding: '12px 8px' }}>
-                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: green ? 'var(--safe)' : 'var(--ink)', letterSpacing: '-0.02em' }}>{value}</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{label}</div>
-                </div>
-              ))}
+          {/* Financials — barter has no payment, so no breakdown is shown. */}
+          {!isBarter && (
+            <div className="card">
+              <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Payment breakdown</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+                {[
+                  { label: 'Agreed rate', value: formatSGD(collab.agreed_rate), sub: null },
+                  { label: 'Platform fee', value: formatSGD(collab.platform_fee), sub: null },
+                  { label: 'Creator payout', value: formatSGD(collab.creator_payout), green: true },
+                ].map(({ label, value, green }) => (
+                  <div key={label} style={{ textAlign: 'center', padding: '12px 8px' }}>
+                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: green ? 'var(--safe)' : 'var(--ink)', letterSpacing: '-0.02em' }}>{value}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 3 }}>{label}</div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Submission history */}
           {submissions && submissions.length > 0 && (

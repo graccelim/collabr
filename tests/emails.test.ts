@@ -137,6 +137,15 @@ describe('product email payload creation', () => {
     expect(e.subject.toLowerCase()).toContain('auto-approved')
   })
 
+  it('brand draft auto-approve email: distinct dedupe key + exact body copy', () => {
+    const e = productEmails.draftAutoApprovedBrand({ collabId: 'c1' })
+    expect(e.dedupeKey).toBe('email:collab:c1:draft-auto-approved:brand')
+    // distinct from the creator-facing one so both can send
+    expect(e.dedupeKey).not.toBe(productEmails.draftAutoApproved({ collabId: 'c1' }).dedupeKey)
+    expect(e.body).toBe("A creator's draft was automatically approved because the review window ended. The collaboration can now continue to the live-post stage.")
+    expect(e.ctaUrl).toBe(`${APP}/collabs/c1`)
+  })
+
   it('every builder yields a non-empty title, body, and CTA label', () => {
     const samples = [
       productEmails.newApplication({ campaignTitle: 'X', applicationId: 'a', campaignId: 'c' }),

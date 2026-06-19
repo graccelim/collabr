@@ -39,6 +39,31 @@ export function remainingSpots(
   return Math.max(0, (creatorsNeeded || 1) - filled)
 }
 
+/**
+ * Brand-side capacity breakdown for a campaign. Reserved (selected-but-unfunded)
+ * slots count as taken, so the brand UI never implies more creators can be
+ * accepted than the campaign truly has room for.
+ *   confirmed — funded/secured collabs (payment secured)
+ *   awaiting  — selected but not yet funded (briefed + unfunded/authorizing)
+ *   available — creators_needed − confirmed − awaiting (floored at 0)
+ * Cancelled collabs free their slot. (Public Discover uses remainingSpots, which
+ * counts only confirmed — that's the intentional public availability view.)
+ */
+export function capacityBreakdown(
+  creatorsNeeded: number | null | undefined,
+  collabs: { status?: string | null; payment_status?: string | null }[],
+): { needed: number; confirmed: number; awaiting: number; available: number } {
+  const needed = creatorsNeeded || 1
+  let confirmed = 0
+  let awaiting = 0
+  for (const c of collabs || []) {
+    if (c.status === 'cancelled') continue
+    if (isPaymentSecured(c.payment_status)) confirmed++
+    else if (c.status === 'briefed' && (c.payment_status === 'unfunded' || c.payment_status === 'authorizing')) awaiting++
+  }
+  return { needed, confirmed, awaiting, available: Math.max(0, needed - confirmed - awaiting) }
+}
+
 export function isCampaignFilled(
   creatorsNeeded: number | null | undefined,
   collabs: { status?: string | null; payment_status?: string | null }[],

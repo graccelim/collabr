@@ -93,7 +93,7 @@ export default function CollabsList({ rows }: { rows: CollabRowData[] }) {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexShrink: 0 }}>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 7 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={`Escrow step ${r.step} of 5`}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} title={`Step ${r.step} of 5`}>
                   <MiniSteps step={r.step} />
                   <span className="mono-num" style={{ fontSize: 11, color: 'var(--ink-faint-solid)', letterSpacing: '0.02em' }}>{r.step}/5</span>
                 </div>

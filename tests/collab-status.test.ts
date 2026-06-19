@@ -7,6 +7,7 @@ import {
   creatorApplicationState,
   CREATOR_APP_LABEL,
   requiresExpectedRate,
+  capacityBreakdown,
 } from '@/lib/collab-status'
 import { isUuid } from '@/lib/slug'
 
@@ -14,6 +15,27 @@ import { isUuid } from '@/lib/slug'
 const funded = (over = {}) => ({ status: 'draft_submitted', payment_status: 'funded', ...over })
 const unfunded = (over = {}) => ({ status: 'briefed', payment_status: 'unfunded', ...over })
 const cancelled = (over = {}) => ({ status: 'cancelled', payment_status: 'cancelled', ...over })
+
+describe('capacityBreakdown - brand-side reserved-aware capacity', () => {
+  const authorizing = (over = {}) => ({ status: 'briefed', payment_status: 'authorizing', ...over })
+  it('counts funded as confirmed, selected-unfunded as awaiting, rest available', () => {
+    const cap = capacityBreakdown(3, [funded(), unfunded(), authorizing()])
+    expect(cap).toEqual({ needed: 3, confirmed: 1, awaiting: 2, available: 0 })
+  })
+  it('never implies room when reserved slots already fill the campaign', () => {
+    // 2 needed, 0 funded but 2 reserved → 0 available (cannot accept more).
+    expect(capacityBreakdown(2, [unfunded(), unfunded()]).available).toBe(0)
+  })
+  it('cancelled collabs free their slot', () => {
+    const cap = capacityBreakdown(2, [funded(), cancelled()])
+    expect(cap.confirmed).toBe(1)
+    expect(cap.available).toBe(1)
+  })
+  it('floors available at 0 and defaults needed to 1', () => {
+    expect(capacityBreakdown(1, [funded(), funded()]).available).toBe(0)
+    expect(capacityBreakdown(null, []).needed).toBe(1)
+  })
+})
 
 describe('payment secured gate', () => {
   it('treats funded and everything past it as secured', () => {

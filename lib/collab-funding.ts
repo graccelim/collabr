@@ -1,9 +1,10 @@
 import type { createAdminClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { cancelOrRefundPayment, captureTransferAndComplete } from '@/lib/payments'
-import { isCampaignFilled, canReleaseUnfunded } from '@/lib/collab-status'
+import { captureTransferAndComplete } from '@/lib/payments'
+import { isCampaignFilled } from '@/lib/collab-status'
 import { formatSGD } from '@/lib/utils'
+import { stripe } from '@/lib/stripe'
 
 type Admin = ReturnType<typeof createAdminClient>
 
@@ -98,21 +99,31 @@ type ReleasableCollab = {
 export async function releaseUnfundedCollab(
   admin: Admin,
   collab: ReleasableCollab,
+  brandUserId: string | null = null,
 ): Promise<{ ok: boolean; reason?: string }> {
-  if (!canReleaseUnfunded(collab)) return { ok: false, reason: 'not_unfunded' }
+  // Atomically claim the undo under a row lock (race-safe vs Stripe funding).
+  const { data, error } = await admin.rpc('claim_unselect_atomic', {
+    p_collab_id: collab.id,
+    p_brand_user_id: brandUserId,
+  }).single()
+  if (error) return { ok: false, reason: 'error' }
+  const result = (data as any)?.result as string
 
-  // Cancel the authorization hold if one exists (unfunded → no intent → no-op).
-  const settlement = await cancelOrRefundPayment(admin, collab as never)
-  if (!settlement.ok) return { ok: false, reason: 'payment' }
+  if (result === 'forbidden') return { ok: false, reason: 'forbidden' }
+  if (result === 'funded') return { ok: false, reason: 'not_unfunded' }
+  if (result === 'not_found') return { ok: false, reason: 'not_found' }
 
-  // Cancel the collab (guard: still briefed, payment now cancelled/unfunded).
-  await admin.from('collabs').update({ status: 'cancelled' })
-    .eq('id', collab.id).eq('status', 'briefed')
-
-  // Return the applicant to the pool (guard: only flip a still-selected app).
-  if (collab.application_id) {
-    await admin.from('applications').update({ status: 'pending' })
-      .eq('id', collab.application_id).eq('status', 'selected')
+  // Cancelled (or already cancelled): release the Stripe authorization hold if
+  // one exists. Best-effort — the collab is already cancelled in the DB, and an
+  // uncaptured hold expires on its own. We never capture, so money stays safe.
+  const intentId = (data as any)?.intent_id as string | null
+  if (result === 'cancelled' && intentId) {
+    try {
+      const intent = await stripe.paymentIntents.retrieve(intentId)
+      if (intent.status !== 'canceled' && intent.status !== 'succeeded') {
+        await stripe.paymentIntents.cancel(intentId, {}, { idempotencyKey: `collab:${collab.id}:cancel` })
+      }
+    } catch { /* hold will expire; collab already cancelled */ }
   }
   return { ok: true }
 }

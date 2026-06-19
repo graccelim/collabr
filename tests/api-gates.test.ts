@@ -103,7 +103,8 @@ describe('POST /api/applications - trust gates', () => {
       tables: {
         creator_profiles: [onboardedCreator],
         campaigns: [{ data: { ...activeCampaign.data, comp_type: 'barter' } }],
-        applications: [{ count: 0 }, { data: { id: 'app-1' }, error: null }],
+        // count → existing-check (none) → insert
+        applications: [{ count: 0 }, { data: null, error: null }, { data: { id: 'app-1' }, error: null }],
       },
     })
     const res = await post(VALID_BODY) // no rate — allowed for barter
@@ -116,7 +117,7 @@ describe('POST /api/applications - trust gates', () => {
       tables: {
         creator_profiles: [onboardedCreator],
         campaigns: [{ data: { ...activeCampaign.data, comp_type: 'barter' } }],
-        applications: [{ count: 0 }, { data: { id: 'app-2' }, error: null }],
+        applications: [{ count: 0 }, { data: null, error: null }, { data: { id: 'app-2' }, error: null }],
       },
     })
     const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
@@ -144,13 +145,41 @@ describe('POST /api/applications - trust gates', () => {
         campaigns: [activeCampaign],
         applications: [
           { count: 0 },                                   // hourly count
-          { data: null, error: { code: '23505' } },       // unique(campaign,creator) violation
+          { data: null, error: null },                    // existing-check: none
+          { data: null, error: { code: '23505' } },       // unique(campaign,creator) violation on insert
         ],
       },
     })
     const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
     expect(res.status).toBe(409)
     expect((await res.json()).error).toMatch(/already applied/i)
+  })
+
+  it('revives a previously-withdrawn application instead of blocking (201)', async () => {
+    useStub({
+      user: verifiedUser(),
+      tables: {
+        creator_profiles: [onboardedCreator],
+        campaigns: [activeCampaign],
+        // count → existing-check (withdrawn) → revive update
+        applications: [{ count: 0 }, { data: { id: 'app-w', status: 'withdrawn' }, error: null }, { data: { id: 'app-w' }, error: null }],
+      },
+    })
+    expect((await post({ ...VALID_BODY, proposed_rate: 10000 })).status).toBe(201)
+  })
+
+  it('keeps rejection final — a rejected application cannot reapply (409)', async () => {
+    useStub({
+      user: verifiedUser(),
+      tables: {
+        creator_profiles: [onboardedCreator],
+        campaigns: [activeCampaign],
+        applications: [{ count: 0 }, { data: { id: 'app-r', status: 'rejected' }, error: null }],
+      },
+    })
+    const res = await post({ ...VALID_BODY, proposed_rate: 10000 })
+    expect(res.status).toBe(409)
+    expect((await res.json()).error).toMatch(/already decided|reapply/i)
   })
 
   it('a filled paid campaign cannot be applied to (409)', async () => {
@@ -422,5 +451,38 @@ describe('GET /api/submissions/[id]/file - signed URL authorization', () => {
     expect(res.status).toBeLessThan(400)
     expect(res.headers.get('cache-control')).toContain('no-store')
     expect(res.headers.get('location')).toContain('drive.google.com')
+  })
+})
+
+// ─── creator self-withdraw (DELETE) ──────────────────────────────────────────
+describe('DELETE /api/applications/[id] - creator withdraw', () => {
+  async function del(id = 'app-1') {
+    const { DELETE } = await import('@/app/api/applications/[id]/route')
+    return DELETE(jsonRequest('DELETE') as never, { params: { id } })
+  }
+  const app = (status: string, owner = 'creator-u') => ({
+    data: { id: 'app-1', status, creator_profiles: { user_id: owner } },
+  })
+
+  it('lets a creator withdraw their own pending application (200)', async () => {
+    useStub({ user: verifiedUser('creator-u'), tables: { applications: [app('pending'), { data: { id: 'app-1' }, error: null }] } })
+    const res = await del()
+    expect(res.status).toBe(200)
+    expect((await res.json()).status).toBe('withdrawn')
+  })
+
+  it('allows withdrawing a shortlisted application (200)', async () => {
+    useStub({ user: verifiedUser('creator-u'), tables: { applications: [app('shortlisted'), { data: { id: 'app-1' }, error: null }] } })
+    expect((await del()).status).toBe(200)
+  })
+
+  it('blocks withdrawing once selected/confirmed (409)', async () => {
+    useStub({ user: verifiedUser('creator-u'), tables: { applications: [app('selected')] } })
+    expect((await del()).status).toBe(409)
+  })
+
+  it('blocks a non-owner (403)', async () => {
+    useStub({ user: verifiedUser('intruder'), tables: { applications: [app('pending')] } })
+    expect((await del()).status).toBe(403)
   })
 })

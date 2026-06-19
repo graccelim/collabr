@@ -99,23 +99,44 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { data, error } = await admin.from('applications').insert({
-    campaign_id: body.campaign_id,
-    creator_id: creator.id,
-    pitch: body.pitch,
-    proposed_rate: body.proposed_rate || null,
-    is_boosted: !!isBoosted,
-  }).select().single()
-
-  if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ error: 'You have already applied to this campaign' }, { status: 409 })
-    }
-    console.error('[APPLICATION CREATE]', error)
+  // A previously-withdrawn application is revived (the creator chose to leave,
+  // so re-applying is allowed). A 'rejected' one stays final; an open one is a
+  // duplicate. The (campaign, creator) unique index means at most one row.
+  const { data: existing } = await admin.from('applications')
+    .select('id, status').eq('campaign_id', body.campaign_id).eq('creator_id', creator.id).maybeSingle()
+  if (existing && existing.status !== 'withdrawn') {
     return NextResponse.json(
-      { error: 'Your application could not be submitted. Please try again.' },
-      { status: 500 }
+      { error: existing.status === 'rejected' ? 'You can’t reapply — this application was already decided.' : 'You have already applied to this campaign' },
+      { status: 409 }
     )
+  }
+
+  let data: any
+  if (existing) {
+    const { data: revived, error } = await admin.from('applications')
+      .update({ status: 'pending', pitch: body.pitch, proposed_rate: body.proposed_rate || null, is_boosted: !!isBoosted, created_at: new Date().toISOString() })
+      .eq('id', existing.id).eq('status', 'withdrawn').select().single()
+    if (error || !revived) {
+      console.error('[APPLICATION REVIVE]', error)
+      return NextResponse.json({ error: 'Your application could not be submitted. Please try again.' }, { status: 500 })
+    }
+    data = revived
+  } else {
+    const { data: inserted, error } = await admin.from('applications').insert({
+      campaign_id: body.campaign_id,
+      creator_id: creator.id,
+      pitch: body.pitch,
+      proposed_rate: body.proposed_rate || null,
+      is_boosted: !!isBoosted,
+    }).select().single()
+    if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json({ error: 'You have already applied to this campaign' }, { status: 409 })
+      }
+      console.error('[APPLICATION CREATE]', error)
+      return NextResponse.json({ error: 'Your application could not be submitted. Please try again.' }, { status: 500 })
+    }
+    data = inserted
   }
 
   // Notify brand (campaign was fetched and validated above)

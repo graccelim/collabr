@@ -3,6 +3,40 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow'
 
 const base = { isBrand: false, counterpartName: 'Glow Works' }
 
+describe('deriveWorkflow - barter has no escrow/payment language', () => {
+  const ESCROW_WORDS = /escrow|payment secured|release payment|payout|locked in|funds|capture/i
+  const states: { status: string; paymentStatus: string }[] = [
+    { status: 'briefed', paymentStatus: 'funded' },
+    { status: 'draft_submitted', paymentStatus: 'funded' },
+    { status: 'draft_approved', paymentStatus: 'funded' },
+    { status: 'live_submitted', paymentStatus: 'funded' },
+    { status: 'live_confirmed', paymentStatus: 'funded' },
+    { status: 'completed', paymentStatus: 'manual_exception' },
+  ]
+  it('uses plain step labels (Confirmed / Collaboration active / Completed)', () => {
+    const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'funded', isBarter: true })
+    const labels = v.steps.map(s => s.label)
+    expect(labels).toContain('Confirmed')
+    expect(labels).toContain('Collaboration active')
+    expect(labels).toContain('Completed')
+    expect(labels).not.toContain('Escrow funded')
+    expect(labels).not.toContain('Payment released')
+  })
+  it('never surfaces escrow/payment words across states (both roles)', () => {
+    for (const s of states) {
+      for (const isBrand of [true, false]) {
+        const v = deriveWorkflow({ ...base, ...s, isBrand, isBarter: true })
+        expect(`${v.happened} ${v.next}`).not.toMatch(ESCROW_WORDS)
+        expect(v.steps.map(l => l.label).join(' ')).not.toMatch(ESCROW_WORDS)
+      }
+    }
+  })
+  it('paid collabs still use escrow language (regression guard)', () => {
+    const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'funded', isBrand: false })
+    expect(v.steps.map(s => s.label)).toContain('Escrow funded')
+  })
+})
+
 describe('deriveWorkflow - stage and actor derivation', () => {
   it('briefed + unfunded → brand must fund escrow', () => {
     const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'unfunded' })

@@ -28,7 +28,6 @@ export default function CollabActions({
 }: Props) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
-  const [cancelling, setCancelling] = useState(false)
   const settlementAvailable = ['funded', 'capture_failed', 'captured', 'transfer_pending', 'transfer_failed', 'paid', 'manual_exception'].includes(paymentStatus)
   // A zero agreed rate means a true barter collab — no escrow, no payment.
   const isBarter = agreedRate === 0
@@ -52,45 +51,22 @@ export default function CollabActions({
     }
   }
 
-  // Cancel a barter collab (no money moves). Either party, with confirmation.
-  async function cancelBarter() {
-    if (!window.confirm('Cancel this barter collaboration? This ends it for both sides and frees the campaign spot. This cannot be undone.')) return
-    setCancelling(true)
-    try {
-      const res = await fetch(`/api/collabs/${collabId}/cancel`, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
-      toast.success('Barter collaboration cancelled')
-      router.refresh()
-    } catch (e: any) {
-      toast.error(e.message || 'Could not cancel')
-    } finally {
-      setCancelling(false)
-    }
-  }
-
   // ── Barter collab: no escrow, no payment, normal draft/live flow ──
+  // Once accepted, a barter collab is a real agreement — no self-serve cancel
+  // (use dispute/support if something goes wrong), same as paid collabs.
   if (isBarter && collabStatus === 'briefed') {
     return (
-      <div className="card" style={{ padding: 18 }}>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Check size={17} color="var(--accent-deep)" />
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Barter collaboration</div>
-            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-              {isBrand
-                ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
-                : 'No payment — this is a barter exchange. Submit your draft to get started.'}
-            </p>
-          </div>
+      <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Check size={17} color="var(--accent-deep)" />
         </div>
-        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="button" onClick={cancelBarter} disabled={cancelling}
-            style={{ border: 0, background: 'transparent', color: 'var(--ink-faint-solid)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
-            {cancelling ? 'Cancelling…' : 'Cancel collaboration'}
-          </button>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Collaboration active</div>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+            {isBrand
+              ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
+              : 'No payment — this is a barter exchange. Submit your draft to get started.'}
+          </p>
         </div>
       </div>
     )

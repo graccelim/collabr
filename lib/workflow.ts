@@ -25,28 +25,31 @@ export interface WorkflowView {
   frozen: boolean
 }
 
+// [key, paid label, barter label]. Barter has no escrow/payment, so its steps
+// read as a plain collaboration timeline.
 const STEP_LABELS = [
-  ['applied', 'Applied'],
-  ['selected', 'Selected'],
-  ['funded', 'Escrow funded'],
-  ['draft_submitted', 'Draft submitted'],
-  ['revision', 'Revision requested'],
-  ['draft_approved', 'Draft approved'],
-  ['live_submitted', 'Live submitted'],
-  ['payment_released', 'Payment released'],
-  ['completed', 'Completed'],
+  ['applied', 'Applied', 'Applied'],
+  ['selected', 'Selected', 'Confirmed'],
+  ['funded', 'Escrow funded', 'Collaboration active'],
+  ['draft_submitted', 'Draft submitted', 'Draft submitted'],
+  ['revision', 'Revision requested', 'Revision requested'],
+  ['draft_approved', 'Draft approved', 'Draft approved'],
+  ['live_submitted', 'Live submitted', 'Live submitted'],
+  ['payment_released', 'Payment released', 'Completed'],
+  ['completed', 'Completed', 'Completed'],
 ] as const
 
 function buildSteps(
   reachedKey: string,
   currentKey: string | null,
-  includeRevision: boolean
+  includeRevision: boolean,
+  isBarter = false,
 ): TimelineStep[] {
   const keys = STEP_LABELS.filter(([k]) => includeRevision || k !== 'revision')
   const reachedIdx = keys.findIndex(([k]) => k === reachedKey)
-  return keys.map(([key, label], i) => ({
+  return keys.map(([key, paidLabel, barterLabel], i) => ({
     key,
-    label,
+    label: isBarter ? barterLabel : paidLabel,
     state: key === currentKey ? 'current' : i <= reachedIdx ? 'done' : 'upcoming',
   }))
 }
@@ -59,10 +62,11 @@ export function deriveWorkflow(opts: {
   revisionCount?: number
   draftAutoApproveAt?: string | null
   liveAutoReleaseAt?: string | null
+  isBarter?: boolean
 }): WorkflowView {
   const {
     status, paymentStatus, isBrand, counterpartName,
-    revisionCount = 0, draftAutoApproveAt, liveAutoReleaseAt,
+    revisionCount = 0, draftAutoApproveAt, liveAutoReleaseAt, isBarter = false,
   } = opts
   const paid = ['paid', 'manual_exception'].includes(paymentStatus)
   const funded = !['unfunded', 'authorizing'].includes(paymentStatus)
@@ -74,7 +78,7 @@ export function deriveWorkflow(opts: {
     case 'briefed':
       if (!funded) {
         return {
-          steps: buildSteps('selected', 'funded', includeRevision),
+          steps: buildSteps('selected', 'funded', includeRevision, isBarter),
           happened: 'The creator was selected for this campaign.',
           next: isBrand
             ? 'Deposit the agreed amount into escrow. Funds stay with collabr, work begins only after Stripe verifies the authorization.'
@@ -85,11 +89,15 @@ export function deriveWorkflow(opts: {
         }
       }
       return {
-        steps: buildSteps('funded', 'draft_submitted', includeRevision),
-        happened: 'Escrow is funded, the money is held safely by collabr.',
+        steps: buildSteps('funded', 'draft_submitted', includeRevision, isBarter),
+        happened: isBarter
+          ? 'The barter collaboration is confirmed and active.'
+          : 'Escrow is funded, the money is held safely by collabr.',
         next: isBrand
           ? `${first} is working on the draft. You'll review it before anything goes live.`
-          : 'Submit your draft for review. Your payment is locked in and guaranteed once requirements are met.',
+          : isBarter
+            ? 'Submit your draft for review to get the collaboration started.'
+            : 'Submit your draft for review. Your payment is locked in and guaranteed once requirements are met.',
         actor: 'creator',
         deadline: null,
         frozen: false,
@@ -97,7 +105,7 @@ export function deriveWorkflow(opts: {
 
     case 'draft_submitted':
       return {
-        steps: buildSteps('draft_submitted', 'draft_approved', includeRevision),
+        steps: buildSteps('draft_submitted', 'draft_approved', includeRevision, isBarter),
         happened: 'The draft has been submitted for review.',
         next: isBrand
           ? 'Review the draft within 48 hours. If no action is taken, it approves automatically.'
@@ -109,7 +117,7 @@ export function deriveWorkflow(opts: {
 
     case 'in_revision':
       return {
-        steps: buildSteps('draft_submitted', 'revision', true),
+        steps: buildSteps('draft_submitted', 'revision', true, isBarter),
         happened: 'A revision was requested with feedback.',
         next: isBrand
           ? `${first} is revising the draft. ${revisionsLeft} revision${revisionsLeft === 1 ? '' : 's'} remaining on this collab.`
@@ -121,11 +129,13 @@ export function deriveWorkflow(opts: {
 
     case 'draft_approved':
       return {
-        steps: buildSteps('draft_approved', 'live_submitted', includeRevision),
+        steps: buildSteps('draft_approved', 'live_submitted', includeRevision, isBarter),
         happened: 'The draft was approved.',
         next: isBrand
           ? `${first} will post the content live and submit the link.`
-          : 'Post your content publicly, then submit the live link. Payment releases after the brand confirms.',
+          : isBarter
+            ? 'Post your content publicly, then submit the live link. The brand confirms to complete the collaboration.'
+            : 'Post your content publicly, then submit the live link. Payment releases after the brand confirms.',
         actor: 'creator',
         deadline: null,
         frozen: false,
@@ -133,11 +143,15 @@ export function deriveWorkflow(opts: {
 
     case 'live_submitted':
       return {
-        steps: buildSteps('live_submitted', 'payment_released', includeRevision),
+        steps: buildSteps('live_submitted', 'payment_released', includeRevision, isBarter),
         happened: 'The content is live and the link has been submitted.',
         next: isBrand
-          ? 'Verify the post and release payment within 72 hours. Payment will auto-release if no action is taken.'
-          : 'The brand has 72 hours to confirm. Payment will auto-release if no action is taken, you are marked paid once the transfer succeeds.',
+          ? (isBarter
+              ? 'Verify the post and confirm within 72 hours. It auto-completes if no action is taken.'
+              : 'Verify the post and release payment within 72 hours. Payment will auto-release if no action is taken.')
+          : isBarter
+            ? 'The brand has 72 hours to confirm. It auto-completes if no action is taken.'
+            : 'The brand has 72 hours to confirm. Payment will auto-release if no action is taken, you are marked paid once the transfer succeeds.',
         actor: 'brand',
         deadline: liveAutoReleaseAt || null,
         frozen: false,
@@ -145,9 +159,11 @@ export function deriveWorkflow(opts: {
 
     case 'live_confirmed':
       return {
-        steps: buildSteps('live_submitted', 'payment_released', includeRevision),
+        steps: buildSteps('live_submitted', 'payment_released', includeRevision, isBarter),
         happened: 'The live post was confirmed.',
-        next: 'collabr is settling payment through Stripe. The collab completes once capture and creator transfer succeed.',
+        next: isBarter
+          ? 'Wrapping up the collaboration.'
+          : 'collabr is settling payment through Stripe. The collab completes once capture and creator transfer succeed.',
         actor: 'platform',
         deadline: null,
         frozen: false,
@@ -155,10 +171,12 @@ export function deriveWorkflow(opts: {
 
     case 'completed':
       return {
-        steps: buildSteps(paid ? 'completed' : 'live_submitted', null, includeRevision),
-        happened: paid
-          ? 'Payment was released and the collab is complete.'
-          : 'The collab is complete.',
+        steps: buildSteps(paid ? 'completed' : 'live_submitted', null, includeRevision, isBarter),
+        happened: isBarter
+          ? 'The barter collaboration is complete.'
+          : paid
+            ? 'Payment was released and the collab is complete.'
+            : 'The collab is complete.',
         next: 'Leave a review to build trust for future collabs.',
         actor: 'none',
         deadline: null,
@@ -167,7 +185,7 @@ export function deriveWorkflow(opts: {
 
     case 'disputed':
       return {
-        steps: buildSteps(funded ? 'funded' : 'selected', null, includeRevision),
+        steps: buildSteps(funded ? 'funded' : 'selected', null, includeRevision, isBarter),
         happened: 'A dispute was raised. Escrow is frozen.',
         next: 'A collabr mediator reviews both sides within 3 business days. No money moves until the dispute is resolved.',
         actor: 'platform',
@@ -177,7 +195,7 @@ export function deriveWorkflow(opts: {
 
     case 'cancelled':
       return {
-        steps: buildSteps('selected', null, includeRevision),
+        steps: buildSteps('selected', null, includeRevision, isBarter),
         happened: 'This collab was cancelled.',
         next: ['refunded', 'cancelled'].includes(paymentStatus)
           ? 'Any escrowed funds have been returned to the brand.'
@@ -189,7 +207,7 @@ export function deriveWorkflow(opts: {
 
     default:
       return {
-        steps: buildSteps('selected', null, includeRevision),
+        steps: buildSteps('selected', null, includeRevision, isBarter),
         happened: 'This collab is in progress.',
         next: 'Check back soon.',
         actor: 'none',

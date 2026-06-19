@@ -1,6 +1,5 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { canReleaseUnfunded } from '@/lib/collab-status'
 import { releaseUnfundedCollab } from '@/lib/collab-funding'
 
 /**
@@ -14,25 +13,19 @@ export async function POST(_req: NextRequest, { params }: { params: { id: string
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: collab } = await supabase.from('collabs')
-    .select('id, application_id, status, payment_status, stripe_payment_intent_id, stripe_transfer_id, brand_profiles(user_id)')
-    .eq('id', params.id).single()
-  if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-
-  // Brand-only: undo is the brand's action.
-  if ((collab.brand_profiles as { user_id?: string } | null)?.user_id !== user.id) {
-    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  }
-
-  if (!canReleaseUnfunded(collab)) {
-    return NextResponse.json(
-      { error: 'This collab is already funded and can no longer be undone. Contact support.' },
-      { status: 409 }
-    )
-  }
-
-  const result = await releaseUnfundedCollab(createAdminClient(), collab)
+  // Ownership + money guard + cancellation all happen atomically under a row
+  // lock inside the RPC (race-safe vs the Stripe funding webhook). We pass the
+  // brand user id so the RPC enforces ownership.
+  const result = await releaseUnfundedCollab(createAdminClient(), { id: params.id, application_id: null, status: '', payment_status: '' }, user.id)
   if (!result.ok) {
+    if (result.reason === 'forbidden') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (result.reason === 'not_found') return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    if (result.reason === 'not_unfunded') {
+      return NextResponse.json(
+        { error: 'This collab is already funded and can no longer be undone. Contact support.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(
       { error: 'Could not undo the selection. Please try again or contact support.' },
       { status: 502 }

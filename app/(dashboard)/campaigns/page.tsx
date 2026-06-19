@@ -3,6 +3,7 @@ import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
 import EmptyState from '@/components/EmptyState'
 import CampaignList, { type CampaignRow } from '@/components/CampaignList'
+import { capacityBreakdown } from '@/lib/collab-status'
 import { Megaphone, Plus } from 'lucide-react'
 
 export default async function CampaignsPage() {
@@ -48,32 +49,37 @@ export default async function CampaignsPage() {
   }
 
   const inEscrow = new Map<string, number>()
-  const spotsFilled = new Map<string, number>()
+  const byCampaign = new Map<string, { status: string; payment_status: string }[]>()
   for (const c of collabs || []) {
     const id = c.campaign_id as string
     if (id == null) continue
-    if (c.status !== 'cancelled') {
-      spotsFilled.set(id, (spotsFilled.get(id) || 0) + 1)
-    }
+    const list = byCampaign.get(id) || []
+    list.push({ status: c.status, payment_status: c.payment_status })
+    byCampaign.set(id, list)
     if (c.payment_status === 'funded' && c.status !== 'completed' && c.status !== 'cancelled') {
       inEscrow.set(id, (inEscrow.get(id) || 0) + (c.agreed_rate || 0))
     }
   }
 
-  const rows: CampaignRow[] = (campaigns || []).map(c => ({
-    id: c.id,
-    title: c.title,
-    status: c.status,
-    comp_type: c.comp_type,
-    budget_min: c.budget_min,
-    budget_max: c.budget_max,
-    creators_needed: c.creators_needed,
-    deadline: c.deadline,
-    applicants: applicantCount.get(c.id) || 0,
-    spotsFilled: spotsFilled.get(c.id) || 0,
-    inEscrow: inEscrow.get(c.id) || 0,
-    applicantNames: applicantNames.get(c.id) || [],
-  }))
+  const rows: CampaignRow[] = (campaigns || []).map(c => {
+    const cap = capacityBreakdown(c.creators_needed, byCampaign.get(c.id) || [])
+    return {
+      id: c.id,
+      title: c.title,
+      status: c.status,
+      comp_type: c.comp_type,
+      budget_min: c.budget_min,
+      budget_max: c.budget_max,
+      creators_needed: c.creators_needed,
+      deadline: c.deadline,
+      applicants: applicantCount.get(c.id) || 0,
+      confirmed: cap.confirmed,
+      awaiting: cap.awaiting,
+      available: cap.available,
+      inEscrow: inEscrow.get(c.id) || 0,
+      applicantNames: applicantNames.get(c.id) || [],
+    }
+  })
 
   return (
     <div style={{ maxWidth: 880, margin: '0 auto' }}>

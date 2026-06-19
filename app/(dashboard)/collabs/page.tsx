@@ -64,17 +64,22 @@ export default async function CollabsPage() {
     const counterparty = isBrand
       ? (c.creator_profiles as any)?.users?.display_name || 'Creator'
       : (c.brand_profiles as any)?.company_name || 'Brand';
+    const isBarter = (c.agreed_rate ?? 0) === 0;
     const view = deriveWorkflow({
       status: c.status,
       paymentStatus: c.payment_status,
       isBrand,
       counterpartName: counterparty,
+      isBarter,
     });
     const turn = actorLabel(view, isBrand, counterparty);
     const done = ['completed', 'cancelled'].includes(c.status);
+    // Barter has no escrow — "Briefed/funded" reads as "Collaboration active".
     const statusLabel =
-      COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label ||
-      c.status;
+      (isBarter && c.status === 'briefed')
+        ? 'Collaboration active'
+        : COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label ||
+          c.status;
     return {
       id: c.id,
       counterparty,
@@ -88,7 +93,7 @@ export default async function CollabsPage() {
           : turn.yourTurn
             ? 'var(--warn)'
             : 'var(--ink-faint-solid)',
-      amount: formatSGD(c.agreed_rate),
+      amount: isBarter ? 'Barter' : formatSGD(c.agreed_rate),
       bucket: done ? 'completed' : turn.yourTurn ? 'needs' : 'progress',
       dimmed: done,
     };

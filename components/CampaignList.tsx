@@ -15,8 +15,12 @@ export interface CampaignRow {
   deadline: string | null
   /** Count of applications for this campaign. */
   applicants: number
-  /** Count of active (non-cancelled) collabs for this campaign. */
-  spotsFilled: number
+  /** Funded/secured collabs. */
+  confirmed: number
+  /** Selected but not yet funded (reserved) collabs. */
+  awaiting: number
+  /** creators_needed − confirmed − awaiting. */
+  available: number
   /** Sum of funded escrow (in cents) currently held for this campaign. */
   inEscrow: number
   /** Display names of a few applicants, for the overlapping avatar footer. */
@@ -69,12 +73,16 @@ export default function CampaignList({ campaigns }: { campaigns: CampaignRow[] }
           const isActive = c.status === 'active'
           const open = () => router.push(`/campaigns/${c.id}`)
 
+          const isBarter = c.comp_type === 'barter'
           const stats: { k: string; v: string; mono?: boolean; money?: boolean }[] = [
             { k: 'Applicants', v: String(c.applicants) },
-            { k: 'Spots filled', v: `${c.spotsFilled}/${c.creators_needed}` },
+            { k: 'Confirmed', v: `${c.confirmed}/${c.creators_needed}` },
             { k: 'Budget', v: budget, mono: true },
             { k: 'Due', v: fmtDeadline(c.deadline), mono: true },
-            { k: 'In escrow', v: formatSGD(c.inEscrow), mono: true, money: c.inEscrow > 0 },
+            // Barter has no escrow — show remaining capacity in that slot instead.
+            isBarter
+              ? { k: 'Available', v: String(c.available) }
+              : { k: 'In escrow', v: formatSGD(c.inEscrow), mono: true, money: c.inEscrow > 0 },
           ]
 
           return (
@@ -108,6 +116,18 @@ export default function CampaignList({ campaigns }: { campaigns: CampaignRow[] }
                   </div>
                 ))}
               </div>
+
+              {/* Authoritative capacity: reserved slots count as taken, so this
+                  never implies more creators can be accepted than there's room. */}
+              {(c.status === 'active' || c.awaiting > 0 || c.confirmed > 0) && (
+                <div style={{ marginTop: 13, fontSize: 13, color: 'var(--ink-soft)', display: 'flex', flexWrap: 'wrap', gap: '2px 8px' }}>
+                  <span><strong style={{ color: 'var(--money-deep)' }}>{c.confirmed}</strong> confirmed</span>
+                  <span aria-hidden>·</span>
+                  <span><strong style={{ color: c.awaiting > 0 ? 'var(--warn-deep)' : 'var(--ink)' }}>{c.awaiting}</strong> awaiting funding</span>
+                  <span aria-hidden>·</span>
+                  <span><strong style={{ color: 'var(--ink)' }}>{c.available}</strong> available</span>
+                </div>
+              )}
 
               {isActive && c.applicants > 0 && (
                 <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>

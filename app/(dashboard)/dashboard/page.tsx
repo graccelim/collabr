@@ -7,7 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow';
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
-import { remainingSpots } from '@/lib/collab-status';
+import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import {
   ArrowRight,
@@ -385,7 +385,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
       id: c.id,
       title: c.title,
       pending: pendingByCampaign.get(c.id) || 0,
-      remaining: remainingSpots(c.creators_needed ?? 1, collabsByCampaign.get(c.id) ?? []),
+      // Reserved (selected-unfunded) slots count as taken — only surface
+      // campaigns that genuinely have room for another creator.
+      remaining: capacityBreakdown(c.creators_needed ?? 1, collabsByCampaign.get(c.id) ?? []).available,
     }))
     .filter((c) => c.pending > 0 && c.remaining > 0)
     .sort((a, b) => b.pending - a.pending)
