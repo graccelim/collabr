@@ -252,7 +252,7 @@ export default async function JobDetailPage({
   // exchange for barter.
   const compTerms: { icon: typeof Shield; t: string; sub: string }[] = isPaid
     ? [
-        { icon: Shield, t: 'Funds held securely in escrow', sub: 'The brand funds before you create anything' },
+        { icon: Shield, t: 'Funds held safely for you', sub: 'The brand funds before you create anything' },
         { icon: CheckCircle2, t: 'Get paid only after approval', sub: 'Release happens automatically on sign-off' },
         { icon: CheckCircle2, t: 'Safe, simple & transparent', sub: 'No invoices, no chasing payment' },
       ]
@@ -265,10 +265,10 @@ export default async function JobDetailPage({
   // "How it works" - the real flow, which differs for barter (no escrow funding).
   const steps: { icon: typeof Wallet; title: string; body: string }[] = isPaid
     ? [
-        { icon: Wallet, title: 'Brand funds escrow', body: 'The brand pays upfront and the money is locked in.' },
+        { icon: Wallet, title: 'Brand secures the payment', body: 'The brand pays upfront and the money is held safely.' },
         { icon: PenLine, title: 'Create content', body: 'Make the deliverable and submit your draft for review.' },
         { icon: Send, title: 'Submit for approval', body: 'The brand reviews and approves, or requests changes.' },
-        { icon: Coins, title: 'Get paid', body: 'Once approved, escrow releases straight to you.' },
+        { icon: Coins, title: 'Get paid', body: 'Once approved, the protected payment releases straight to you.' },
       ]
     : [
         { icon: Package, title: 'Brand sends the product', body: 'The agreed item ships to you so you can start.' },
@@ -521,7 +521,7 @@ export default async function JobDetailPage({
               const body = confirmedBarter
                 ? 'You’re in for this barter collab. Open it to submit your first draft.'
                 : confirmed
-                  ? 'Escrow is secured. Open your collab to submit your first draft.'
+                  ? 'The payment is secured. Open your collab to submit your first draft.'
                   : 'Most brands reply within a few days. You’ll always get a definite answer, by the campaign deadline, or within 14 days.';
               return (
                 <div
@@ -613,7 +613,7 @@ export default async function JobDetailPage({
               <div>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Apply for this campaign</div>
                 <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
-                  Create a free creator account to apply, get paid through escrow, and manage your collabs.
+                  Create a free creator account to apply, get paid with payment protection, and manage your collabs.
                 </p>
               </div>
               <AuthGateButton className="btn-primary" style={{ alignSelf: 'flex-start' }}>

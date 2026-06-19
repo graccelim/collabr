@@ -191,7 +191,7 @@ export default function PostJobPage() {
 
           {/* Section 3 - Budget */}
           <div className="card" style={{ padding: 24 }}>
-            <SectionHead n="3" label="Budget & escrow" />
+            <SectionHead n="3" label="Budget & payment protection" />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
               <div>
                 <label className="label">Compensation</label>
@@ -269,7 +269,7 @@ export default function PostJobPage() {
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '13px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--money-tint)' }}>
                 <Shield size={18} style={{ color: 'var(--money-deep)', flexShrink: 0, marginTop: 1 }} />
                 <span style={{ fontSize: 13, color: 'var(--money-deep)', lineHeight: 1.45 }}>
-                  Nothing is charged now. You only pay into escrow once you pick a creator to work with.
+                  Nothing is charged now. You only secure the payment once you pick a creator to work with.
                 </span>
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function PostJobPage() {
                   </div>
                 </div>
                 <span className="badge badge-money" style={{ display: 'inline-flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                  <Shield size={12} /> Escrow
+                  <Shield size={12} /> Protected
                 </span>
               </div>
 

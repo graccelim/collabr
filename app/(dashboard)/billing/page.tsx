@@ -123,7 +123,7 @@ export default async function BillingPage() {
                     and barter campaigns.
                   </p>
                   <p className="text-xs text-gray-400 mb-3">
-                    Pricing is shown at checkout. Campaigns, applications, escrow, reviews
+                    Pricing is shown at checkout. Campaigns, applications, payment protection, reviews
                     and disputes stay on the Free plan.
                   </p>
                   <div className="flex gap-2">

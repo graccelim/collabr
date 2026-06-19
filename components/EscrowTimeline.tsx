@@ -30,7 +30,7 @@ export default function EscrowTimeline({ current = 1, amount }: { current?: numb
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Shield size={16} color={GREEN} />
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Escrow protection</span>
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>Payment protection</span>
         </div>
         <span className="badge badge-money">
           <Lock size={12} />

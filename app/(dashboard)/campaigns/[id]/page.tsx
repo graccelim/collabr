@@ -218,7 +218,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
               <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--money-deep)' }}>How accepting works</span>
             </div>
             <p style={{ fontSize: 12.5, color: 'var(--money-deep)', margin: 0, lineHeight: 1.5 }}>
-              Accept a creator → you fund escrow for their agreed rate → work begins. You only pay out when you approve the live post.
+              Accept a creator → you secure the payment for their agreed rate → work begins. You only pay out when you approve the live post.
             </p>
           </div>
         </div>

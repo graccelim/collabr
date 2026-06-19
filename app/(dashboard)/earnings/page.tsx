@@ -83,14 +83,14 @@ export default async function EarningsPage({
         <div className="eyebrow" style={{ marginBottom: 7 }}>Money</div>
         <h1 style={{ fontSize: 28 }}>Earnings</h1>
         <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-          What you&rsquo;ve earned, what&rsquo;s safely held in escrow, and what&rsquo;s on its way to you.
+          What you&rsquo;ve earned, what&rsquo;s held safely for you, and what&rsquo;s on its way to you.
         </p>
       </div>
 
       <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
         <Stat label="Lifetime earned" value={formatSGD(connectProfile?.total_earned || 0)} icon={TrendingUp} />
         <Stat
-          label="In escrow for you"
+          label="Protected for you"
           value={formatSGD(inEscrow)}
           icon={Shield}
           tone="money"
@@ -132,8 +132,8 @@ export default async function EarningsPage({
               tone="money"
               title="Your first payout is on its way"
               body={inEscrow > 0
-                ? `${formatSGD(inEscrow)} is secured in escrow, it lands here the moment the brand confirms your live post.`
-                : 'The moment a brand confirms your live post, escrow releases and the money is on its way to you. You always know the payment is locked in before you start.'}
+                ? `${formatSGD(inEscrow)} is protected for you, it lands here the moment the brand confirms your live post.`
+                : 'The moment a brand confirms your live post, the protected payment releases and the money is on its way to you. You always know the payment is protected before you start.'}
               actionHref={inEscrow > 0 ? '/collabs' : '/jobs'}
               actionLabel={inEscrow > 0 ? 'Open active collab' : 'Browse campaigns'}
             />

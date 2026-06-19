@@ -8,7 +8,7 @@ import { Lock, BadgeCheck, DollarSign } from 'lucide-react'
  */
 export default function AuthShell({ children }: { children: React.ReactNode }) {
   const TRUST = [
-    [Lock, 'Money secured in escrow before work starts'],
+    [Lock, 'Money held safely before work starts'],
     [BadgeCheck, 'Vetted creators with connected socials'],
     [DollarSign, 'Paid automatically the moment a post goes live'],
   ] as const
@@ -32,8 +32,8 @@ export default function AuthShell({ children }: { children: React.ReactNode }) {
             Paid collaborations,<br />without the trust fall.
           </div>
           <p style={{ fontSize: 15.5, lineHeight: 1.6, color: 'rgba(255,255,255,0.6)', marginTop: 18, maxWidth: 400 }}>
-            Brands fund the work upfront. Creators see the money locked in before they
-            lift a finger. Escrow holds it until everyone&rsquo;s happy.
+            Brands fund the work upfront. Creators see the money protected before they
+            lift a finger. Payment protection holds it until everyone&rsquo;s happy.
           </p>
           <div style={{ marginTop: 34, display: 'flex', flexDirection: 'column', gap: 2 }}>
             {TRUST.map(([Ic, t]) => (

@@ -177,7 +177,7 @@ describe('renderEmail layout', () => {
     expect(html).toContain('href="https://app.collabr.test/x"')
     expect(html).toContain('Pre header text')
     expect(html).toContain('collabr') // brand mark
-    expect(html).toContain('escrow protection') // footer tagline
+    expect(html).toContain('payment protection') // footer tagline
     expect(html).toContain('<!DOCTYPE html>')
   })
 

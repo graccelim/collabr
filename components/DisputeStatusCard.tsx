@@ -74,7 +74,7 @@ export default function DisputeStatusCard({
       )}
       {resolved && (
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          A Collabr mediator reviewed both sides. Outcome: <strong>{statusLabel}</strong>. The escrow has been settled accordingly.
+          A Collabr mediator reviewed both sides. Outcome: <strong>{statusLabel}</strong>. The protected payment has been settled accordingly.
         </p>
       )}
 

@@ -97,9 +97,9 @@ export default async function BrandProfilePage({ params, searchParams }: { param
   // the creator reading it: it's funded upfront, so approved work always pays.
   // (Only shown to visitors, never on the brand's own-profile view.)
   const brandTerms: [string, string][] = [
-    ['Funded before you start', 'The brand locks payment in escrow upfront'],
+    ['Funded before you start', 'The brand secures the payment upfront'],
     ['Approved work always pays', 'Post the approved content and it’s yours'],
-    ['Released automatically', 'No chasing invoices, escrow pays out on approval'],
+    ['Released automatically', 'No chasing invoices, the protected payment pays out on approval'],
   ]
 
   const stats: ProfileStat[] = [

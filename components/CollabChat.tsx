@@ -65,7 +65,7 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
     if (data.blocked) {
       // Not delivered - contact info detected. Keep the draft so they can edit.
       toast.error(
-        "Not sent, phone numbers, emails and handles can't be shared in chat. Keep deals on collabr so escrow protects you.",
+        "Not sent, phone numbers, emails and handles can't be shared in chat. Keep deals on collabr so your payment protection stays in effect.",
         { duration: 6000 },
       )
       setSending(false)
@@ -99,7 +99,7 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
           <p className="small" style={{ color: 'var(--ink-faint-solid)', textAlign: 'center', padding: 20 }}>Loading…</p>
         ) : messages.length === 0 ? (
           <p className="small" style={{ color: 'var(--ink-faint-solid)', textAlign: 'center', padding: 20, lineHeight: 1.5 }}>
-            No messages yet. Coordinate the brief, drafts and timing here -<br />keep everything on collabr so escrow stays in effect.
+            No messages yet. Coordinate the brief, drafts and timing here -<br />keep everything on collabr so your payment protection stays in effect.
           </p>
         ) : (
           messages.map(m => {
@@ -146,7 +146,7 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
           </button>
         </div>
         <p className="micro" style={{ lineHeight: 1.4 }}>
-          Keep deals on collabr, escrow only protects on-platform payments. Phone numbers, emails and handles can&rsquo;t be sent here.
+          Keep deals on collabr, payment protection only covers on-platform payments. Phone numbers, emails and handles can&rsquo;t be sent here.
         </p>
       </form>
     </div>

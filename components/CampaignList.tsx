@@ -82,7 +82,7 @@ export default function CampaignList({ campaigns }: { campaigns: CampaignRow[] }
             // Barter has no escrow — show remaining capacity in that slot instead.
             isBarter
               ? { k: 'Available', v: String(c.available) }
-              : { k: 'In escrow', v: formatSGD(c.inEscrow), mono: true, money: c.inEscrow > 0 },
+              : { k: 'Protected', v: formatSGD(c.inEscrow), mono: true, money: c.inEscrow > 0 },
           ]
 
           return (

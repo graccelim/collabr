@@ -187,7 +187,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       title: `${creatorName} accepted your invite 🎉`,
       body: isBarterDeal
         ? 'Your barter collab is confirmed — the creator can start now.'
-        : 'The collab has been created, fund escrow to get work started.',
+        : 'The collab has been created, secure the payment to get work started.',
       payload: { invite_id: invite.id, collab_id: collabId },
       dedupeKey: `invite:${invite.id}:accepted`,
     })

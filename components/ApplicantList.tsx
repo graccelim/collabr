@@ -343,7 +343,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       </button>
                       <Link href={`/collabs/${app.collab_id}`} className="btn-primary"
                         style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                        <Shield size={14} /> Fund escrow{rateLabel ? ` ${rateLabel}` : ''} →
+                        <Shield size={14} /> Secure payment{rateLabel ? ` ${rateLabel}` : ''} →
                       </Link>
                     </div>
                   ) : (

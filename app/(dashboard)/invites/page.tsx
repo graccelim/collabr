@@ -263,7 +263,7 @@ export default async function InvitesPage() {
                     style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}
                   >
                     {inv.proposed_rate > 0
-                      ? `If you accept, ${brandName} funds escrow immediately.`
+                      ? `If you accept, ${brandName} secures the payment immediately.`
                       : 'If you accept, the barter collaboration starts right away.'}
                   </span>
                   <InviteActions inviteId={inv.id} />

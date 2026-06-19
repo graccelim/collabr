@@ -161,7 +161,7 @@ export default function CollabActions({
         <div style={{ padding: '14px 16px', background: 'var(--safe-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(22,163,74,.12)', display: 'flex', gap: 11, alignItems: 'flex-start' }}>
           <Shield size={18} color="var(--safe)" style={{ flexShrink: 0, marginTop: 1 }} />
           <div>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--safe-deep)', marginBottom: 4 }}>What "escrow" means, plainly</div>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--safe-deep)', marginBottom: 4 }}>What "payment protection" means, plainly</div>
             <p style={{ fontSize: 13, color: 'var(--safe-deep)', lineHeight: 1.5, margin: 0 }}>
               Your money goes to collabr, <strong>not</strong> the creator. We hold it safely. It only moves to {creatorName.split(' ')[0]} once you approve their live post. If the work never happens, you get it back.
             </p>
@@ -180,7 +180,7 @@ export default function CollabActions({
         </div>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--safe-deep)', marginBottom: 4 }}>
-            {formatSGD(agreedRate)} secured in escrow
+            {formatSGD(agreedRate)} protected
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
             Funds are held and will release to {creatorName} once you confirm their live post.
@@ -199,7 +199,7 @@ export default function CollabActions({
             Release breakdown
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-            <span style={{ fontSize: 14, color: 'var(--ink-soft)' }}>In escrow</span>
+            <span style={{ fontSize: 14, color: 'var(--ink-soft)' }}>Protected</span>
             <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink)' }}>{formatSGD(agreedRate)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
@@ -280,10 +280,10 @@ export default function CollabActions({
         <Lock size={16} color="var(--safe)" style={{ flexShrink: 0 }} />
         <div>
           <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--safe-deep)' }}>
-            {formatSGD(agreedRate)} secured in escrow
+            {formatSGD(agreedRate)} protected
           </span>
           <span style={{ fontSize: 13, color: 'var(--safe-deep)', display: 'block', marginTop: 1 }}>
-            Your payment is locked in, submit your draft to get started.
+            Your payment is protected, submit your draft to get started.
           </span>
         </div>
       </div>

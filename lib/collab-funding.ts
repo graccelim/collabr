@@ -159,7 +159,7 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
       title: isBarter ? `You're confirmed for "${title}"` : `Confirmed for "${title}" · payment secured`,
       body: isBarter
         ? 'The brand accepted you for this barter collab. You can start now.'
-        : 'The brand funded escrow. You can start the collab now.',
+        : 'The brand secured the payment. You can start the collab now.',
       payload: { application_id: appId, campaign_id: collab.campaign_id, collab_id: collab.id },
       dedupeKey: `application:${appId}:selected`,
     })

@@ -86,7 +86,7 @@ const WHY = [
   },
   {
     Icon: Lock,
-    title: 'Secure escrow',
+    title: 'Payment protection',
     body: 'Funds are held safely until content is approved, protected on both sides.',
   },
   {

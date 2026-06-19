@@ -30,7 +30,7 @@ export interface WorkflowView {
 const STEP_LABELS = [
   ['applied', 'Applied', 'Applied'],
   ['selected', 'Selected', 'Confirmed'],
-  ['funded', 'Escrow funded', 'Collaboration active'],
+  ['funded', 'Payment secured', 'Collaboration active'],
   ['draft_submitted', 'Draft submitted', 'Draft submitted'],
   ['revision', 'Revision requested', 'Revision requested'],
   ['draft_approved', 'Draft approved', 'Draft approved'],
@@ -81,8 +81,8 @@ export function deriveWorkflow(opts: {
           steps: buildSteps('selected', 'funded', includeRevision, isBarter),
           happened: 'The creator was selected for this campaign.',
           next: isBrand
-            ? 'Deposit the agreed amount into escrow. Funds stay with collabr, work begins only after Stripe verifies the authorization.'
-            : `${first} must fund escrow before you start. Your payment is reserved with collabr before any work begins.`,
+            ? 'Secure the agreed amount with collabr. The money stays protected, work begins only after Stripe verifies the authorization.'
+            : `${first} must secure the payment before you start. Your payment is reserved with collabr before any work begins.`,
           actor: 'brand',
           deadline: null,
           frozen: false,
@@ -92,12 +92,12 @@ export function deriveWorkflow(opts: {
         steps: buildSteps('funded', 'draft_submitted', includeRevision, isBarter),
         happened: isBarter
           ? 'The barter collaboration is confirmed and active.'
-          : 'Escrow is funded, the money is held safely by collabr.',
+          : 'The payment is secured, the money is held safely by collabr.',
         next: isBrand
           ? `${first} is working on the draft. You'll review it before anything goes live.`
           : isBarter
             ? 'Submit your draft for review to get the collaboration started.'
-            : 'Submit your draft for review. Your payment is locked in and guaranteed once requirements are met.',
+            : 'Submit your draft for review. Your payment is protected and guaranteed once requirements are met.',
         actor: 'creator',
         deadline: null,
         frozen: false,
@@ -186,7 +186,7 @@ export function deriveWorkflow(opts: {
     case 'disputed':
       return {
         steps: buildSteps(funded ? 'funded' : 'selected', null, includeRevision, isBarter),
-        happened: 'A dispute was raised. Escrow is frozen.',
+        happened: 'A dispute was raised. The protected payment is frozen.',
         next: 'A collabr mediator reviews both sides within 3 business days. No money moves until the dispute is resolved.',
         actor: 'platform',
         deadline: null,
@@ -198,8 +198,8 @@ export function deriveWorkflow(opts: {
         steps: buildSteps('selected', null, includeRevision, isBarter),
         happened: 'This collab was cancelled.',
         next: ['refunded', 'cancelled'].includes(paymentStatus)
-          ? 'Any escrowed funds have been returned to the brand.'
-          : 'Any escrowed funds are being returned to the brand.',
+          ? 'Any protected funds have been returned to the brand.'
+          : 'Any protected funds are being returned to the brand.',
         actor: 'none',
         deadline: null,
         frozen: true,

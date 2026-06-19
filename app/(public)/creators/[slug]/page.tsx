@@ -468,7 +468,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       </div>
       <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--line)', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {([
-          [ShieldCheck, 'Escrow protected', 'Payment is locked in before work starts'],
+          [ShieldCheck, 'Payment protected', 'Payment is held safely before work starts'],
           [Clock, '48h review window', 'Time to review and approve the content'],
           [CheckCircle2, 'Guaranteed payment', 'Deliver the work and you get paid, every time'],
         ] as [typeof Clock, string, string][]).map(([Icon, t, sub]) => (

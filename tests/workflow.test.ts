@@ -31,9 +31,9 @@ describe('deriveWorkflow - barter has no escrow/payment language', () => {
       }
     }
   })
-  it('paid collabs still use escrow language (regression guard)', () => {
+  it('paid collabs still use the payment-secured label (regression guard)', () => {
     const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'funded', isBrand: false })
-    expect(v.steps.map(s => s.label)).toContain('Escrow funded')
+    expect(v.steps.map(s => s.label)).toContain('Payment secured')
   })
 })
 

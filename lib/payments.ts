@@ -112,7 +112,7 @@ export async function captureTransferAndComplete(
       payment_status: 'capture_failed',
       payment_failure_reason: 'No PaymentIntent is recorded for this collab.',
     })
-    return { ok: false, paymentStatus: 'capture_failed', error: 'Escrow is not funded.' }
+    return { ok: false, paymentStatus: 'capture_failed', error: 'The payment is not secured.' }
   }
 
   const captureAmount = amounts?.captureAmount ?? collab.agreed_rate
@@ -240,7 +240,7 @@ export async function settleSplitDispute(
       payment_status: 'capture_failed',
       payment_failure_reason: 'No PaymentIntent is recorded for this collab.',
     })
-    return { ok: false, paymentStatus: 'capture_failed', error: 'Escrow is not funded.' }
+    return { ok: false, paymentStatus: 'capture_failed', error: 'The payment is not secured.' }
   }
 
   const captureAmount = amounts.captureAmount

@@ -236,7 +236,7 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '13px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--money-tint)' }}>
             <Shield size={18} style={{ color: 'var(--money-deep)', flexShrink: 0, marginTop: 1 }} />
             <span style={{ fontSize: 13, color: 'var(--money-deep)', lineHeight: 1.45 }}>
-              Editing doesn&rsquo;t touch escrow. You fund a creator only when you accept them.
+              Editing doesn&rsquo;t touch the payment. You secure the payment for a creator only when you accept them.
             </span>
           </div>
         </div>

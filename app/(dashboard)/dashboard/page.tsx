@@ -445,12 +445,12 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
       <div style={{ marginBottom: 14 }}>
         <MoneyPanel
-          label="Held in escrow"
+          label="Protected"
           amount={inEscrow}
           sub={
             inEscrow > 0
               ? `Across ${escrowed.length} collaboration${escrowed.length !== 1 ? 's' : ''} · released only when you approve the work.`
-              : 'Nothing secured yet, you’ll fund escrow when you accept your first creator.'
+              : 'Nothing secured yet, you’ll secure the payment when you accept your first creator.'
           }
         />
         <Link href={`/brands/${brand.id}`} className="md:hidden"
@@ -463,8 +463,8 @@ async function BrandDashboard({ userId }: { userId: string }) {
         <EmptyState
           icon={Megaphone}
           title="Your first collaboration starts here"
-          body="Post a campaign, pick a creator you love, and fund escrow, we’ll walk you through every step. It’s free during beta."
-          steps={['Post a campaign', 'Pick a creator', 'Fund escrow']}
+          body="Post a campaign, pick a creator you love, and secure the payment, we’ll walk you through every step. It’s free during beta."
+          steps={['Post a campaign', 'Pick a creator', 'Secure payment']}
           actionHref="/post-job"
           actionLabel="Post a campaign"
         />
@@ -887,7 +887,7 @@ async function CreatorDashboard({
             </div>
           </div>
           <div className="money-secured" style={{ textAlign: 'right' }}>
-            <div className="money-label">Secured in escrow now</div>
+            <div className="money-label">Protected now</div>
             <div
               className="mono-num"
               style={{
@@ -908,7 +908,7 @@ async function CreatorDashboard({
             ? ` · ${creator.rating_avg} ★ average rating`
             : ''}
           {securedNow > 0
-            ? ' · escrowed funds release when your work is approved.'
+            ? ' · protected funds release when your work is approved.'
             : ''}
         </div>
       </div>
@@ -922,7 +922,7 @@ async function CreatorDashboard({
         <EmptyState
           icon={Compass}
           title="Let's land your first paid collab"
-          body="Browse open campaigns that fit your niche, send a pitch, and the brand funds escrow before you create anything."
+          body="Browse open campaigns that fit your niche, send a pitch, and the brand secures the payment before you create anything."
           steps={[
             'Browse campaigns',
             'Send a pitch',

@@ -54,8 +54,8 @@ export default function TermsPage() {
         <p style={{ fontSize: 14.5, lineHeight: 1.7, color: 'var(--ink-soft)', marginTop: 20 }}>
           These Terms &amp; Conditions (the &ldquo;Terms&rdquo;) govern your access to and use of Collabr (the
           &ldquo;Platform&rdquo;, &ldquo;we&rdquo;, &ldquo;us&rdquo;), a marketplace that connects brands
-          (&ldquo;Brands&rdquo;) with content creators (&ldquo;Creators&rdquo;) and facilitates payments held in
-          escrow. By creating an account, posting a campaign, applying to a campaign, or otherwise using the
+          (&ldquo;Brands&rdquo;) with content creators (&ldquo;Creators&rdquo;) and facilitates payments held
+          safely with payment protection. By creating an account, posting a campaign, applying to a campaign, or otherwise using the
           Platform, you agree to be bound by these Terms. If you do not agree, do not use the Platform.
         </p>
 
@@ -65,16 +65,16 @@ export default function TermsPage() {
 
         <Section n={2} title="The role of Collabr">
           <p>Collabr is a venue and payments facilitator. We are <strong>not</strong> a party to any agreement, collaboration or transaction between a Brand and a Creator (a &ldquo;Collab&rdquo;). We do not employ Creators, do not author campaign briefs, and do not guarantee the quality, legality, safety, or outcome of any Collab, content, Brand or Creator.</p>
-          <p>Brands and Creators contract directly with each other. We provide tools (campaign listings, applications, messaging, escrow, dispute handling) to support those dealings but are not responsible for the acts or omissions of any user.</p>
+          <p>Brands and Creators contract directly with each other. We provide tools (campaign listings, applications, messaging, payment protection, dispute handling) to support those dealings but are not responsible for the acts or omissions of any user.</p>
         </Section>
 
         <Section n={3} title="Campaigns, applications and selection">
-          <p>Brands may post campaigns describing deliverables, compensation (cash or barter), and requirements. Creators may apply with a pitch and, for paid campaigns, an expected rate. A Brand may shortlist, decline, or select applicants. Selection alone does not create a binding Collab or any payment obligation; a Collab becomes active only once the Brand funds escrow.</p>
+          <p>Brands may post campaigns describing deliverables, compensation (cash or barter), and requirements. Creators may apply with a pitch and, for paid campaigns, an expected rate. A Brand may shortlist, decline, or select applicants. Selection alone does not create a binding Collab or any payment obligation; a Collab becomes active only once the Brand secures the payment.</p>
           <p>We do not guarantee that any campaign will receive applications, that any Creator will be selected, or that any Brand will fund a Collab. Information shown on the Platform, including self-reported follower counts and metrics, is provided by users and is not verified by us.</p>
         </Section>
 
-        <Section n={4} title="Payments, escrow and fees">
-          <p>Payments are processed by our third-party payment provider (Stripe). By transacting on the Platform you also agree to the applicable Stripe terms. When a Brand funds a Collab, the agreed amount is authorised and held in escrow. Funds are released to the Creator after the Brand approves the work, or automatically after the applicable review window if the Brand does not act.</p>
+        <Section n={4} title="Payments, payment protection and fees">
+          <p>Payments are processed by our third-party payment provider (Stripe). By transacting on the Platform you also agree to the applicable Stripe terms. When a Brand funds a Collab, the agreed amount is authorised and held safely. Funds are released to the Creator after the Brand approves the work, or automatically after the applicable review window if the Brand does not act.</p>
           <p>Collabr charges a platform fee, deducted from the Creator&rsquo;s payout, as disclosed at the point of application and/or funding (currently up to 12%). Fees are non-refundable except as required by law or expressly stated. Creators are responsible for connecting a valid payout account; payouts cannot be made until they do so.</p>
           <p>Refunds of an authorised-but-not-released amount may be made to the Brand where a Collab is cancelled before work is delivered or where a funding authorisation expires. Once funds have been released to a Creator, they are generally non-refundable. You are responsible for your own taxes arising from your use of the Platform.</p>
         </Section>
@@ -84,7 +84,7 @@ export default function TermsPage() {
         </Section>
 
         <Section n={6} title="Brand obligations">
-          <p>As a Brand you agree to: provide lawful, accurate and non-deceptive briefs; fund escrow in good faith when you intend to engage a Creator; review submitted work within the stated windows; not request content that is unlawful, infringing, or that violates platform or advertising rules; and not use the Platform to harass, exploit or discriminate against Creators.</p>
+          <p>As a Brand you agree to: provide lawful, accurate and non-deceptive briefs; secure the payment in good faith when you intend to engage a Creator; review submitted work within the stated windows; not request content that is unlawful, infringing, or that violates platform or advertising rules; and not use the Platform to harass, exploit or discriminate against Creators.</p>
         </Section>
 
         <Section n={7} title="Content and intellectual property">
@@ -101,7 +101,7 @@ export default function TermsPage() {
         </Section>
 
         <Section n={10} title="Disputes between users">
-          <p>If a dispute arises within a Collab, either party may raise it through the Platform during an eligible stage. Collabr may, at its discretion, review the submitted evidence and reach a resolution regarding the release, split or refund of escrowed funds. Our resolution of escrow allocation is final for the purpose of the held funds. This does not limit either party&rsquo;s separate legal rights against the other. Collabr is not liable for the underlying conduct of either party.</p>
+          <p>If a dispute arises within a Collab, either party may raise it through the Platform during an eligible stage. Collabr may, at its discretion, review the submitted evidence and reach a resolution regarding the release, split or refund of the protected funds. Our resolution of how the protected payment is allocated is final for the purpose of the held funds. This does not limit either party&rsquo;s separate legal rights against the other. Collabr is not liable for the underlying conduct of either party.</p>
         </Section>
 
         <Section n={11} title="Suspension and termination">

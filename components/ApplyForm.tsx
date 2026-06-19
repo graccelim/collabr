@@ -128,7 +128,7 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
           }}
         >
           {isPaid
-            ? 'The brand funds escrow at your agreed rate before any work starts. collabr keeps a 12% fee from your payout.'
+            ? 'The brand secures the payment at your agreed rate before any work starts. collabr keeps a 12% fee from your payout.'
             : 'This is a barter campaign. Add a rate only if you want to propose a cash top-up.'}
         </p>
       </div>
