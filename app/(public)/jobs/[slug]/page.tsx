@@ -10,6 +10,7 @@ import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
 import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package, Sparkles } from 'lucide-react';
 import ApplyForm from '@/components/ApplyForm';
+import InviteActions from '@/components/InviteActions';
 import RatingChip from '@/components/RatingChip';
 import AuthGateButton from '@/components/AuthGateButton';
 import SaveCampaignButton from '@/components/SaveCampaignButton';
@@ -168,6 +169,15 @@ export default async function JobDetailPage({
     : [{ data: null }, { data: null }, { data: null }, { data: null }];
   const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
   const isSavedCampaign = Boolean(savedRow);
+
+  // A pending invite for this creator → they review the brief here and accept or
+  // decline (no apply form; they were invited, not applying).
+  const { data: pendingInvite } = creator && !existing
+    ? await supabase.from('campaign_invites')
+        .select('id, proposed_rate')
+        .eq('campaign_id', campaignId).eq('creator_id', creator.id).eq('status', 'pending')
+        .maybeSingle()
+    : { data: null };
 
   // Capacity: filled once enough creators are FUNDED. A filled campaign can't
   // be applied to (existing applicants still see their own state).
@@ -585,7 +595,17 @@ export default async function JobDetailPage({
               );
             })()
           ) : isCreatorViewer && creator ? (
-            campaignFilled ? (
+            pendingInvite ? (
+              <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>You&rsquo;re invited to this campaign</div>
+                  <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '4px 0 0', lineHeight: 1.5 }}>
+                    {brandName} invited you{pendingInvite.proposed_rate > 0 ? ` with a ${formatSGD(pendingInvite.proposed_rate)} offer` : ' for a barter collaboration'}. Review the brief above, then accept or decline.
+                  </p>
+                </div>
+                <InviteActions inviteId={pendingInvite.id} />
+              </div>
+            ) : campaignFilled ? (
               <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>This campaign is filled</div>
                 <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>

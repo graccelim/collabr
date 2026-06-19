@@ -266,7 +266,12 @@ export default async function InvitesPage() {
                       ? `If you accept, ${brandName} secures the payment immediately.`
                       : 'If you accept, the barter collaboration starts right away.'}
                   </span>
-                  <InviteActions inviteId={inv.id} />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+                    <Link href={`/jobs/${(inv.campaigns as any)?.id}`} className="btn-ghost btn-sm">
+                      View campaign
+                    </Link>
+                    <InviteActions inviteId={inv.id} />
+                  </div>
                 </div>
               </div>
             );
