@@ -473,6 +473,7 @@ export default async function JobDetailPage({
             )}
 
             <div
+              className="brief-grid"
               style={{
                 display: 'grid',
                 gridTemplateColumns: `repeat(${briefMeta.length}, 1fr)`,
@@ -484,7 +485,7 @@ export default async function JobDetailPage({
             >
               {briefMeta.map((m) => (
                 <div key={m.label}>
-                  <div className="eyebrow" style={{ fontSize: 10 }}>
+                  <div className="eyebrow brief-label" style={{ fontSize: 10 }}>
                     {m.label}
                   </div>
                   <div

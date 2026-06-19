@@ -203,6 +203,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   {ownerActions(false)}
                 </div>
               )}
+
+              {/* Visitor (anyone-c, not c-c) on phones: share sits top-right,
+                  inline with the name. Desktop keeps it in the actions row. */}
+              {!isOwner && (
+                <div className="flex md:hidden" style={{ flexShrink: 0 }}>
+                  <ShareProfileButton path={`/creators/${slug}`} name={name} />
+                </div>
+              )}
             </div>
           </div>
   )
@@ -214,7 +222,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             {ownerActions(true)}
           </div>
   ) : (
-          <div style={{ marginBottom: 30 }}>
+          <div className={isBrandViewer ? undefined : 'hidden md:block'} style={{ marginBottom: 30 }}>
             <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
               {isBrandViewer && viewerIsPro && (
                 <>
@@ -227,7 +235,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   <SaveCreatorButton creatorId={creatorId} initialSaved={isSaved} />
                 </>
               )}
-              <ShareProfileButton path={`/creators/${slug}`} name={name} />
+              {/* Share moves to the hero top-right on phones; keep it here on desktop. */}
+              <span className="hidden md:inline-flex">
+                <ShareProfileButton path={`/creators/${slug}`} name={name} />
+              </span>
             </div>
             {isBrandViewer && !viewerIsPro && (
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>

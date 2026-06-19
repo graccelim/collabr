@@ -759,6 +759,12 @@
   /* "How it works" steps: 4-up on desktop → 2-up on phones. */
   .how-steps { grid-template-columns: 1fr 1fr !important; gap: 18px 16px !important; }
 
+  /* Campaign brief meta (Deliverable / Min followers / Due): on phones the
+     "Min followers" label wraps to two lines while its neighbours stay on one,
+     dropping its value off the shared baseline. Reserve a two-line label height
+     so every value aligns. Desktop labels fit on one line — left untouched. */
+  .brief-grid .brief-label { min-height: 24px; }
+
   /* Escrow timeline: drop the per-step notes on mobile (too wordy) and tighten
      the step labels so the 5 steps read cleanly. Web keeps the full version. */
   .escrow-note { display: none !important; }
