@@ -2,7 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { cancelOrRefundPayment, captureTransferAndComplete } from '@/lib/payments'
+import { cancelOrRefundPayment, captureTransferAndComplete, completeBarterCollab } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -35,16 +35,23 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (claimed !== true) return NextResponse.json({ error: 'Dispute is already resolved' }, { status: 409 })
 
   const collab = dispute.collabs as any
+  const isBarter = (collab.agreed_rate ?? 0) === 0
   let settlement
-  if (outcome === 'creator_wins') {
-    settlement = await captureTransferAndComplete(admin, collab)
-  } else if (outcome === 'split') {
-    const creatorShare = split_percentage || 0
-    settlement = await captureTransferAndComplete(admin, collab, {
-      captureAmount: Math.round(collab.agreed_rate * (creatorShare / 100)),
-      creatorPayout: Math.round(collab.creator_payout * (creatorShare / 100)),
-    })
+  if (outcome === 'creator_wins' || outcome === 'split') {
+    // Barter has no money to capture/split — a creator/split win just completes.
+    if (isBarter) {
+      settlement = await completeBarterCollab(admin, collab.id)
+    } else if (outcome === 'creator_wins') {
+      settlement = await captureTransferAndComplete(admin, collab)
+    } else {
+      const creatorShare = split_percentage || 0
+      settlement = await captureTransferAndComplete(admin, collab, {
+        captureAmount: Math.round(collab.agreed_rate * (creatorShare / 100)),
+        creatorPayout: Math.round(collab.creator_payout * (creatorShare / 100)),
+      })
+    }
   } else {
+    // brand_wins / mutual → refund/cancel (barter has no money; just cancels).
     settlement = await cancelOrRefundPayment(admin, collab)
     if (settlement.ok) {
       await admin.from('collabs').update({ status: 'cancelled' }).eq('id', collab.id)
