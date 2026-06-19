@@ -104,6 +104,14 @@ export async function POST(req: NextRequest) {
     if (error.code === '23505') {
       return NextResponse.json({ error: 'This creator already has a pending invite for this campaign' }, { status: 409 })
     }
+    // 23514 = check-constraint violation. The most likely cause is the legacy
+    // proposed_rate > 0 constraint on a barter (rate-0) invite — point the brand
+    // at the fix instead of a generic failure.
+    if (error.code === '23514' && parsed.data.proposed_rate === 0) {
+      return NextResponse.json({
+        error: 'Barter invites aren’t enabled on this database yet (migration 032). Apply it, or invite with a cash offer for now.',
+      }, { status: 409 })
+    }
     console.error('[INVITE CREATE]', error)
     return NextResponse.json({ error: 'Could not send invite. Please try again.' }, { status: 500 })
   }
