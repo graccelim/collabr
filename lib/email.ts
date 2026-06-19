@@ -9,7 +9,7 @@ export function link(path: string): string {
 }
 
 // ── Low-level send (graceful when unconfigured) ─────────────────────────────
-export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
+export async function sendEmail({ to, subject, html, headers }: { to: string; subject: string; html: string; headers?: Record<string, string> }) {
   const key = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
 
@@ -18,7 +18,7 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
     return
   }
   const resend = new Resend(key)
-  const { error } = await resend.emails.send({ from: `collabr. <${from}>`, to, subject, html })
+  const { error } = await resend.emails.send({ from: `collabr. <${from}>`, to, subject, html, ...(headers ? { headers } : {}) })
   if (error) console.error('[EMAIL ERROR]', error)
 }
 
@@ -342,14 +342,20 @@ export const productEmails = {
 // inbox with the full context (parties, campaign, reason/evidence, collab link).
 const DISPUTE_INBOX = 'joincollabr@gmail.com'
 
-export async function sendDisputeAdminEmail(subject: string, rows: Record<string, string>) {
+export async function sendDisputeAdminEmail(subject: string, rows: Record<string, string>, threadKey?: string) {
   const body = Object.entries(rows)
     .map(([k, v]) => `<p style="margin:0 0 6px"><strong>${esc(k)}:</strong> ${esc(v)}</p>`)
     .join('')
+  // Thread every email for one dispute into a single Gmail conversation via a
+  // stable References/In-Reply-To id derived from the dispute.
+  const headers = threadKey
+    ? { 'References': `<dispute-${threadKey}@collabr.app>`, 'In-Reply-To': `<dispute-${threadKey}@collabr.app>` }
+    : undefined
   await sendEmail({
     to: DISPUTE_INBOX,
     subject,
     html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#111217">${body}</div>`,
+    headers,
   })
 }
 

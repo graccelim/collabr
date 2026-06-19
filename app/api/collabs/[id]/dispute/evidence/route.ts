@@ -64,13 +64,22 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (otherEmail && otherUserId) {
     await sendProductEmail({ to: otherEmail, ...productEmails.disputeEvidenceAdded({ collabId: params.id, disputeId: String(dispute.id), evidenceId: String(evidence.id), recipientId: otherUserId }) })
   }
-  await sendDisputeAdminEmail(`New dispute evidence — ${(collab.campaigns as any)?.title || 'collab'}`, {
-    Campaign: (collab.campaigns as any)?.title || '—',
-    'Submitted by': isBrand ? 'Brand' : 'Creator',
+  // Same subject + threadKey as the open email → threads into one conversation.
+  const title = (collab.campaigns as any)?.title || 'collab'
+  const submitterName = isBrand
+    ? ((collab.brand_profiles as any)?.company_name || 'Brand')
+    : ((collab.creator_profiles as any)?.users?.display_name || 'Creator')
+  const submitterEmail = isBrand
+    ? (collab.brand_profiles as any)?.users?.email
+    : (collab.creator_profiles as any)?.users?.email
+  await sendDisputeAdminEmail(`Dispute · ${title}`, {
+    Event: 'Evidence added',
+    Campaign: title,
+    'Submitted by': `${submitterName} (${isBrand ? 'Brand' : 'Creator'})${submitterEmail ? ` <${submitterEmail}>` : ''}`,
     Note: text || '(none)',
     Attachments: urls.length ? urls.join('  •  ') : '(none)',
     Collab: link(`/collabs/${params.id}`),
-  }).catch(() => {})
+  }, String(dispute.id)).catch(() => {})
 
   return NextResponse.json({ success: true, evidence_id: evidence.id })
 }

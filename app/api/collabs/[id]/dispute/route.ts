@@ -60,14 +60,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (raisingEmail) await sendProductEmail({ to: raisingEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: user.id }) })
 
     // Mirror to the mediation inbox with full context (disputes are manual).
-    await sendDisputeAdminEmail(`New dispute opened — ${(collab.campaigns as any)?.title || 'collab'}`, {
-      Campaign: (collab.campaigns as any)?.title || '—',
-      Creator: (collab.creator_profiles as any)?.users?.display_name || '—',
-      Brand: (collab.brand_profiles as any)?.company_name || '—',
-      'Opened by': isBrand ? 'Brand' : 'Creator',
+    // Same subject + threadKey as evidence emails → one Gmail conversation.
+    const title = (collab.campaigns as any)?.title || 'collab'
+    const creatorName = (collab.creator_profiles as any)?.users?.display_name || '—'
+    const creatorMail = (collab.creator_profiles as any)?.users?.email
+    const brandName = (collab.brand_profiles as any)?.company_name || '—'
+    const openerName = isBrand ? brandName : creatorName
+    await sendDisputeAdminEmail(`Dispute · ${title}`, {
+      Event: 'Opened',
+      Campaign: title,
+      Creator: creatorMail ? `${creatorName} <${creatorMail}>` : creatorName,
+      Brand: brandName,
+      'Opened by': `${openerName} (${isBrand ? 'Brand' : 'Creator'})${raisingEmail ? ` <${raisingEmail}>` : ''}`,
       Reason: reason,
       Collab: link(`/collabs/${params.id}`),
-    }).catch(() => {})
+    }, String(disputeId)).catch(() => {})
   }
 
   return NextResponse.json({ success: true, created, dispute_id: disputeId })
