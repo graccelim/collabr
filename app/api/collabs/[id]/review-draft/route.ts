@@ -17,13 +17,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (brandUserId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
   const body = await req.json()
-  const { submission_id, decision, feedback } = body // decision: 'approved' | 'revision' | 'rejected'
+  const { submission_id, decision, feedback } = body // decision: 'approved' | 'revision'
   if (!submission_id) return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
-  if (!['approved', 'revision', 'rejected'].includes(decision)) {
+  // Only approve or request-revision. A hard "reject" would strand the collab at
+  // draft_submitted (the creator can't resubmit from there) — the brand path for
+  // an unacceptable draft is to raise a dispute instead.
+  if (!['approved', 'revision'].includes(decision)) {
     return NextResponse.json({ error: 'Invalid decision' }, { status: 400 })
   }
 
-  if (decision === 'revision' || decision === 'rejected') {
+  if (decision === 'revision') {
     if (!feedback || feedback.length < 20) {
       return NextResponse.json({ error: 'Feedback must be at least 20 characters and specific to the brief' }, { status: 400 })
     }
@@ -54,11 +57,6 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       title: 'Revision requested', body: feedback, payload: { collab_id: params.id },
       dedupeKey: `submission:${submissionId}:revision` })
     if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.revisionRequested({ collabId: params.id, key: String(submissionId) }) })
-
-  } else if (decision === 'rejected') {
-    if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_rejected',
-      title: 'Draft rejected', body: feedback, payload: { collab_id: params.id },
-      dedupeKey: `submission:${submissionId}:rejected` })
   }
 
   return NextResponse.json({ success: true, decision, applied })
