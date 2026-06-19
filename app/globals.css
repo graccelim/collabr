@@ -742,10 +742,12 @@
   .dash-pad { padding-left: 16px !important; padding-right: 16px !important; }
 
   /* b-c profile actions: Invite/Save grow to fill the row width on phones; the
-     square Share button stays fixed. Desktop keeps its left-aligned wrap. */
+     square Share button stays fixed. All on ONE line (no wrap) — they shrink to
+     fit rather than dropping below. Desktop keeps its left-aligned wrap. */
+  .bc-actions { flex-wrap: nowrap !important; }
   .bc-actions > .btn-primary,
   .bc-actions > .btn-secondary:not([aria-label="Share profile"]) {
-    flex: 1; justify-content: center;
+    flex: 1; justify-content: center; min-width: 0;
   }
 
   /* Light-blue top bar on mobile (matches the app canvas). Desktop keeps the
@@ -792,3 +794,12 @@
 .vis-hero-share    { display: none; }
 .vis-row-share     { display: inline-flex; }
 .vis-actions-empty { display: block; }
+
+/* Discover-creators filters: inline bar on desktop, a single Filters button +
+   bottom-sheet on phones. */
+.cf-inline { display: flex; }
+.cf-mobile { display: none; }
+@media (max-width: 768px) {
+  .cf-inline { display: none !important; }
+  .cf-mobile { display: flex !important; }
+}

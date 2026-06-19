@@ -113,6 +113,11 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     }
   }
 
+  // Does this viewer get action buttons (Invite + Save) alongside Share? Only a
+  // pro brand. When true, Share lives in that button row; when false, Share is
+  // the lone action and moves up beside the name on phones.
+  const hasProfileCtas = isBrandViewer && viewerIsPro
+
   const name = (creator.users as any)?.display_name || 'Creator'
   const avatar = (creator.users as any)?.avatar_url
   const isBoosted = boostEnabled() && creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
@@ -174,6 +179,13 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                     <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
                     {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
                     {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
+                    {/* Phones, no other CTA: Share sits inline at the end of the
+                        name row (pushed right). Hidden on desktop (in the row). */}
+                    {!isOwner && !hasProfileCtas && (
+                      <span className="vis-hero-share" style={{ marginLeft: 'auto', flexShrink: 0 }}>
+                        <ShareProfileButton path={`/creators/${slug}`} name={name} />
+                      </span>
+                    )}
                   </div>
                   {primarySocial && (
                     <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 540, marginTop: 5 }}>
@@ -204,15 +216,6 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 </div>
               )}
 
-              {/* Visitor (anyone-c, not c-c) on phones: share sits top-right,
-                  inline with the name. Desktop keeps it in the actions row.
-                  Toggled via globals.css (.vis-hero-share) so it's robust on
-                  mobile regardless of Tailwind responsive build state. */}
-              {!isOwner && (
-                <div className="vis-hero-share" style={{ flexShrink: 0 }}>
-                  <ShareProfileButton path={`/creators/${slug}`} name={name} />
-                </div>
-              )}
             </div>
           </div>
   )
@@ -237,8 +240,10 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   <SaveCreatorButton creatorId={creatorId} initialSaved={isSaved} />
                 </>
               )}
-              {/* Share moves to the hero top-right on phones; stays here on desktop. */}
-              <span className="vis-row-share">
+              {/* With CTAs (pro brand): Share stays inline with Invite/Save on
+                  every width. Without CTAs: it's desktop-only here (phones show
+                  it beside the name via .vis-hero-share). */}
+              <span className={hasProfileCtas ? undefined : 'vis-row-share'}>
                 <ShareProfileButton path={`/creators/${slug}`} name={name} />
               </span>
             </div>
