@@ -7,6 +7,7 @@ import { deriveWorkflow, actorLabel } from '@/lib/workflow';
 import { brandCompletion, creatorCompletion } from '@/lib/profile-completion';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
+import { remainingSpots } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import {
   ArrowRight,
@@ -350,9 +351,10 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   // Independent reads - run concurrently. Admin client: creator display
   // identity is RLS own-row-only for session clients; scoped to this brand.
-  const [{ data: campaigns }, { data: collabs }] = await Promise.all([
+  const admin = createAdminClient();
+  const [{ data: campaigns }, { data: collabs }, { data: activeCampaigns }, { data: spotCollabs }] = await Promise.all([
     supabase.from('campaigns').select('id, status').eq('brand_id', brand.id),
-    createAdminClient()
+    admin
       .from('collabs')
       .select('*, campaigns(title), creator_profiles(users(display_name))')
       .eq('brand_id', brand.id)
@@ -360,7 +362,34 @@ async function BrandDashboard({ userId }: { userId: string }) {
       .neq('status', 'cancelled')
       .order('created_at', { ascending: false })
       .limit(6),
+    supabase.from('campaigns').select('id, title, creators_needed').eq('brand_id', brand.id).eq('status', 'active'),
+    admin.from('collabs').select('campaign_id, status, payment_status').eq('brand_id', brand.id),
   ]);
+
+  // "Choose applicants": active campaigns that still have open spots (funded-
+  // aware) AND pending applicants waiting to be reviewed.
+  const activeIds = (activeCampaigns || []).map((c) => c.id);
+  const { data: pendingApps } = activeIds.length
+    ? await admin.from('applications').select('campaign_id').eq('status', 'pending').in('campaign_id', activeIds)
+    : { data: [] as { campaign_id: string }[] };
+  const pendingByCampaign = new Map<string, number>();
+  for (const a of pendingApps || []) pendingByCampaign.set(a.campaign_id, (pendingByCampaign.get(a.campaign_id) || 0) + 1);
+  const collabsByCampaign = new Map<string, { status: string; payment_status: string }[]>();
+  for (const c of spotCollabs || []) {
+    const arr = collabsByCampaign.get(c.campaign_id) ?? [];
+    arr.push(c);
+    collabsByCampaign.set(c.campaign_id, arr);
+  }
+  const chooseApplicants = (activeCampaigns || [])
+    .map((c) => ({
+      id: c.id,
+      title: c.title,
+      pending: pendingByCampaign.get(c.id) || 0,
+      remaining: remainingSpots(c.creators_needed ?? 1, collabsByCampaign.get(c.id) ?? []),
+    }))
+    .filter((c) => c.pending > 0 && c.remaining > 0)
+    .sort((a, b) => b.pending - a.pending)
+    .slice(0, 6);
 
   const pendingReview =
     collabs?.filter((c) => c.status === 'draft_submitted').length || 0;
@@ -375,7 +404,9 @@ async function BrandDashboard({ userId }: { userId: string }) {
       ? `You have ${pendingReview} draft${pendingReview > 1 ? 's' : ''} to review. Everything else is on track.`
       : liveToConfirm > 0
         ? `${liveToConfirm} live post${liveToConfirm > 1 ? 's are' : ' is'} waiting for your confirmation.`
-        : 'Everything is on track.';
+        : chooseApplicants.length > 0
+          ? `You have applicants waiting on ${chooseApplicants.length} campaign${chooseApplicants.length > 1 ? 's' : ''}. Choose who to work with.`
+          : 'Everything is on track.';
 
   const isEmpty =
     (!campaigns || campaigns.length === 0) &&
@@ -458,6 +489,39 @@ async function BrandDashboard({ userId }: { userId: string }) {
           )}
           {pendingReview === 0 && liveToConfirm === 0 && (
             <div style={{ marginBottom: 40 }} />
+          )}
+
+          {/* Choose applicants - campaigns with open spots + pending applicants */}
+          {chooseApplicants.length > 0 && (
+            <div style={{ marginBottom: 40 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span className="eyebrow" style={{ color: 'var(--accent)', display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 12.5, fontWeight: 700 }}>
+                  <Users size={13} /> Choose applicants
+                </span>
+                <Link href="/campaigns" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>All campaigns</Link>
+              </div>
+              <div className="card row-list" style={{ padding: 0, overflow: 'hidden' }}>
+                {chooseApplicants.map((c) => (
+                  <Link key={c.id} href={`/campaigns/${c.id}`} className="quiet-row"
+                    style={{ width: '100%', textDecoration: 'none', padding: '16px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
+                      <span style={{ width: 38, height: 38, borderRadius: 'var(--radius-sm)', flexShrink: 0, background: 'var(--accent-tint)', color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Users size={17} />
+                      </span>
+                      <span style={{ minWidth: 0 }}>
+                        <span style={{ display: 'block', fontSize: 14.5, fontWeight: 560, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</span>
+                        <span style={{ display: 'block', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+                          {c.pending} applicant{c.pending > 1 ? 's' : ''} waiting · {c.remaining} spot{c.remaining > 1 ? 's' : ''} left
+                        </span>
+                      </span>
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--ink-soft)', fontSize: 13.5, fontWeight: 530, flexShrink: 0 }}>
+                      Review <ArrowRight size={15} />
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </div>
           )}
 
           {/* active - quiet hairline list */}

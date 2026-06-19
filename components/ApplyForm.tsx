@@ -1,34 +1,34 @@
-'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { Send } from 'lucide-react'
+'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
+import { Send } from 'lucide-react';
 
 interface Props {
-  campaignId: string
-  creatorId: string
-  isPaid: boolean
-  brandName?: string
+  campaignId: string;
+  creatorId: string;
+  isPaid: boolean;
+  brandName?: string;
 }
 
 export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
-  const router = useRouter()
-  const [pitch, setPitch] = useState('')
-  const [rate, setRate] = useState('')
-  const [submitting, setSubmitting] = useState(false)
+  const router = useRouter();
+  const [pitch, setPitch] = useState('');
+  const [rate, setRate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   async function submit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (pitch.trim().length < 30) {
-      toast.error('Pitch must be at least 30 characters')
-      return
+      toast.error('Pitch must be at least 30 characters');
+      return;
     }
     // Paid campaigns require an expected rate; barter campaigns leave it optional.
     if (isPaid && !(rate && parseFloat(rate) > 0)) {
-      toast.error('Add your expected rate to apply')
-      return
+      toast.error('Add your expected rate to apply');
+      return;
     }
-    setSubmitting(true)
+    setSubmitting(true);
     const res = await fetch('/api/applications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -37,35 +37,51 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
         pitch: pitch.trim(),
         proposed_rate: rate ? Math.round(parseFloat(rate) * 100) : null,
       }),
-    })
-    const data = await res.json()
+    });
+    const data = await res.json();
     if (!res.ok) {
-      toast.error(data.error || 'Application failed')
-      setSubmitting(false)
-      return
+      toast.error(data.error || 'Application failed');
+      setSubmitting(false);
+      return;
     }
-    toast.success('Application sent, good luck')
-    router.refresh()
+    toast.success('Application sent, good luck');
+    router.refresh();
   }
 
   return (
-    <form onSubmit={submit} className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>Apply for this campaign</h2>
+    <form
+      onSubmit={submit}
+      className="card"
+      style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 16 }}
+    >
+      <h2 style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)' }}>
+        Apply for this campaign
+      </h2>
 
       {/* Pitch */}
       <div>
-        <label className="label" htmlFor="apply-pitch">Your pitch</label>
+        <label className="label" htmlFor="apply-pitch">
+          Your pitch
+        </label>
         <textarea
           id="apply-pitch"
           className="textarea"
           style={{ minHeight: 110 }}
           value={pitch}
-          onChange={e => setPitch(e.target.value)}
+          onChange={(e) => setPitch(e.target.value)}
           placeholder="I post weekly content to a Singapore audience that actually buys…"
           required
         />
-        <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
-          Be specific about your audience and a past result. Brands skim, lead with why you fit.
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-faint-solid)',
+            marginTop: 7,
+            lineHeight: 1.4,
+          }}
+        >
+          Be specific about your audience and why you fit this campaign. More
+          details help you stand out! Please input at least 30 characters.
         </p>
       </div>
 
@@ -75,10 +91,19 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
           Expected rate (S$){isPaid ? '' : ', optional'}
         </label>
         <div style={{ position: 'relative' }}>
-          <span style={{
-            position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)',
-            color: 'var(--ink-faint-solid)', fontSize: 14, pointerEvents: 'none',
-          }}>S$</span>
+          <span
+            style={{
+              position: 'absolute',
+              left: 13,
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: 'var(--ink-faint-solid)',
+              fontSize: 14,
+              pointerEvents: 'none',
+            }}
+          >
+            S$
+          </span>
           <input
             id="apply-rate"
             type="number"
@@ -87,12 +112,21 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
             className="input"
             style={{ paddingLeft: 36 }}
             value={rate}
-            onChange={e => setRate(e.target.value)}
-            placeholder={isPaid ? 'e.g. 150' : 'Optional, e.g. a top-up on the barter'}
+            onChange={(e) => setRate(e.target.value)}
+            placeholder={
+              isPaid ? 'e.g. 150' : 'Optional, e.g. a top-up on the barter'
+            }
             required={isPaid}
           />
         </div>
-        <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 7, lineHeight: 1.4 }}>
+        <p
+          style={{
+            fontSize: 12,
+            color: 'var(--ink-faint-solid)',
+            marginTop: 7,
+            lineHeight: 1.4,
+          }}
+        >
           {isPaid
             ? 'The brand funds escrow at your agreed rate before any work starts. collabr keeps a 12% fee from your payout.'
             : 'This is a barter campaign. Add a rate only if you want to propose a cash top-up.'}
@@ -109,5 +143,5 @@ export default function ApplyForm({ campaignId, creatorId, isPaid }: Props) {
         {submitting ? 'Sending…' : 'Send application'}
       </button>
     </form>
-  )
+  );
 }

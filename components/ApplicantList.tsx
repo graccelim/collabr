@@ -59,7 +59,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
   const [statuses, setStatuses] = useState<Record<string, string>>(
     Object.fromEntries(applications.map(a => [a.id, a.status]))
   )
-  const [filter, setFilter] = useState<'all' | 'saved' | 'passed'>('all')
+  const [filter, setFilter] = useState<'all' | 'saved' | 'selected' | 'passed'>('all')
 
   async function updateStatus(appId: string, status: string) {
     setLoading(`${appId}-${status}`)
@@ -114,23 +114,23 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
     }
   }
 
-  // Live triage buckets (reflect Shortlist/Pass/Accept as they happen). "Applied"
-  // = active applicants who aren't shortlisted or rejected (incl. selected).
+  // Live triage buckets (reflect Shortlist/Pass/Accept as they happen).
   const shortlistedCount = applications.filter(a => statuses[a.id] === 'shortlisted').length
   const rejectedCount = applications.filter(a => statuses[a.id] === 'rejected').length
-  const appliedCount = applications.filter(a => {
-    const s = statuses[a.id]; return s !== 'rejected' && s !== 'shortlisted'
-  }).length
+  const selectedCount = applications.filter(a => statuses[a.id] === 'selected').length
+  const appliedCount = applications.filter(a => statuses[a.id] === 'pending').length
   const filtered = applications.filter(a => {
     const s = statuses[a.id]
     if (filter === 'saved') return s === 'shortlisted'
+    if (filter === 'selected') return s === 'selected'
     if (filter === 'passed') return s === 'rejected'
-    return s !== 'rejected' && s !== 'shortlisted' // "Applied" tab
+    return s === 'pending' // "Applied" tab
   })
   const showTabs = applications.length > 0
-  const tabs: { key: 'all' | 'saved' | 'passed'; label: string; n: number }[] = [
+  const tabs: { key: 'all' | 'saved' | 'selected' | 'passed'; label: string; n: number }[] = [
     { key: 'all', label: 'Applied', n: appliedCount },
     { key: 'saved', label: 'Shortlisted', n: shortlistedCount },
+    { key: 'selected', label: 'Selected', n: selectedCount },
     { key: 'passed', label: 'Rejected', n: rejectedCount },
   ]
 
@@ -149,10 +149,12 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
       {filtered.length === 0 ? (
         <div className="card" style={{ padding: 18, fontSize: 13.5, color: 'var(--ink-soft)' }}>
           {filter === 'saved'
-            ? 'No saved applicants yet, tap Save on an applicant to compare your favourites here.'
-            : filter === 'passed'
-              ? 'No passed applicants.'
-              : 'No active applicants right now.'}
+            ? 'No shortlisted applicants yet, tap Shortlist on an applicant to compare your favourites here.'
+            : filter === 'selected'
+              ? 'No selected creators yet. Accept an applicant to start a collab.'
+              : filter === 'passed'
+                ? 'No declined applicants.'
+                : 'No new applicants right now.'}
         </div>
       ) : filtered.map(app => {
         const creator = app.creator_profiles
