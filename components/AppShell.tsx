@@ -5,6 +5,7 @@ import { AppNav } from '@/components/AppNav'
 import TopBar from '@/components/TopBar'
 import PageTransition from '@/components/PageTransition'
 import TrustBanners from '@/components/TrustBanners'
+import LiveRefresh from '@/components/LiveRefresh'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
 
 /**
@@ -33,12 +34,17 @@ export default async function AppShell({ children }: { children: React.ReactNode
     role === 'creator'
       ? (async () => {
           const { data: creator } = await supabase.from('creator_profiles')
-            .select('id, onboarding_completed_at').eq('user_id', user.id).single()
+            .select('id, onboarding_completed_at, invites_seen_at').eq('user_id', user.id).single()
+          // Badge only counts invites that arrived since the tab was last opened.
+          let inviteQuery = creator
+            ? supabase.from('campaign_invites')
+                .select('*', { count: 'exact', head: true })
+                .eq('creator_id', creator.id).eq('status', 'pending')
+            : null
+          if (inviteQuery && creator?.invites_seen_at) inviteQuery = inviteQuery.gt('created_at', creator.invites_seen_at)
           const [{ count }, { data: socs }] = creator
             ? await Promise.all([
-                supabase.from('campaign_invites')
-                  .select('*', { count: 'exact', head: true })
-                  .eq('creator_id', creator.id).eq('status', 'pending'),
+                inviteQuery!,
                 supabase.from('social_accounts')
                   .select('follower_count').eq('creator_id', creator.id),
               ])
@@ -66,6 +72,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--app-bg)' }}>
+      <LiveRefresh />
       <AppNav
         role={role}
         displayName={displayName}

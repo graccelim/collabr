@@ -115,7 +115,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   // Before funding the collab is invisible to the creator — their application
   // still reads "Applied" — so bounce them back rather than expose it. The brand
   // keeps access here so they can fund.
-  if (!isBrand && collab.status === 'briefed' && !isPaymentSecured(collab.payment_status)) {
+  // Invite-accepted collabs stay visible to the creator pre-funding; cold,
+  // unfunded brand selections are bounced (their app still reads "Applied").
+  if (!isBrand && collab.status === 'briefed' && !isPaymentSecured(collab.payment_status) && !collab.from_invite) {
     redirect('/applications')
   }
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]

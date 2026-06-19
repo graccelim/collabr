@@ -290,6 +290,25 @@ export default function CollabActions({
     )
   }
 
+  // Creator on an invite-accepted, not-yet-funded collab: they explicitly
+  // accepted, so they see it (unlike a hidden cold selection) — waiting on the
+  // brand to secure payment before work begins.
+  if (!isBrand && collabStatus === 'briefed' && ['unfunded', 'authorizing'].includes(paymentStatus)) {
+    return (
+      <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--warn-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Clock size={17} color="var(--warn)" />
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>You&rsquo;re in — waiting on the brand</div>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+            You accepted this collaboration. {creatorName.split(' ')[0]} needs to secure payment before you start — we&rsquo;ll let you know the moment it&rsquo;s ready.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   if (collabStatus === 'briefed' && ['authorizing', 'capture_pending'].includes(paymentStatus)) {
     return (
       <div className="card" style={{ padding: 18 }}>

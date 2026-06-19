@@ -53,7 +53,9 @@ export default async function CollabsPage() {
   // about). A genuinely-funded-then-cancelled collab still shows.
   const visibleCollabs = (collabs || []).filter((c) => {
     if (isBrand) return true;
-    if (c.status === 'briefed') return isPaymentSecured(c.payment_status);
+    // Invite-accepted collabs are visible to the creator even before funding
+    // (they explicitly accepted). Cold, unfunded brand selections stay hidden.
+    if (c.status === 'briefed') return isPaymentSecured(c.payment_status) || c.from_invite;
     if (c.status === 'cancelled') return Boolean(c.funded_at);
     return true;
   });

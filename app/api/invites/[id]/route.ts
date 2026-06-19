@@ -168,6 +168,12 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     console.warn('[INVITE ACCEPT] invite already transitioned:', invite.id)
   }
 
+  // Mark the collab as invite-originated so it's visible to the creator right
+  // away (they explicitly accepted) instead of being hidden until funded.
+  if (collabId) {
+    await admin.from('collabs').update({ from_invite: true }).eq('id', collabId)
+  }
+
   // Barter is committed at acceptance (no funding step): confirm the creator +
   // free leftover applicants now, exactly like the brand-side barter path.
   if (isBarterDeal && collabId) {

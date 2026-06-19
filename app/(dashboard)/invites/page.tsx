@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { formatSGD, relativeTime } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import InviteActions from '@/components/InviteActions';
+import MarkInvitesSeen from '@/components/MarkInvitesSeen';
 import EmptyState from '@/components/EmptyState';
 import BoostHint from '@/components/BoostHint';
 import { boostUiEnabled, boostPreview } from '@/lib/stripe';
@@ -139,11 +140,12 @@ export default async function InvitesPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
+      <MarkInvitesSeen userId={user.id} />
       <div>
         <h1 className="text-xl font-semibold text-gray-900">Invites</h1>
         <p className="text-sm text-gray-500 mt-0.5">
           Brands that want to work with you. Accepting an invite creates the
-          collaboration immediately, with payment secured upfront.{' '}
+          collaboration immediately.{' '}
         </p>
       </div>
 
@@ -210,7 +212,7 @@ export default async function InvitesPage() {
                       {relativeTime(inv.created_at)}
                     </p>
                   </div>
-                  {/* escrow offer pill */}
+                  {/* offer pill — escrow amount for paid, "Barter" for rate-0 */}
                   <span
                     className="badge badge-money"
                     style={{
@@ -221,10 +223,14 @@ export default async function InvitesPage() {
                       fontWeight: 600,
                     }}
                   >
-                    <Shield size={13} />
-                    <span className="mono-num">
-                      {formatSGD(inv.proposed_rate)}
-                    </span>
+                    {inv.proposed_rate > 0 ? (
+                      <>
+                        <Shield size={13} />
+                        <span className="mono-num">{formatSGD(inv.proposed_rate)}</span>
+                      </>
+                    ) : (
+                      'Barter'
+                    )}
                   </span>
                 </div>
                 {inv.message && (
@@ -256,7 +262,9 @@ export default async function InvitesPage() {
                   <span
                     style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}
                   >
-                    If you accept, {brandName} funds escrow immediately.
+                    {inv.proposed_rate > 0
+                      ? `If you accept, ${brandName} funds escrow immediately.`
+                      : 'If you accept, the barter collaboration starts right away.'}
                   </span>
                   <InviteActions inviteId={inv.id} />
                 </div>

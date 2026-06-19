@@ -44,7 +44,7 @@ describe('releaseUnfundedCollab — race-safe via claim_unselect_atomic RPC', ()
 
   it('succeeds when the RPC claims the undo (result=cancelled)', async () => {
     const calls = useStub({ user: null, rpcs: { claim_unselect_atomic: { data: { result: 'cancelled', intent_id: null, application_id: 'app-1' }, error: null } } })
-    const res = await releaseUnfundedCollab(active.client, collab, 'brand-u')
+    const res = await releaseUnfundedCollab(active.client as any, collab, 'brand-u')
     expect(res.ok).toBe(true)
     // The cancellation + applicant revert happen INSIDE the locked RPC.
     expect(calls.rpc).toContainEqual({ name: 'claim_unselect_atomic', args: { p_collab_id: 'co-1', p_brand_user_id: 'brand-u' } })
@@ -52,20 +52,20 @@ describe('releaseUnfundedCollab — race-safe via claim_unselect_atomic RPC', ()
 
   it('refuses once funded (RPC observed funding under the lock)', async () => {
     useStub({ user: null, rpcs: { claim_unselect_atomic: { data: { result: 'funded', intent_id: null, application_id: null }, error: null } } })
-    const res = await releaseUnfundedCollab(active.client, collab, 'brand-u')
+    const res = await releaseUnfundedCollab(active.client as any, collab, 'brand-u')
     expect(res.ok).toBe(false)
     expect(res.reason).toBe('not_unfunded')
   })
 
   it('maps a forbidden RPC result', async () => {
     useStub({ user: null, rpcs: { claim_unselect_atomic: { data: { result: 'forbidden' }, error: null } } })
-    const res = await releaseUnfundedCollab(active.client, collab, 'intruder')
+    const res = await releaseUnfundedCollab(active.client as any, collab, 'intruder')
     expect(res).toEqual({ ok: false, reason: 'forbidden' })
   })
 
   it('is idempotent (already-cancelled → ok)', async () => {
     useStub({ user: null, rpcs: { claim_unselect_atomic: { data: { result: 'already', intent_id: null, application_id: 'app-1' }, error: null } } })
-    const res = await releaseUnfundedCollab(active.client, collab, null)
+    const res = await releaseUnfundedCollab(active.client as any, collab, null)
     expect(res.ok).toBe(true)
   })
 })
