@@ -12,7 +12,10 @@ interface Props {
   revisionCount?: number
 }
 
-const SUBMITTABLE_STATUSES = ['briefed', 'in_revision', 'draft_approved']
+// Only states where a (re)submission is actually accepted by submit_draft_atomic.
+// (Previously included 'draft_approved', which let the form upload a file to
+// storage before the API rejected the submission — orphaning the upload.)
+const SUBMITTABLE_STATUSES = ['briefed', 'in_revision']
 
 export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback, revisionCount = 0 }: Props) {
   const router = useRouter()

@@ -21,6 +21,8 @@ interface Application {
   /** Present once the applicant has been selected → deep-link to funding. */
   collab_id?: string
   collab_payment_status?: string
+  /** 0 = barter collab (no payment). */
+  collab_agreed_rate?: number
   /** Honest creator↔campaign match (null when there's no credible fit to claim). */
   match?: MatchResult | null
   /** Boolean trust indicators (availability, completed collabs, etc). */
@@ -206,7 +208,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     )}
                     {status === 'selected' && (
                       isPaymentSecured(app.collab_payment_status)
-                        ? <span className="badge badge-money">Confirmed · Payment Secured</span>
+                        ? <span className="badge badge-money">{app.collab_agreed_rate === 0 ? 'Confirmed' : 'Confirmed · Payment Secured'}</span>
                         : <span className="badge badge-amber">Selected · awaiting payment</span>
                     )}
                     {status === 'rejected' && <span className="badge badge-neutral">Rejected</span>}
@@ -350,7 +352,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                       <Link href={`/collabs/${app.collab_id}`}
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
-                        <Check size={15} /> Confirmed · Payment Secured · open collab →
+                        <Check size={15} /> {app.collab_agreed_rate === 0 ? 'Confirmed · open collab →' : 'Confirmed · Payment Secured · open collab →'}
                       </Link>
                       {/* Funded: undo is gone — escrow changes go through support. */}
                       <a href="mailto:joincollabr@gmail.com" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>

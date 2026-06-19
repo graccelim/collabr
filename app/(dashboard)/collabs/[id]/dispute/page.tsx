@@ -42,6 +42,7 @@ export default async function DisputePage({ params }: { params: { id: string } }
 
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
   const brandName = (collab.brand_profiles as any)?.company_name || 'Brand'
+  const isBarter = (collab.agreed_rate ?? 0) === 0
 
   return (
     <div style={{ maxWidth: 800 }}>
@@ -61,13 +62,15 @@ export default async function DisputePage({ params }: { params: { id: string } }
 
         {/* sidebar */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, position: 'sticky', top: 24 }}>
-          {/* escrow frozen notice */}
+          {/* frozen notice (barter has no payment to freeze) */}
           <div style={{ padding: '14px 16px', background: 'var(--warn-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(217,119,6,.2)' }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 7 }}>
-              🔒 The payment is frozen during a dispute
+              {isBarter ? 'This collaboration is on hold during a dispute' : '🔒 The payment is frozen during a dispute'}
             </div>
             <p style={{ fontSize: 13, color: 'var(--warn-deep)', margin: 0, lineHeight: 1.55 }}>
-              The <strong>{formatSGD(collab.agreed_rate)}</strong> stays protected. Neither side can release or withdraw it until a mediator decides.
+              {isBarter
+                ? 'This is a barter collaboration, so there’s no payment involved. A mediator will review both sides and decide the outcome.'
+                : <>The <strong>{formatSGD(collab.agreed_rate)}</strong> stays protected. Neither side can release or withdraw it until a mediator decides.</>}
             </p>
           </div>
 
@@ -75,10 +78,10 @@ export default async function DisputePage({ params }: { params: { id: string } }
           <div className="card" style={{ padding: 20 }}>
             <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--ink-soft)', textTransform: 'uppercase', letterSpacing: '.08em', marginBottom: 16 }}>What happens next</div>
             {[
-              ['You submit this dispute', 'The payment freezes immediately'],
+              ['You submit this dispute', isBarter ? 'The collaboration is paused immediately' : 'The payment freezes immediately'],
               ['Both sides share evidence', 'Each side has 24 hours to respond'],
               ['A neutral mediator reviews', 'Within 3 business days'],
-              ['We decide & settle', 'Release, refund, or a fair split'],
+              ['We decide & settle', isBarter ? 'A fair outcome for both sides' : 'Release, refund, or a fair split'],
             ].map(([title, sub], i, arr) => (
               <div key={i} style={{ display: 'flex', gap: 13, position: 'relative' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>

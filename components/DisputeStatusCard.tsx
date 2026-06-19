@@ -60,7 +60,9 @@ export default function DisputeStatusCard({
             Opened by {raisedByType === 'brand' ? 'the brand' : 'the creator'} · {when(openedAt)}
           </div>
         </div>
-        <span className={`badge ${resolved ? 'badge-money' : 'badge-warn'}`} style={{ marginLeft: 'auto', flexShrink: 0 }}>
+        {/* Neutral, not green — a resolved dispute isn't a "win" for whoever's
+            viewing (brand_wins / mutual would otherwise show the loser a success badge). */}
+        <span className={`badge ${resolved ? 'badge-neutral' : 'badge-warn'}`} style={{ marginLeft: 'auto', flexShrink: 0 }}>
           {statusLabel}
         </span>
       </div>

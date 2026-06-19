@@ -50,13 +50,20 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   // Upload files (service role → bypasses storage RLS, works for both parties).
   // Graceful degradation: a failed file NEVER discards the written note, links,
   // or the files that did upload — we record which files failed and report them.
+  // Safe media only — no text/html or image/svg+xml (those render inline from the
+  // signed-URL storage domain → stored XSS against the counterparty/mediator).
+  const ALLOWED_TYPES = new Set([
+    'image/png', 'image/jpeg', 'image/webp', 'image/gif',
+    'application/pdf', 'video/mp4', 'video/quicktime',
+  ])
   const storedPaths: string[] = []
   const failedFiles: string[] = []
   for (let i = 0; i < files.length; i++) {
     const f = files[i]
+    if (!ALLOWED_TYPES.has(f.type)) { failedFiles.push(`${f.name || `file ${i + 1}`} (unsupported type)`); continue }
     const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100) || 'file'
     const path = `${params.id}/dispute/${Date.now()}_${i}_${safe}`
-    const { error: upErr } = await admin.storage.from(BUCKET).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false })
+    const { error: upErr } = await admin.storage.from(BUCKET).upload(path, f, { contentType: f.type, upsert: false })
     if (upErr) { failedFiles.push(f.name || `file ${i + 1}`); continue }
     storedPaths.push(`storage:${path}`)
   }

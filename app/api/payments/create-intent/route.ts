@@ -21,6 +21,11 @@ export async function POST(req: NextRequest) {
   if (!['briefed'].includes(collab.status)) {
     return NextResponse.json({ error: 'Payment already processed for this collab' }, { status: 400 })
   }
+  // Barter collabs have no cash (agreed_rate 0) and are already 'funded' — there
+  // is nothing to charge. Guard so this never reaches Stripe with amount 0.
+  if (!collab.agreed_rate || collab.agreed_rate <= 0) {
+    return NextResponse.json({ error: 'This is a barter collaboration — there is no payment to make.' }, { status: 400 })
+  }
 
   const admin = createAdminClient()
   const { data: brand } = await admin.from('brand_profiles')

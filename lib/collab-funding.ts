@@ -164,7 +164,8 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
       dedupeKey: `application:${appId}:selected`,
     })
     if (cp.users?.email) {
-      await sendProductEmail({ to: cp.users.email, ...productEmails.applicationSelected({ campaignTitle: title, applicationId: appId, collabId: collab.id }) })
+      const selectedEmail = isBarter ? productEmails.applicationSelectedBarter : productEmails.applicationSelected
+      await sendProductEmail({ to: cp.users.email, ...selectedEmail({ campaignTitle: title, applicationId: appId, collabId: collab.id }) })
     }
   }
 

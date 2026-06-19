@@ -136,6 +136,11 @@ export default function JobsList({
 
       {/* Campaign cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {visible.length === 0 && (
+          <div className="card" style={{ padding: '28px 18px', textAlign: 'center', fontSize: 13.5, color: 'var(--ink-faint-solid)' }}>
+            No campaigns match these filters. Try clearing a filter or check back soon.
+          </div>
+        )}
         {visible.map((c) => {
           const pays = paysLabel(c)
           const deliverable = c.deliverable_types?.[0] ?? '-'

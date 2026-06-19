@@ -44,13 +44,16 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     } else if (outcome === 'creator_wins') {
       settlement = await captureTransferAndComplete(admin, collab)
     } else {
-      // Split: capture the creator's share; the brand's remainder is released
-      // explicitly (verified + recorded) rather than left to implicit auto-void.
+      // Split: capture the creator's share of the hold; the brand's remainder is
+      // released explicitly (verified + recorded). The platform fee is recomputed
+      // ON the captured share (same fee fraction as the original collab) so
+      // captureAmount = creatorPayout + fee exactly — no rounding drift, and the
+      // creator can never be transferred more than was captured.
       const creatorShare = split_percentage || 0
-      settlement = await settleSplitDispute(admin, collab, {
-        captureAmount: Math.round(collab.agreed_rate * (creatorShare / 100)),
-        creatorPayout: Math.round(collab.creator_payout * (creatorShare / 100)),
-      })
+      const captureAmount = Math.round(collab.agreed_rate * (creatorShare / 100))
+      const feeFraction = collab.agreed_rate > 0 ? collab.platform_fee / collab.agreed_rate : 0
+      const creatorPayout = captureAmount - Math.round(captureAmount * feeFraction)
+      settlement = await settleSplitDispute(admin, collab, { captureAmount, creatorPayout })
     }
   } else {
     // brand_wins / mutual → refund/cancel (barter has no money; just cancels).

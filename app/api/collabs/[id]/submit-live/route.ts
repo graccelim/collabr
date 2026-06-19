@@ -23,13 +23,21 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   const body = await req.json()
-  if (!body.post_url) return NextResponse.json({ error: 'Live post URL is required' }, { status: 400 })
+  const postUrl = String(body.post_url || '').trim()
+  // Server-side validation: a real public http(s) link only — the client
+  // <input type="url"> is trivially bypassed by calling the API directly, and
+  // a non-URL / javascript: string would otherwise sail through to auto-release.
+  let parsed: URL | null = null
+  try { parsed = new URL(postUrl) } catch { parsed = null }
+  if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')) {
+    return NextResponse.json({ error: 'Enter a valid public link to your live post (starting with https://).' }, { status: 400 })
+  }
   const autoReleaseAt = new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString()
   const admin = createAdminClient()
 
   const { data: result, error } = await admin.rpc('submit_live_post_atomic', {
     p_collab_id: params.id,
-    p_post_url: body.post_url,
+    p_post_url: postUrl,
     p_screenshot_url: body.screenshot_url || '',
     p_auto_release_at: autoReleaseAt,
   }).single()

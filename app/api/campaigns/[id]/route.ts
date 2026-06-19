@@ -57,6 +57,29 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const admin = createAdminClient()
+
+  // Don't let an edit corrupt in-flight collabs: capacity can't drop below the
+  // collaborations that already exist, an excessive cap is rejected, and the
+  // compensation type can't be switched once any collab is under way.
+  if (updates.creators_needed !== undefined || updates.comp_type !== undefined) {
+    const { count } = await admin.from('collabs')
+      .select('*', { count: 'exact', head: true })
+      .eq('campaign_id', params.id).neq('status', 'cancelled')
+    const liveCollabs = count || 0
+    if (updates.creators_needed !== undefined) {
+      const n = Number(updates.creators_needed)
+      if (!Number.isInteger(n) || n < 1 || n > 50) {
+        return NextResponse.json({ error: 'Creators needed must be between 1 and 50.' }, { status: 400 })
+      }
+      if (n < liveCollabs) {
+        return NextResponse.json({ error: `You already have ${liveCollabs} collaboration${liveCollabs === 1 ? '' : 's'} on this campaign — you can't set creators needed below that.` }, { status: 409 })
+      }
+    }
+    if (updates.comp_type !== undefined && updates.comp_type !== campaign.comp_type && liveCollabs > 0) {
+      return NextResponse.json({ error: 'You can’t change the compensation type while collaborations are in progress.' }, { status: 409 })
+    }
+  }
+
   const { data, error: updateErr } = await admin.from('campaigns')
     .update(updates).eq('id', params.id).select().single()
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 500 })

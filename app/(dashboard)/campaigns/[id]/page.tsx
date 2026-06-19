@@ -46,7 +46,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: true }),
     createAdminClient().from('collabs')
-      .select('id, application_id, status, payment_status').eq('campaign_id', params.id),
+      .select('id, application_id, status, payment_status, agreed_rate').eq('campaign_id', params.id),
   ])
   // A spot is only consumed once escrow is secured (funded), not at mere
   // selection. Selected-but-unfunded collabs don't count toward "filled".
@@ -56,9 +56,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // Map each application to its LIVE collab. Skip cancelled ones: after an
   // undo/expiry an application can have a cancelled collab plus a fresh one, and
   // the card must point at the live collab, not the dead one.
-  const collabByApp: Record<string, { id: string; payment_status: string }> = {}
-  for (const c of (collabs || []) as { id: string; application_id: string | null; status: string; payment_status: string }[]) {
-    if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status }
+  const collabByApp: Record<string, { id: string; payment_status: string; agreed_rate: number }> = {}
+  for (const c of (collabs || []) as { id: string; application_id: string | null; status: string; payment_status: string; agreed_rate: number }[]) {
+    if (c.application_id && c.status !== 'cancelled') collabByApp[c.application_id] = { id: c.id, payment_status: c.payment_status, agreed_rate: c.agreed_rate }
   }
 
   // Honest ranking inputs: socials (self-reported reach) and the creator_scores
@@ -107,7 +107,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       const rankScore = (match?.score ?? 0) + (app.is_boosted ? BOOST_TIEBREAK : 0)
       const collab = collabByApp[app.id]
       const socials = creatorRow ? (socialLinksByCreator[creatorRow.id] || []) : []
-      return { ...app, match, indicators, socials, _rankScore: rankScore, collab_id: collab?.id, collab_payment_status: collab?.payment_status }
+      return { ...app, match, indicators, socials, _rankScore: rankScore, collab_id: collab?.id, collab_payment_status: collab?.payment_status, collab_agreed_rate: collab?.agreed_rate }
     })
     .sort((a, b) => b._rankScore - a._rankScore)
 

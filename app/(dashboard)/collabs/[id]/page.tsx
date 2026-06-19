@@ -423,9 +423,8 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                   </p>
                   <a
                     href={`/collabs/${params.id}/dispute`}
+                    className="dispute-cta"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '10px 18px', fontSize: 14, fontWeight: 600, color: 'var(--danger)', borderRadius: 'var(--radius-pill)', border: '1px solid rgba(220,38,38,.3)', textDecoration: 'none', transition: 'background .15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'var(--danger-tint)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                   >
                     Raise a dispute
                   </a>
@@ -445,6 +444,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             revisionCount={collab.revision_count ?? 0}
             draftAutoApproveAt={collab.draft_auto_approve_at ?? null}
             liveAutoReleaseAt={collab.live_auto_release_at ?? null}
+            isBarter={isBarter}
           />
 
           <CollabActions

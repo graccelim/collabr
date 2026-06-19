@@ -26,6 +26,8 @@ export default async function CampaignsPage() {
       ? createAdminClient().from('applications')
           .select('campaign_id, created_at, is_boosted, creator_profiles(users(display_name))')
           .in('campaign_id', campaignIds)
+          // Don't count/preview withdrawn or rejected applicants — they're not in the running.
+          .not('status', 'in', '("withdrawn","rejected")')
           .order('is_boosted', { ascending: false })
           .order('created_at', { ascending: false })
       : Promise.resolve({ data: [] as any[] }),

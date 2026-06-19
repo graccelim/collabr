@@ -9,6 +9,7 @@ interface Props {
   revisionCount?: number
   draftAutoApproveAt?: string | null
   liveAutoReleaseAt?: string | null
+  isBarter?: boolean
 }
 
 /**

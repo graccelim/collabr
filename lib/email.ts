@@ -280,6 +280,17 @@ export const productEmails = {
     ctaUrl: d.collabId ? link(`/collabs/${d.collabId}`) : link('/collabs'),
   }),
 
+  applicationSelectedBarter: (d: { campaignTitle: string; applicationId: string; collabId?: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:application:${d.applicationId}:selected`,
+    subject: `You're confirmed for "${d.campaignTitle}" 🎉`,
+    preheader: 'A barter collaboration — you can start now.',
+    title: 'You were selected!',
+    body: `The brand picked you for "${d.campaignTitle}". This is a barter collaboration (a product or service exchange — no cash payment), and it's confirmed. You can start the draft now.`,
+    ctaLabel: 'Open your collab',
+    ctaUrl: d.collabId ? link(`/collabs/${d.collabId}`) : link('/collabs'),
+  }),
+
   applicationRejected: (d: { campaignTitle: string; applicationId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:application:${d.applicationId}:rejected`,

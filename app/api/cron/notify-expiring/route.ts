@@ -7,7 +7,7 @@ import { sendProductEmail, productEmails } from '@/lib/email'
 // windows are 24h-wide: each in-flight review gets a single reminder in its
 // final day before auto-approve / auto-release. Dedupe keys keep it to one send.
 export async function GET(req: NextRequest) {
-  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

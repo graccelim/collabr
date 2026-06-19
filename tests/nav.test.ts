@@ -15,6 +15,20 @@ describe('safeNextPath — post-auth redirect guard (no open redirects)', () => 
     expect(safeNextPath('/%5Cevil.com')).toBe('/dashboard')
   })
 
+  it('falls back for control-char prefixes the URL parser would strip (open-redirect bypass)', () => {
+    expect(safeNextPath('/\t//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/\r//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/\n//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('\t//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/%2f%2fevil.com')).toBe('/dashboard') // lowercase encoded
+    expect(safeNextPath('/%5cevil.com')).toBe('/dashboard')
+  })
+
+  it('preserves path + query + hash for legit same-origin targets', () => {
+    expect(safeNextPath('/reset-password?verified=1')).toBe('/reset-password?verified=1')
+    expect(safeNextPath('/collabs/x#dispute-section')).toBe('/collabs/x#dispute-section')
+  })
+
   it('falls back for empty / non-path input', () => {
     expect(safeNextPath(null)).toBe('/dashboard')
     expect(safeNextPath(undefined)).toBe('/dashboard')
