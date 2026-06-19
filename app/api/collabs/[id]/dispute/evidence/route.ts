@@ -48,14 +48,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   }
 
   // Upload files (service role → bypasses storage RLS, works for both parties).
+  // Graceful degradation: a failed file NEVER discards the written note, links,
+  // or the files that did upload — we record which files failed and report them.
   const storedPaths: string[] = []
+  const failedFiles: string[] = []
   for (let i = 0; i < files.length; i++) {
     const f = files[i]
     const safe = f.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100) || 'file'
     const path = `${params.id}/dispute/${Date.now()}_${i}_${safe}`
     const { error: upErr } = await admin.storage.from(BUCKET).upload(path, f, { contentType: f.type || 'application/octet-stream', upsert: false })
-    if (upErr) return NextResponse.json({ error: 'A file upload failed. Please try again.' }, { status: 500 })
+    if (upErr) { failedFiles.push(f.name || `file ${i + 1}`); continue }
     storedPaths.push(`storage:${path}`)
+  }
+
+  // Nothing survived to save (no note, no links, and every file failed) — only
+  // then do we reject, so the user can retry without having lost any writing.
+  if (!text && urls.length === 0 && storedPaths.length === 0) {
+    return NextResponse.json(
+      { error: failedFiles.length ? `Upload failed for all ${failedFiles.length} file(s). Please try again.` : 'Add a note, a link, or a file' },
+      { status: failedFiles.length ? 502 : 400 },
+    )
   }
 
   // Stored as a mix of external URLs and `storage:<path>` references.
@@ -107,8 +119,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     'Submitted by': `${submitterName} (${isBrand ? 'Brand' : 'Creator'})${submitterEmail ? ` <${submitterEmail}>` : ''}`,
     Note: text || '(none)',
     Attachments: emailLinks.length ? emailLinks.join('  •  ') : '(none)',
+    ...(failedFiles.length ? { 'Failed uploads': failedFiles.join(', ') } : {}),
     Collab: link(`/collabs/${params.id}`),
   }, String(dispute.id)).catch(() => {})
 
-  return NextResponse.json({ success: true, evidence_id: evidence.id })
+  return NextResponse.json({ success: true, evidence_id: evidence.id, failed_files: failedFiles })
 }

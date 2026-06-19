@@ -112,3 +112,38 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   return NextResponse.json({ success: true, status, changed, ...(collabId ? { collab_id: collabId } : {}) })
 }
+
+// Creator self-withdraw. Allowed ONLY while the application is still open
+// (pending/shortlisted) — never once selected/confirmed or in an active collab.
+// 'withdrawn' is terminal and keeps the row, so it can't be used to spam
+// re-applications (mirrors how a rejection stays final).
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { data: application } = await supabase.from('applications')
+    .select('id, status, creator_profiles(user_id)')
+    .eq('id', params.id).single()
+  if (!application) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if ((application.creator_profiles as any)?.user_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  if (!['pending', 'shortlisted'].includes(application.status)) {
+    return NextResponse.json({ error: 'This application can no longer be withdrawn.' }, { status: 409 })
+  }
+
+  // Guarded transition: only flip a still-open application (no race with a
+  // concurrent brand selection, which would move it to 'selected').
+  const admin = createAdminClient()
+  const { data: updated, error } = await admin.from('applications')
+    .update({ status: 'withdrawn' })
+    .eq('id', params.id)
+    .in('status', ['pending', 'shortlisted'])
+    .select('id')
+    .maybeSingle()
+  if (error) return NextResponse.json({ error: error.message }, { status: 409 })
+  if (!updated) return NextResponse.json({ error: 'This application can no longer be withdrawn.' }, { status: 409 })
+
+  return NextResponse.json({ success: true, status: 'withdrawn' })
+}

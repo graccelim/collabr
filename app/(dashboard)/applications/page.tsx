@@ -5,6 +5,7 @@ import { formatSGD } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
 import { Send } from 'lucide-react';
 import { creatorApplicationState, CREATOR_APP_LABEL } from '@/lib/collab-status';
+import WithdrawApplicationButton from '@/components/WithdrawApplicationButton';
 
 export default async function ApplicationsPage() {
   const user = await requireCreator();
@@ -47,7 +48,7 @@ export default async function ApplicationsPage() {
   const STATE_BADGE: Record<string, string> = { applied: 'badge-gray', confirmed: 'badge-teal' };
 
   const active = (applications || []).filter(
-    (a) => !['rejected'].includes(a.status)
+    (a) => !['rejected', 'withdrawn'].includes(a.status)
   );
   const past = (applications || []).filter((a) => a.status === 'rejected');
 
@@ -90,46 +91,57 @@ export default async function ApplicationsPage() {
               const href = confirmed && collab
                 ? `/collabs/${collab.id}`
                 : `/jobs/${campaign?.id}`;
-              return (
-                <Link
-                  key={app.id}
-                  href={href}
-                  className="card card-hover block"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-gray-900">
-                        {campaign?.title}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {campaign?.brand_profiles?.company_name}
-                      </div>
-                      {(campaign?.budget_min || campaign?.budget_max) && (
-                        <div className="text-xs text-gray-400 mt-0.5">
-                          {campaign.budget_min
-                            ? formatSGD(campaign.budget_min)
-                            : '-'}
-                          {campaign.budget_max
-                            ? ` – ${formatSGD(campaign.budget_max)}`
-                            : ''}
-                        </div>
-                      )}
+              const info = (
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium text-gray-900">
+                    {campaign?.title}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-0.5">
+                    {campaign?.brand_profiles?.company_name}
+                  </div>
+                  {(campaign?.budget_min || campaign?.budget_max) && (
+                    <div className="text-xs text-gray-400 mt-0.5">
+                      {campaign.budget_min ? formatSGD(campaign.budget_min) : '-'}
+                      {campaign.budget_max ? ` – ${formatSGD(campaign.budget_max)}` : ''}
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <span className={`badge ${STATE_BADGE[state] || 'badge-gray'}`}>
-                        {confirmed && collab?.agreed_rate === 0 ? 'Confirmed' : CREATOR_APP_LABEL[state]}
-                      </span>
-                      {confirmed && (
-                        <span
-                          className="btn-primary btn-sm"
-                          style={{ pointerEvents: 'none' }}
-                        >
+                  )}
+                </div>
+              );
+              const badge = (
+                <span className={`badge ${STATE_BADGE[state] || 'badge-gray'}`}>
+                  {confirmed && collab?.agreed_rate === 0 ? 'Confirmed' : CREATOR_APP_LABEL[state]}
+                </span>
+              );
+              // Confirmed → whole card links to the collab. Applied (still open)
+              // → card links to the campaign, with a Withdraw control alongside
+              // (kept OUTSIDE the link so it isn't a nested interactive element).
+              if (confirmed) {
+                return (
+                  <Link key={app.id} href={href} className="card card-hover block">
+                    <div className="flex items-center justify-between gap-3">
+                      {info}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {badge}
+                        <span className="btn-primary btn-sm" style={{ pointerEvents: 'none' }}>
                           View collab →
                         </span>
-                      )}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              }
+              return (
+                <div key={app.id} className="card">
+                  <div className="flex items-center justify-between gap-3">
+                    <Link href={href} className="flex-1 min-w-0 block">
+                      {info}
+                    </Link>
+                    <div className="flex items-center gap-3 shrink-0">
+                      {badge}
+                      <WithdrawApplicationButton applicationId={app.id} />
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

@@ -47,8 +47,18 @@ export default function DisputeEvidenceForm({ collabId }: { collabId: string }) 
       const res = await fetch(`/api/collabs/${collabId}/dispute/evidence`, { method: 'POST', body: fd })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Evidence submitted, both sides can see it')
-      setBody(''); setUrls(['']); setFiles([])
+      const failed: string[] = data.failed_files || []
+      if (failed.length) {
+        // Partial success: the note + links + other files were saved; tell the
+        // user exactly which files didn't upload so they can retry just those.
+        toast.success('Your note and links were saved.')
+        toast.error(`Couldn't upload: ${failed.join(', ')}. Try those again.`, { duration: 6000 })
+      } else {
+        toast.success('Evidence submitted, both sides can see it')
+      }
+      setBody(''); setUrls([''])
+      // Keep only the files that failed so the user can re-attempt them.
+      setFiles(prev => prev.filter(f => failed.includes(f.name)))
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'Could not submit your evidence')

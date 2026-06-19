@@ -313,6 +313,17 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
+  draftAutoApproved: (d: { collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:draft-auto-approved`,
+    subject: 'Draft auto-approved — post live and submit your link',
+    preheader: 'The brand didn’t review in 48h, so it auto-approved.',
+    title: 'Your draft was auto-approved',
+    body: `The brand didn't review within 48 hours, so your draft auto-approved. Post your content publicly, then come back and submit the live link — your payment releases once it's confirmed.`,
+    ctaLabel: 'Submit live link',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+
   revisionRequested: (d: { collabId: string; key: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:revision:${d.key}`,
@@ -333,6 +344,43 @@ export const productEmails = {
     body: `The brand approved your work and ${d.amount} is secured for you. Connect your payout account and we’ll release it automatically — usually within minutes of connecting.`,
     ctaLabel: 'Set up payouts',
     ctaUrl: link('/earnings'),
+  }),
+
+  // Recurring "you still need to connect" nudge while a payout is held. `key`
+  // (e.g. the reminder date) keeps each send through the dedupe log distinct.
+  payoutReminder: (d: { amount: string; collabId: string; key: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:payout-reminder:${d.key}`,
+    subject: `Still waiting: connect payouts to receive ${d.amount}`,
+    preheader: 'Your payment is held safely — connect to release it.',
+    title: 'Connect payouts to receive your payment',
+    body: `${d.amount} from a completed collab is being held for you. We can only release it once you connect a payout account — it usually arrives within minutes of connecting. Your money is safe in the meantime.`,
+    ctaLabel: 'Set up payouts',
+    ctaUrl: link('/earnings'),
+  }),
+
+  // Escalation: held too long, now under manual support review (creator side).
+  payoutUnderReview: (d: { amount: string; collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:payout-review`,
+    subject: `Action needed: your ${d.amount} payout is under review`,
+    preheader: 'Connect payouts or contact support to release it.',
+    title: 'Your held payout needs attention',
+    body: `${d.amount} from a completed collab has been waiting on your payout setup for a while, so our team is now reviewing it. Nothing is lost — connect a payout account to release it automatically, or reply to support@joincollabr if you need help.`,
+    ctaLabel: 'Set up payouts',
+    ctaUrl: link('/earnings'),
+  }),
+
+  // Escalation: brand-facing reassurance that the held payment is safe.
+  payoutHeldBrand: (d: { creatorName: string; collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:payout-held-brand`,
+    subject: 'Your collab payment is safely held',
+    preheader: 'Waiting on the creator to finish payout setup.',
+    title: 'Payment is being held while payout setup completes',
+    body: `Your collaboration with ${d.creatorName} is complete and the payment is captured and held safely. We're waiting for ${d.creatorName} to finish connecting their payout account; our team is following up. You don't need to do anything.`,
+    ctaLabel: 'View the collab',
+    ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
   paymentReleased: (d: { amount: string; collabId: string }): ProductEmail => ({
@@ -364,14 +412,18 @@ export const productEmails = {
 // inbox with the full context (parties, campaign, reason/evidence, collab link).
 const DISPUTE_INBOX = 'joincollabr@gmail.com'
 
-export async function sendDisputeAdminEmail(subject: string, rows: Record<string, string>, threadKey?: string) {
+// Generic support-inbox email. `thread` (kind + key) groups related emails into
+// one Gmail conversation via a stable References/In-Reply-To id.
+async function sendInboxEmail(
+  subject: string,
+  rows: Record<string, string>,
+  thread?: { kind: string; key: string },
+) {
   const body = Object.entries(rows)
     .map(([k, v]) => `<p style="margin:0 0 6px"><strong>${esc(k)}:</strong> ${esc(v)}</p>`)
     .join('')
-  // Thread every email for one dispute into a single Gmail conversation via a
-  // stable References/In-Reply-To id derived from the dispute.
-  const headers = threadKey
-    ? { 'References': `<dispute-${threadKey}@collabr.app>`, 'In-Reply-To': `<dispute-${threadKey}@collabr.app>` }
+  const headers = thread
+    ? { 'References': `<${thread.kind}-${thread.key}@collabr.app>`, 'In-Reply-To': `<${thread.kind}-${thread.key}@collabr.app>` }
     : undefined
   await sendEmail({
     to: DISPUTE_INBOX,
@@ -379,6 +431,16 @@ export async function sendDisputeAdminEmail(subject: string, rows: Record<string
     html: `<div style="font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.6;color:#111217">${body}</div>`,
     headers,
   })
+}
+
+export async function sendDisputeAdminEmail(subject: string, rows: Record<string, string>, threadKey?: string) {
+  await sendInboxEmail(subject, rows, threadKey ? { kind: 'dispute', key: threadKey } : undefined)
+}
+
+// Payout stuck beyond the grace period — escalate to the support inbox so a
+// human can chase the creator / arrange a manual payout. Never auto-resolves.
+export async function sendPayoutAdminEmail(subject: string, rows: Record<string, string>, threadKey?: string) {
+  await sendInboxEmail(subject, rows, threadKey ? { kind: 'payout', key: threadKey } : undefined)
 }
 
 // ── Legacy onboarding welcomes (kept; routed through the premium layout) ─────

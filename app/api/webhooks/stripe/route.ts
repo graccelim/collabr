@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
-import { notifyCollabFunded } from '@/lib/collab-funding'
+import { notifyCollabFunded, retryStuckPayoutsForAccount } from '@/lib/collab-funding'
 import { stripe, BOOST_MAX_HORIZON_DAYS } from '@/lib/stripe'
 import { paymentStatusFromIntent } from '@/lib/payments'
 import Stripe from 'stripe'
@@ -296,6 +296,15 @@ export async function POST(req: NextRequest) {
         await ensureWrite(supabase.from('creator_profiles')
           .update({ stripe_connect_id: account.id })
           .eq('stripe_connect_id', account.id))
+      }
+      // The creator can now receive money: immediately release any payouts that
+      // were stuck (captured-but-not-transferred) waiting on this account,
+      // instead of waiting for the next auto-release cron run. Idempotent.
+      if (account.payouts_enabled) {
+        try {
+          const released = await retryStuckPayoutsForAccount(supabase, account.id)
+          if (released) console.log(`[WEBHOOK] account.updated released ${released} stuck payout(s) for ${account.id}`)
+        } catch (e) { console.error('[WEBHOOK] stuck-payout retry failed:', e) }
       }
       break
     }

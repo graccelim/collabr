@@ -213,6 +213,81 @@ export async function captureTransferAndComplete(
   }
 }
 
+/**
+ * Settle a SPLIT dispute resolution explicitly. We capture ONLY the creator's
+ * agreed share of the hold; Stripe releases the uncaptured remainder back to the
+ * brand atomically as part of the capture call (it is not a deferred auto-void).
+ * We then re-read the PaymentIntent and VERIFY the remainder was released
+ * (`amount_capturable === 0`, `amount_received === captureAmount`) before
+ * transferring the creator's payout, and record the released cents for audit.
+ *
+ * Using partial capture (rather than full-capture-then-refund) keeps a single
+ * idempotent capture, avoids tripping the `charge.refunded`/`refund.updated`
+ * webhooks that would clobber payment_status, and never returns Stripe fees on a
+ * separately-refunded remainder.
+ */
+export async function settleSplitDispute(
+  admin: AdminClient,
+  collab: PaymentCollab,
+  amounts: { captureAmount: number; creatorPayout: number },
+): Promise<SettlementResult> {
+  // Idempotent: an already-settled split just finalizes.
+  if (['paid', 'manual_exception'].includes(collab.payment_status)) {
+    return captureTransferAndComplete(admin, collab, amounts)
+  }
+  if (!collab.stripe_payment_intent_id) {
+    await updateCollab(admin, collab.id, {
+      payment_status: 'capture_failed',
+      payment_failure_reason: 'No PaymentIntent is recorded for this collab.',
+    })
+    return { ok: false, paymentStatus: 'capture_failed', error: 'Escrow is not funded.' }
+  }
+
+  const captureAmount = amounts.captureAmount
+  const releasedRemainder = collab.agreed_rate - captureAmount
+
+  try {
+    let intent = await stripe.paymentIntents.retrieve(collab.stripe_payment_intent_id)
+    if (intent.status === 'requires_capture') {
+      await updateCollab(admin, collab.id, { payment_status: 'capture_pending', payment_failure_reason: null })
+      intent = await stripe.paymentIntents.capture(
+        collab.stripe_payment_intent_id,
+        { amount_to_capture: captureAmount },
+        { idempotencyKey: `collab:${collab.id}:capture:${captureAmount}` },
+      )
+    }
+
+    if (intent.status !== 'succeeded') {
+      const paymentStatus = paymentStatusFromIntent(intent)
+      const error = `PaymentIntent cannot be captured from status ${intent.status}.`
+      await updateCollab(admin, collab.id, { payment_status: paymentStatus, payment_failure_reason: error })
+      return { ok: false, paymentStatus, error }
+    }
+
+    // Explicitly verify the brand's remainder was released by the capture.
+    if (intent.amount_capturable !== 0 || (intent.amount_received ?? 0) !== captureAmount) {
+      const error = `Split capture mismatch: captured ${intent.amount_received}, still capturable ${intent.amount_capturable}.`
+      await updateCollab(admin, collab.id, { payment_status: 'capture_failed', payment_failure_reason: error })
+      return { ok: false, paymentStatus: 'capture_failed', error }
+    }
+
+    await updateCollab(admin, collab.id, {
+      payment_status: 'captured',
+      captured_at: new Date().toISOString(),
+      dispute_released_cents: releasedRemainder,
+      payment_failure_reason: null,
+    })
+  } catch (error) {
+    const message = errorMessage(error)
+    await updateCollab(admin, collab.id, { payment_status: 'capture_failed', payment_failure_reason: message })
+    return { ok: false, paymentStatus: 'capture_failed', error: message }
+  }
+
+  // Remainder is settled + recorded; hand off to the shared transfer/finalize
+  // path (now in 'captured' state, so it skips capture and only transfers).
+  return captureTransferAndComplete(admin, collab, amounts)
+}
+
 export async function cancelOrRefundPayment(
   admin: AdminClient,
   collab: PaymentCollab,

@@ -1,6 +1,7 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
+import { sendProductEmail, productEmails } from '@/lib/email'
 
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -30,9 +31,13 @@ export async function GET(req: NextRequest) {
     if (approved !== true) continue
 
     const creatorUserId = (c.creator_profiles as any)?.user_id
-    if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
-      title: 'Draft auto-approved, post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
-      payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator` })
+    if (creatorUserId) {
+      await sendNotification({ userId: creatorUserId, type: 'draft_approved',
+        title: 'Draft auto-approved, post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator` })
+      // Email matching the in-app event (deduped via email_log).
+      await sendProductEmail({ userId: creatorUserId, ...productEmails.draftAutoApproved({ collabId: c.id }) })
+    }
 
     const brandUserId = (c.brand_profiles as any)?.user_id
     if (brandUserId) await sendNotification({ userId: brandUserId, type: 'draft_auto_approved',

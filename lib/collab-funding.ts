@@ -1,10 +1,77 @@
 import type { createAdminClient } from '@/lib/supabase/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { cancelOrRefundPayment } from '@/lib/payments'
+import { cancelOrRefundPayment, captureTransferAndComplete } from '@/lib/payments'
 import { isCampaignFilled, canReleaseUnfunded } from '@/lib/collab-status'
+import { formatSGD } from '@/lib/utils'
 
 type Admin = ReturnType<typeof createAdminClient>
+
+type StuckCollab = {
+  id: string
+  creator_id: string
+  agreed_rate: number
+  creator_payout: number
+  stripe_payment_intent_id?: string | null
+  stripe_transfer_id?: string | null
+  payment_status: string
+  creator_profiles?: { user_id?: string; users?: { email?: string; display_name?: string } } | null
+  brand_profiles?: { user_id?: string } | null
+}
+
+/**
+ * Retry a single stuck (transfer_failed) collab's payout — used when a creator
+ * finally connects their payout account. Idempotent: the underlying transfer
+ * carries a per-collab idempotency key, so a duplicate call never double-pays.
+ * On success it clears the support-review flag and notifies both sides.
+ * Returns true only if the collab actually completed.
+ */
+export async function retryCreatorPayout(admin: Admin, collab: StuckCollab): Promise<boolean> {
+  if (collab.payment_status !== 'transfer_failed') return false
+  const settlement = await captureTransferAndComplete(admin, collab as never)
+  if (!settlement.ok || !settlement.completed) return false
+
+  // No longer stuck: lift the support-review escalation if it was set.
+  await admin.from('collabs').update({ payout_review_at: null }).eq('id', collab.id)
+
+  const amount = formatSGD(collab.creator_payout)
+  const creatorUserId = collab.creator_profiles?.user_id
+  const creatorEmail = collab.creator_profiles?.users?.email
+  const creatorName = collab.creator_profiles?.users?.display_name || 'the creator'
+  const brandUserId = collab.brand_profiles?.user_id
+  if (creatorUserId) {
+    await sendNotification({
+      userId: creatorUserId, type: 'payment_released',
+      title: `${amount} transferred`,
+      body: 'Your payout account is connected — your held payment was released.',
+      payload: { collab_id: collab.id }, dedupeKey: `collab:${collab.id}:payment-released`,
+    })
+    await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: collab.id }) })
+  }
+  if (brandUserId) {
+    await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: collab.id }) })
+  }
+  return true
+}
+
+/**
+ * Immediately retry every stuck payout for the creator behind a Stripe Connect
+ * account that just updated (the `account.updated` webhook). Safe to call on
+ * every delivery — non-stuck creators short-circuit, and each transfer is
+ * idempotent. Returns how many collabs were released.
+ */
+export async function retryStuckPayoutsForAccount(admin: Admin, connectAccountId: string): Promise<number> {
+  const { data: creator } = await admin.from('creator_profiles')
+    .select('id').eq('stripe_connect_id', connectAccountId).maybeSingle()
+  if (!creator) return 0
+  const { data: stuck } = await admin.from('collabs')
+    .select('id, creator_id, agreed_rate, creator_payout, stripe_payment_intent_id, stripe_transfer_id, payment_status, creator_profiles(user_id, users(email, display_name)), brand_profiles(user_id)')
+    .eq('creator_id', creator.id).eq('payment_status', 'transfer_failed')
+  if (!stuck?.length) return 0
+  let released = 0
+  for (const c of stuck) { if (await retryCreatorPayout(admin, c as unknown as StuckCollab)) released++ }
+  return released
+}
 
 type ReleasableCollab = {
   id: string

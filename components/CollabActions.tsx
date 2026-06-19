@@ -18,14 +18,17 @@ interface Props {
   creatorHasConnect: boolean
   livePostUrl: string | null
   liveAutoReleaseAt: string | null
+  payoutReviewAt?: string | null
 }
 
 export default function CollabActions({
   collabId, collabStatus, isBrand, agreedRate, platformFee, creatorPayout,
   creatorName, paymentStatus, creatorHasConnect, livePostUrl, liveAutoReleaseAt,
+  payoutReviewAt,
 }: Props) {
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
   const settlementAvailable = ['funded', 'capture_failed', 'captured', 'transfer_pending', 'transfer_failed', 'paid', 'manual_exception'].includes(paymentStatus)
   // A zero agreed rate means a true barter collab — no escrow, no payment.
   const isBarter = agreedRate === 0
@@ -49,20 +52,45 @@ export default function CollabActions({
     }
   }
 
+  // Cancel a barter collab (no money moves). Either party, with confirmation.
+  async function cancelBarter() {
+    if (!window.confirm('Cancel this barter collaboration? This ends it for both sides and frees the campaign spot. This cannot be undone.')) return
+    setCancelling(true)
+    try {
+      const res = await fetch(`/api/collabs/${collabId}/cancel`, { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      toast.success('Barter collaboration cancelled')
+      router.refresh()
+    } catch (e: any) {
+      toast.error(e.message || 'Could not cancel')
+    } finally {
+      setCancelling(false)
+    }
+  }
+
   // ── Barter collab: no escrow, no payment, normal draft/live flow ──
   if (isBarter && collabStatus === 'briefed') {
     return (
-      <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <Check size={17} color="var(--accent-deep)" />
+      <div className="card" style={{ padding: 18 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Check size={17} color="var(--accent-deep)" />
+          </div>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Barter collaboration</div>
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+              {isBrand
+                ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
+                : 'No payment — this is a barter exchange. Submit your draft to get started.'}
+            </p>
+          </div>
         </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Barter collaboration</div>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-            {isBrand
-              ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
-              : 'No payment — this is a barter exchange. Submit your draft to get started.'}
-          </p>
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid var(--line)', display: 'flex', justifyContent: 'flex-end' }}>
+          <button type="button" onClick={cancelBarter} disabled={cancelling}
+            style={{ border: 0, background: 'transparent', color: 'var(--ink-faint-solid)', fontSize: 12.5, fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}>
+            {cancelling ? 'Cancelling…' : 'Cancel collaboration'}
+          </button>
         </div>
       </div>
     )
@@ -300,17 +328,26 @@ export default function CollabActions({
   }
 
   // Transfer pending on the creator's payout account — the money IS captured;
-  // it releases automatically once they connect. Not an error.
+  // it releases automatically once they connect. Not an error. After the grace
+  // period (payoutReviewAt set) it's escalated to manual support review — funds
+  // stay safely held; nothing is lost or auto-released.
   if (paymentStatus === 'transfer_failed') {
+    const underReview = Boolean(payoutReviewAt)
     return (
       <div className="card" style={{ padding: 18, border: '1px solid rgba(217,119,6,.25)' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>
-          {isBrand ? 'Payment captured — waiting on payout setup' : 'Connect your payout account to get paid'}
+          {isBrand
+            ? (underReview ? 'Payment held — under support review' : 'Payment captured — waiting on payout setup')
+            : (underReview ? 'Your payout is under review' : 'Connect your payout account to get paid')}
         </div>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
           {isBrand
-            ? `Your payment is secured. We'll release it to ${creatorName.split(' ')[0]} automatically once they connect their payout account.`
-            : 'Your payment is secured. Connect your payout account in Earnings and we’ll release it to you automatically.'}
+            ? (underReview
+                ? `Your payment is captured and safe. We're following up with ${creatorName.split(' ')[0]} to finish their payout setup — nothing is required from you.`
+                : `Your payment is secured. We'll release it to ${creatorName.split(' ')[0]} automatically once they connect their payout account.`)
+            : (underReview
+                ? 'Your payment is held safely and our team is reviewing it. Connect your payout account in Earnings to release it automatically, or contact support if you need help.'
+                : 'Your payment is secured. Connect your payout account in Earnings and we’ll release it to you automatically.')}
         </p>
       </div>
     )

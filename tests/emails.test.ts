@@ -116,6 +116,27 @@ describe('product email payload creation', () => {
     expect(m1.ctaUrl).toBe(`${APP}/collabs/c1`)
   })
 
+  it('held-payout fallback emails (creator reminder / review, brand held)', () => {
+    const rem = productEmails.payoutReminder({ amount: 'S$220.00', collabId: 'c1', key: '2026-06-19' })
+    const rev = productEmails.payoutUnderReview({ amount: 'S$220.00', collabId: 'c1' })
+    const held = productEmails.payoutHeldBrand({ creatorName: 'Maya', collabId: 'c1' })
+    // Reminder key rotates by date so each scheduled nudge sends once.
+    expect(rem.dedupeKey).toBe('email:collab:c1:payout-reminder:2026-06-19')
+    expect(rem.ctaUrl).toBe(`${APP}/earnings`)
+    expect(rev.dedupeKey).toBe('email:collab:c1:payout-review')
+    expect(rev.ctaUrl).toBe(`${APP}/earnings`)
+    expect(held.dedupeKey).toBe('email:collab:c1:payout-held-brand')
+    expect(held.ctaUrl).toBe(`${APP}/collabs/c1`)
+    expect(held.subject.length).toBeGreaterThan(0)
+  })
+
+  it('draft auto-approve email is keyed once per collab and CTAs to the collab', () => {
+    const e = productEmails.draftAutoApproved({ collabId: 'c1' })
+    expect(e.dedupeKey).toBe('email:collab:c1:draft-auto-approved')
+    expect(e.ctaUrl).toBe(`${APP}/collabs/c1`)
+    expect(e.subject.toLowerCase()).toContain('auto-approved')
+  })
+
   it('every builder yields a non-empty title, body, and CTA label', () => {
     const samples = [
       productEmails.newApplication({ campaignTitle: 'X', applicationId: 'a', campaignId: 'c' }),

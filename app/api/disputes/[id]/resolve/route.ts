@@ -2,7 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { cancelOrRefundPayment, captureTransferAndComplete, completeBarterCollab } from '@/lib/payments'
+import { cancelOrRefundPayment, captureTransferAndComplete, completeBarterCollab, settleSplitDispute } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -44,8 +44,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     } else if (outcome === 'creator_wins') {
       settlement = await captureTransferAndComplete(admin, collab)
     } else {
+      // Split: capture the creator's share; the brand's remainder is released
+      // explicitly (verified + recorded) rather than left to implicit auto-void.
       const creatorShare = split_percentage || 0
-      settlement = await captureTransferAndComplete(admin, collab, {
+      settlement = await settleSplitDispute(admin, collab, {
         captureAmount: Math.round(collab.agreed_rate * (creatorShare / 100)),
         creatorPayout: Math.round(collab.creator_payout * (creatorShare / 100)),
       })

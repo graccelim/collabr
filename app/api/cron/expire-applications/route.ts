@@ -5,15 +5,17 @@ import { consumesSpot } from '@/lib/collab-status'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Guarantees every applicant a DEFINITE answer instead of being ghosted.
-// Auto-declines open applications (pending / saved) when:
+// Auto-declines open applications (pending / shortlisted) when:
 //   • the campaign filled all its creator slots, or
 //   • the campaign was closed/completed, or
 //   • the campaign deadline passed, or
-//   • the application has waited too long with no decision
-//     (pending > 14 days; saved > 30 days - saved = still actively considered).
+//   • the application has waited too long with no decision. Pending expires at
+//     14 days; a SHORTLISTED application is being actively considered, so it
+//     gets a longer 30-day window before it too expires (it never lingers
+//     forever — this is the shortlist's expiry path).
 // Idempotent + gentle (reuses the standard "not selected" notification + email).
 const PENDING_MAX_DAYS = 14
-const SAVED_MAX_DAYS = 30
+const SHORTLIST_MAX_DAYS = 30
 
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -52,7 +54,7 @@ export async function GET(req: NextRequest) {
     const deadlinePassed = camp.deadline && camp.deadline < today
     const stale = app.status === 'pending'
       ? ageDays(app.created_at) >= PENDING_MAX_DAYS
-      : ageDays(app.created_at) >= SAVED_MAX_DAYS
+      : ageDays(app.created_at) >= SHORTLIST_MAX_DAYS
     if (isFilled || isClosed || deadlinePassed || stale) {
       toDecline.push({
         id: app.id,

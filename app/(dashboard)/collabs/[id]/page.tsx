@@ -455,6 +455,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             creatorHasConnect={creatorHasConnect}
             livePostUrl={livePost?.post_url || null}
             liveAutoReleaseAt={collab.live_auto_release_at || null}
+            payoutReviewAt={collab.payout_review_at || null}
           />
 
           {/* Brand: draft review panel */}
