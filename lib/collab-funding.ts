@@ -63,7 +63,7 @@ export async function releaseUnfundedCollab(
  */
 export async function notifyCollabFunded(admin: Admin, collabId: string) {
   const { data: collab } = await admin.from('collabs')
-    .select('id, application_id, campaign_id, creator_profiles(user_id, users(email)), campaigns(title, creators_needed)')
+    .select('id, application_id, campaign_id, agreed_rate, creator_profiles(user_id, users(email)), campaigns(title, creators_needed)')
     .eq('id', collabId).maybeSingle()
   if (!collab) return
 
@@ -71,14 +71,17 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
   const campaign = collab.campaigns as { title?: string; creators_needed?: number } | null
   const title = campaign?.title || 'a campaign'
   const appId = collab.application_id as string | null
+  const isBarter = (collab.agreed_rate ?? 0) === 0
 
-  // 1. Confirm the creator — escrow is secured, they can start.
+  // 1. Confirm the creator — they can start (escrow is secured, or barter accepted).
   if (cp?.user_id && appId) {
     await sendNotification({
       userId: cp.user_id,
       type: 'application_selected',
-      title: `Confirmed for "${title}" · payment secured`,
-      body: 'The brand funded escrow. You can start the collab now.',
+      title: isBarter ? `You're confirmed for "${title}"` : `Confirmed for "${title}" · payment secured`,
+      body: isBarter
+        ? 'The brand accepted you for this barter collab. You can start now.'
+        : 'The brand funded escrow. You can start the collab now.',
       payload: { application_id: appId, campaign_id: collab.campaign_id, collab_id: collab.id },
       dedupeKey: `application:${appId}:selected`,
     })

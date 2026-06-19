@@ -76,7 +76,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         // Accept → fund is one motion: drop the brand straight onto the collab's
         // funding step so escrow gets secured (no stranded, unfunded collabs).
         if (data.collab_id) {
-          toast.success('Creator accepted, fund escrow to start')
+          toast.success('Creator accepted')
           router.push(`/collabs/${data.collab_id}`)
         } else {
           toast.success('Creator accepted, collab created')
@@ -322,7 +322,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                     style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}
                   >
                     <Shield size={14} />
-                    {loading === `${app.id}-selected` ? '…' : `Accept & fund${rateLabel ? ` ${rateLabel}` : ''}`}
+                    {loading === `${app.id}-selected` ? '…' : rateLabel ? `Accept & fund ${rateLabel}` : 'Accept'}
                   </button>
                 </div>
               )}

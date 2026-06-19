@@ -324,6 +324,17 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
+  payoutPending: (d: { amount: string; collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:payout-pending`,
+    subject: `Connect your payout account to receive ${d.amount}`,
+    preheader: 'Your payment is secured — connect to get paid.',
+    title: 'Connect your payout account to get paid',
+    body: `The brand approved your work and ${d.amount} is secured for you. Connect your payout account and we’ll release it automatically — usually within minutes of connecting.`,
+    ctaLabel: 'Set up payouts',
+    ctaUrl: link('/earnings'),
+  }),
+
   paymentReleased: (d: { amount: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:payment-released`,

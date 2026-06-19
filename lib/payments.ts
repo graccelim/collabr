@@ -35,6 +35,18 @@ async function updateCollab(
   if (error) throw error
 }
 
+/**
+ * Complete a BARTER collab (agreed_rate 0): nothing to capture or transfer.
+ * Mark it settled (`manual_exception`, which satisfies the completion
+ * constraint) and finalize — the creator earns 0 cash. No Stripe involved.
+ */
+export async function completeBarterCollab(admin: AdminClient, collabId: string): Promise<SettlementResult> {
+  const now = new Date().toISOString()
+  await updateCollab(admin, collabId, { payment_status: 'manual_exception', captured_at: now, paid_at: now })
+  await admin.rpc('finalize_paid_collab', { p_collab_id: collabId, p_creator_earned: 0 })
+  return { ok: true, completed: true, paymentStatus: 'manual_exception' }
+}
+
 export function paymentStatusFromIntent(intent: Stripe.PaymentIntent) {
   switch (intent.status) {
     case 'requires_capture':

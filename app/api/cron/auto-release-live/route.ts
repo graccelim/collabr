@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 import { formatSGD } from '@/lib/utils'
-import { captureTransferAndComplete } from '@/lib/payments'
+import { captureTransferAndComplete, completeBarterCollab } from '@/lib/payments'
 
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -32,7 +32,10 @@ export async function GET(req: NextRequest) {
       continue
     }
 
-    const settlement = await captureTransferAndComplete(supabase, c)
+    const isBarter = (c.agreed_rate ?? 0) === 0
+    const settlement = isBarter
+      ? await completeBarterCollab(supabase, c.id)
+      : await captureTransferAndComplete(supabase, c)
     if (!settlement.ok) {
       console.error(`[CRON AUTO-RELEASE] Settlement failed for collab ${c.id}: ${settlement.error}`)
       failed++
@@ -46,11 +49,15 @@ export async function GET(req: NextRequest) {
     const creatorEmail = (c.creator_profiles as any)?.users?.email
     const creatorName = (c.creator_profiles as any)?.users?.display_name || 'the creator'
     const brandUserId = (c.brand_profiles as any)?.user_id
-    const amount = formatSGD(c.creator_payout)
-    if (settlement.completed && creatorUserId) await sendNotification({ userId: creatorUserId, type: 'payment_released',
-      title: `${amount} transferred`, body: 'Automatic settlement succeeded after 72h.',
-      payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payment-released` })
-    if (settlement.completed) {
+    if (settlement.completed && isBarter) {
+      if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'collab_completed',
+        title: 'Your barter collab is complete', body: 'Auto-completed after 72h. Leave a review to build trust.',
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:completed` })
+    } else if (settlement.completed) {
+      const amount = formatSGD(c.creator_payout)
+      if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'payment_released',
+        title: `${amount} transferred`, body: 'Automatic settlement succeeded after 72h.',
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payment-released` })
       await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: c.id }) })
       await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: c.id }) })
     }

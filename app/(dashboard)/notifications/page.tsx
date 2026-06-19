@@ -27,6 +27,8 @@ const TYPE_META: Record<string, { icon: Icon; tone: Tone }> = {
   draft_rejected:          { icon: X,            tone: 'danger' },
   live_submitted:          { icon: Globe,        tone: 'accent' },
   payment_released:        { icon: Banknote,     tone: 'money' },
+  payout_pending:          { icon: Banknote,     tone: 'warn' },
+  collab_completed:        { icon: CheckCircle2, tone: 'money' },
   collab_cancelled:        { icon: X,            tone: 'neutral' },
   dispute_raised:          { icon: AlertTriangle,tone: 'danger' },
   dispute_evidence:        { icon: Scale,        tone: 'accent' },

@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
+import { notifyCollabFunded } from '@/lib/collab-funding'
 import { computeFee } from '@/lib/utils'
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
@@ -18,7 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   // Load application with campaign and brand ownership check
   const { data: application } = await supabase.from('applications')
-    .select('*, campaigns(id, brand_id, title, creators_needed, brand_profiles(user_id, plan)), creator_profiles(id, user_id, users(display_name, email))')
+    .select('*, campaigns(id, brand_id, title, comp_type, creators_needed, brand_profiles(user_id, plan)), creator_profiles(id, user_id, users(display_name, email))')
     .eq('id', params.id).single()
   if (!application) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -39,31 +40,47 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: 'Creator profile is incomplete; selection cannot create a collab.' }, { status: 409 })
     }
     const plan: 'free' | 'pro' = (application.campaigns as any)?.brand_profiles?.plan || 'free'
+    const compType = (application.campaigns as any)?.comp_type
     const agreedRate = application.proposed_rate
-    if (!agreedRate || agreedRate <= 0) {
-      return NextResponse.json({ error: 'A positive agreed rate is required before selecting a creator.' }, { status: 400 })
+    const isBarterDeal = !agreedRate || agreedRate <= 0
+
+    if (isBarterDeal) {
+      // True barter: no cash, no escrow. Allowed only on barter/both campaigns.
+      if (compType !== 'barter' && compType !== 'both') {
+        return NextResponse.json({ error: 'A positive agreed rate is required to accept this applicant.' }, { status: 400 })
+      }
+      const { data: selection, error: barterErr } = await admin.rpc('select_barter_collab', {
+        p_application_id: params.id,
+      }).single()
+      if (barterErr) {
+        console.error('[BARTER COLLAB CREATE]', barterErr)
+        return NextResponse.json({ error: barterErr.message }, { status: 409 })
+      }
+      collabId = (selection as any)?.collab_id
+      changed = (selection as any)?.created === true
+      // Barter is committed at accept (there's no funding step), so confirm the
+      // creator + auto-reject leftovers now — same as the funded path does.
+      if (changed && collabId) {
+        try { await notifyCollabFunded(admin, collabId) } catch (e) { console.error('[BARTER NOTIFY]', e) }
+      }
+    } else {
+      const { fee, payout } = computeFee(agreedRate, plan)
+      const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
+        p_application_id: params.id,
+        p_agreed_rate: agreedRate,
+        p_platform_fee: fee,
+        p_creator_payout: payout,
+      }).single()
+      if (collabErr) {
+        console.error('[COLLAB CREATE]', collabErr)
+        return NextResponse.json({ error: collabErr.message }, { status: 409 })
+      }
+      collabId = (selection as any)?.collab_id
+      changed = (selection as any)?.created === true
+      // Paid: the creator is NOT notified here — selection alone isn't a
+      // commitment. The "Confirmed · payment secured" notification + leftover
+      // auto-reject fire once escrow funds (webhook → notifyCollabFunded).
     }
-    const { fee, payout } = computeFee(agreedRate, plan)
-
-    const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
-      p_application_id: params.id,
-      p_agreed_rate: agreedRate,
-      p_platform_fee: fee,
-      p_creator_payout: payout,
-    }).single()
-    if (collabErr) {
-      console.error('[COLLAB CREATE]', collabErr)
-      return NextResponse.json({ error: collabErr.message }, { status: 409 })
-    }
-
-    collabId = (selection as any)?.collab_id
-    changed = (selection as any)?.created === true
-
-    // NOTE: the creator is NOT notified here. Selection alone is not a real
-    // commitment — to the creator the application still reads "Applied". The
-    // "Confirmed · payment secured" notification and the leftover auto-reject
-    // both fire once escrow is funded (Stripe webhook → notifyCollabFunded).
-    // The brand is taken straight to the funding step from the UI.
   } else {
     const { data: updated, error } = await admin.from('applications')
       .update({ status })

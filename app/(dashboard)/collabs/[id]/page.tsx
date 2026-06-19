@@ -119,6 +119,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
   }
   const status = COLLAB_STATUSES[collab.status as keyof typeof COLLAB_STATUSES]
   const paymentInfo = PAYMENT_TRUTH[collab.payment_status] ?? PAYMENT_TRUTH.unfunded
+  const isBarter = (collab.agreed_rate ?? 0) === 0
 
   const creatorName = (collab.creator_profiles as any)?.users?.display_name || 'Creator'
   const brandName = (collab.brand_profiles as any)?.company_name || 'Brand'
@@ -184,17 +185,26 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         <span className={`badge badge-${status?.color || 'neutral'}`} style={{ flexShrink: 0, marginTop: 4 }}>{status?.label || collab.status}</span>
       </div>
 
-      {/* ── Signature escrow timeline (hero) ─────────────── */}
-      <div style={{ marginBottom: 14 }}>
-        <EscrowTimeline current={escrowStep(collab.status, collab.payment_status)} amount={formatSGD(collab.agreed_rate)} />
-      </div>
-
-      {/* ── Escrow status strip ──────────────────────────── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: paymentInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${paymentInfo.color}22` }}>
-        <Lock size={16} color={paymentInfo.color} style={{ flexShrink: 0 }} />
-        <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color }}>{paymentInfo.label}</span>
-        <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: paymentInfo.color }}>{formatSGD(collab.agreed_rate)}</span>
-      </div>
+      {/* ── Escrow timeline + status strip. Barter collabs carry no money, so
+            they get a simple "no payment" strip instead. ── */}
+      {isBarter ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--accent-tint)', borderRadius: 'var(--radius-sm)', marginBottom: 28, border: '1px solid var(--accent-tint-2)' }}>
+          <CheckCircle2 size={16} color="var(--accent-deep)" style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--accent-deep)' }}>Barter collaboration — no payment</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)' }}>Product / service exchange</span>
+        </div>
+      ) : (
+        <>
+          <div style={{ marginBottom: 14 }}>
+            <EscrowTimeline current={escrowStep(collab.status, collab.payment_status)} amount={formatSGD(collab.agreed_rate)} />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: paymentInfo.bg, borderRadius: 'var(--radius-sm)', marginBottom: 28, border: `1px solid ${paymentInfo.color}22` }}>
+            <Lock size={16} color={paymentInfo.color} style={{ flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: paymentInfo.color }}>{paymentInfo.label}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontWeight: 700, color: paymentInfo.color }}>{formatSGD(collab.agreed_rate)}</span>
+          </div>
+        </>
+      )}
 
       {/* ── Two-column grid ──────────────────────────────── */}
       <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: 28, alignItems: 'start' }}>

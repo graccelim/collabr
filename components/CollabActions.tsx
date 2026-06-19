@@ -27,6 +27,8 @@ export default function CollabActions({
   const router = useRouter()
   const [confirming, setConfirming] = useState(false)
   const settlementAvailable = ['funded', 'capture_failed', 'captured', 'transfer_pending', 'transfer_failed', 'paid', 'manual_exception'].includes(paymentStatus)
+  // A zero agreed rate means a true barter collab — no escrow, no payment.
+  const isBarter = agreedRate === 0
 
   async function confirmLive() {
     setConfirming(true)
@@ -34,7 +36,11 @@ export default function CollabActions({
       const res = await fetch(`/api/collabs/${collabId}/confirm-live`, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
-      toast.success('Payment released to your creator')
+      toast.success(
+        data.payout_pending
+          ? `Payment captured. We'll pay ${creatorName.split(' ')[0]} once they connect their payout account.`
+          : isBarter ? 'Collab confirmed and completed' : 'Payment released to your creator'
+      )
       router.refresh()
     } catch (e: any) {
       toast.error(e.message || 'Something went wrong')
@@ -43,22 +49,66 @@ export default function CollabActions({
     }
   }
 
-  // ── Brand: needs to pay ──────────────────────────────────────
-  if (isBrand && collabStatus === 'briefed' && ['unfunded', 'authorizing'].includes(paymentStatus)) {
-    if (!creatorHasConnect) {
+  // ── Barter collab: no escrow, no payment, normal draft/live flow ──
+  if (isBarter && collabStatus === 'briefed') {
+    return (
+      <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--accent-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Check size={17} color="var(--accent-deep)" />
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Barter collaboration</div>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+            {isBrand
+              ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
+              : 'No payment — this is a barter exchange. Submit your draft to get started.'}
+          </p>
+        </div>
+      </div>
+    )
+  }
+  if (isBarter && collabStatus === 'live_submitted') {
+    if (isBrand) {
       return (
         <div className="card" style={{ padding: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <Clock size={15} color="var(--warn)" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--warn-deep)' }}>Waiting on creator</span>
-          </div>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-            {creatorName} hasn't connected a payout account yet. Payment will be available once they do.
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>{creatorName.split(' ')[0]} posted live</div>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 16px', lineHeight: 1.5 }}>
+            This is a barter collab, so there’s no payment to release. Confirm the live post to complete it.
+          </p>
+          {livePostUrl && (
+            <a href={livePostUrl} target="_blank" rel="noopener noreferrer"
+              style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', marginBottom: 14, textDecoration: 'none' }}>
+              <ExternalLink size={14} /> View {creatorName.split(' ')[0]}&rsquo;s live post
+            </a>
+          )}
+          <button className="btn btn-primary btn-block btn-lg" style={{ justifyContent: 'center' }} onClick={confirmLive} disabled={confirming}>
+            <Check size={18} /> {confirming ? 'Completing…' : 'Confirm & complete'}
+          </button>
+          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '10px 0 0' }}>
+            Auto-completes 72 hours after the post goes live if you don’t act.
           </p>
         </div>
       )
     }
+    return (
+      <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+        <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--warn-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Clock size={17} color="var(--warn)" />
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>Awaiting brand confirmation</div>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+            The brand confirms your post to complete the barter. It auto-completes after 72 hours.
+          </p>
+        </div>
+      </div>
+    )
+  }
 
+  // ── Brand: needs to pay. (Funding no longer waits on the creator's payout
+  //    account — escrow is the brand's card hold; payout happens at release,
+  //    retried automatically once the creator connects.) ──
+  if (isBrand && collabStatus === 'briefed' && ['unfunded', 'authorizing'].includes(paymentStatus)) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {/* deposit summary */}
@@ -96,6 +146,11 @@ export default function CollabActions({
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.4 }}>
             We check your card first. Work only starts once the money is safely in.
           </p>
+          {!creatorHasConnect && (
+            <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.4 }}>
+              {creatorName.split(' ')[0]} hasn’t connected a payout account yet — that’s fine to fund now; the payout is released to them once they connect.
+            </p>
+          )}
         </div>
 
         {/* escrow explainer */}
@@ -244,7 +299,24 @@ export default function CollabActions({
     )
   }
 
-  if (['capture_failed', 'transfer_failed'].includes(paymentStatus)) {
+  // Transfer pending on the creator's payout account — the money IS captured;
+  // it releases automatically once they connect. Not an error.
+  if (paymentStatus === 'transfer_failed') {
+    return (
+      <div className="card" style={{ padding: 18, border: '1px solid rgba(217,119,6,.25)' }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>
+          {isBrand ? 'Payment captured — waiting on payout setup' : 'Connect your payout account to get paid'}
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+          {isBrand
+            ? `Your payment is secured. We'll release it to ${creatorName.split(' ')[0]} automatically once they connect their payout account.`
+            : 'Your payment is secured. Connect your payout account in Earnings and we’ll release it to you automatically.'}
+        </p>
+      </div>
+    )
+  }
+
+  if (paymentStatus === 'capture_failed') {
     return (
       <div className="card" style={{ padding: 18, border: '1px solid rgba(220,38,38,.25)' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--danger)', marginBottom: 4 }}>
