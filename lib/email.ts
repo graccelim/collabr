@@ -235,6 +235,17 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
+  selectionExpired: (d: { creatorName: string; campaignTitle: string; campaignId: string; collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:selection-expired`,
+    subject: `Your selection expired — ${d.campaignTitle}`,
+    preheader: 'Payment wasn’t secured in time; the creator is back in the pool.',
+    title: 'Your selection expired',
+    body: `You selected ${d.creatorName} for "${d.campaignTitle}", but payment wasn’t secured within 72 hours. They’ve been returned to the applicant pool — you can select them again or choose someone else.`,
+    ctaLabel: 'Review applicants',
+    ctaUrl: link(`/campaigns/${d.campaignId}`),
+  }),
+
   collabCompletedBrand: (d: { creatorName: string; amount: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:completed-brand`,

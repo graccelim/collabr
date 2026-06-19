@@ -138,7 +138,16 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     const { data: ev } = await adminForRead.from('dispute_evidence')
       .select('author_type, body, attachment_urls, created_at')
       .eq('dispute_id', dispute.id).order('created_at', { ascending: true })
-    disputeEvidence = (ev as typeof disputeEvidence) || []
+    // Resolve uploaded files (stored as `storage:<path>`) to short-lived signed
+    // URLs; external links pass through untouched.
+    disputeEvidence = await Promise.all(((ev as typeof disputeEvidence) || []).map(async (item) => ({
+      ...item,
+      attachment_urls: await Promise.all((item.attachment_urls || []).map(async (a) => {
+        if (!a.startsWith('storage:')) return a
+        const { data } = await adminForRead.storage.from('dispute-evidence').createSignedUrl(a.slice(8), 3600)
+        return data?.signedUrl || a
+      })),
+    })))
   }
   const showDisputeCard = !!dispute && (collab.status === 'disputed' || (!!dispute.resolved_at && ['completed', 'cancelled'].includes(collab.status)))
 
