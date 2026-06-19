@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 
-// Review-window reminders. Runs every 6h so it can catch the 24h / 12h / 6h
-// thresholds for live review. Each threshold fires once (dedupe keys per
-// threshold), in-app + email.
+// Review-window reminders. Runs ONCE DAILY (Hobby-plan cron limit), so the
+// windows are 24h-wide: each in-flight review gets a single reminder in its
+// final day before auto-approve / auto-release. Dedupe keys keep it to one send.
 export async function GET(req: NextRequest) {
   if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -13,16 +13,15 @@ export async function GET(req: NextRequest) {
 
   const supabase = createAdminClient()
   const now = new Date()
-  const in6h = new Date(now.getTime() + 6 * 60 * 60 * 1000).toISOString()
   const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString()
 
-  // ── Drafts auto-approving within 6h → nudge the brand to review ──
+  // ── Drafts auto-approving within 24h → nudge the brand to review ──
   const { data: expiringDrafts } = await supabase.from('collabs')
     .select('id, draft_auto_approve_at, brand_profiles(user_id), campaigns(title)')
     .eq('status', 'draft_submitted')
     .eq('payment_status', 'funded')
     .gt('draft_auto_approve_at', now.toISOString())
-    .lt('draft_auto_approve_at', in6h)
+    .lt('draft_auto_approve_at', in24h)
 
   let notifiedDrafts = 0
   for (const c of expiringDrafts || []) {
@@ -31,9 +30,9 @@ export async function GET(req: NextRequest) {
       await sendNotification({
         userId: brandUserId,
         type: 'draft_expiring',
-        title: `Review pending: "${(c.campaigns as any)?.title}" auto-approves in <6h`,
+        title: `Review pending: "${(c.campaigns as any)?.title}" auto-approves within 24h`,
         payload: { collab_id: c.id },
-        dedupeKey: `collab:${c.id}:draft-expiring:6h`,
+        dedupeKey: `collab:${c.id}:draft-expiring`,
       })
       notifiedDrafts++
     }
