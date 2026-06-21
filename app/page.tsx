@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { CheckCircle2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
@@ -231,10 +232,16 @@ export default async function HomePage() {
               marginBottom: 16,
             }}
           >
-            Better matches.
-            <br />
-            Better collaborations.
+            Find creators you can trust.
           </h1>
+          <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '0 auto 24px' }}>
+            Protected payments, structured approvals, and creator reputation — all in one place.
+            Better collaborations, not just more creators.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/signup?role=brand" className="btn-primary btn-lg">Start collaborating</Link>
+            <Link href="/creators" className="btn-secondary btn-lg">Browse creators</Link>
+          </div>
         </Reveal>
       </header>
 
@@ -425,6 +432,44 @@ export default async function HomePage() {
           </Reveal>
         </Link>
       </div>
+
+      {/* ══ WHY COLLABR ══ trust positioning for each side ══ */}
+      <section className="lp-section">
+        <div className="lp-narrow">
+          <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Brands */}
+            <div className="card" style={{ padding: 'clamp(20px,3vw,28px)' }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Why brands choose Collabr</div>
+              <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 16px' }}>
+                No more creators ghosting, paying before work starts, no accountability, or messy DMs. Every step —
+                applications, approvals, live submissions, reviews and payment release — is tracked in one workflow.
+              </p>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {['Applications', 'Approvals', 'Live submissions', 'Reviews', 'Payment release'].map(s => (
+                  <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'var(--ink)' }}>
+                    <CheckCircle2 size={16} color="var(--money-deep)" style={{ flexShrink: 0 }} /> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            {/* Creators */}
+            <div className="card" style={{ padding: 'clamp(20px,3vw,28px)' }}>
+              <div className="eyebrow" style={{ marginBottom: 10 }}>Why creators choose Collabr</div>
+              <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 16px' }}>
+                Brands secure payment before work begins, so you know your payment is protected from day one.
+                No chasing payments, no invoice reminders.
+              </p>
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {['No chasing payments', 'No invoice reminders', 'Protected payments', 'Transparent approvals', 'Fair dispute handling'].map(s => (
+                  <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'var(--ink)' }}>
+                    <CheckCircle2 size={16} color="var(--money-deep)" style={{ flexShrink: 0 }} /> {s}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
       <section

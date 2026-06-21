@@ -69,7 +69,7 @@ export default async function ApplicationsPage() {
         <EmptyState
           icon={Send}
           title="Your pitches show up here"
-          body="Campaigns you apply to will appear here."
+          body="You haven't applied to any campaigns yet. Browse open campaigns and apply to ones that fit you."
           actionHref="/jobs"
           actionLabel="Browse campaigns"
         />

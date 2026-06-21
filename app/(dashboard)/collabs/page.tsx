@@ -169,7 +169,9 @@ export default async function CollabsPage() {
               ? 'Your first collab starts here'
               : 'Your first collab is close'
           }
-          body="Confirmed collaborations will appear here once they’re underway."
+          body={isBrand
+            ? 'Your collaborations will appear here once you accept a creator.'
+            : 'Your collaborations will appear here once a brand accepts your application.'}
           actionHref={isBrand ? '/campaigns' : '/jobs'}
           actionLabel={isBrand ? 'Go to campaigns' : 'Discover campaigns'}
         />
