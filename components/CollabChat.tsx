@@ -35,12 +35,28 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
     const res = await fetch(`/api/collabs/${collabId}/messages`)
     if (res.ok) {
       const data = await res.json()
-      setMessages(data.messages || [])
+      const next: Message[] = data.messages || []
+      // Only update state when something actually changed (avoids needless
+      // re-renders + scroll jank on each poll tick).
+      setMessages(prev =>
+        prev.length === next.length && prev[prev.length - 1]?.id === next[next.length - 1]?.id
+          ? prev
+          : next
+      )
     }
     setLoaded(true)
   }, [collabId])
 
   useEffect(() => { load() }, [load])
+
+  // Light polling so the other party's replies appear without a manual reload.
+  // Only while the tab is visible; refresh immediately on regaining focus.
+  useEffect(() => {
+    const tick = () => { if (document.visibilityState === 'visible') load() }
+    const id = setInterval(tick, 12_000)
+    document.addEventListener('visibilitychange', tick)
+    return () => { clearInterval(id); document.removeEventListener('visibilitychange', tick) }
+  }, [load])
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight

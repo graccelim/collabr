@@ -3,7 +3,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 import { notifyCollabFunded } from '@/lib/collab-funding'
+import { capacityBreakdown } from '@/lib/collab-status'
 import { computeFee } from '@/lib/utils'
+
+// Turn a raw "capacity reached" RPC error into a brand-clear message that names
+// the real cause when reserved (selected-but-unfunded) slots are what's full.
+async function capacityErrorMessage(
+  admin: ReturnType<typeof createAdminClient>,
+  campaignId: string,
+  creatorsNeeded: number | null | undefined,
+  rawMessage: string,
+): Promise<string> {
+  if (!/capacity/i.test(rawMessage)) return rawMessage
+  const { data: collabs } = await admin.from('collabs')
+    .select('status, payment_status').eq('campaign_id', campaignId)
+  const cap = capacityBreakdown(creatorsNeeded, collabs || [])
+  if (cap.available <= 0 && cap.awaiting > 0) {
+    return 'This campaign has no available slots because selected creators are awaiting payment.'
+  }
+  return 'This campaign has already filled all its creator slots.'
+}
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const supabase = createClient()
@@ -54,7 +73,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }).single()
       if (barterErr) {
         console.error('[BARTER COLLAB CREATE]', barterErr)
-        return NextResponse.json({ error: barterErr.message }, { status: 409 })
+        const msg = await capacityErrorMessage(admin, (application.campaigns as any)?.id, (application.campaigns as any)?.creators_needed, barterErr.message)
+        return NextResponse.json({ error: msg }, { status: 409 })
       }
       collabId = (selection as any)?.collab_id
       changed = (selection as any)?.created === true
@@ -73,7 +93,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       }).single()
       if (collabErr) {
         console.error('[COLLAB CREATE]', collabErr)
-        return NextResponse.json({ error: collabErr.message }, { status: 409 })
+        const msg = await capacityErrorMessage(admin, (application.campaigns as any)?.id, (application.campaigns as any)?.creators_needed, collabErr.message)
+        return NextResponse.json({ error: msg }, { status: 409 })
       }
       collabId = (selection as any)?.collab_id
       changed = (selection as any)?.created === true

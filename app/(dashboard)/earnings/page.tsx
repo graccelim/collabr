@@ -101,7 +101,8 @@ export default async function EarningsPage({
 
       {/* Stripe Connect onboarding - getting paid comes first, above the boost. */}
       <ConnectOnboarding
-        hasConnectId={payoutsReady}
+        accountExists={Boolean(connectProfile?.stripe_connect_id)}
+        payoutsEnabled={payoutsReady}
         justCompleted={connectComplete}
         needsRefresh={connectRefresh}
       />

@@ -237,24 +237,30 @@ export default async function CreatorsPage({
     }
   }
 
-  // Re-sort the page in memory by the recommendation engine's rankScore. The DB
-  // ordering above stays as a stable fallback; ranking has no campaign context
-  // on the standalone discovery page (null), so it leans on merit signals.
-  const rankOrder = new Map(
-    rankCreators(
-      (creators || []).map((c) =>
-        toCreatorSignals(
-          c as any,
-          socialsByCreator[c.id] || [],
-          scoreById[c.id] || null
-        )
-      ),
-      null
-    ).map((r, i) => [r.creator.id, i])
-  );
-  const rankedCreators = [...(creators || [])].sort(
-    (a, b) => (rankOrder.get(a.id) ?? 0) - (rankOrder.get(b.id) ?? 0)
-  );
+  // For "Most relevant" (no explicit sort) we re-rank in memory by the
+  // recommendation engine. When the brand picks an EXPLICIT sort (Newest,
+  // Highest rated, …) we must honour the DB order instead — otherwise the
+  // in-memory re-rank silently overrides their choice and the page looks frozen.
+  const hasExplicitSort = Boolean(searchParams.sort);
+  const rankedCreators = hasExplicitSort
+    ? [...(creators || [])]
+    : (() => {
+        const rankOrder = new Map(
+          rankCreators(
+            (creators || []).map((c) =>
+              toCreatorSignals(
+                c as any,
+                socialsByCreator[c.id] || [],
+                scoreById[c.id] || null
+              )
+            ),
+            null
+          ).map((r, i) => [r.creator.id, i])
+        );
+        return [...(creators || [])].sort(
+          (a, b) => (rankOrder.get(a.id) ?? 0) - (rankOrder.get(b.id) ?? 0)
+        );
+      })();
 
   // Paginate the ranked list (not the DB page) so page 1 = the best matches.
   const total = rankedCreators.length;

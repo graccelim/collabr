@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { notifyCollabFunded, retryStuckPayoutsForAccount } from '@/lib/collab-funding'
 import { stripe, BOOST_MAX_HORIZON_DAYS } from '@/lib/stripe'
 import { paymentStatusFromIntent } from '@/lib/payments'
+import { sendPayoutAdminEmail, link } from '@/lib/email'
 import Stripe from 'stripe'
 
 async function ensureWrite(result: PromiseLike<{ error: any }>) {
@@ -230,11 +231,33 @@ export async function POST(req: NextRequest) {
     case 'charge.refunded': {
       const charge = event.data.object as Stripe.Charge
       if (typeof charge.payment_intent === 'string') {
-        await ensureWrite(supabase.from('collabs').update({
-          payment_status: 'refunded',
-          refunded_at: new Date().toISOString(),
-          payment_failure_reason: null,
-        }).eq('stripe_payment_intent_id', charge.payment_intent))
+        const { data: c } = await supabase.from('collabs')
+          .select('id, stripe_transfer_id, payment_status')
+          .eq('stripe_payment_intent_id', charge.payment_intent).maybeSingle()
+        if (c) {
+          const paidOut = Boolean(c.stripe_transfer_id) || ['paid', 'manual_exception'].includes(c.payment_status as string)
+          if (paidOut) {
+            // Out-of-band refund (e.g. from the Stripe dashboard) on a collab the
+            // creator was already PAID for — do NOT clobber to 'refunded' (that
+            // would say brand-refunded AND creator-paid). Flag for manual review.
+            await ensureWrite(supabase.from('collabs').update({
+              payout_review_at: new Date().toISOString(),
+              payment_failure_reason: 'A refund was issued on an already-paid collab — manual reconciliation needed.',
+            }).eq('id', c.id))
+            await sendPayoutAdminEmail('Refund on an already-paid collab — manual review', {
+              Event: 'charge.refunded on a collab already paid out to the creator',
+              'Payment status': c.payment_status as string,
+              Charge: charge.id,
+              Collab: link(`/collabs/${c.id}`),
+            }, c.id).catch(() => {})
+          } else {
+            await ensureWrite(supabase.from('collabs').update({
+              payment_status: 'refunded',
+              refunded_at: new Date().toISOString(),
+              payment_failure_reason: null,
+            }).eq('id', c.id))
+          }
+        }
       }
       break
     }
@@ -242,27 +265,60 @@ export async function POST(req: NextRequest) {
     case 'refund.updated': {
       const refund = event.data.object as Stripe.Refund
       if (typeof refund.payment_intent === 'string') {
-        const refundStatus = refund.status === 'succeeded'
-          ? 'refunded'
-          : refund.status === 'pending'
-            ? 'refund_pending'
-            : 'refund_failed'
-        await ensureWrite(supabase.from('collabs').update({
-          stripe_refund_id: refund.id,
-          payment_status: refundStatus,
-          refunded_at: refundStatus === 'refunded' ? new Date().toISOString() : null,
-          payment_failure_reason: refundStatus === 'refund_failed' ? `Stripe refund status: ${refund.status}` : null,
-        }).eq('stripe_payment_intent_id', refund.payment_intent))
+        const { data: c } = await supabase.from('collabs')
+          .select('id, stripe_transfer_id, payment_status')
+          .eq('stripe_payment_intent_id', refund.payment_intent).maybeSingle()
+        if (c) {
+          const paidOut = Boolean(c.stripe_transfer_id) || ['paid', 'manual_exception'].includes(c.payment_status as string)
+          if (paidOut) {
+            await ensureWrite(supabase.from('collabs').update({
+              payout_review_at: new Date().toISOString(),
+              payment_failure_reason: 'A refund was updated on an already-paid collab — manual reconciliation needed.',
+            }).eq('id', c.id))
+            await sendPayoutAdminEmail('Refund on an already-paid collab — manual review', {
+              Event: 'refund.updated on a collab already paid out to the creator',
+              'Payment status': c.payment_status as string,
+              Refund: refund.id,
+              Collab: link(`/collabs/${c.id}`),
+            }, c.id).catch(() => {})
+          } else {
+            const refundStatus = refund.status === 'succeeded'
+              ? 'refunded'
+              : refund.status === 'pending'
+                ? 'refund_pending'
+                : 'refund_failed'
+            await ensureWrite(supabase.from('collabs').update({
+              stripe_refund_id: refund.id,
+              payment_status: refundStatus,
+              refunded_at: refundStatus === 'refunded' ? new Date().toISOString() : null,
+              payment_failure_reason: refundStatus === 'refund_failed' ? `Stripe refund status: ${refund.status}` : null,
+            }).eq('id', c.id))
+          }
+        }
       }
       break
     }
 
     case 'transfer.reversed': {
       const transfer = event.data.object as Stripe.Transfer
-      await ensureWrite(supabase.from('collabs').update({
-        payment_status: 'transfer_failed',
-        payment_failure_reason: 'Stripe transfer was reversed.',
-      }).eq('stripe_transfer_id', transfer.id))
+      const { data: c } = await supabase.from('collabs')
+        .select('id, payment_status').eq('stripe_transfer_id', transfer.id).maybeSingle()
+      if (c) {
+        // A reversal of an already-completed payout is NOT a normal retryable
+        // 'transfer_failed' (the payout-stuck cron would loop on it forever). Use
+        // a distinct terminal state + flag for manual reconciliation.
+        await ensureWrite(supabase.from('collabs').update({
+          payment_status: 'transfer_reversed',
+          payout_review_at: new Date().toISOString(),
+          payment_failure_reason: 'Stripe transfer was reversed — manual reconciliation needed.',
+        }).eq('id', c.id))
+        await sendPayoutAdminEmail('Transfer reversed — manual review', {
+          Event: 'transfer.reversed; the creator payout was clawed back',
+          'Prior payment status': c.payment_status as string,
+          Transfer: transfer.id,
+          Collab: link(`/collabs/${c.id}`),
+        }, c.id).catch(() => {})
+      }
       break
     }
 

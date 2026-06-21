@@ -4,12 +4,15 @@ import toast from 'react-hot-toast'
 import { AlertTriangle } from 'lucide-react'
 
 interface Props {
-  hasConnectId: boolean
+  /** A Stripe Connect account exists (onboarding started), regardless of status. */
+  accountExists: boolean
+  /** Stripe payouts_enabled is true — the creator can actually be paid. */
+  payoutsEnabled: boolean
   justCompleted: boolean
   needsRefresh: boolean
 }
 
-export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRefresh }: Props) {
+export default function ConnectOnboarding({ accountExists, payoutsEnabled, justCompleted, needsRefresh }: Props) {
   const [loading, setLoading] = useState(false)
 
   async function startOnboarding() {
@@ -36,7 +39,8 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
     )
   }
 
-  if (hasConnectId && !needsRefresh) {
+  // Payouts genuinely enabled → connected.
+  if (payoutsEnabled && !needsRefresh) {
     return (
       <div className="card bg-teal-50 border-teal-200">
         <p className="text-xs text-teal-600 font-medium mb-1">Payout account connected</p>
@@ -50,6 +54,10 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
     )
   }
 
+  // Account started but payouts not yet enabled (Stripe still needs details /
+  // verification) — distinct from "never connected" so the creator knows to
+  // FINISH, not start over.
+  const incomplete = accountExists && !payoutsEnabled
   return (
     <div style={{
       borderRadius: 'var(--radius)', padding: 18,
@@ -61,13 +69,17 @@ export default function ConnectOnboarding({ hasConnectId, justCompleted, needsRe
         <AlertTriangle size={20} />
       </div>
       <div style={{ flex: 1, minWidth: 180 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)' }}>Connect your payout account to get paid</div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)' }}>
+          {incomplete ? 'Finish your payout setup to get paid' : 'Connect your payout account to get paid'}
+        </div>
         <div style={{ fontSize: 12.5, color: 'var(--warn-deep)', opacity: .85, lineHeight: 1.45, marginTop: 1 }}>
-          You haven&rsquo;t connected Stripe yet, payments can&rsquo;t reach you until you do. Takes about 2 minutes.
+          {incomplete
+            ? 'Your payout account isn’t finished — Stripe still needs a few details before payments can reach you. Just a minute or two to complete.'
+            : 'You haven’t connected Stripe yet, payments can’t reach you until you do. Takes about 2 minutes.'}
         </div>
       </div>
       <button onClick={startOnboarding} disabled={loading} className="btn-primary" style={{ flexShrink: 0 }}>
-        {loading ? 'Redirecting…' : 'Connect payouts'}
+        {loading ? 'Redirecting…' : incomplete ? 'Finish setup' : 'Connect payouts'}
       </button>
     </div>
   )

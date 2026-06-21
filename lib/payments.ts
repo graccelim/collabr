@@ -172,6 +172,29 @@ export async function captureTransferAndComplete(
     return { ok: false, paymentStatus: 'transfer_failed', error }
   }
 
+  // DB-level settlement claim: a short lease so concurrent settlers (confirm-live,
+  // auto-release-live, payout retry, account.updated webhook) can't all reach
+  // stripe.transfers.create. Re-claimable after 10 min so a crashed settler
+  // recovers; the Stripe idempotency key still dedupes the transfer on that
+  // retry. Released (set null) on completion/failure below.
+  const LEASE_CUTOFF = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+  const { data: claimed, error: claimError } = await admin.from('collabs')
+    .update({ settlement_claimed_at: new Date().toISOString() })
+    .eq('id', collab.id)
+    .not('payment_status', 'in', '("paid","manual_exception")')
+    .or(`settlement_claimed_at.is.null,settlement_claimed_at.lt.${LEASE_CUTOFF}`)
+    .select('id')
+  if (claimError) {
+    return { ok: false, paymentStatus: collab.payment_status, error: claimError.message }
+  }
+  if (!claimed || claimed.length === 0) {
+    // Another settler holds a fresh claim (or it's already paid) — never issue a
+    // second transfer. Report the live truth without acting.
+    const { data: fresh } = await admin.from('collabs').select('payment_status').eq('id', collab.id).single()
+    const ps = (fresh?.payment_status as string) ?? 'transfer_pending'
+    return { ok: ['paid', 'manual_exception', 'transfer_pending'].includes(ps), completed: ps === 'paid', paymentStatus: ps }
+  }
+
   try {
     await updateCollab(admin, collab.id, {
       payment_status: 'transfer_pending',
@@ -194,6 +217,7 @@ export async function captureTransferAndComplete(
       payment_status: 'paid',
       paid_at: new Date().toISOString(),
       payment_failure_reason: null,
+      settlement_claimed_at: null,
     })
 
     const { data: completed, error } = await admin.rpc('finalize_paid_collab', {
@@ -205,9 +229,12 @@ export async function captureTransferAndComplete(
     return { ok: true, completed: completed === true, paymentStatus: 'paid' }
   } catch (error) {
     const message = errorMessage(error)
+    // Release the lease so a legitimate retry (e.g. after the creator connects)
+    // isn't blocked for the lease window.
     await updateCollab(admin, collab.id, {
       payment_status: 'transfer_failed',
       payment_failure_reason: message,
+      settlement_claimed_at: null,
     })
     return { ok: false, paymentStatus: 'transfer_failed', error: message }
   }
