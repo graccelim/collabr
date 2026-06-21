@@ -56,28 +56,32 @@ const Scale = () => (
   </svg>
 );
 
-/* The pain creators & brands feel today → how Collabr removes it. Desktop-only
-   (mobile carries the same USPs through the split-hero bullets). */
-const WHY: { icon: () => JSX.Element; problem: string; solution: string }[] = [
+/* Benefit-led USPs: title → benefit → a quiet "No more…" reinforcement.
+   Desktop-only (mobile carries the same USPs through the split-hero bullets). */
+const WHY: { icon: () => JSX.Element; title: string; benefit: string; noMore: string }[] = [
   {
     icon: Shield,
-    problem: 'Creators deliver and get ghosted. Brands pay upfront and just hope the content shows up.',
-    solution: 'Funds are secured before work begins and released only once the content is approved.',
+    title: 'Protected Payments',
+    benefit: 'Funds stay protected until collaboration requirements are completed.',
+    noMore: 'No more chasing payments or wondering whether work will be delivered.',
   },
   {
     icon: Approve,
-    problem: 'Endless revision threads in DMs, or posts going live before anyone actually signed off.',
-    solution: 'A structured review window with drafts, feedback, and clear approval built into every collab.',
+    title: 'Structured Approvals',
+    benefit: 'Drafts, feedback, revisions, and approvals managed in one workflow.',
+    noMore: 'No more endless revision threads in DMs or content going live before approval.',
   },
   {
     icon: Reputation,
-    problem: 'Follower counts say nothing about whether someone reliably delivers good work.',
-    solution: 'Real ratings and completion history, earned only from collaborations that actually finished.',
+    title: 'Earned Reputation',
+    benefit: 'Trust is built through completed collaborations and genuine reviews.',
+    noMore: 'No more guessing who is reliable based on follower counts alone.',
   },
   {
     icon: Scale,
-    problem: 'When a collab goes sideways, there is no one to turn to and no fair way to settle it.',
-    solution: 'Built-in dispute resolution where the platform mediates fairly, usually within days.',
+    title: 'Fair Resolution',
+    benefit: 'A structured dispute process helps both sides resolve issues fairly.',
+    noMore: 'No more being left on your own when a collaboration does not go as planned.',
   },
 ];
 
@@ -433,7 +437,7 @@ export default async function HomePage() {
               className="display-face"
               style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}
             >
-              Built to fix what&rsquo;s broken in creator collabs.
+              Better collaborations, not just more connections.
             </h2>
             <p
               style={{
@@ -444,16 +448,16 @@ export default async function HomePage() {
                 marginInline: 'auto',
               }}
             >
-              Every part of Collabr exists to remove a real pain creators and
-              brands feel today.
+              Built to help brands and creators work together with confidence
+              from start to finish.
             </p>
           </Reveal>
           <div
             className="resp-1col"
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
           >
-            {WHY.map(({ icon: Icon, problem, solution }) => (
-              <Reveal key={solution} className="card" style={{ padding: 26 }}>
+            {WHY.map(({ icon: Icon, title, benefit, noMore }) => (
+              <Reveal key={title} className="card" style={{ padding: 26 }}>
                 <div
                   style={{
                     width: 38,
@@ -469,40 +473,42 @@ export default async function HomePage() {
                 >
                   <Icon />
                 </div>
-                <p
+                {/* Title is the primary focus — larger and bolder. */}
+                <h3
                   style={{
-                    fontSize: 13.5,
-                    color: 'var(--ink-faint-solid)',
-                    lineHeight: 1.5,
-                    margin: '0 0 12px',
+                    fontSize: 19,
+                    fontWeight: 700,
+                    color: 'var(--ink)',
+                    letterSpacing: '-0.01em',
+                    margin: '0 0 8px',
                   }}
                 >
-                  {problem}
-                </p>
-                <div
+                  {title}
+                </h3>
+                {/* Benefit — medium emphasis. */}
+                <p
                   style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 9,
+                    fontSize: 14.5,
+                    color: 'var(--ink-soft)',
+                    lineHeight: 1.5,
+                    margin: '0 0 14px',
+                  }}
+                >
+                  {benefit}
+                </p>
+                {/* "No more…" reinforcement — smaller and muted. */}
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--ink-faint-solid)',
+                    lineHeight: 1.45,
+                    margin: 0,
                     paddingTop: 12,
                     borderTop: '1px solid var(--line)',
                   }}
                 >
-                  <span style={{ color: 'var(--brand)', flexShrink: 0, marginTop: 1 }}>
-                    <Check />
-                  </span>
-                  <p
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: 'var(--ink)',
-                      lineHeight: 1.45,
-                      margin: 0,
-                    }}
-                  >
-                    {solution}
-                  </p>
-                </div>
+                  {noMore}
+                </p>
               </Reveal>
             ))}
           </div>
