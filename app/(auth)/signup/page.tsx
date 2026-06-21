@@ -213,7 +213,7 @@ function SignupForm() {
         ) : (
           <>
             <Field label="Full name">
-              <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Grace Lim" required disabled={busy} />
+              <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Alex Tan" required disabled={busy} />
             </Field>
             <Field label="Email">
               <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" required disabled={busy} autoComplete="email" />

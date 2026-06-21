@@ -136,7 +136,24 @@ export default async function InvitesPage() {
     : { data: [] };
 
   const pending = (invites || []).filter((i) => i.status === 'pending');
-  const past = (invites || []).filter((i) => i.status !== 'pending');
+  const accepted = (invites || []).filter((i) => i.status === 'accepted');
+  const rejected = (invites || []).filter((i) => i.status === 'declined' || i.status === 'expired');
+
+  // Shared row for the Accepted / Declined sections.
+  const pastRow = (inv: any) => (
+    <div key={inv.id} className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', opacity: 0.85 }}>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>
+          {(inv.brand_profiles as any)?.company_name || 'Brand'} · {(inv.campaigns as any)?.title || 'Campaign'}
+        </p>
+        <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 1 }}>
+          {inv.proposed_rate > 0 ? formatSGD(inv.proposed_rate) : 'Barter'} ·{' '}
+          {inv.responded_at ? relativeTime(inv.responded_at) : relativeTime(inv.created_at)}
+        </p>
+      </div>
+      <span className={`badge ${STATUS_BADGE[inv.status] || 'badge-neutral'}`}>{inv.status}</span>
+    </div>
+  );
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
@@ -279,47 +296,17 @@ export default async function InvitesPage() {
         </div>
       )}
 
-      {past.length > 0 && (
+      {accepted.length > 0 && (
         <div className="space-y-2">
-          <p className="eyebrow">Past</p>
-          {past.map((inv) => (
-            <div
-              key={inv.id}
-              className="card"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                opacity: 0.75,
-              }}
-            >
-              <div>
-                <p
-                  style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}
-                >
-                  {(inv.brand_profiles as any)?.company_name || 'Brand'} ·{' '}
-                  {(inv.campaigns as any)?.title || 'Campaign'}
-                </p>
-                <p
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--ink-soft)',
-                    marginTop: 1,
-                  }}
-                >
-                  {inv.proposed_rate > 0 ? formatSGD(inv.proposed_rate) : 'Barter'} ·{' '}
-                  {inv.responded_at
-                    ? relativeTime(inv.responded_at)
-                    : relativeTime(inv.created_at)}
-                </p>
-              </div>
-              <span
-                className={`badge ${STATUS_BADGE[inv.status] || 'badge-neutral'}`}
-              >
-                {inv.status}
-              </span>
-            </div>
-          ))}
+          <p className="eyebrow">Accepted · {accepted.length}</p>
+          {accepted.map(pastRow)}
+        </div>
+      )}
+
+      {rejected.length > 0 && (
+        <div className="space-y-2">
+          <p className="eyebrow">Declined · {rejected.length}</p>
+          {rejected.map(pastRow)}
         </div>
       )}
     </div>
