@@ -27,74 +27,6 @@ const Check = () => (
     <polyline points="20 6 9 17 4 12" />
   </svg>
 );
-const Target = () => (
-  <svg {...ico}>
-    <circle cx="12" cy="12" r="9" />
-    <circle cx="12" cy="12" r="5" />
-    <circle cx="12" cy="12" r="1" />
-  </svg>
-);
-const Send = () => (
-  <svg {...ico}>
-    <path d="M22 2 11 13" />
-    <path d="M22 2 15 22l-4-9-9-4Z" />
-  </svg>
-);
-const Filter = () => (
-  <svg {...ico}>
-    <path d="M22 3H2l8 9.5V19l4 2v-8.5L22 3z" />
-  </svg>
-);
-const Badge = () => (
-  <svg {...ico}>
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    <polyline points="9 12 11 14 15 10" />
-  </svg>
-);
-const Lock = () => (
-  <svg {...ico}>
-    <rect x="3" y="11" width="18" height="11" rx="2" />
-    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-  </svg>
-);
-const Star = () => (
-  <svg {...ico}>
-    <polygon points="12 2 15.1 8.6 22 9.3 17 14 18.2 21 12 17.6 5.8 21 7 14 2 9.3 8.9 8.6 12 2" />
-  </svg>
-);
-
-const WHY = [
-  {
-    Icon: Lock,
-    title: 'Protected payments',
-    body: 'Brands secure payment before work begins. Funds are held safely until content is approved, protected on both sides.',
-  },
-  {
-    Icon: Badge,
-    title: 'Everything tracked in one place',
-    body: 'Applications, approvals, live submissions, reviews and payment release. One accountable workflow, no chasing or messy DMs.',
-  },
-  {
-    Icon: Star,
-    title: 'Reputation you can trust',
-    body: 'Two-way reviews after every paid collab, plus real reliability stats. Built only through completed collaborations.',
-  },
-  {
-    Icon: Target,
-    title: 'Niche + budget matching',
-    body: 'Recommendations weigh niche, audience and budget, for both sides.',
-  },
-  {
-    Icon: Send,
-    title: 'Brand invitations',
-    body: 'Brands invite creators that already fit. Creators get found, not ignored.',
-  },
-  {
-    Icon: Filter,
-    title: 'Less noise, better fits',
-    body: 'Skip the irrelevant applications and the endless directory scroll.',
-  },
-];
 
 const STEPS = {
   brand: [
@@ -295,7 +227,7 @@ export default async function HomePage() {
             >
               {[
                 'Matched to your niche and budget',
-                'Skip the endless outreach and poor-fit applications',
+                'See real creator reputation, not just follower counts',
                 'Funds protected until content is delivered and approved',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
@@ -401,7 +333,7 @@ export default async function HomePage() {
             >
               {[
                 'Discover campaigns matched to your niche and rates',
-                'Stop waiting to be found, apply directly to brands',
+                'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
@@ -432,26 +364,6 @@ export default async function HomePage() {
         </Link>
       </div>
 
-      {/* ══ WHY COLLABR ══ trust + matching cards, ahead of "how it works" ══ */}
-      <section className="lp-section lp-narrow">
-        <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
-          <div className="eyebrow" style={{ marginBottom: 10 }}>Why collabr</div>
-          <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
-            Trust and accountability, built in.
-          </h2>
-        </Reveal>
-        <Reveal stagger style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }} className="resp-1col">
-          {WHY.map(({ Icon, title, body }) => (
-            <RevealItem key={title} className="card hover-lift" style={{ padding: 22 }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--surface-2)', color: 'var(--ink)', display: 'grid', placeItems: 'center', marginBottom: 14 }}>
-                <Icon />
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 5 }}>{title}</div>
-              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{body}</p>
-            </RevealItem>
-          ))}
-        </Reveal>
-      </section>
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
       <section

@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from 'lucide-react'
+import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, ChevronDown } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
@@ -106,19 +106,51 @@ export default function JobsList({
       {/* Niche filter — a dropdown (scales past a handful of niches instead of a
           long chip row). Lists ALL niches; those with no live campaign are
           flagged so creators can see the full taxonomy. */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-        <span className="eyebrow" style={{ fontSize: 10 }}>Filter by niche</span>
+      <div
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
+          paddingLeft: 12,
+          background: 'var(--surface)',
+          border: '1px solid var(--line-strong)',
+          borderRadius: 999,
+          boxShadow: 'var(--shadow-sm)',
+          position: 'relative',
+          maxWidth: '100%',
+        }}
+      >
+        <SlidersHorizontal size={15} color="var(--brand)" style={{ flexShrink: 0 }} />
         <select
-          className="input"
-          style={{ fontSize: 13.5, padding: '8px 32px 8px 12px', width: 'auto', maxWidth: '100%' }}
+          aria-label="Filter campaigns by niche"
           value={filter}
           onChange={e => setFilter(e.target.value)}
+          style={{
+            appearance: 'none',
+            WebkitAppearance: 'none',
+            MozAppearance: 'none',
+            border: 'none',
+            background: 'transparent',
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: 'var(--ink)',
+            padding: '9px 34px 9px 2px',
+            cursor: 'pointer',
+            outline: 'none',
+            maxWidth: '100%',
+            textOverflow: 'ellipsis',
+          }}
         >
           <option value="__for_you">For you</option>
           {CREATOR_NICHES.map(n => (
             <option key={n} value={n}>{nicheLabel(n)}</option>
           ))}
         </select>
+        <ChevronDown
+          size={15}
+          color="var(--ink-faint-solid)"
+          style={{ position: 'absolute', right: 12, pointerEvents: 'none' }}
+        />
       </div>
 
       {/* Campaign cards */}
