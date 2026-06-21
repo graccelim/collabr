@@ -408,6 +408,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
               resolvedAt={dispute.resolved_at}
               splitPercentage={dispute.split_percentage}
               evidence={disputeEvidence}
+              isBarter={isBarter}
             />
           )}
 
@@ -419,7 +420,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
                 <div>
                   <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Something wrong?</div>
                   <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
-                    If the collab has gone sideways, raising a dispute freezes the protected payment immediately. A collabr mediator reviews both sides within 3 business days.
+                    {isBarter
+                      ? 'If the collab has gone sideways, raising a dispute pauses it immediately. A collabr mediator reviews both sides within 3 business days.'
+                      : 'If the collab has gone sideways, raising a dispute freezes the protected payment immediately. A collabr mediator reviews both sides within 3 business days.'}
                   </p>
                   <a
                     href={`/collabs/${params.id}/dispute`}

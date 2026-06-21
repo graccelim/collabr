@@ -43,6 +43,9 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     createAdminClient().from('applications')
       .select('*, creator_profiles(id, user_id, bio, niche, niche_tags, niches, platforms, base_rate, average_rate_sgd, availability_status, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url))')
       .eq('campaign_id', params.id)
+      // Withdrawn/rejected applicants aren't in the running — exclude from the
+      // list + count (keeps this consistent with the campaigns list page).
+      .not('status', 'in', '("withdrawn","rejected")')
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: true }),
     createAdminClient().from('collabs')

@@ -24,6 +24,13 @@ describe('safeNextPath — post-auth redirect guard (no open redirects)', () => 
     expect(safeNextPath('/%5cevil.com')).toBe('/dashboard')
   })
 
+  it('falls back for dot-segment paths that normalize to protocol-relative', () => {
+    expect(safeNextPath('/..//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/foo/..//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/a/b/../..//evil.com')).toBe('/dashboard')
+    expect(safeNextPath('/.//evil.com')).toBe('/dashboard')
+  })
+
   it('preserves path + query + hash for legit same-origin targets', () => {
     expect(safeNextPath('/reset-password?verified=1')).toBe('/reset-password?verified=1')
     expect(safeNextPath('/collabs/x#dispute-section')).toBe('/collabs/x#dispute-section')

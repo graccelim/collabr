@@ -28,7 +28,7 @@ function when(ts: string): string {
  * either side to add evidence.
  */
 export default function DisputeStatusCard({
-  collabId, isBrand, raisedByType, reason, openedAt, outcome, resolvedAt, splitPercentage, evidence,
+  collabId, isBrand, raisedByType, reason, openedAt, outcome, resolvedAt, splitPercentage, evidence, isBarter = false,
 }: {
   collabId: string
   isBrand: boolean
@@ -39,6 +39,7 @@ export default function DisputeStatusCard({
   resolvedAt: string | null
   splitPercentage?: number | null
   evidence: DisputeEvidenceItem[]
+  isBarter?: boolean
 }) {
   const resolved = Boolean(resolvedAt)
   const statusLabel = outcome === 'split' && splitPercentage != null
@@ -69,14 +70,16 @@ export default function DisputeStatusCard({
 
       {!resolved && (
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          {isBrand
-            ? 'Payment release has been paused while this dispute is reviewed. Please submit evidence supporting your claim.'
-            : 'Your payment is currently on hold while this dispute is reviewed. Please submit any evidence that supports your case.'}
+          {isBarter
+            ? 'This collaboration is paused while the dispute is reviewed. Please submit any evidence that supports your case.'
+            : isBrand
+              ? 'Payment release has been paused while this dispute is reviewed. Please submit evidence supporting your claim.'
+              : 'Your payment is currently on hold while this dispute is reviewed. Please submit any evidence that supports your case.'}
         </p>
       )}
       {resolved && (
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 12px' }}>
-          A Collabr mediator reviewed both sides. Outcome: <strong>{statusLabel}</strong>. The protected payment has been settled accordingly.
+          A Collabr mediator reviewed both sides. Outcome: <strong>{statusLabel}</strong>.{isBarter ? '' : ' The protected payment has been settled accordingly.'}
         </p>
       )}
 

@@ -144,7 +144,10 @@ export default async function ApplicationsPage() {
                     </Link>
                     <div className="flex items-center gap-3 shrink-0">
                       {badge}
-                      <WithdrawApplicationButton applicationId={app.id} />
+                      {/* Withdraw is only valid while truly open (pending/shortlisted).
+                          A selected-but-unfunded app also reads "Applied" but has a
+                          collab — the server would reject withdraw, so hide it. */}
+                      {!collab && <WithdrawApplicationButton applicationId={app.id} />}
                     </div>
                   </div>
                 </div>

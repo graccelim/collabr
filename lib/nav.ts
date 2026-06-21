@@ -27,7 +27,12 @@ export function safeNextPath(raw: string | null | undefined, fallback = '/dashbo
     const BASE = 'https://x.invalid'
     const u = new URL(raw, BASE)
     if (u.origin !== BASE) return fallback // resolved off-origin → reject
-    return u.pathname + u.search + u.hash
+    const out = u.pathname + u.search + u.hash
+    // Re-validate the NORMALIZED output: "/..//evil.com" stays same-origin here
+    // but pathname normalizes to "//evil.com", a protocol-relative URL the
+    // consumers ('new URL(out, origin)' / router.push) would resolve off-origin.
+    if (!out.startsWith('/') || out.startsWith('//') || out.startsWith('/\\')) return fallback
+    return out
   } catch {
     return fallback
   }

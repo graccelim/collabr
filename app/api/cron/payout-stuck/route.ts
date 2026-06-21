@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails, sendPayoutAdminEmail, link } from '@/lib/email'
 import { retryCreatorPayout } from '@/lib/collab-funding'
+import { captureTransferAndComplete } from '@/lib/payments'
 import { formatSGD } from '@/lib/utils'
 
 // Creator-never-connects fallback. A paid collab whose work is approved but
@@ -89,5 +90,20 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ stuck: stuck.length, released, reminded, escalated })
+  // Backstop: a settler that crashed AFTER the Stripe transfer but BEFORE the DB
+  // write leaves the collab at 'transfer_pending' with a stale lease. Only
+  // auto-release-live otherwise recovers these — re-drive them here too. The
+  // transfer idempotency key guarantees no double payout.
+  const staleLease = new Date(now - 15 * 60 * 1000).toISOString()
+  const { data: pending } = await admin.from('collabs')
+    .select('id, creator_id, agreed_rate, creator_payout, stripe_payment_intent_id, stripe_transfer_id, payment_status')
+    .eq('payment_status', 'transfer_pending')
+    .lt('settlement_claimed_at', staleLease)
+  let recovered = 0
+  for (const c of pending || []) {
+    const s = await captureTransferAndComplete(admin, c as any)
+    if (s.ok && s.completed) recovered++
+  }
+
+  return NextResponse.json({ stuck: stuck.length, released, reminded, escalated, recovered })
 }

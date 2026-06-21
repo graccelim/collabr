@@ -42,7 +42,11 @@ async function updateCollab(
  */
 export async function completeBarterCollab(admin: AdminClient, collabId: string): Promise<SettlementResult> {
   const now = new Date().toISOString()
-  await updateCollab(admin, collabId, { payment_status: 'manual_exception', captured_at: now, paid_at: now })
+  // Write-once on the financial timestamps (guard against a double confirm-live
+  // re-stamping paid_at/captured_at). finalize_paid_collab is already exactly-once.
+  await admin.from('collabs')
+    .update({ payment_status: 'manual_exception', captured_at: now, paid_at: now })
+    .eq('id', collabId).is('paid_at', null)
   await admin.rpc('finalize_paid_collab', { p_collab_id: collabId, p_creator_earned: 0 })
   return { ok: true, completed: true, paymentStatus: 'manual_exception' }
 }

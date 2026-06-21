@@ -9,6 +9,7 @@ interface Props {
   isBrand: boolean
   brandName: string
   creatorName: string
+  isBarter?: boolean
 }
 
 const BRAND_REASONS = [
@@ -25,7 +26,7 @@ const CREATOR_REASONS = [
   "Something else",
 ]
 
-export default function DisputeForm({ collabId, isBrand, brandName, creatorName }: Props) {
+export default function DisputeForm({ collabId, isBrand, brandName, creatorName, isBarter = false }: Props) {
   const router = useRouter()
   const [party, setParty] = useState<'brand' | 'creator'>(isBrand ? 'brand' : 'creator')
   const [reasonIdx, setReasonIdx] = useState<number | null>(null)
@@ -70,7 +71,9 @@ export default function DisputeForm({ collabId, isBrand, brandName, creatorName 
         </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, marginBottom: 10 }}>Dispute opened</h1>
         <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 420, margin: '0 auto 20px' }}>
-          Your case is with our mediation team. The protected payment is <strong>frozen</strong>, neither side can touch it until this is resolved.
+          {isBarter
+            ? <>Your case is with our mediation team. The collaboration is <strong>paused</strong> until this is resolved.</>
+            : <>Your case is with our mediation team. The protected payment is <strong>frozen</strong>, neither side can touch it until this is resolved.</>}
         </p>
         <div style={{ padding: '12px 16px', background: 'var(--warn-tint)', borderRadius: 'var(--radius-sm)', display: 'inline-flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--warn-deep)' }}>
           A mediator will reach out to both sides within <strong>3 business days</strong>.
@@ -85,7 +88,9 @@ export default function DisputeForm({ collabId, isBrand, brandName, creatorName 
         <span className="badge badge-danger" style={{ marginBottom: 12, display: 'inline-flex' }}>Dispute center</span>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 26, letterSpacing: '-0.025em', marginBottom: 8 }}>Raise a dispute</h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>
-          Tell us what went wrong. We'll freeze the protected payment and a neutral mediator will review both sides.
+          {isBarter
+            ? 'Tell us what went wrong. We’ll pause the collaboration and a neutral mediator will review both sides.'
+            : 'Tell us what went wrong. We’ll freeze the protected payment and a neutral mediator will review both sides.'}
         </p>
       </div>
 

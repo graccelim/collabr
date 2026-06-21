@@ -186,8 +186,10 @@ export function deriveWorkflow(opts: {
     case 'disputed':
       return {
         steps: buildSteps(funded ? 'funded' : 'selected', null, includeRevision, isBarter),
-        happened: 'A dispute was raised. The protected payment is frozen.',
-        next: 'A collabr mediator reviews both sides within 3 business days. No money moves until the dispute is resolved.',
+        happened: isBarter ? 'A dispute was raised. The collaboration is paused.' : 'A dispute was raised. The protected payment is frozen.',
+        next: isBarter
+          ? 'A collabr mediator reviews both sides within 3 business days.'
+          : 'A collabr mediator reviews both sides within 3 business days. No money moves until the dispute is resolved.',
         actor: 'platform',
         deadline: null,
         frozen: true,
@@ -197,9 +199,11 @@ export function deriveWorkflow(opts: {
       return {
         steps: buildSteps('selected', null, includeRevision, isBarter),
         happened: 'This collab was cancelled.',
-        next: ['refunded', 'cancelled'].includes(paymentStatus)
-          ? 'Any protected funds have been returned to the brand.'
-          : 'Any protected funds are being returned to the brand.',
+        next: isBarter
+          ? 'This collaboration has ended.'
+          : ['refunded', 'cancelled'].includes(paymentStatus)
+            ? 'Any protected funds have been returned to the brand.'
+            : 'Any protected funds are being returned to the brand.',
         actor: 'none',
         deadline: null,
         frozen: true,

@@ -84,9 +84,12 @@ export async function POST(req: NextRequest) {
     .select('id, user_id').eq('id', parsed.data.creator_id).maybeSingle()
   if (!creator) return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
 
-  // Already collaborating on this campaign?
+  // Already collaborating on this campaign? (Ignore cancelled collabs — an undone
+  // selection / expired funding must not permanently block a re-invite. Also use
+  // limit(1) so a cancelled+live pair never trips maybeSingle's multi-row error.)
   const { data: existingCollab } = await admin.from('collabs')
-    .select('id').eq('campaign_id', campaign.id).eq('creator_id', creator.id).maybeSingle()
+    .select('id').eq('campaign_id', campaign.id).eq('creator_id', creator.id)
+    .neq('status', 'cancelled').limit(1).maybeSingle()
   if (existingCollab) {
     return NextResponse.json({ error: 'You already have a collab with this creator on this campaign' }, { status: 409 })
   }

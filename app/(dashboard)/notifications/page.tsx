@@ -32,6 +32,7 @@ const TYPE_META: Record<string, { icon: Icon; tone: Tone }> = {
   campaign_updated:        { icon: Pencil,       tone: 'warn' },
   review_revealed:         { icon: Star,         tone: 'accent' },
   review_waiting:          { icon: Star,         tone: 'neutral' },
+  review_available:        { icon: Star,         tone: 'accent' },
   collab_completed:        { icon: CheckCircle2, tone: 'money' },
   collab_cancelled:        { icon: X,            tone: 'neutral' },
   dispute_raised:          { icon: AlertTriangle,tone: 'danger' },

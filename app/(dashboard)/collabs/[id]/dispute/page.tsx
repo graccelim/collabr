@@ -58,6 +58,7 @@ export default async function DisputePage({ params }: { params: { id: string } }
           isBrand={isBrand}
           brandName={brandName}
           creatorName={creatorName}
+          isBarter={isBarter}
         />
 
         {/* sidebar */}
