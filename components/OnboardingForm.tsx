@@ -59,7 +59,7 @@ export default function OnboardingForm({ role, initial }: Props) {
     let payload: Record<string, unknown>
 
     if (role === 'creator') {
-      if (niches.length === 0) { toast.error('Pick at least one niche'); return }
+      // Niche is OPTIONAL now — only a social profile is required to go live.
       // Row order is preserved → the first profile becomes primary server-side.
       // `handle` carries the raw URL/handle; the schema's extractHandle() normalizes it.
       const socials = socialRows
@@ -110,9 +110,9 @@ export default function OnboardingForm({ role, initial }: Props) {
     return (
       <form onSubmit={submit} className="space-y-6">
         <div className="card space-y-3">
-          <h2 className="text-sm font-medium text-gray-900">Your niches</h2>
+          <h2 className="text-sm font-medium text-gray-900">Your niches <span className="text-gray-400 font-normal">(optional)</span></h2>
           <p className="text-xs text-gray-400">
-            Pick up to {MAX_NICHES} - brands use these to find you. Your first pick is your primary niche.
+            Pick up to {MAX_NICHES} - brands use these to find you. You can add these later.
             {' '}<span style={{ color: 'var(--ink-soft)' }}>{niches.length}/{MAX_NICHES} selected</span>
           </p>
           <div className="flex flex-wrap gap-2">

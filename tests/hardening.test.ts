@@ -77,13 +77,18 @@ describe('niche_tags are capped at 4', () => {
     })
     expect(tooMany.success).toBe(false)
   })
-  it('onboarding requires at least one and at most four niches', () => {
+  it('onboarding niche is OPTIONAL (0 ok) but capped at four; a social is required', () => {
     const socials = [{ platform: 'instagram', handle: 'x', follower_count: 100 }]
-    expect(creatorOnboardingSchema.safeParse({ niche_tags: [], socials }).success).toBe(false)
+    // Niche optional now — empty is allowed (added later from the checklist).
+    expect(creatorOnboardingSchema.safeParse({ niche_tags: [], socials }).success).toBe(true)
+    expect(creatorOnboardingSchema.safeParse({ socials }).success).toBe(true) // omitted entirely
     expect(creatorOnboardingSchema.safeParse({ niche_tags: ['food'], socials }).success).toBe(true)
+    // Still capped at 4.
     expect(creatorOnboardingSchema.safeParse({
       niche_tags: ['food', 'beauty', 'tech', 'fitness', 'travel'], socials,
     }).success).toBe(false)
+    // A social profile is still required.
+    expect(creatorOnboardingSchema.safeParse({ niche_tags: ['food'], socials: [] }).success).toBe(false)
   })
   it('normalizeNicheTags still dedupes and canonicalizes (multi-niche preserved)', () => {
     expect(normalizeNicheTags(['Food', 'cafe', 'Beauty']).sort()).toEqual(['beauty', 'food'])

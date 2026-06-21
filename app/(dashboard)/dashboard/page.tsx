@@ -9,6 +9,8 @@ import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
+import ProfileCompletion from '@/components/ProfileCompletion';
+import BrandActivation from '@/components/BrandActivation';
 import {
   ArrowRight,
   Megaphone,
@@ -414,8 +416,24 @@ async function BrandDashboard({ userId }: { userId: string }) {
     (!campaigns || campaigns.length === 0) &&
     (!collabs || collabs.length === 0);
 
+  // Activation checklist: create campaign → invite → fund → receive a draft.
+  const { count: inviteCount } = await admin.from('campaign_invites')
+    .select('*', { count: 'exact', head: true }).eq('brand_id', brand.id);
+  const SECURED = ['funded', 'capture_pending', 'captured', 'transfer_pending', 'paid', 'manual_exception'];
+  const activation = {
+    hasCampaign: (campaigns?.length ?? 0) > 0,
+    hasInvited: (inviteCount ?? 0) > 0,
+    hasFunded: (spotCollabs || []).some((c) => SECURED.includes(c.payment_status)),
+    hasDraft: (collabs || []).some((c) => c.status !== 'briefed'),
+  };
+
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {!isEmpty && (
+        <div style={{ marginTop: 8 }}>
+          <BrandActivation {...activation} />
+        </div>
+      )}
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Brand workspace
@@ -781,6 +799,15 @@ async function CreatorDashboard({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      <div style={{ marginTop: 8, marginBottom: 18 }}>
+        <ProfileCompletion
+          hasPhoto={Boolean(avatarUrl)}
+          hasBio={Boolean(creator.bio)}
+          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
+          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
+          hasExtraSocials={(socials?.length ?? 0) > 1}
+        />
+      </div>
       <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Creator studio
