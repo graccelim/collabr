@@ -6,6 +6,7 @@ import Avatar from '@/components/Avatar'
 import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import BrandCreatorActions from '@/components/BrandCreatorActions'
+import CreatorTrust from '@/components/CreatorTrust'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -77,7 +78,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     // Internal score row - ONLY for the categorical response standing below.
     // Never rendered as a number; raw inputs stay server-side.
     admin.from('creator_scores')
-      .select('invites_concluded, response_rate_shrunk').eq('creator_id', creatorId).maybeSingle(),
+      .select('invites_concluded, response_rate_shrunk, completed_count, completion_rate, response_time_median_hours, disputes_lost').eq('creator_id', creatorId).maybeSingle(),
     getUserRow(),
   ])
 
@@ -137,6 +138,17 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const completedCollabs = creator.collabs_completed || 0
   const isNewCreator = completedCollabs === 0
   const showRating = (creator.rating_count || 0) >= 1
+
+  // Repeat-brand count: brands who completed >1 collab with this creator. Cheap
+  // live count (profile views are low-frequency); the rest comes from scores.
+  let repeatBrands = 0
+  if (completedCollabs > 0) {
+    const { data: doneCollabs } = await admin.from('collabs')
+      .select('brand_id').eq('creator_id', creatorId).eq('status', 'completed')
+    const byBrand = new Map<string, number>()
+    for (const c of doneCollabs || []) byBrand.set(c.brand_id as string, (byBrand.get(c.brand_id as string) || 0) + 1)
+    repeatBrands = Array.from(byBrand.values()).filter(n => n >= 2).length
+  }
 
   const primaryNiche = creator.niche
     ? NICHE_LABELS[creator.niche as CreatorNiche] || creator.niche
@@ -261,6 +273,17 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   const mainContent = (
         <>
+          {/* Trust & reliability — real reputation, placeholder when no history */}
+          <CreatorTrust
+            completedCount={completedCollabs}
+            completionRate={(scoreRow as any)?.completion_rate ?? null}
+            responseTimeMedianHours={(scoreRow as any)?.response_time_median_hours ?? null}
+            disputesCount={(scoreRow as any)?.disputes_lost ?? 0}
+            ratingAvg={creator.rating_avg ?? 0}
+            ratingCount={creator.rating_count ?? 0}
+            repeatBrands={repeatBrands}
+          />
+
           {/* About */}
           {creator.bio && (
             <section style={{ marginBottom: 30 }}>
