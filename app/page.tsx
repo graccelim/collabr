@@ -28,6 +28,59 @@ const Check = () => (
   </svg>
 );
 
+/* ── Why-Collabr USP icons (desktop section) ── */
+const Shield = () => (
+  <svg {...ico}>
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <polyline points="9 12 11 14 15 10" />
+  </svg>
+);
+const Approve = () => (
+  <svg {...ico}>
+    <path d="M9 11l3 3L22 4" />
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+  </svg>
+);
+const Reputation = () => (
+  <svg {...ico}>
+    <polygon points="12 2 15.1 8.6 22 9.3 17 14 18.2 21 12 17.6 5.8 21 7 14 2 9.3 8.9 8.6 12 2" />
+  </svg>
+);
+const Scale = () => (
+  <svg {...ico}>
+    <path d="M12 3v18" />
+    <path d="M5 7h14" />
+    <path d="M5 7l-3 6a3 3 0 0 0 6 0L5 7z" />
+    <path d="M19 7l-3 6a3 3 0 0 0 6 0l-3-6z" />
+    <path d="M8 21h8" />
+  </svg>
+);
+
+/* The pain creators & brands feel today → how Collabr removes it. Desktop-only
+   (mobile carries the same USPs through the split-hero bullets). */
+const WHY: { icon: () => JSX.Element; problem: string; solution: string }[] = [
+  {
+    icon: Shield,
+    problem: 'Creators deliver and get ghosted. Brands pay upfront and just hope the content shows up.',
+    solution: 'Funds are secured before work begins and released only once the content is approved.',
+  },
+  {
+    icon: Approve,
+    problem: 'Endless revision threads in DMs, or posts going live before anyone actually signed off.',
+    solution: 'A structured review window with drafts, feedback, and clear approval built into every collab.',
+  },
+  {
+    icon: Reputation,
+    problem: 'Follower counts say nothing about whether someone reliably delivers good work.',
+    solution: 'Real ratings and completion history, earned only from collaborations that actually finished.',
+  },
+  {
+    icon: Scale,
+    problem: 'When a collab goes sideways, there is no one to turn to and no fair way to settle it.',
+    solution: 'Built-in dispute resolution where the platform mediates fairly, usually within days.',
+  },
+];
+
 const STEPS = {
   brand: [
     [
@@ -165,7 +218,7 @@ export default async function HomePage() {
           >
             Collaborations you can trust.
           </h1>
-          <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '0 auto 24px' }}>
+          <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 680, margin: '0 auto 24px' }}>
             Protected payments, structured approvals, and real reputation. Better collaborations
             for brands and creators, not just more of them.
           </p>
@@ -218,6 +271,7 @@ export default async function HomePage() {
               Find the right creators.
             </h2>
             <div
+              className="split-bullets"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -324,6 +378,7 @@ export default async function HomePage() {
               Find the right campaigns.
             </h2>
             <div
+              className="split-bullets"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -364,6 +419,95 @@ export default async function HomePage() {
         </Link>
       </div>
 
+
+      {/* ══ WHY COLLABR ══ pain → resolution USP grid. Desktop-only; on mobile the
+          split-hero bullets carry these same USPs, so this is hidden to keep the
+          phone scroll tight. ══ */}
+      <section className="lp-section lp-why">
+        <div className="lp-narrow">
+          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
+            <div className="eyebrow" style={{ marginBottom: 10 }}>
+              Why Collabr
+            </div>
+            <h2
+              className="display-face"
+              style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}
+            >
+              Built to fix what&rsquo;s broken in creator collabs.
+            </h2>
+            <p
+              style={{
+                color: 'var(--ink-soft)',
+                fontSize: 15.5,
+                marginTop: 12,
+                maxWidth: 480,
+                marginInline: 'auto',
+              }}
+            >
+              Every part of Collabr exists to remove a real pain creators and
+              brands feel today.
+            </p>
+          </Reveal>
+          <div
+            className="resp-1col"
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
+          >
+            {WHY.map(({ icon: Icon, problem, solution }) => (
+              <Reveal key={solution} className="card" style={{ padding: 26 }}>
+                <div
+                  style={{
+                    width: 38,
+                    height: 38,
+                    borderRadius: 10,
+                    background: 'var(--brand-tint)',
+                    color: 'var(--brand)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 16,
+                  }}
+                >
+                  <Icon />
+                </div>
+                <p
+                  style={{
+                    fontSize: 13.5,
+                    color: 'var(--ink-faint-solid)',
+                    lineHeight: 1.5,
+                    margin: '0 0 12px',
+                  }}
+                >
+                  {problem}
+                </p>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 9,
+                    paddingTop: 12,
+                    borderTop: '1px solid var(--line)',
+                  }}
+                >
+                  <span style={{ color: 'var(--brand)', flexShrink: 0, marginTop: 1 }}>
+                    <Check />
+                  </span>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 600,
+                      color: 'var(--ink)',
+                      lineHeight: 1.45,
+                      margin: 0,
+                    }}
+                  >
+                    {solution}
+                  </p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
       <section
