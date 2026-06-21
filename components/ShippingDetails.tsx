@@ -127,7 +127,7 @@ export default function ShippingDetails({ collabId, isBrand, isCreator, creatorN
       <div className="card" style={{ padding: 18 }}>
         {header}
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
-          This is a barter collaboration — provide your shipping address so the brand can send your item.
+          This is a barter collaboration. Provide your shipping address so the brand can send your item.
         </p>
         <button type="button" className="btn-primary" onClick={() => setEditing(true)}><MapPin size={15} /> Provide shipping details</button>
       </div>

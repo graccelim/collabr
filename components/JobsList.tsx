@@ -93,13 +93,6 @@ export default function JobsList({
 }) {
   const [filter, setFilter] = useState<string>('__for_you')
 
-  // Which niches currently have at least one campaign (the rest are shown in the
-  // dropdown but flagged "no campaigns").
-  const nicheSet = useMemo(() => {
-    const set = new Set<string>()
-    campaigns.forEach(c => c.niche_tags?.forEach(t => set.add(t)))
-    return set
-  }, [campaigns])
 
   // `campaigns` arrives already ranked best-first by the two-sided recommender
   // (rankCampaignsForCreator) - preserve that order, only apply the niche chip.
@@ -121,11 +114,9 @@ export default function JobsList({
           value={filter}
           onChange={e => setFilter(e.target.value)}
         >
-          <option value="__for_you">✨ For you</option>
+          <option value="__for_you">For you</option>
           {CREATOR_NICHES.map(n => (
-            <option key={n} value={n}>
-              {nicheLabel(n)}{nicheSet.has(n) ? '' : ' — no campaigns'}
-            </option>
+            <option key={n} value={n}>{nicheLabel(n)}</option>
           ))}
         </select>
       </div>

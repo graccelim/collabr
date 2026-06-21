@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { CheckCircle2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
@@ -66,6 +65,21 @@ const Star = () => (
 
 const WHY = [
   {
+    Icon: Lock,
+    title: 'Protected payments',
+    body: 'Brands secure payment before work begins. Funds are held safely until content is approved, protected on both sides.',
+  },
+  {
+    Icon: Badge,
+    title: 'Everything tracked in one place',
+    body: 'Applications, approvals, live submissions, reviews and payment release. One accountable workflow, no chasing or messy DMs.',
+  },
+  {
+    Icon: Star,
+    title: 'Reputation you can trust',
+    body: 'Two-way reviews after every paid collab, plus real reliability stats. Built only through completed collaborations.',
+  },
+  {
     Icon: Target,
     title: 'Niche + budget matching',
     body: 'Recommendations weigh niche, audience and budget, for both sides.',
@@ -79,21 +93,6 @@ const WHY = [
     Icon: Filter,
     title: 'Less noise, better fits',
     body: 'Skip the irrelevant applications and the endless directory scroll.',
-  },
-  {
-    Icon: Badge,
-    title: 'Profiles you can check',
-    body: 'Every creator lists their social profiles, open them in one click to view.',
-  },
-  {
-    Icon: Lock,
-    title: 'Payment protection',
-    body: 'Funds are held safely until content is approved, protected on both sides.',
-  },
-  {
-    Icon: Star,
-    title: 'Two-way reviews',
-    body: 'Both sides review each other after a paid collab, revealed together, so feedback stays honest. Reputation is built only through completed collaborations.',
   },
 ];
 
@@ -232,15 +231,15 @@ export default async function HomePage() {
               marginBottom: 16,
             }}
           >
-            Find creators you can trust.
+            Collaborations you can trust.
           </h1>
           <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '0 auto 24px' }}>
-            Protected payments, structured approvals, and creator reputation — all in one place.
-            Better collaborations, not just more creators.
+            Protected payments, structured approvals, and real reputation. Better collaborations
+            for brands and creators, not just more of them.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup?role=brand" className="btn-primary btn-lg">Start collaborating</Link>
-            <Link href="/creators" className="btn-secondary btn-lg">Browse creators</Link>
+            <Link href="/signup?role=brand" className="btn-primary btn-lg">I&rsquo;m a brand</Link>
+            <Link href="/signup?role=creator" className="btn-secondary btn-lg">I&rsquo;m a creator</Link>
           </div>
         </Reveal>
       </header>
@@ -433,42 +432,25 @@ export default async function HomePage() {
         </Link>
       </div>
 
-      {/* ══ WHY COLLABR ══ trust positioning for each side ══ */}
-      <section className="lp-section">
-        <div className="lp-narrow">
-          <div className="pc-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-            {/* Brands */}
-            <div className="card" style={{ padding: 'clamp(20px,3vw,28px)' }}>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Why brands choose Collabr</div>
-              <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 16px' }}>
-                No more creators ghosting, paying before work starts, no accountability, or messy DMs. Every step —
-                applications, approvals, live submissions, reviews and payment release — is tracked in one workflow.
-              </p>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {['Applications', 'Approvals', 'Live submissions', 'Reviews', 'Payment release'].map(s => (
-                  <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'var(--ink)' }}>
-                    <CheckCircle2 size={16} color="var(--money-deep)" style={{ flexShrink: 0 }} /> {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            {/* Creators */}
-            <div className="card" style={{ padding: 'clamp(20px,3vw,28px)' }}>
-              <div className="eyebrow" style={{ marginBottom: 10 }}>Why creators choose Collabr</div>
-              <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 16px' }}>
-                Brands secure payment before work begins, so you know your payment is protected from day one.
-                No chasing payments, no invoice reminders.
-              </p>
-              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {['No chasing payments', 'No invoice reminders', 'Protected payments', 'Transparent approvals', 'Fair dispute handling'].map(s => (
-                  <li key={s} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'var(--ink)' }}>
-                    <CheckCircle2 size={16} color="var(--money-deep)" style={{ flexShrink: 0 }} /> {s}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
+      {/* ══ WHY COLLABR ══ trust + matching cards, ahead of "how it works" ══ */}
+      <section className="lp-section lp-narrow">
+        <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>Why collabr</div>
+          <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
+            Trust and accountability, built in.
+          </h2>
+        </Reveal>
+        <Reveal stagger style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 16 }} className="resp-1col">
+          {WHY.map(({ Icon, title, body }) => (
+            <RevealItem key={title} className="card hover-lift" style={{ padding: 22 }}>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'var(--surface-2)', color: 'var(--ink)', display: 'grid', placeItems: 'center', marginBottom: 14 }}>
+                <Icon />
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 5 }}>{title}</div>
+              <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5 }}>{body}</p>
+            </RevealItem>
+          ))}
+        </Reveal>
       </section>
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
@@ -547,69 +529,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ══ WHY COLLABR ══ 6 cards: matching + trust + differentiation, merged ══ */}
-      <section className="lp-section lp-narrow">
-        <Reveal
-          style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}
-        >
-          <div className="eyebrow" style={{ marginBottom: 10 }}>
-            Why collabr
-          </div>
-          <h2
-            className="display-face"
-            style={{
-              fontSize: 'clamp(26px,3.4vw,38px)',
-              letterSpacing: '-0.02em',
-            }}
-          >
-            A recommendation engine, not a list to scroll.
-          </h2>
-        </Reveal>
-        <Reveal
-          stagger
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3,1fr)',
-            gap: 16,
-          }}
-          className="resp-1col"
-        >
-          {WHY.map(({ Icon, title, body }) => (
-            <RevealItem
-              key={title}
-              className="card hover-lift"
-              style={{ padding: 22 }}
-            >
-              <div
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  background: 'var(--surface-2)',
-                  color: 'var(--ink)',
-                  display: 'grid',
-                  placeItems: 'center',
-                  marginBottom: 14,
-                }}
-              >
-                <Icon />
-              </div>
-              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 5 }}>
-                {title}
-              </div>
-              <p
-                style={{
-                  fontSize: 13.5,
-                  color: 'var(--ink-soft)',
-                  lineHeight: 1.5,
-                }}
-              >
-                {body}
-              </p>
-            </RevealItem>
-          ))}
-        </Reveal>
-      </section>
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}
       <section
