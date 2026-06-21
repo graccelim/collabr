@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SlidersHorizontal, X } from 'lucide-react'
 import { CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS } from '@/lib/onboarding'
@@ -38,13 +38,22 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
   const router = useRouter()
   const params = useSearchParams()
   const [open, setOpen] = useState(false)
+  // The selects are bound to the URL, which only updates after the server
+  // round-trip — making the dropdowns feel frozen. Track an optimistic overlay
+  // so the control reflects the choice INSTANTLY, and run the navigation in a
+  // non-blocking transition (results stream in without blocking the UI).
+  const [isPending, startTransition] = useTransition()
+  const [optimistic, setOptimistic] = useState<Record<string, string>>({})
+  useEffect(() => { setOptimistic({}) }, [params]) // URL caught up → drop overlay
+  const valueOf = (key: string) => optimistic[key] ?? params.get(key) ?? ''
 
   function setParam(key: string, value: string) {
+    setOptimistic(prev => ({ ...prev, [key]: value }))
     const next = new URLSearchParams(params.toString())
     if (value) next.set(key, value)
     else next.delete(key)
     next.delete('page') // any filter change resets pagination
-    router.push(`/creators?${next.toString()}`)
+    startTransition(() => router.push(`/creators?${next.toString()}`))
   }
 
   const hasFilters = FILTER_KEYS.some(k => params.get(k))
@@ -58,7 +67,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
       style={block
         ? { width: '100%', fontSize: 14, padding: '11px 34px 11px 12px' }
         : { width: 'auto', fontSize: 13, padding: '6px 32px 6px 11px' }}
-      value={params.get(key) || ''}
+      value={valueOf(key)}
       onChange={e => setParam(key, e.target.value)}
     >
       {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -79,8 +88,8 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
   const savedChip = showSaved ? (
     <button
       type="button"
-      className={`chip${params.get('saved') === '1' ? ' on' : ''}`}
-      onClick={() => setParam('saved', params.get('saved') === '1' ? '' : '1')}
+      className={`chip${valueOf('saved') === '1' ? ' on' : ''}`}
+      onClick={() => setParam('saved', valueOf('saved') === '1' ? '' : '1')}
     >
       Saved
     </button>
@@ -90,10 +99,13 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
   const nicheOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any niche'], ...CREATOR_NICHES.map(n => [n, NICHE_LABELS[n]] as const)]
   const availOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any availability'], ...AVAILABILITY_STATUSES.map(a => [a, AVAILABILITY_LABELS[a]] as const)]
 
+  // Subtle dim while results stream in (the controls stay fully interactive).
+  const pendingStyle = { opacity: isPending ? 0.55 : 1, transition: 'opacity .15s ease' }
+
   return (
     <>
       {/* Desktop: the full inline filter bar (unchanged). */}
-      <div className="cf-inline" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+      <div className="cf-inline" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', ...pendingStyle }}>
         {select('platform', platformOpts)}
         {select('niche', nicheOpts)}
         {select('followers', FOLLOWER_TIERS)}
@@ -110,7 +122,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
       </div>
 
       {/* Phones: a single Filters button (opens a sheet) + the sort control. */}
-      <div className="cf-mobile" style={{ gap: 8, alignItems: 'center' }}>
+      <div className="cf-mobile" style={{ gap: 8, alignItems: 'center', ...pendingStyle }}>
         <button type="button" className="btn-secondary" onClick={() => setOpen(true)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13.5 }}>
           <SlidersHorizontal size={15} /> Filters{activeCount ? ` · ${activeCount}` : ''}

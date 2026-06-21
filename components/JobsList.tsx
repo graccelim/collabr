@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
-import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
 import { chipColor } from '@/lib/niches'
 import SaveCampaignButton from '@/components/SaveCampaignButton'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -93,11 +93,12 @@ export default function JobsList({
 }) {
   const [filter, setFilter] = useState<string>('__for_you')
 
-  // Build the niche filter chip row: "For you" + each distinct campaign niche.
-  const niches = useMemo(() => {
+  // Which niches currently have at least one campaign (the rest are shown in the
+  // dropdown but flagged "no campaigns").
+  const nicheSet = useMemo(() => {
     const set = new Set<string>()
     campaigns.forEach(c => c.niche_tags?.forEach(t => set.add(t)))
-    return Array.from(set)
+    return set
   }, [campaigns])
 
   // `campaigns` arrives already ranked best-first by the two-sided recommender
@@ -109,29 +110,24 @@ export default function JobsList({
 
   return (
     <>
-      {/* Niche filter chips */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-        <button
-          className={`chip${filter === '__for_you' ? ' on' : ''}`}
-          onClick={() => setFilter('__for_you')}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}
+      {/* Niche filter — a dropdown (scales past a handful of niches instead of a
+          long chip row). Lists ALL niches; those with no live campaign are
+          flagged so creators can see the full taxonomy. */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <span className="eyebrow" style={{ fontSize: 10 }}>Filter by niche</span>
+        <select
+          className="input"
+          style={{ fontSize: 13.5, padding: '8px 32px 8px 12px', width: 'auto', maxWidth: '100%' }}
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
         >
-          <svg viewBox="0 0 32 32" width={15} height={15} fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
-            <path d="M18,11a1,1,0,0,1-1,1,5,5,0,0,0-5,5,1,1,0,0,1-2,0,5,5,0,0,0-5-5,1,1,0,0,1,0-2,5,5,0,0,0,5-5,1,1,0,0,1,2,0,5,5,0,0,0,5,5A1,1,0,0,1,18,11Z" />
-            <path d="M19,24a1,1,0,0,1-1,1,2,2,0,0,0-2,2,1,1,0,0,1-2,0,2,2,0,0,0-2-2,1,1,0,0,1,0-2,2,2,0,0,0,2-2,1,1,0,0,1,2,0,2,2,0,0,0,2,2A1,1,0,0,1,19,24Z" />
-            <path d="M28,17a1,1,0,0,1-1,1,4,4,0,0,0-4,4,1,1,0,0,1-2,0,4,4,0,0,0-4-4,1,1,0,0,1,0-2,4,4,0,0,0,4-4,1,1,0,0,1,2,0,4,4,0,0,0,4,4A1,1,0,0,1,28,17Z" />
-          </svg>
-          For you
-        </button>
-        {niches.map(n => (
-          <button
-            key={n}
-            className={`chip${filter === n ? ' on' : ''}`}
-            onClick={() => setFilter(n)}
-          >
-            {nicheLabel(n)}
-          </button>
-        ))}
+          <option value="__for_you">✨ For you</option>
+          {CREATOR_NICHES.map(n => (
+            <option key={n} value={n}>
+              {nicheLabel(n)}{nicheSet.has(n) ? '' : ' — no campaigns'}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Campaign cards */}
@@ -274,7 +270,7 @@ export default function JobsList({
                     On DESKTOP it's content-width (save + share live up by the
                     name), so only the badge/Apply shows here. */}
                 <div className="w-full md:w-auto justify-between md:justify-end" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {c.appliedStatus ? (
+                  {c.appliedStatus && APPLIED[c.appliedStatus] ? (
                     <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
                       {c.appliedStatus === 'selected' && <Check size={12} />}
                       {APPLIED[c.appliedStatus].label}

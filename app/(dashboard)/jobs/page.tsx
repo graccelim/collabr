@@ -197,7 +197,7 @@ export default async function JobsPage({
           </>
         ) : (
           <>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+            <div className="page-head-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
               <div>
                 <div className="eyebrow" style={{ marginBottom: 7 }}>
                   Picked for you

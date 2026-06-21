@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { isCampaignFilled, requiresExpectedRate } from '@/lib/collab-status'
+import { capacityBreakdown, requiresExpectedRate } from '@/lib/collab-status'
 
 const applicationSchema = z.object({
   campaign_id: z.string().uuid('Invalid campaign'),
@@ -66,11 +66,13 @@ export async function POST(req: NextRequest) {
       { status: 409 }
     )
   }
-  // Capacity: a campaign is filled once enough creators are FUNDED (selected but
-  // unfunded collabs don't count). A filled campaign can't be applied to.
+  // Capacity: a slot is taken by a confirmed (funded) collab OR a reserved
+  // (selected-but-unfunded) one. Once there's no AVAILABLE slot, stop new
+  // applications — so creators don't apply to campaigns they can't be picked for
+  // (the selection RPC counts reserved slots too, so this keeps them in sync).
   const { data: campaignCollabs } = await admin.from('collabs')
     .select('status, payment_status').eq('campaign_id', body.campaign_id)
-  if (isCampaignFilled(campaign.creators_needed, campaignCollabs || [])) {
+  if (capacityBreakdown(campaign.creators_needed, campaignCollabs || []).available <= 0) {
     return NextResponse.json(
       { error: 'This campaign is already filled' },
       { status: 409 }
