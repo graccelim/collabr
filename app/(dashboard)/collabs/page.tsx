@@ -169,7 +169,7 @@ export default async function CollabsPage() {
               ? 'Your first collab starts here'
               : 'Your first collab is close'
           }
-          body="Confirmed collaborations will appear here once payment is secured."
+          body="Confirmed collaborations will appear here once they’re underway."
           actionHref={isBrand ? '/campaigns' : '/jobs'}
           actionLabel={isBrand ? 'Go to campaigns' : 'Discover campaigns'}
         />

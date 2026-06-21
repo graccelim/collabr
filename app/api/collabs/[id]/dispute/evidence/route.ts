@@ -17,7 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: collab } = await supabase.from('collabs')
-    .select('id, status, campaigns(title), creator_profiles(user_id, users(display_name, email)), brand_profiles(user_id, company_name, users(email))')
+    .select('id, status, agreed_rate, campaigns(title), creator_profiles(user_id, users(display_name, email)), brand_profiles(user_id, company_name, users(email))')
     .eq('id', params.id).single()
   if (!collab) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
@@ -110,7 +110,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     })
   }
   if (otherEmail && otherUserId) {
-    await sendProductEmail({ to: otherEmail, ...productEmails.disputeEvidenceAdded({ collabId: params.id, disputeId: String(dispute.id), evidenceId: String(evidence.id), recipientId: otherUserId }) })
+    await sendProductEmail({ to: otherEmail, ...productEmails.disputeEvidenceAdded({ collabId: params.id, disputeId: String(dispute.id), evidenceId: String(evidence.id), recipientId: otherUserId, isBarter: ((collab as any).agreed_rate ?? 0) === 0 }) })
   }
 
   const title = (collab.campaigns as any)?.title || 'collab'

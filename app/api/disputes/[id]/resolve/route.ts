@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await sendNotification({ userId: uid, type: 'dispute_resolved',
       title: `Dispute resolved, ${outcomeLabel}`, payload: { collab_id: collab.id },
       dedupeKey: `dispute:${params.id}:resolved` })
-    await sendProductEmail({ userId: uid, ...productEmails.disputeResolved({ collabId: collab.id, disputeId: params.id, outcomeLabel, recipientId: uid }) })
+    await sendProductEmail({ userId: uid, ...productEmails.disputeResolved({ collabId: collab.id, disputeId: params.id, outcomeLabel, recipientId: uid, isBarter }) })
   }
 
   return NextResponse.json({ success: true, outcome, already_resolved: finalized !== true })

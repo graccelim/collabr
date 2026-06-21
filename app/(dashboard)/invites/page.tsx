@@ -97,7 +97,7 @@ export default async function InvitesPage() {
                       }}
                     >
                       {(inv.campaigns as any)?.title || 'Campaign'} ·{' '}
-                      {formatSGD(inv.proposed_rate)} ·{' '}
+                      {inv.proposed_rate > 0 ? formatSGD(inv.proposed_rate) : 'Barter'} ·{' '}
                       {relativeTime(inv.created_at)}
                     </p>
                   </div>
@@ -307,7 +307,7 @@ export default async function InvitesPage() {
                     marginTop: 1,
                   }}
                 >
-                  {formatSGD(inv.proposed_rate)} ·{' '}
+                  {inv.proposed_rate > 0 ? formatSGD(inv.proposed_rate) : 'Barter'} ·{' '}
                   {inv.responded_at
                     ? relativeTime(inv.responded_at)
                     : relativeTime(inv.created_at)}

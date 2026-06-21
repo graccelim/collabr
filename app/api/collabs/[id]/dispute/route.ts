@@ -55,9 +55,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     title: 'Dispute submitted, we will review within 3 business days', payload: { collab_id: params.id },
     dedupeKey: `dispute:${disputeId}:raised` })
 
+  const isBarter = ((collab as any).agreed_rate ?? 0) === 0
   if (created) {
-    if (otherEmail && otherUserId) await sendProductEmail({ to: otherEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: otherUserId }) })
-    if (raisingEmail) await sendProductEmail({ to: raisingEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: user.id }) })
+    if (otherEmail && otherUserId) await sendProductEmail({ to: otherEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: otherUserId, isBarter }) })
+    if (raisingEmail) await sendProductEmail({ to: raisingEmail, ...productEmails.disputeOpened({ collabId: params.id, disputeId: String(disputeId), recipientId: user.id, isBarter }) })
 
     // Mirror to the mediation inbox with full context (disputes are manual).
     // Same subject + threadKey as evidence emails → one Gmail conversation.

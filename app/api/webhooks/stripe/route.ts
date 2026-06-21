@@ -148,7 +148,9 @@ export async function POST(req: NextRequest) {
     // Not processed yet. Only take over if the prior lock is STALE (the first
     // attempt likely crashed). A fresh lock means a concurrent delivery is still
     // in-flight, so we exit early and let it finish - no double processing.
-    const staleBefore = new Date(Date.now() - 60_000).toISOString()
+    // 3 min: comfortably longer than any handler's worst-case latency (Stripe
+    // calls + admin email), so a slow legit handler isn't taken over and re-run.
+    const staleBefore = new Date(Date.now() - 180_000).toISOString()
     const { data: claimed } = await supabase.from('stripe_events')
       .update({ locked_at: nowIso })
       .eq('id', event.id)

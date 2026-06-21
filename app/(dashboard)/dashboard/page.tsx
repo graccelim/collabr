@@ -568,6 +568,11 @@ async function BrandDashboard({ userId }: { userId: string }) {
             className="card row-list"
             style={{ padding: 0, overflow: 'hidden' }}
           >
+            {(collabs || []).length === 0 && (
+              <div style={{ padding: '18px 16px', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+                No active collaborations yet — they’ll appear here once a creator is confirmed.
+              </div>
+            )}
             {(collabs || []).map((c) => {
               const name =
                 (c.creator_profiles as any)?.users?.display_name || 'Creator';
@@ -987,6 +992,11 @@ async function CreatorDashboard({
             className="card row-list"
             style={{ padding: 0, overflow: 'hidden' }}
           >
+            {(collabs || []).length === 0 && (
+              <div style={{ padding: '18px 16px', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
+                No active collaborations yet — they’ll appear here once one is underway.
+              </div>
+            )}
             {(collabs || []).map((c) => {
               const name = (c.brand_profiles as any)?.company_name || 'Brand';
               const view = deriveWorkflow({

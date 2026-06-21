@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
       payload: { invite_id: invite.id },
       dedupeKey: `invite:${invite.id}:received`,
     })
-    await sendProductEmail({ userId: creator.user_id, ...productEmails.inviteReceived({ brandName: brand.company_name || 'A brand', campaignTitle: campaign.title, inviteId: invite.id }) })
+    await sendProductEmail({ userId: creator.user_id, ...productEmails.inviteReceived({ brandName: brand.company_name || 'A brand', campaignTitle: campaign.title, inviteId: invite.id, isBarter: parsed.data.proposed_rate <= 0 }) })
   }
 
   return NextResponse.json(invite, { status: 201 })

@@ -202,35 +202,35 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
-  disputeEvidenceAdded: (d: { collabId: string; disputeId: string; evidenceId: string; recipientId: string }): ProductEmail => ({
+  disputeEvidenceAdded: (d: { collabId: string; disputeId: string; evidenceId: string; recipientId: string; isBarter?: boolean }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:dispute:${d.disputeId}:evidence:${d.evidenceId}:${d.recipientId}`,
     subject: 'New evidence was added to your dispute',
     preheader: 'A Collabr mediator is reviewing both sides.',
     title: 'New evidence was added',
-    body: `New evidence was submitted on a dispute for one of your collaborations. The protected payment stays frozen while a Collabr mediator reviews both sides. You can add your own evidence anytime.`,
+    body: `New evidence was submitted on a dispute for one of your collaborations. ${d.isBarter ? 'The collaboration stays paused' : 'The protected payment stays frozen'} while a Collabr mediator reviews both sides. You can add your own evidence anytime.`,
     ctaLabel: 'View the dispute',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
-  disputeResolved: (d: { collabId: string; disputeId: string; outcomeLabel: string; recipientId: string }): ProductEmail => ({
+  disputeResolved: (d: { collabId: string; disputeId: string; outcomeLabel: string; recipientId: string; isBarter?: boolean }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:dispute:${d.disputeId}:resolved:${d.recipientId}`,
     subject: `Your dispute has been resolved: ${d.outcomeLabel}`,
     preheader: 'See the outcome and what happens next.',
     title: 'Your dispute has been resolved',
-    body: `A Collabr mediator reviewed both sides and reached a decision. Outcome: ${d.outcomeLabel}. Open your collab to see the details and what happens to the protected payment.`,
+    body: `A Collabr mediator reviewed both sides and reached a decision. Outcome: ${d.outcomeLabel}. Open your collab to see the details${d.isBarter ? '' : ' and what happens to the protected payment'}.`,
     ctaLabel: 'View the collab',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
-  disputeOpened: (d: { collabId: string; disputeId: string; recipientId: string }): ProductEmail => ({
+  disputeOpened: (d: { collabId: string; disputeId: string; recipientId: string; isBarter?: boolean }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:dispute:${d.disputeId}:${d.recipientId}`,
     subject: 'A dispute was opened on your collab',
-    preheader: 'The protected payment is frozen while we mediate.',
+    preheader: d.isBarter ? 'The collaboration is paused while we mediate.' : 'The protected payment is frozen while we mediate.',
     title: 'A dispute was opened',
-    body: `A dispute has been raised on one of your collaborations and the protected payment is now frozen. Submit your evidence, a Collabr mediator reviews both sides within 3 business days.`,
+    body: `A dispute has been raised on one of your collaborations${d.isBarter ? ' and it is now paused' : ' and the protected payment is now frozen'}. Submit your evidence, a Collabr mediator reviews both sides within 3 business days.`,
     ctaLabel: 'View the dispute',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -302,13 +302,15 @@ export const productEmails = {
     ctaUrl: link('/jobs'),
   }),
 
-  inviteReceived: (d: { brandName: string; campaignTitle: string; inviteId: string }): ProductEmail => ({
+  inviteReceived: (d: { brandName: string; campaignTitle: string; inviteId: string; isBarter?: boolean }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:invite:${d.inviteId}:received`,
     subject: `${d.brandName} invited you to "${d.campaignTitle}"`,
-    preheader: 'Accepting starts the collab, payment protection covers the pay.',
+    preheader: d.isBarter ? 'A barter collaboration — accept to start.' : 'Accepting starts the collab, payment protection covers the pay.',
     title: `${d.brandName} wants to work with you`,
-    body: `${d.brandName} invited you to "${d.campaignTitle}". Review the offer and accept to start the collab instantly, your payment is held safely before you create anything.`,
+    body: d.isBarter
+      ? `${d.brandName} invited you to "${d.campaignTitle}" for a barter collaboration (a product or service exchange — no cash payment). Review the offer and accept to start.`
+      : `${d.brandName} invited you to "${d.campaignTitle}". Review the offer and accept to start the collab instantly, your payment is held safely before you create anything.`,
     ctaLabel: 'View the invite',
     ctaUrl: link('/invites'),
   }),
