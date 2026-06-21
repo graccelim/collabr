@@ -11,6 +11,7 @@ import CreatorLivePostForm from '@/components/CreatorLivePostForm'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
 import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
+import ShippingDetails from '@/components/ShippingDetails'
 import DisputeStatusCard from '@/components/DisputeStatusCard'
 import InfoTip, { TERMS } from '@/components/InfoTip'
 import EmptyState from '@/components/EmptyState'
@@ -132,6 +133,13 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
 
   const canDispute = ['draft_submitted', 'in_revision', 'draft_approved', 'live_submitted'].includes(collab.status)
 
+  // Barter shipping details (structured address; replaces pasting it in chat).
+  const { data: shipping } = isBarter
+    ? await adminForRead.from('collab_shipping')
+        .select('recipient_name, phone, address_line1, address_line2, postal_code, country, delivery_notes, submitted_at, updated_at, shipped_at')
+        .eq('collab_id', params.id).maybeSingle()
+    : { data: null }
+
   // Open/resolved dispute + its evidence thread (surfaces the dispute instead of
   // the page going dark once a dispute is raised).
   const { data: dispute } = await adminForRead.from('disputes')
@@ -251,7 +259,18 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             )}
           </div>
 
-          {/* Messages - on-platform chat (escrow stays in effect only here) */}
+          {/* Barter: structured shipping details (so addresses don't live in chat) */}
+          {isBarter && !['cancelled'].includes(collab.status) && (
+            <ShippingDetails
+              collabId={params.id}
+              isBrand={isBrand}
+              isCreator={!isBrand}
+              creatorName={creatorName}
+              shipping={shipping as any}
+            />
+          )}
+
+          {/* Messages - on-platform chat (protection stays in effect only here) */}
           {!['cancelled'].includes(collab.status) && (
             <CollabChat
               collabId={params.id}

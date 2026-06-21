@@ -7,7 +7,7 @@ import EmptyState from '@/components/EmptyState'
 import type { LucideProps } from 'lucide-react'
 import {
   Bell, Inbox, PartyPopper, Star, X, FileText, CheckCircle2,
-  Pencil, Globe, Banknote, AlertTriangle, Scale, Clock, Mail, Handshake,
+  Pencil, Globe, Banknote, AlertTriangle, Scale, Clock, Mail, Handshake, Truck,
 } from 'lucide-react'
 
 type Icon = React.ComponentType<Partial<LucideProps>>
@@ -34,6 +34,7 @@ const TYPE_META: Record<string, { icon: Icon; tone: Tone }> = {
   review_waiting:          { icon: Star,         tone: 'neutral' },
   review_available:        { icon: Star,         tone: 'accent' },
   collab_completed:        { icon: CheckCircle2, tone: 'money' },
+  shipping_submitted:      { icon: Truck,        tone: 'accent' },
   collab_cancelled:        { icon: X,            tone: 'neutral' },
   dispute_raised:          { icon: AlertTriangle,tone: 'danger' },
   dispute_evidence:        { icon: Scale,        tone: 'accent' },
