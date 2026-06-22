@@ -147,12 +147,11 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   },
 ];
 
-/* Benefit-led USP grid. Rendered twice: before "How it works" on desktop
-   (.lp-why) and after it on mobile (.lp-why-mobile) — only one shows per
-   viewport, so the visitor sees it once in the order that reads best. */
-function WhySection({ className }: { className: string }) {
+/* Benefit-led USP grid. Shown on all viewports before "How it works" — leading
+   with value, then mechanism, is the stronger conversion order. */
+function WhySection() {
   return (
-    <section className={`lp-section ${className}`}>
+    <section className="lp-section">
       <div className="lp-narrow">
         <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
           <div className="eyebrow" style={{ marginBottom: 10 }}>
@@ -519,10 +518,9 @@ export default async function HomePage() {
       </div>
 
 
-      {/* ══ WHY COLLABR ══ benefit-led USP grid. Desktop shows it here (before
-          "How it works"); on mobile this copy is hidden and a second copy below
-          "How it works" shows instead, so the phone scroll reads best. ══ */}
-      <WhySection className="lp-why" />
+      {/* ══ WHY COLLABR ══ benefit-led USP grid. Value before mechanism on every
+          viewport — the stronger conversion order. ══ */}
+      <WhySection />
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
       <section
@@ -599,9 +597,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Mobile-only copy of "Why Collabr", placed below "How it works". */}
-      <WhySection className="lp-why-mobile" />
 
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}
