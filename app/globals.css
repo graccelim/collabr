@@ -645,9 +645,10 @@
 .lp-section { padding: 84px 40px; }
 .lp-narrow  { max-width: 1040px; margin: 0 auto; }
 
-/* "Why Collabr" pain→resolution grid is desktop-only; on phones the split-hero
-   bullets already carry the same USPs, so we drop it to keep the scroll tight. */
-.lp-why { display: block; }
+/* "Why Collabr" renders twice: .lp-why before "How it works" (desktop) and
+   .lp-why-mobile after it (phones). Each viewport shows exactly one copy. */
+.lp-why        { display: block; }
+.lp-why-mobile { display: none; }
 
 /* ============================================================
    AUTH SHELL - dark brand rail (hidden on mobile)
@@ -699,8 +700,10 @@
   .split-medallion { width: 92px; height: 92px; top: 53%; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
-  /* Desktop-only "Why Collabr" section hidden on phones. */
-  .lp-why { display: none !important; }
+  /* On phones, hide the desktop copy (before How-it-works) and show the
+     mobile copy (after How-it-works). */
+  .lp-why        { display: none !important; }
+  .lp-why-mobile { display: block !important; }
   /* Split-hero USP bullets are the phone's main USP highlight (the Why section
      above is hidden), so make them read a touch bigger and bolder. */
   .split-bullets > div { font-size: 15.5px !important; font-weight: 500 !important; }

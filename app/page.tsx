@@ -147,6 +147,101 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   },
 ];
 
+/* Benefit-led USP grid. Rendered twice: before "How it works" on desktop
+   (.lp-why) and after it on mobile (.lp-why-mobile) — only one shows per
+   viewport, so the visitor sees it once in the order that reads best. */
+function WhySection({ className }: { className: string }) {
+  return (
+    <section className={`lp-section ${className}`}>
+      <div className="lp-narrow">
+        <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
+          <div className="eyebrow" style={{ marginBottom: 10 }}>
+            Why Collabr
+          </div>
+          <h2
+            className="display-face"
+            style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}
+          >
+            Better collaborations, not just more connections.
+          </h2>
+          <p
+            style={{
+              color: 'var(--ink-soft)',
+              fontSize: 15.5,
+              marginTop: 12,
+              maxWidth: 480,
+              marginInline: 'auto',
+            }}
+          >
+            Built to help brands and creators work together with confidence
+            from start to finish.
+          </p>
+        </Reveal>
+        <div
+          className="resp-1col"
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
+        >
+          {WHY.map(({ icon: Icon, title, benefit, noMore }) => (
+            <Reveal key={title} className="card" style={{ padding: 26 }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
+                  background: 'var(--brand-tint)',
+                  color: 'var(--brand)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 16,
+                }}
+              >
+                <Icon />
+              </div>
+              {/* Title is the primary focus — larger and bolder. */}
+              <h3
+                style={{
+                  fontSize: 19,
+                  fontWeight: 700,
+                  color: 'var(--ink)',
+                  letterSpacing: '-0.01em',
+                  margin: '0 0 8px',
+                }}
+              >
+                {title}
+              </h3>
+              {/* Benefit — medium emphasis. */}
+              <p
+                style={{
+                  fontSize: 14.5,
+                  color: 'var(--ink-soft)',
+                  lineHeight: 1.5,
+                  margin: '0 0 14px',
+                }}
+              >
+                {benefit}
+              </p>
+              {/* "No more…" reinforcement — smaller and muted. */}
+              <p
+                style={{
+                  fontSize: 13,
+                  color: 'var(--ink-faint-solid)',
+                  lineHeight: 1.45,
+                  margin: 0,
+                  paddingTop: 12,
+                  borderTop: '1px solid var(--line)',
+                }}
+              >
+                {noMore}
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default async function HomePage() {
   // Logged-in users never see the public marketing page - bounce them into the
   // app. This also stops an authed session lingering on a public route.
@@ -424,96 +519,10 @@ export default async function HomePage() {
       </div>
 
 
-      {/* ══ WHY COLLABR ══ pain → resolution USP grid. Desktop-only; on mobile the
-          split-hero bullets carry these same USPs, so this is hidden to keep the
-          phone scroll tight. ══ */}
-      <section className="lp-section lp-why">
-        <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>
-              Why Collabr
-            </div>
-            <h2
-              className="display-face"
-              style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}
-            >
-              Better collaborations, not just more connections.
-            </h2>
-            <p
-              style={{
-                color: 'var(--ink-soft)',
-                fontSize: 15.5,
-                marginTop: 12,
-                maxWidth: 480,
-                marginInline: 'auto',
-              }}
-            >
-              Built to help brands and creators work together with confidence
-              from start to finish.
-            </p>
-          </Reveal>
-          <div
-            className="resp-1col"
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
-          >
-            {WHY.map(({ icon: Icon, title, benefit, noMore }) => (
-              <Reveal key={title} className="card" style={{ padding: 26 }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 10,
-                    background: 'var(--brand-tint)',
-                    color: 'var(--brand)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 16,
-                  }}
-                >
-                  <Icon />
-                </div>
-                {/* Title is the primary focus — larger and bolder. */}
-                <h3
-                  style={{
-                    fontSize: 19,
-                    fontWeight: 700,
-                    color: 'var(--ink)',
-                    letterSpacing: '-0.01em',
-                    margin: '0 0 8px',
-                  }}
-                >
-                  {title}
-                </h3>
-                {/* Benefit — medium emphasis. */}
-                <p
-                  style={{
-                    fontSize: 14.5,
-                    color: 'var(--ink-soft)',
-                    lineHeight: 1.5,
-                    margin: '0 0 14px',
-                  }}
-                >
-                  {benefit}
-                </p>
-                {/* "No more…" reinforcement — smaller and muted. */}
-                <p
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--ink-faint-solid)',
-                    lineHeight: 1.45,
-                    margin: 0,
-                    paddingTop: 12,
-                    borderTop: '1px solid var(--line)',
-                  }}
-                >
-                  {noMore}
-                </p>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ══ WHY COLLABR ══ benefit-led USP grid. Desktop shows it here (before
+          "How it works"); on mobile this copy is hidden and a second copy below
+          "How it works" shows instead, so the phone scroll reads best. ══ */}
+      <WhySection className="lp-why" />
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
       <section
@@ -590,6 +599,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Mobile-only copy of "Why Collabr", placed below "How it works". */}
+      <WhySection className="lp-why-mobile" />
 
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}
