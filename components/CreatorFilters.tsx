@@ -1,7 +1,7 @@
 'use client'
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { SlidersHorizontal, X } from 'lucide-react'
+import { SlidersHorizontal, X, Bookmark } from 'lucide-react'
 import { CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS } from '@/lib/profiles'
 
@@ -85,15 +85,29 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     />
   )
 
-  const savedChip = showSaved ? (
+  // Navy saved toggle. Compact form sits inline on the desktop filter bar;
+  // the full-width form is the mobile-only button above the filters.
+  const savedActive = valueOf('saved') === '1'
+  const toggleSaved = () => setParam('saved', savedActive ? '' : '1')
+  const savedToggle = (full = false) => (
     <button
       type="button"
-      className={`chip${valueOf('saved') === '1' ? ' on' : ''}`}
-      onClick={() => setParam('saved', valueOf('saved') === '1' ? '' : '1')}
+      onClick={toggleSaved}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+        cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)',
+        borderRadius: full ? 'var(--radius)' : 999,
+        border: '1px solid var(--brand)',
+        background: savedActive ? 'var(--brand)' : 'transparent',
+        color: savedActive ? '#fff' : 'var(--brand)',
+        transition: 'background .15s, color .15s',
+        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '6px 14px' }),
+      }}
     >
-      Saved
+      <Bookmark size={full ? 16 : 14} fill={savedActive ? '#fff' : 'none'} />
+      {full ? (savedActive ? 'Showing saved — view all' : 'View saved creators') : 'Saved'}
     </button>
-  ) : null
+  )
 
   const platformOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any platform'], ...SOCIAL_PLATFORMS.map(p => [p, p[0].toUpperCase() + p.slice(1)] as const)]
   const nicheOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any niche'], ...CREATOR_NICHES.map(n => [n, NICHE_LABELS[n]] as const)]
@@ -112,7 +126,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
         {select('availability', availOpts)}
         {select('maxRate', RATE_CAPS)}
         {locationInput()}
-        {savedChip}
+        {showSaved && savedToggle()}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {hasFilters && (
             <button type="button" className="btn-ghost btn-sm" onClick={() => router.push('/creators')}>Clear</button>
@@ -120,6 +134,13 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
           {select('sort', SORTS)}
         </div>
       </div>
+
+      {/* Phones only: full-width navy "View saved" button above the filters. */}
+      {showSaved && (
+        <div className="cf-saved-mobile" style={{ marginBottom: 10 }}>
+          {savedToggle(true)}
+        </div>
+      )}
 
       {/* Phones: a single Filters button (opens a sheet) + the sort control. */}
       <div className="cf-mobile" style={{ gap: 8, alignItems: 'center', ...pendingStyle }}>
@@ -151,7 +172,6 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
               <Field label="Availability">{select('availability', availOpts, true)}</Field>
               <Field label="Max rate">{select('maxRate', RATE_CAPS, true)}</Field>
               <Field label="Location">{locationInput(true)}</Field>
-              {savedChip && <div>{savedChip}</div>}
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               {hasFilters && (

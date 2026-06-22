@@ -814,9 +814,11 @@
    bottom-sheet on phones. */
 .cf-inline { display: flex; }
 .cf-mobile { display: none; }
+.cf-saved-mobile { display: none; }
 @media (max-width: 768px) {
   .cf-inline { display: none !important; }
   .cf-mobile { display: flex !important; }
+  .cf-saved-mobile { display: block !important; }
 }
 
 /* Dispute CTA hover (was an inline onMouseEnter handler, illegal in a Server
