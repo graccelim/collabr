@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, ChevronDown } from 'lucide-react'
+import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, X, Bookmark } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
@@ -86,72 +86,170 @@ function dueLabel(deadline: string | null): string {
   return new Date(deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
 }
 
+// Filter option lists — mirrors the brand-side CreatorFilters taxonomy, but
+// from the creator's point of view (browsing campaigns rather than creators).
+const COMP_OPTS = [['', 'Paid or barter'], ['paid', 'Paid'], ['barter', 'Barter']] as const
+const PAY_OPTS = [['', 'Any pay'], ['100', 'S$100+'], ['250', 'S$250+'], ['500', 'S$500+'], ['1000', 'S$1,000+'], ['2500', 'S$2,500+']] as const
+const SORT_OPTS = [['', 'For you'], ['pay', 'Highest pay'], ['deadline', 'Soonest deadline'], ['spots', 'Most spots']] as const
+
 export default function JobsList({
   campaigns,
 }: {
   campaigns: JobsListCampaign[]
 }) {
-  const [filter, setFilter] = useState<string>('__for_you')
+  const [niche, setNiche] = useState('')
+  const [comp, setComp] = useState('')
+  const [minPay, setMinPay] = useState('')
+  const [deliverable, setDeliverable] = useState('')
+  const [savedOnly, setSavedOnly] = useState(false)
+  const [sort, setSort] = useState('')
+  const [sheetOpen, setSheetOpen] = useState(false)
 
+  // Only offer deliverable values that actually appear in the live set.
+  const deliverableOpts = useMemo<ReadonlyArray<readonly [string, string]>>(() => {
+    const set = new Set<string>()
+    campaigns.forEach(c => c.deliverable_types?.forEach(d => set.add(d)))
+    return [['', 'Any deliverable'], ...Array.from(set).sort().map(d => [d, d] as const)]
+  }, [campaigns])
+
+  const nicheOpts = useMemo<ReadonlyArray<readonly [string, string]>>(
+    () => [['', 'Any niche'], ...CREATOR_NICHES.map(n => [n, nicheLabel(n)] as const)],
+    [],
+  )
 
   // `campaigns` arrives already ranked best-first by the two-sided recommender
-  // (rankCampaignsForCreator) - preserve that order, only apply the niche chip.
+  // (rankCampaignsForCreator). Filter in place; only re-sort when the creator
+  // explicitly asks for a different order.
   const visible = useMemo(() => {
-    if (filter === '__for_you') return campaigns
-    return campaigns.filter(c => c.niche_tags?.includes(filter))
-  }, [campaigns, filter])
+    const top = (c: JobsListCampaign) => c.budget_max ?? c.budget_min ?? 0
+    let list = campaigns.filter(c => {
+      if (niche && !c.niche_tags?.includes(niche)) return false
+      if (comp === 'paid' && c.comp_type === 'barter') return false
+      if (comp === 'barter' && c.comp_type === 'paid') return false
+      if (minPay && !(c.comp_type !== 'barter' && top(c) >= Number(minPay))) return false
+      if (deliverable && !c.deliverable_types?.includes(deliverable)) return false
+      if (savedOnly && !c.saved) return false
+      return true
+    })
+    if (sort === 'pay') list = [...list].sort((a, b) => top(b) - top(a))
+    else if (sort === 'spots') list = [...list].sort((a, b) => (b.spots_left ?? b.creators_needed) - (a.spots_left ?? a.creators_needed))
+    else if (sort === 'deadline') list = [...list].sort((a, b) => {
+      const ad = a.deadline ? Date.parse(a.deadline) : Infinity
+      const bd = b.deadline ? Date.parse(b.deadline) : Infinity
+      return ad - bd
+    })
+    return list
+  }, [campaigns, niche, comp, minPay, deliverable, savedOnly, sort])
+
+  const activeCount = [niche, comp, minPay, deliverable].filter(Boolean).length + (savedOnly ? 1 : 0)
+  const hasFilters = activeCount > 0
+  function clearAll() {
+    setNiche(''); setComp(''); setMinPay(''); setDeliverable(''); setSavedOnly(false); setSort('')
+  }
+
+  // Compact inline control (desktop bar) vs full-width control (mobile sheet).
+  const select = (
+    value: string, onChange: (v: string) => void,
+    options: ReadonlyArray<readonly [string, string]>, ariaLabel: string, block = false,
+  ) => (
+    <select
+      aria-label={ariaLabel}
+      className="input"
+      style={block
+        ? { width: '100%', fontSize: 14, padding: '11px 34px 11px 12px' }
+        : { width: 'auto', fontSize: 13, padding: '6px 32px 6px 11px' }}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+    >
+      {options.map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+    </select>
+  )
+
+  // Navy saved toggle — compact inline (desktop) / full-width (mobile top).
+  const savedToggle = (full = false) => (
+    <button
+      type="button"
+      onClick={() => setSavedOnly(s => !s)}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+        cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)',
+        borderRadius: full ? 'var(--radius)' : 999,
+        border: '1px solid var(--brand)',
+        background: savedOnly ? 'var(--brand)' : 'transparent',
+        color: savedOnly ? '#fff' : 'var(--brand)',
+        transition: 'background .15s, color .15s',
+        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '6px 14px' }),
+      }}
+    >
+      <Bookmark size={full ? 16 : 14} fill={savedOnly ? '#fff' : 'none'} />
+      {full ? (savedOnly ? 'Showing saved — view all' : 'View saved campaigns') : 'Saved'}
+    </button>
+  )
 
   return (
     <>
-      {/* Niche filter — a dropdown (scales past a handful of niches instead of a
-          long chip row). Lists ALL niches; those with no live campaign are
-          flagged so creators can see the full taxonomy. */}
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          paddingLeft: 12,
-          background: 'var(--surface)',
-          border: '1px solid var(--line-strong)',
-          borderRadius: 999,
-          boxShadow: 'var(--shadow-sm)',
-          position: 'relative',
-          maxWidth: '100%',
-        }}
-      >
-        <SlidersHorizontal size={15} color="var(--brand)" style={{ flexShrink: 0 }} />
-        <select
-          aria-label="Filter campaigns by niche"
-          value={filter}
-          onChange={e => setFilter(e.target.value)}
-          style={{
-            appearance: 'none',
-            WebkitAppearance: 'none',
-            MozAppearance: 'none',
-            border: 'none',
-            background: 'transparent',
-            fontSize: 13.5,
-            fontWeight: 600,
-            color: 'var(--ink)',
-            padding: '9px 34px 9px 2px',
-            cursor: 'pointer',
-            outline: 'none',
-            maxWidth: '100%',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          <option value="__for_you">For you</option>
-          {CREATOR_NICHES.map(n => (
-            <option key={n} value={n}>{nicheLabel(n)}</option>
-          ))}
-        </select>
-        <ChevronDown
-          size={15}
-          color="var(--ink-faint-solid)"
-          style={{ position: 'absolute', right: 12, pointerEvents: 'none' }}
-        />
+      {/* Desktop: full inline filter bar (mirrors the brand Discover bar). */}
+      <div className="cf-inline" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+        {select(niche, setNiche, nicheOpts, 'Filter by niche')}
+        {select(comp, setComp, COMP_OPTS, 'Filter by compensation')}
+        {select(minPay, setMinPay, PAY_OPTS, 'Filter by minimum pay')}
+        {select(deliverable, setDeliverable, deliverableOpts, 'Filter by deliverable')}
+        {savedToggle()}
+        <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
+          {hasFilters && (
+            <button type="button" className="btn-ghost btn-sm" onClick={clearAll}>Clear</button>
+          )}
+          {select(sort, setSort, SORT_OPTS, 'Sort campaigns')}
+        </div>
       </div>
+
+      {/* Phones only: full-width navy "View saved" button above the filters. */}
+      <div className="cf-saved-mobile" style={{ marginBottom: 10 }}>
+        {savedToggle(true)}
+      </div>
+
+      {/* Phones: a single Filters button (opens a sheet) + the sort control. */}
+      <div className="cf-mobile" style={{ gap: 8, alignItems: 'center' }}>
+        <button type="button" className="btn-secondary" onClick={() => setSheetOpen(true)}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13.5 }}>
+          <SlidersHorizontal size={15} /> Filters{activeCount ? ` · ${activeCount}` : ''}
+        </button>
+        <div style={{ marginLeft: 'auto' }}>{select(sort, setSort, SORT_OPTS, 'Sort campaigns')}</div>
+      </div>
+
+      {/* Mobile filter sheet — filters apply live. */}
+      {sheetOpen && (
+        <div onClick={() => setSheetOpen(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(14,16,22,.45)', display: 'flex', alignItems: 'flex-end' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background: 'var(--surface, #fff)', width: '100%', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: '16px 18px calc(18px + env(safe-area-inset-bottom))', maxHeight: '85vh', overflowY: 'auto', boxShadow: '0 -8px 30px rgba(14,16,22,.18)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>Filters</div>
+              <button type="button" aria-label="Close filters" onClick={() => setSheetOpen(false)}
+                style={{ border: 0, background: 'transparent', cursor: 'pointer', color: 'var(--ink-faint-solid)', display: 'grid', placeItems: 'center', width: 32, height: 32 }}>
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <FilterField label="Niche">{select(niche, setNiche, nicheOpts, 'Filter by niche', true)}</FilterField>
+              <FilterField label="Compensation">{select(comp, setComp, COMP_OPTS, 'Filter by compensation', true)}</FilterField>
+              <FilterField label="Minimum pay">{select(minPay, setMinPay, PAY_OPTS, 'Filter by minimum pay', true)}</FilterField>
+              <FilterField label="Deliverable">{select(deliverable, setDeliverable, deliverableOpts, 'Filter by deliverable', true)}</FilterField>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
+              {hasFilters && (
+                <button type="button" className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}
+                  onClick={() => { clearAll(); setSheetOpen(false) }}>
+                  Clear all
+                </button>
+              )}
+              <button type="button" className="btn-primary" style={{ flex: 1, justifyContent: 'center' }} onClick={() => setSheetOpen(false)}>
+                Show results
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Campaign cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -320,5 +418,14 @@ export default function JobsList({
         })}
       </div>
     </>
+  )
+}
+
+function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'block' }}>
+      <span style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>{label}</span>
+      {children}
+    </label>
   )
 }

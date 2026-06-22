@@ -3,7 +3,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
 import { remainingSpots } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
-import { Compass, ArrowLeft, Bookmark } from 'lucide-react';
+import { Compass, ArrowLeft } from 'lucide-react';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import {
   toCreatorSignals,
@@ -197,24 +197,15 @@ export default async function JobsPage({
           </>
         ) : (
           <>
-            <div className="page-head-row" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
-              <div>
-                <div className="eyebrow" style={{ marginBottom: 7 }}>
-                  Picked for you
-                </div>
-                <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
-                <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-                  Explore opportunities from brands looking for creators like you,
-                  with your best fits shown first.{' '}
-                </p>
+            <div>
+              <div className="eyebrow" style={{ marginBottom: 7 }}>
+                Picked for you
               </div>
-              <Link
-                href="/saved"
-                className="btn-secondary"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 7, flexShrink: 0 }}
-              >
-                <Bookmark size={15} /> View Saved
-              </Link>
+              <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
+              <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
+                Explore opportunities from brands looking for creators like you,
+                with your best fits shown first.{' '}
+              </p>
             </div>
           </>
         )}
