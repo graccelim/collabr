@@ -88,7 +88,7 @@ function dueLabel(deadline: string | null): string {
 
 // Filter option lists — mirrors the brand-side CreatorFilters taxonomy, but
 // from the creator's point of view (browsing campaigns rather than creators).
-const COMP_OPTS = [['', 'Paid or barter'], ['paid', 'Paid'], ['barter', 'Barter']] as const
+const COMP_OPTS = [['', 'Any type'], ['paid', 'Paid'], ['barter', 'Barter']] as const
 const PAY_OPTS = [['', 'Any pay'], ['100', 'S$100+'], ['250', 'S$250+'], ['500', 'S$500+'], ['1000', 'S$1,000+'], ['2500', 'S$2,500+']] as const
 const SORT_OPTS = [['', 'For you'], ['pay', 'Highest pay'], ['deadline', 'Soonest deadline'], ['spots', 'Most spots']] as const
 
@@ -165,7 +165,8 @@ export default function JobsList({
     </select>
   )
 
-  // Navy saved toggle — compact inline (desktop) / full-width (mobile top).
+  // Dark-navy saved toggle — compact inline (desktop) / full-width (mobile top).
+  // Always solid navy; the active state adds an inner ring + filled bookmark.
   const savedToggle = (full = false) => (
     <button
       type="button"
@@ -175,10 +176,10 @@ export default function JobsList({
         cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)',
         borderRadius: full ? 'var(--radius)' : 999,
         border: '1px solid var(--brand)',
-        background: savedOnly ? 'var(--brand)' : 'transparent',
-        color: savedOnly ? '#fff' : 'var(--brand)',
-        transition: 'background .15s, color .15s',
-        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '6px 14px' }),
+        background: 'var(--brand)',
+        color: '#fff',
+        boxShadow: savedOnly ? 'inset 0 0 0 2px rgba(255,255,255,.32)' : 'none',
+        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '7px 15px' }),
       }}
     >
       <Bookmark size={full ? 16 : 14} fill={savedOnly ? '#fff' : 'none'} />
@@ -208,13 +209,13 @@ export default function JobsList({
         {savedToggle(true)}
       </div>
 
-      {/* Phones: a single Filters button (opens a sheet) + the sort control. */}
+      {/* Phones: Filters button + sort control split the full width 50/50. */}
       <div className="cf-mobile" style={{ gap: 8, alignItems: 'center' }}>
         <button type="button" className="btn-secondary" onClick={() => setSheetOpen(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13.5 }}>
+          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 13.5 }}>
           <SlidersHorizontal size={15} /> Filters{activeCount ? ` · ${activeCount}` : ''}
         </button>
-        <div style={{ marginLeft: 'auto' }}>{select(sort, setSort, SORT_OPTS, 'Sort campaigns')}</div>
+        <div style={{ flex: 1 }}>{select(sort, setSort, SORT_OPTS, 'Sort campaigns', true)}</div>
       </div>
 
       {/* Mobile filter sheet — filters apply live. */}

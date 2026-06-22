@@ -98,10 +98,10 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
         cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)',
         borderRadius: full ? 'var(--radius)' : 999,
         border: '1px solid var(--brand)',
-        background: savedActive ? 'var(--brand)' : 'transparent',
-        color: savedActive ? '#fff' : 'var(--brand)',
-        transition: 'background .15s, color .15s',
-        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '6px 14px' }),
+        background: 'var(--brand)',
+        color: '#fff',
+        boxShadow: savedActive ? 'inset 0 0 0 2px rgba(255,255,255,.32)' : 'none',
+        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '7px 15px' }),
       }}
     >
       <Bookmark size={full ? 16 : 14} fill={savedActive ? '#fff' : 'none'} />
@@ -142,13 +142,13 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
         </div>
       )}
 
-      {/* Phones: a single Filters button (opens a sheet) + the sort control. */}
+      {/* Phones: Filters button + sort control split the full width 50/50. */}
       <div className="cf-mobile" style={{ gap: 8, alignItems: 'center', ...pendingStyle }}>
         <button type="button" className="btn-secondary" onClick={() => setOpen(true)}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontSize: 13.5 }}>
+          style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 13.5 }}>
           <SlidersHorizontal size={15} /> Filters{activeCount ? ` · ${activeCount}` : ''}
         </button>
-        <div style={{ marginLeft: 'auto' }}>{select('sort', SORTS)}</div>
+        <div style={{ flex: 1 }}>{select('sort', SORTS, true)}</div>
       </div>
 
       {/* Mobile filter sheet. Filters apply live (URL updates on change); the
