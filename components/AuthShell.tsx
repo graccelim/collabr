@@ -9,30 +9,30 @@ import { Lock, BadgeCheck, DollarSign } from 'lucide-react'
  */
 const RAIL = {
   creator: {
-    title: 'Get paid for the work you actually do.',
-    body: "The brand's money is locked in before you start, so you're never chasing an invoice again. Post the content and the payment lands, usually the same day it goes live.",
+    title: 'Get paid for the work you deliver.',
+    body: 'Every brand secures the full fee with collabr before your collaboration begins, so your payment is protected from day one. Once your content is live and approved, you are paid automatically.',
     points: [
-      [Lock, 'The full fee is secured before you say yes'],
-      [BadgeCheck, "No more ghosting or “we'll pay you next month”"],
-      [DollarSign, 'Paid automatically once your post is live'],
+      [Lock, 'The full fee is secured upfront, before you accept'],
+      [BadgeCheck, "Work with brands who've committed real budget"],
+      [DollarSign, 'Paid automatically once your content goes live'],
     ],
   },
   brand: {
-    title: 'Work with creators you can count on.',
-    body: "Your budget is protected until the work is delivered and you've signed off. Brief them, review the draft, approve it. You stay in control the whole way.",
+    title: 'Partner with creators you can trust.',
+    body: "Your budget stays protected with collabr until the work is delivered and you've approved it. Brief, review, and sign off with confidence at every step.",
     points: [
-      [Lock, "Your money is safe until you approve the work"],
-      [BadgeCheck, 'Real ratings from past collabs, not just follower counts'],
-      [DollarSign, 'Approve every draft before it goes live'],
+      [Lock, 'Your funds stay protected until you approve the work'],
+      [BadgeCheck, 'Real ratings from past collaborations, not just follower counts'],
+      [DollarSign, 'Review and approve every draft before it goes live'],
     ],
   },
   default: {
-    title: 'Collaborations that actually pay out.',
-    body: 'Brands fund the work upfront and approve it before it goes live. Creators get paid the moment it does. Everyone knows exactly where they stand.',
+    title: 'Collaborations built on trust.',
+    body: 'Brands secure the budget upfront and approve the work before it goes live. Creators are paid the moment it does. Both sides always know where they stand.',
     points: [
-      [Lock, 'Money held safely before work starts'],
-      [BadgeCheck, 'Vetted creators with connected socials'],
-      [DollarSign, 'Paid automatically the moment a post goes live'],
+      [Lock, 'Funds protected before any work begins'],
+      [BadgeCheck, 'Verified creators with connected socials'],
+      [DollarSign, 'Payment released automatically once content is live'],
     ],
   },
 } as const
@@ -62,7 +62,7 @@ export default function AuthShell({ children, role }: {
           </span>
         </Link>
 
-        <div style={{ marginTop: 'auto', marginBottom: 'auto', paddingRight: 20 }}>
+        <div style={{ marginTop: 56, marginBottom: 'auto', paddingRight: 20 }}>
           <div style={{ fontSize: 34, lineHeight: 1.12, fontWeight: 560, letterSpacing: '-0.025em', color: '#fff', maxWidth: 440 }}>
             {copy.title}
           </div>
