@@ -117,7 +117,7 @@ export default function CreatorLivePostForm({ collabId, brandName, creatorPayout
           </div>
         )}
 
-        <button type="submit" className="btn btn-block btn-lg" style={{ background: 'var(--creator)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius-pill)', justifyContent: 'center' }} disabled={!ready || submitting}>
+        <button type="submit" className="btn btn-block btn-lg" style={{ background: 'var(--creator)', color: 'var(--creator-ink)', border: 'none', borderRadius: 'var(--radius-pill)', justifyContent: 'center' }} disabled={!ready || submitting}>
           <Check size={18} strokeWidth={2.5} />
           {submitting ? 'Submitting…' : "I've posted, submit the link"}
         </button>

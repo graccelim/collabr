@@ -251,7 +251,7 @@ export default function DraftSubmitForm({ collabId, collabStatus, latestFeedback
             />
           </div>
 
-          <button type="submit" className="btn btn-block btn-lg" style={{ background: 'var(--creator)', color: 'var(--ink)', border: 'none', borderRadius: 'var(--radius-pill)', justifyContent: 'center' }} disabled={busy}>
+          <button type="submit" className="btn btn-block btn-lg" style={{ background: 'var(--creator)', color: 'var(--creator-ink)', border: 'none', borderRadius: 'var(--radius-pill)', justifyContent: 'center' }} disabled={busy}>
             {uploading ? 'Uploading…' : submitting ? 'Submitting…' : isRevision ? 'Submit revised draft' : 'Send draft to brand'}
           </button>
         </form>

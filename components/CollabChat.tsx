@@ -157,8 +157,9 @@ export default function CollabChat({ collabId, currentUserId, counterpartName }:
               fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--ink)', lineHeight: 1.4,
             }}
           />
-          <button type="submit" className="btn-primary" disabled={sending || !draft.trim()} style={{ height: 40, flexShrink: 0 }}>
+          <button type="submit" className="btn btn-primary" aria-label="Send message" disabled={sending || !draft.trim()} style={{ height: 40, flexShrink: 0, gap: 6 }}>
             <Send size={15} />
+            <span>Send</span>
           </button>
         </div>
         <p className="micro" style={{ lineHeight: 1.4 }}>
