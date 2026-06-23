@@ -79,7 +79,9 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
         // funding step so escrow gets secured (no stranded, unfunded collabs).
         if (data.collab_id) {
           toast.success('Creator accepted')
-          router.push(`/collabs/${data.collab_id}`)
+          // ?fund=1 auto-opens the payment modal on the collab page so Accept →
+          // pay is one continuous motion (barter collabs ignore the flag).
+          router.push(`/collabs/${data.collab_id}?fund=1`)
         } else {
           toast.success('Creator accepted, collab created')
           router.refresh()
@@ -343,7 +345,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       >
                         {loading === `${app.id}-undo` ? '…' : 'Undo selection'}
                       </button>
-                      <Link href={`/collabs/${app.collab_id}`} className="btn-primary"
+                      <Link href={`/collabs/${app.collab_id}?fund=1`} className="btn-primary"
                         style={{ height: 32, fontSize: 13, padding: '0 13px', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                         <Shield size={14} /> Secure payment{rateLabel ? ` ${rateLabel}` : ''} →
                       </Link>
