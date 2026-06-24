@@ -96,12 +96,12 @@ export default function ListWorkspace({
     <div style={{
       borderRadius: 14, padding: mobile ? 15 : 18, color: '#fff',
       position: 'relative', overflow: 'hidden',
-      // Dark brushed-steel + a glassy reflection sweep toward the right end.
-      background: 'linear-gradient(100deg, transparent 56%, rgba(255,255,255,0.07) 73%, rgba(255,255,255,0.14) 82%, rgba(255,255,255,0.03) 90%, transparent 98%), radial-gradient(115% 105% at 84% -14%, rgba(255,255,255,0.10), transparent 40%), linear-gradient(152deg, #2a3150 0%, #12172e 46%, #07091a 100%)',
-      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 0 0 1px rgba(255,255,255,0.05)',
+      // Dark blue-steel + a subtle blue-tinted reflection toward the right end.
+      background: 'linear-gradient(100deg, transparent 58%, rgba(118,146,228,0.05) 74%, rgba(128,156,238,0.10) 82%, rgba(118,146,228,0.02) 90%, transparent 98%), radial-gradient(115% 105% at 84% -14%, rgba(150,172,235,0.09), transparent 42%), linear-gradient(152deg, #232c57 0%, #0e1538 46%, #05081c 100%)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.05)',
     }}>
       <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5, display: 'block', marginBottom: 12 }}>{t.label}</span>
-      <div className="cl-stat-num shiny-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, fontSize: mobile ? 28 : undefined }}>{t.value}</div>
+      <div className="cl-stat-num shiny-num" style={{ fontFamily: 'var(--font-money)', fontVariantNumeric: 'tabular-nums', fontWeight: 600, letterSpacing: '-0.025em', lineHeight: 1, fontSize: mobile ? 28 : undefined }}>{t.value}</div>
       {t.heroSub && <div style={{ fontSize: mobile ? 12 : 11.5, color: 'var(--accent-on-dark)', marginTop: 7 }}>{t.heroSub}</div>}
     </div>
   );
