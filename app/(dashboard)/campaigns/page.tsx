@@ -2,8 +2,10 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import Link from 'next/link'
 import EmptyState from '@/components/EmptyState'
-import CampaignList, { type CampaignRow } from '@/components/CampaignList'
+import ListWorkspace, { type LWItem, type LWTile, type LWStatus } from '@/components/ListWorkspace'
+import { CampaignDesktopCard, CampaignMobileCard, type CampaignRow } from '@/components/CampaignCard'
 import { capacityBreakdown } from '@/lib/collab-status'
+import { formatSGD } from '@/lib/utils'
 import { Megaphone, Plus } from 'lucide-react'
 
 export default async function CampaignsPage() {
@@ -83,14 +85,41 @@ export default async function CampaignsPage() {
     }
   })
 
+  // Stat-band aggregates — derived from rows already built (no new queries).
+  const activeRows = rows.filter((r) => r.status === 'active')
+  const applicantsToReview = activeRows.reduce((s, r) => s + r.applicants, 0)
+  const spotsToFill = activeRows.reduce((s, r) => s + r.available, 0)
+  const protectedTotal = rows.reduce((s, r) => s + r.inEscrow, 0)
+
+  const items: LWItem[] = rows.map((r, i) => ({
+    id: r.id,
+    status: r.status,
+    amountCents: r.inEscrow,
+    createdAt: rows.length - i, // preserve the created_at-desc order from the query
+    needsAction: r.status === 'active' && r.applicants > 0,
+    desktop: <CampaignDesktopCard c={r} />,
+    mobile: <CampaignMobileCard c={r} />,
+  }))
+  const tiles: LWTile[] = [
+    { label: 'Active campaigns', value: String(activeRows.length), filter: ['active'] },
+    { label: 'Applicants to review', value: String(applicantsToReview), valueColor: 'var(--pending)' },
+    { label: 'Spots to fill', value: String(spotsToFill) },
+    { label: 'Protected', value: formatSGD(protectedTotal), hero: true, heroIcon: 'shield', heroSub: 'held safely across campaigns' },
+  ]
+  const statuses: LWStatus[] = [
+    { key: 'active', label: 'Active', dot: 'var(--money)' },
+    { key: 'draft', label: 'Draft', dot: '#B7BCC6' },
+    { key: 'completed', label: 'Completed', dot: 'var(--brand)' },
+  ]
+
   return (
-    <div style={{ maxWidth: 880, margin: '0 auto' }}>
-      <div className="page-head-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 22 }}>
+    <div style={{ width: '100%' }}>
+      <div className="page-head-row" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
         <div>
           <div className="eyebrow" style={{ marginBottom: 7 }}>Campaign manager</div>
-          <h1 style={{ fontSize: 28 }}>Your campaigns</h1>
-          <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
-            Your campaigns, who&rsquo;s applied, and how each collab is coming along.
+          <h1 className="display-face" style={{ fontSize: 'clamp(23px,3vw,28px)', fontWeight: 700, letterSpacing: '-0.03em' }}>Your campaigns</h1>
+          <p style={{ color: 'var(--ink-soft)', marginTop: 6, fontSize: 14.5 }}>
+            Who&rsquo;s applied, who&rsquo;s confirmed, and how each collab is coming along.
           </p>
         </div>
         <Link href="/post-job" className="btn-primary" style={{ flexShrink: 0 }}>
@@ -108,7 +137,14 @@ export default async function CampaignsPage() {
           actionLabel="Post your first campaign"
         />
       ) : (
-        <CampaignList campaigns={rows} />
+        <ListWorkspace
+          tiles={tiles}
+          statuses={statuses}
+          sorts={['recent']}
+          items={items}
+          variant="cards"
+          emptyLabel="No campaigns match these filters."
+        />
       )}
     </div>
   )

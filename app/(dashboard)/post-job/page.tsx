@@ -120,7 +120,11 @@ export default function PostJobPage() {
                 </p>
                 <input className="input" value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                  maxLength={70}
                   placeholder="e.g. Launch our new barrier-repair serum" required />
+                <div style={{ fontSize: 11.5, color: form.title.length >= 70 ? 'var(--warn-deep)' : 'var(--ink-faint-solid)', marginTop: 5, textAlign: 'right' }}>
+                  {form.title.length}/70
+                </div>
               </div>
               <div>
                 <label className="label">Platforms</label>

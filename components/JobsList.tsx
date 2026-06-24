@@ -1,11 +1,10 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, X, Bookmark } from 'lucide-react'
+import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, X, Bookmark, Sparkles } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
-import { chipColor } from '@/lib/niches'
 import SaveCampaignButton from '@/components/SaveCampaignButton'
 import ShareProfileButton from '@/components/ShareProfileButton'
 
@@ -154,10 +153,10 @@ export default function JobsList({
   ) => (
     <select
       aria-label={ariaLabel}
-      className="input"
+      className={block ? 'input' : 'cf-pill'}
       style={block
         ? { width: '100%', fontSize: 14, padding: '11px 34px 11px 12px' }
-        : { width: 'auto', fontSize: 13, padding: '6px 32px 6px 11px' }}
+        : { fontSize: 13 }}
       value={value}
       onChange={e => onChange(e.target.value)}
     >
@@ -252,172 +251,114 @@ export default function JobsList({
         </div>
       )}
 
-      {/* Campaign cards */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-        {visible.length === 0 && (
-          <div className="card" style={{ padding: '28px 18px', textAlign: 'center', fontSize: 13.5, color: 'var(--ink-faint-solid)' }}>
-            No campaigns match these filters. Try clearing a filter or check back soon.
+      {/* Campaign cards — 2-col grid on desktop, single column on mobile */}
+      {visible.length === 0 ? (
+        <div className="card" style={{ padding: 'clamp(32px,6vw,52px) 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+          <span style={{ width: 56, height: 56, borderRadius: 15, background: 'var(--surface-2)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+            <SlidersHorizontal size={24} style={{ color: 'var(--brand)' }} />
+          </span>
+          <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 'clamp(18px,2.4vw,21px)', letterSpacing: '-0.02em', marginBottom: 7 }}>No campaigns match your filters</div>
+          <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, maxWidth: 380, margin: '0 0 16px' }}>
+            New opportunities are added daily. Try broadening your filters, or finish your profile so brands can match you faster.
+          </p>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 20, fontSize: 12.5, color: 'var(--match)', background: 'var(--match-soft)', border: '1px solid var(--match)33', padding: '6px 12px', borderRadius: 999 }}>
+            <Sparkles size={13} /> Matched on your work, not your follower count
           </div>
-        )}
-        {visible.map((c) => {
-          const pays = paysLabel(c)
-          const deliverable = c.deliverable_types?.[0] ?? '-'
-          // Remaining spots (funded-aware) when provided; else the raw count.
-          const left = c.spots_left ?? c.creators_needed
-          const spotsText = left <= 0 ? 'Filled' : `${left} ${left === 1 ? 'spot' : 'spots'} left`
-          return (
-            <Link
-              key={c.id}
-              href={`/jobs/${c.slug || c.id}`}
-              className="card hover-lift"
-              style={{
-                padding: 20,
-                textDecoration: 'none',
-                borderColor: c.is_featured ? 'var(--accent)' : 'var(--line)',
-              }}
-            >
-              {/* Top zone */}
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 14 }}>
-                <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start', minWidth: 0, flex: 1 }}>
-                  {/* Brand avatar */}
-                  <div style={{
-                    width: 46, height: 46, borderRadius: 'var(--radius-sm)',
-                    background: 'linear-gradient(140deg, var(--accent-tint), color-mix(in srgb, var(--accent) 16%, #fff))',
-                    boxShadow: 'inset 0 0 0 1px var(--line)',
-                    display: 'grid', placeItems: 'center', flexShrink: 0, overflow: 'hidden',
-                    fontSize: 14, fontWeight: 700, color: 'var(--accent-deep)',
-                  }}>
-                    {c.brand_logo
-                      ? <img src={c.brand_logo} alt={c.brand_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      : getInitials(c.brand_name)}
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, justifyContent: 'space-between' }}>
-                      <div style={{ fontWeight: 700, fontSize: 16, color: 'var(--ink)', minWidth: 0 }}>{c.title}</div>
-                      <span className="md:hidden" style={{
-                        fontSize: 12, fontWeight: 600, color: 'var(--ink-faint-solid)',
-                        flexShrink: 0, whiteSpace: 'nowrap',
-                      }}>{spotsText}</span>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {hasFilters && <button type="button" className="btn btn-primary" onClick={clearAll}>Clear filters</button>}
+            <Link href="/profile" className="btn btn-secondary">Complete profile</Link>
+          </div>
+        </div>
+      ) : (
+        <div className="discover-grid">
+          {visible.map((c) => {
+            const pays = paysLabel(c)
+            const deliverable = c.deliverable_types?.[0] ?? '—'
+            const left = c.spots_left ?? c.creators_needed
+            const spotsText = left <= 0 ? 'Filled' : `${left} ${left === 1 ? 'spot left' : 'spots'}`
+            const spotsLow = left === 1
+            // "Fits your rates" surfaces only when the recommender said so.
+            const fitsRates = c.matchReasons.some(r => /rate|budget/i.test(r))
+            const stats: { k: string; v: string; money?: boolean; low?: boolean }[] = [
+              { k: 'Pays', v: pays.value, money: pays.money },
+              { k: 'Deliverable', v: deliverable },
+              { k: 'Due', v: dueLabel(c.deadline) },
+              { k: 'Spots', v: spotsText, low: spotsLow },
+            ]
+            return (
+              <Link
+                key={c.id}
+                href={`/jobs/${c.slug || c.id}`}
+                className="card hover-lift"
+                style={{ display: 'flex', flexDirection: 'column', padding: 18, textDecoration: 'none', borderColor: c.is_featured ? 'var(--accent)' : 'var(--line)' }}
+              >
+                {/* header: avatar + name/brand + save/share */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 13 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: 1 }}>
+                    <div style={{ width: 46, height: 46, flex: 'none', borderRadius: 12, background: 'linear-gradient(135deg, var(--brand-tint), var(--surface-2))', boxShadow: 'inset 0 0 0 1px var(--line)', display: 'grid', placeItems: 'center', overflow: 'hidden', fontSize: 15, fontWeight: 700, color: 'var(--brand)', fontFamily: 'var(--font-grotesk)' }}>
+                      {c.brand_logo ? <img src={c.brand_logo} alt={c.brand_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : getInitials(c.brand_name)}
                     </div>
-                    <div style={{ fontSize: 13.5, color: 'var(--ink-faint-solid)', marginTop: 2 }}>
-                      {c.brand_name}{c.platform ? ` · ${c.platform}` : ''}
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 600, fontSize: 17, letterSpacing: '-0.02em', color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</div>
+                      <div style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>by {c.brand_name}{c.platform ? ` · ${c.platform}` : ''}</div>
+                      {(c.brand_rating_count || 0) >= 1 && (
+                        <div style={{ marginTop: 5 }}>
+                          <RatingChip avg={c.brand_rating_avg} count={c.brand_rating_count} size={12} />
+                        </div>
+                      )}
                     </div>
-                    {(c.brand_rating_count || 0) >= 1 && (
-                      <div style={{ marginTop: 5 }}>
-                        <RatingChip avg={c.brand_rating_avg} count={c.brand_rating_count} size={12} />
-                      </div>
-                    )}
-                    {c.niche_tags && c.niche_tags.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
-                        {c.niche_tags.map(t => {
-                          const cc = chipColor(t)
-                          return (
-                            <span key={t} style={{
-                              fontSize: 11.5, fontWeight: 600, color: cc.fg,
-                              background: cc.bg, padding: '3px 9px',
-                              borderRadius: 'var(--radius-pill)',
-                            }}>{nicheLabel(t)}</span>
-                          )
-                        })}
-                      </div>
-                    )}
                   </div>
-                </div>
-                {/* Top-right cluster: honest fit tier (only when there's a
-                    credible match - no numbers, ever) plus, on DESKTOP, the
-                    save + share buttons inline with the campaign name. */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-                  {c.matchLabel && (
-                    <span className={`badge ${matchClass(c.matchLabel)}`} style={{ flexShrink: 0, fontSize: 12 }}>
-                      <span>{c.matchLabel}</span>
-                    </span>
-                  )}
-                  <div className="hidden md:flex" style={{ alignItems: 'center', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 7, flexShrink: 0 }}>
                     <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
                     <ShareProfileButton path={`/jobs/${c.slug || c.id}`} name={c.title} noun="Campaign" compact />
                   </div>
                 </div>
-              </div>
 
-              {/* Why it fits - compact ✓ list of honest, categorical reasons. */}
-              {c.matchReasons.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 12 }}>
-                  {c.matchReasons.map(reason => {
-                    const rs = reasonStyle(reason)
-                    return (
-                      <span key={reason} style={{
-                        display: 'inline-flex', alignItems: 'center', gap: 5,
-                        fontSize: 12, color: rs.fg, fontWeight: 500,
-                        background: rs.bg, padding: '4px 10px', borderRadius: 99,
-                      }}>
-                        <rs.Icon size={12} style={{ flexShrink: 0 }} />
-                        {reason}
-                      </span>
-                    )
-                  })}
+                {/* pills: niche + fit + rate */}
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 15 }}>
+                  {(c.niche_tags ?? []).slice(0, 1).map(t => (
+                    <span key={t} style={{ background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--ink-soft)', fontSize: 11.5, fontWeight: 500, padding: '4px 10px', borderRadius: 999 }}>{nicheLabel(t)}</span>
+                  ))}
+                  {c.matchLabel && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--match-soft)', border: '1px solid var(--match)33', color: 'var(--match)', fontSize: 11.5, fontWeight: 500, padding: '4px 10px', borderRadius: 999 }}>
+                      <Sparkles size={11} />{c.matchLabel}
+                    </span>
+                  )}
+                  {fitsRates && (
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--money-tint)', border: '1px solid var(--money)26', color: 'var(--money-deep)', fontSize: 11.5, fontWeight: 500, padding: '4px 10px', borderRadius: 999 }}>
+                      <Wallet size={11} />Fits your rates
+                    </span>
+                  )}
                 </div>
-              )}
 
-              {/* Bottom zone */}
-              <div style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                gap: 16, flexWrap: 'wrap',
-                marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--line)',
-              }}>
-                <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap' }}>
-                  {[
-                    { k: 'Pays', v: pays.value, money: pays.money },
-                    { k: 'Deliverable', v: deliverable, money: false },
-                    { k: 'Due', v: dueLabel(c.deadline), money: false },
-                  ].map(({ k, v, money }) => (
-                    <div key={k}>
-                      <div className="eyebrow" style={{ fontSize: 10 }}>{k}</div>
-                      <div
-                        className={money ? 'mono-num' : undefined}
-                        style={{
-                          fontSize: 14, fontWeight: 540, marginTop: 2,
-                          color: money ? 'var(--money-deep)' : 'var(--ink)',
-                        }}
-                      >{v}</div>
+                {/* stat row — 4 across on desktop, 2×2 on mobile (keeps the pay
+                    amount readable instead of truncating in a cramped row) */}
+                <div className="discover-stats">
+                  {stats.map(s => (
+                    <div key={s.k} style={{ minWidth: 0 }}>
+                      <div className="eyebrow" style={{ fontSize: 9, marginBottom: 4 }}>{s.k}</div>
+                      <div className={s.money ? 'mono-num' : undefined} style={{ fontSize: 13, fontWeight: 600, color: s.money ? 'var(--money-deep)' : s.low ? 'var(--pending)' : 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.v}</div>
                     </div>
                   ))}
-                  {/* Spots stays a meta column on desktop; on mobile it's the chip by the title. */}
-                  <div className="hidden md:block">
-                    <div className="eyebrow" style={{ fontSize: 10 }}>Spots</div>
-                    <div style={{ fontSize: 14, fontWeight: 540, marginTop: 2, color: 'var(--ink)' }}>{spotsText}</div>
-                  </div>
                 </div>
-                {/* On MOBILE this row goes full-width so save + share sit
-                    space-between, to the right of the applied/selected badge.
-                    On DESKTOP it's content-width (save + share live up by the
-                    name), so only the badge/Apply shows here. */}
-                <div className="w-full md:w-auto justify-between md:justify-end" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  {c.appliedStatus && APPLIED[c.appliedStatus] ? (
-                    <span className={`badge ${APPLIED[c.appliedStatus].cls}`} style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                      {c.appliedStatus === 'selected' && <Check size={12} />}
-                      {APPLIED[c.appliedStatus].label}
-                    </span>
+
+                {/* action */}
+                <div style={{ marginTop: 'auto' }}>
+                  {c.appliedStatus === 'selected' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, background: 'var(--money-tint)', border: '1px solid var(--money)26', color: 'var(--money-deep)', fontSize: 13, fontWeight: 500, padding: 10, borderRadius: 10 }}><Check size={14} strokeWidth={2.4} />Selected</div>
+                  ) : c.appliedStatus === 'rejected' ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-2)', border: '1px solid var(--line)', color: 'var(--ink-faint-solid)', fontSize: 13, fontWeight: 500, padding: 10, borderRadius: 10 }}>Not selected</div>
+                  ) : c.appliedStatus ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--brand-tint)', border: '1px solid var(--brand)18', color: 'var(--brand)', fontSize: 13, fontWeight: 500, padding: 10, borderRadius: 10 }}>Applied</div>
                   ) : (
-                    <span style={{
-                      display: 'inline-flex', alignItems: 'center', gap: 6,
-                      fontSize: 13, fontWeight: 540, color: 'var(--accent-deep)',
-                    }}>
-                      Apply <ArrowRight size={15} />
-                    </span>
+                    <span className="btn btn-primary" style={{ width: '100%', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: 7 }}>Apply now <ArrowRight size={14} /></span>
                   )}
-                  {/* Mobile only - desktop shows these by the campaign name.
-                      Display lives in the class (not inline) so `md:hidden`
-                      can actually hide it on desktop. */}
-                  <span className="flex md:hidden items-center" style={{ gap: 8 }}>
-                    <SaveCampaignButton campaignId={c.id} initialSaved={Boolean(c.saved)} compact />
-                    <ShareProfileButton path={`/jobs/${c.slug || c.id}`} name={c.title} noun="Campaign" compact />
-                  </span>
                 </div>
-              </div>
-            </Link>
-          )
-        })}
-      </div>
+              </Link>
+            )
+          })}
+        </div>
+      )}
     </>
   )
 }

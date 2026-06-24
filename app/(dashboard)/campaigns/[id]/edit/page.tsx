@@ -142,7 +142,10 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
         <div className="card" style={{ padding: 22, display: 'flex', flexDirection: 'column', gap: 18 }}>
           <div>
             <label className="label">Campaign title</label>
-            <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} required />
+            <input className="input" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} maxLength={70} required />
+            <div style={{ fontSize: 11.5, color: form.title.length >= 70 ? 'var(--warn-deep)' : 'var(--ink-faint-solid)', marginTop: 5, textAlign: 'right' }}>
+              {form.title.length}/70
+            </div>
           </div>
           <div>
             <label className="label">Platforms</label>

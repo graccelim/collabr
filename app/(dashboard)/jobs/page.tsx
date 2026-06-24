@@ -168,9 +168,8 @@ export default async function JobsPage({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: 22,
-        maxWidth: 880,
-        margin: '0 auto',
+        gap: 20,
+        width: '100%',
       }}
     >
       {/* Header */}
@@ -190,7 +189,7 @@ export default async function JobsPage({
             >
               <ArrowLeft size={12} /> Back to {brandName}
             </Link>
-            <h1 style={{ fontSize: 28 }}>Campaigns from {brandName}</h1>
+            <h1 className="display-face" style={{ fontSize: 'clamp(23px,3vw,28px)', fontWeight: 700, letterSpacing: '-0.03em' }}>Campaigns from {brandName}</h1>
             <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
               Active briefs from {brandName}, ordered by your fit.
             </p>
@@ -201,7 +200,7 @@ export default async function JobsPage({
               <div className="eyebrow" style={{ marginBottom: 7 }}>
                 Picked for you
               </div>
-              <h1 style={{ fontSize: 28 }}>Campaigns that fit you</h1>
+              <h1 className="display-face" style={{ fontSize: 'clamp(23px,3vw,28px)', fontWeight: 700, letterSpacing: '-0.03em' }}>Campaigns that fit you</h1>
               <p style={{ color: 'var(--ink-soft)', marginTop: 5, fontSize: 15 }}>
                 Explore opportunities from brands looking for creators like you,
                 with your best fits shown first.{' '}

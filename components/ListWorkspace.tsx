@@ -180,9 +180,11 @@ export default function ListWorkspace({
               {campaigns.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           )}
-          <select value={sort} onChange={(e) => setSort(e.target.value as LWSort)} style={selectStyle} aria-label="Sort">
-            {sorts.map((s) => <option key={s} value={s}>{SORT_LABEL[s]}</option>)}
-          </select>
+          {sorts.length > 1 && (
+            <select value={sort} onChange={(e) => setSort(e.target.value as LWSort)} style={selectStyle} aria-label="Sort">
+              {sorts.map((s) => <option key={s} value={s}>{SORT_LABEL[s]}</option>)}
+            </select>
+          )}
           {dirty && (
             <button type="button" onClick={clear} className="lw-clear" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>Clear</button>
           )}

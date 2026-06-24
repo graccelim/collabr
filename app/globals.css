@@ -683,6 +683,28 @@
 .lw-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
 .lw-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0; }
 .lw-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Creator discover — 2-col campaign card grid (1 col on mobile). */
+.discover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.discover-stats { display: grid; grid-template-columns: 1.2fr 1fr .9fr .9fr; gap: 10px; padding: 13px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); margin-bottom: 15px; }
+@media (max-width: 768px) {
+  .discover-grid { grid-template-columns: 1fr; gap: 12px; }
+  /* 2×2 on phones so the pay range never truncates in a cramped 4-across row */
+  .discover-stats { grid-template-columns: 1fr 1fr; gap: 12px 14px; }
+}
+
+/* Pill-styled filter <select> (desktop discover bar). Native select, restyled. */
+.cf-pill {
+  appearance: none; -webkit-appearance: none;
+  height: 34px; padding: 0 30px 0 14px;
+  border-radius: 999px; cursor: pointer;
+  font-family: var(--font-body); color: var(--ink);
+  background-color: var(--surface);
+  border: 1px solid var(--line-strong);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A909C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 11px center;
+}
+.cf-pill:hover { border-color: var(--ink-faint-solid); }
 @media (max-width: 768px) {
   /* chips take their own scrolling row; controls drop to a full-width row */
   .lw-chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
