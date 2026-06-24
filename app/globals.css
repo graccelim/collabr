@@ -645,6 +645,38 @@
 .lp-section { padding: 84px 40px; }
 .lp-narrow  { max-width: 1040px; margin: 0 auto; }
 
+/* ============================================================
+   COLLABS PAGE  (desktop table + mobile cards, distinct layouts)
+   ============================================================ */
+.cl-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.cl-stat-num { font-size: 27px; }
+.cl-desktop { display: block; }
+.cl-mobile  { display: none; }
+/* secured-money chip pulse on the funds-protected hero */
+@keyframes cl-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(21,122,85,.26); } 50% { box-shadow: 0 0 0 5px rgba(21,122,85,0); } }
+.cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
+/* desktop table row hover */
+.cl-trow { transition: background .12s ease; }
+.cl-trow:hover { background: var(--surface-2); }
+@media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
+
+@media (max-width: 768px) {
+  .cl-stats { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
+  .cl-stat-hero { grid-column: 1 / -1; }     /* funds hero spans full width */
+  .cl-stat-hero .cl-stat-num { font-size: 31px; }
+  .cl-stat-released { display: none; }       /* released tile is desktop-only */
+  .cl-desktop { display: none !important; }
+  .cl-mobile  { display: flex !important; }
+  /* filter chips scroll horizontally instead of wrapping */
+  .cl-tabs { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .cl-tabs::-webkit-scrollbar { display: none; }
+}
+
 
 /* ============================================================
    AUTH SHELL - dark brand rail (hidden on mobile)
