@@ -7,6 +7,7 @@ import { Send } from 'lucide-react';
 import { creatorApplicationState, CREATOR_APP_LABEL } from '@/lib/collab-status';
 import WithdrawApplicationButton from '@/components/WithdrawApplicationButton';
 import StatusPill, { type StatusPillKind } from '@/components/StatusPill';
+import ListWorkspace, { type LWItem, type LWTile, type LWStatus } from '@/components/ListWorkspace';
 
 type AppRowData = {
   id: string;
@@ -26,6 +27,10 @@ type AppRowData = {
   withdrawId: string | null;
   /** Rejected/withdrawn → a quiet "Closed" marker. */
   closed: boolean;
+  /** filter/sort data */
+  filterStatus: 'applied' | 'accepted' | 'past';
+  amountCents: number;
+  createdAt: number;
 };
 
 const PROTECTED_TAG = (
@@ -53,11 +58,11 @@ function ActionEl({ r }: { r: AppRowData }) {
   return null;
 }
 
-function DesktopRow({ r, last }: { r: AppRowData; last: boolean }) {
+function DesktopRow({ r }: { r: AppRowData }) {
   return (
     <div style={{
       display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 150px 132px 118px', gap: 16,
-      alignItems: 'center', padding: '15px 18px', borderBottom: last ? 'none' : '1px solid var(--line)',
+      alignItems: 'center', padding: '15px 18px', borderBottom: '1px solid var(--line)',
     }}>
       <Link href={r.href} style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, textDecoration: 'none' }}>
         <Avatar initials={r.initials} muted={r.muted} />
@@ -93,24 +98,6 @@ function MobileCard({ r }: { r: AppRowData }) {
           {r.protectedNote && <div style={{ marginTop: 3 }}>{PROTECTED_TAG}</div>}
         </div>
         <ActionEl r={r} />
-      </div>
-    </div>
-  );
-}
-
-function Section({ title, count, rows, muted = false }: { title: string; count: number; rows: AppRowData[]; muted?: boolean }) {
-  if (rows.length === 0) return null;
-  return (
-    <div style={{ marginBottom: 22 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-        <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 600, fontSize: 15, color: muted ? 'var(--ink-soft)' : 'var(--ink)' }}>{title}</span>
-        <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', background: 'var(--surface-2)', padding: '2px 9px', borderRadius: 999 }}>{count}</span>
-      </div>
-      <div className="cl-desktop card" style={{ padding: 0, overflow: 'hidden' }}>
-        {rows.map((r, i) => <DesktopRow key={r.id} r={r} last={i === rows.length - 1} />)}
-      </div>
-      <div className="cl-mobile" style={{ display: 'none', flexDirection: 'column', gap: 10 }}>
-        {rows.map((r) => <MobileCard key={r.id} r={r} />)}
       </div>
     </div>
   );
@@ -193,20 +180,47 @@ export default async function ApplicationsPage() {
       viewLabel: showsCollab ? 'View collab' : null,
       withdrawId: !showsCollab && !collab && !rejected && !withdrawnStatus ? app.id : null,
       closed: rejected || withdrawnStatus,
+      filterStatus: (rejected || withdrawnStatus) ? 'past' : pillKind === 'accepted' ? 'accepted' : 'applied',
+      amountCents: (campaign?.budget_max ?? campaign?.budget_min ?? app.proposed_rate ?? 0) || 0,
+      createdAt: app.created_at ? new Date(app.created_at).getTime() : 0,
     };
   };
 
-  const activeRows = activeApps.map(toRow);
-  const pastRows = pastApps.map(toRow);
+  // One combined list (active first, then past) — the filter bar/sort replaces
+  // the old fixed sections.
+  const allRows = [...activeApps.map(toRow), ...pastApps.map(toRow)];
 
   // Stat-band aggregates (derived from the rows already built — no new queries).
-  const acceptedCount = activeRows.filter((r) => r.pillKind === 'accepted').length;
+  const activeRows = allRows.filter((r) => r.filterStatus !== 'past');
+  const acceptedCount = activeRows.filter((r) => r.filterStatus === 'accepted').length;
   const awaitingCount = activeRows.length - acceptedCount;
   let potential = 0;
   for (const app of activeApps) {
     const c = app.campaigns;
     potential += (c?.budget_max ?? c?.budget_min ?? app.proposed_rate ?? 0) || 0;
   }
+
+  const items: LWItem[] = allRows.map((r) => ({
+    id: r.id,
+    status: r.filterStatus,
+    amountCents: r.amountCents,
+    createdAt: r.createdAt,
+    needsAction: false,
+    campaign: r.campaignTitle,
+    desktop: <DesktopRow r={r} />,
+    mobile: <MobileCard r={r} />,
+  }));
+  const tiles: LWTile[] = [
+    { label: 'Active applications', value: String(activeRows.length), filter: ['applied', 'accepted'] },
+    { label: 'Awaiting response', value: String(awaitingCount), valueColor: 'var(--pending)', filter: ['applied'] },
+    { label: 'Accepted', value: String(acceptedCount), valueColor: 'var(--money-deep)', filter: ['accepted'] },
+    { label: 'Potential value', value: potential > 0 ? `up to ${formatSGD(potential)}` : '—', hero: true, heroIcon: 'dollar', heroSub: 'across active applications' },
+  ];
+  const statuses: LWStatus[] = [
+    { key: 'applied', label: 'Applied', dot: 'var(--brand)' },
+    { key: 'accepted', label: 'Accepted', dot: 'var(--money)' },
+    { key: 'past', label: 'Past', dot: '#B7BCC6' },
+  ];
 
   return (
     <div style={{ width: '100%' }}>
@@ -227,64 +241,14 @@ export default async function ApplicationsPage() {
           actionLabel="Browse campaigns"
         />
       ) : (
-        <>
-          {/* ── Stat band ── */}
-          <div className="cl-stats cl-desktop" style={{ display: 'grid' }}>
-            <StatTile label="Active applications" value={String(activeApps.length)} />
-            <StatTile label="Awaiting response" value={String(awaitingCount)} valueColor="var(--pending)" />
-            <StatTile label="Accepted" value={String(acceptedCount)} valueColor="var(--money-deep)" />
-            <div style={{ background: 'var(--brand)', borderRadius: 14, padding: 18, color: '#fff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5 }}>Potential value</span>
-                <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--money)' }} />
-              </div>
-              <div className="cl-stat-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>{potential > 0 ? `up to ${formatSGD(potential)}` : '—'}</div>
-              <div style={{ fontSize: 11.5, color: 'var(--accent-on-dark)', marginTop: 7 }}>across active applications</div>
-            </div>
-          </div>
-
-          {/* mobile stat band — value hero + 3 chips */}
-          <div className="cl-mobile" style={{ display: 'none', flexDirection: 'column', gap: 11, marginBottom: 18 }}>
-            <div style={{ background: 'var(--brand)', borderRadius: 14, padding: 15, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div className="eyebrow" style={{ fontSize: 10, marginBottom: 6, color: 'var(--accent-on-dark)' }}>Potential value</div>
-                <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 24, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>{potential > 0 ? `up to ${formatSGD(potential)}` : '—'}</div>
-              </div>
-              <span style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--money)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <MobileChip value={String(activeApps.length)} label="active" />
-              <MobileChip value={String(awaitingCount)} label="awaiting" valueColor="var(--pending)" />
-              <MobileChip value={String(acceptedCount)} label="accepted" valueColor="var(--money-deep)" />
-            </div>
-          </div>
-
-          <Section title="Active" count={activeRows.length} rows={activeRows} />
-          <Section title="Past" count={pastRows.length} rows={pastRows} muted />
-        </>
+        <ListWorkspace
+          tiles={tiles}
+          statuses={statuses}
+          sorts={['recent', 'amount']}
+          items={items}
+          emptyLabel="No applications match these filters."
+        />
       )}
-    </div>
-  );
-}
-
-/** Desktop white stat tile. */
-function StatTile({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
-  return (
-    <div className="card" style={{ padding: 16 }}>
-      <div className="eyebrow" style={{ fontSize: 10, marginBottom: 9 }}>{label}</div>
-      <div className="cl-stat-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: valueColor || 'var(--ink)' }}>{value}</div>
-    </div>
-  );
-}
-
-/** Mobile compact stat chip. */
-function MobileChip({ value, label, valueColor }: { value: string; label: string; valueColor?: string }) {
-  return (
-    <div className="card" style={{ flex: 1, padding: 11 }}>
-      <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 19, lineHeight: 1, color: valueColor || 'var(--ink)' }}>{value}</div>
-      <div style={{ fontSize: 10.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{label}</div>
     </div>
   );
 }

@@ -4,50 +4,12 @@ import { formatSGD, COLLAB_STATUSES, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow';
 import { isPaymentSecured } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
-import CollabsList, { type CollabRowData } from '@/components/CollabsList';
+import ListWorkspace, { type LWItem, type LWTile, type LWStatus } from '@/components/ListWorkspace';
+import { CollabDesktopRow, CollabMobileCard, COLLAB_GRID, type CollabRowData } from '@/components/CollabRow';
 import InfoTip from '@/components/InfoTip';
 import { TERMS } from '@/lib/terms';
-import { Briefcase, Compass, Megaphone, Lock, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { Briefcase, Compass, Megaphone } from 'lucide-react';
 import Link from 'next/link';
-
-/** White stat tile used in the collabs stat band. */
-function Stat({
-  label,
-  value,
-  sub,
-  subColor,
-  icon,
-  iconBg,
-  className,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  subColor?: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`card${className ? ` ${className}` : ''}`}
-      style={{ padding: 18 }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-        <span className="eyebrow" style={{ fontSize: 10.5 }}>{label}</span>
-        <span style={{ width: 28, height: 28, borderRadius: 8, background: iconBg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {icon}
-        </span>
-      </div>
-      <div className="cl-stat-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: 'var(--ink)' }}>
-        {value}
-      </div>
-      <div style={{ fontSize: 12, color: subColor || 'var(--ink-soft)', marginTop: 7, fontWeight: subColor ? 500 : 400 }}>
-        {sub}
-      </div>
-    </div>
-  );
-}
 
 export default async function CollabsPage() {
   const user = await requireAuth();
@@ -101,8 +63,8 @@ export default async function CollabsPage() {
   });
 
   // Build display rows + filter bucket (Needs you / In progress / Completed /
-  // Cancelled) server-side; the chip filtering happens client-side in
-  // <CollabsList>. Same derivation as before — only the presentation fields
+  // Cancelled) server-side; the chip/sort filtering happens client-side in
+  // <ListWorkspace>. Same derivation as before — only the presentation fields
   // (statusKind/money/moneyKind, and a dedicated 'cancelled' bucket) are new.
   const rows: CollabRowData[] = visibleCollabs.map((c) => {
     const counterparty = isBrand
@@ -167,6 +129,9 @@ export default async function CollabsPage() {
             ? 'needs'
             : 'progress',
       dimmed: completed || cancelled,
+      amountCents: c.agreed_rate ?? 0,
+      createdAt: c.created_at ? new Date(c.created_at).getTime() : 0,
+      needsAction: turn.yourTurn && !completed && !cancelled,
     };
   });
 
@@ -192,6 +157,49 @@ export default async function CollabsPage() {
   const inProgressCount = rows.filter((r) => r.bucket === 'progress').length;
   const plural = (n: number) => (n === 1 ? '' : 's');
 
+  // ── Filtering inputs for ListWorkspace ──
+  const items: LWItem[] = rows.map((r) => ({
+    id: r.id,
+    status: r.bucket,
+    amountCents: r.amountCents,
+    createdAt: r.createdAt,
+    needsAction: r.needsAction,
+    campaign: r.campaignTitle,
+    desktop: <CollabDesktopRow r={r} />,
+    mobile: <CollabMobileCard r={r} />,
+  }));
+  const tiles: LWTile[] = [
+    {
+      label: isBrand ? 'Funds protected' : 'Protected for you',
+      value: formatSGD(fundsProtected),
+      hero: true,
+      heroIcon: 'shield',
+      heroSub: isBrand
+        ? `Held safely across ${activeProtectedCount} active collab${plural(activeProtectedCount)}`
+        : `Secured across ${activeProtectedCount} active collab${plural(activeProtectedCount)}`,
+    },
+    { label: 'Needs your action', value: String(needsCount), valueColor: 'var(--pending)', filter: ['needs'] },
+    { label: 'In progress', value: String(inProgressCount), filter: ['progress'] },
+    { label: isBrand ? 'Released to creators' : 'Earned', value: formatSGD(releasedTotal), filter: ['completed'], mobileHidden: true },
+  ];
+  const statuses: LWStatus[] = [
+    { key: 'needs', label: 'Needs you', dot: 'var(--pending)' },
+    { key: 'progress', label: 'In progress', dot: 'var(--brand)' },
+    { key: 'completed', label: 'Completed', dot: 'var(--money)' },
+    { key: 'cancelled', label: 'Cancelled', dot: '#B7BCC6' },
+  ];
+  // Per-campaign filter is a brand convenience (creators rarely span campaigns).
+  const campaigns = isBrand
+    ? Array.from(new Set(rows.map((r) => r.campaignTitle))).sort()
+    : undefined;
+  const desktopHeader = (
+    <div style={{ display: 'grid', gridTemplateColumns: COLLAB_GRID, gap: 20, alignItems: 'center', padding: '13px 22px', borderBottom: '1px solid var(--line)', background: 'var(--surface-2)' }}>
+      {['Collaboration', 'Progress', 'Status', 'Amount', ''].map((h, i) => (
+        <span key={i} className="eyebrow" style={{ fontSize: 10, textAlign: i === 3 ? 'right' : 'left' }}>{h}</span>
+      ))}
+    </div>
+  );
+
   return (
     <div style={{ width: '100%' }}>
       <div style={{ marginBottom: 22 }}>
@@ -210,59 +218,15 @@ export default async function CollabsPage() {
 
       {rows.length > 0 ? (
         <>
-          {/* ── Stat band (responsive: 4 cards desktop · hero + 2 on mobile) ── */}
-          <div className="cl-stats">
-            {/* Funds protected — navy hero */}
-            <div
-              className="cl-stat-hero"
-              style={{ background: 'var(--brand)', borderRadius: 14, padding: 18, color: '#fff', overflow: 'hidden' }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-                <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5 }}>
-                  {isBrand ? 'Funds protected' : 'Protected for you'}
-                </span>
-                <span className="cl-pulse" style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--money)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Lock size={14} color="#fff" />
-                </span>
-              </div>
-              <div className="cl-stat-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>
-                {formatSGD(fundsProtected)}
-              </div>
-              <div style={{ fontSize: 12, color: 'var(--accent-on-dark)', marginTop: 7 }}>
-                {isBrand
-                  ? `Held safely across ${activeProtectedCount} active collab${plural(activeProtectedCount)}`
-                  : `Secured across ${activeProtectedCount} active collab${plural(activeProtectedCount)}`}
-              </div>
-            </div>
-
-            <Stat
-              label="Needs your action"
-              value={String(needsCount)}
-              sub={isBrand ? 'Review before the window closes' : 'Your move to keep things going'}
-              subColor="var(--pending)"
-              icon={<AlertCircle size={14} color="var(--pending)" />}
-              iconBg="var(--pending-tint)"
-            />
-            <Stat
-              label="In progress"
-              value={String(inProgressCount)}
-              sub="Live collaborations"
-              icon={<Clock size={14} color="var(--brand)" />}
-              iconBg="var(--brand-tint)"
-            />
-            <Stat
-              className="cl-stat-released"
-              label={isBrand ? 'Released to creators' : 'Earned'}
-              value={formatSGD(releasedTotal)}
-              sub={isBrand
-                ? `Across ${completedCount} completed collab${plural(completedCount)}`
-                : `Paid out across ${completedCount} collab${plural(completedCount)}`}
-              icon={<CheckCircle2 size={14} color="var(--money)" />}
-              iconBg="var(--money-tint)"
-            />
-          </div>
-
-          <CollabsList rows={rows} />
+          <ListWorkspace
+            tiles={tiles}
+            statuses={statuses}
+            sorts={['needs', 'recent', 'amount']}
+            campaigns={campaigns}
+            items={items}
+            desktopHeader={desktopHeader}
+            emptyLabel="No collaborations match these filters."
+          />
           <div
             style={{
               marginTop: 18,
