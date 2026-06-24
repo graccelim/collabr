@@ -33,6 +33,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   const allowed = ['title', 'brief', 'deliverable_types', 'comp_type', 'budget_min', 'budget_max',
     'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
+  // Title: trim + cap at 70 chars (matches the form) so it stays legible everywhere.
+  if (updates.title !== undefined) {
+    const title = typeof updates.title === 'string' ? updates.title.trim() : ''
+    if (!title) return NextResponse.json({ error: 'Campaign title is required.' }, { status: 400 })
+    if (title.length > 70) return NextResponse.json({ error: 'Campaign title must be 70 characters or fewer.' }, { status: 400 })
+    updates.title = title
+  }
   // Normalize edited niche tags to canonical slugs (matching + trigger safety).
   if (Array.isArray(updates.niche_tags)) {
     updates.niche_tags = normalizeNicheTags(updates.niche_tags as string[])

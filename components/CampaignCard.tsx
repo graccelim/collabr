@@ -55,7 +55,7 @@ export function CampaignDesktopCard({ c }: { c: CampaignRow }) {
   const isBarter = c.comp_type === 'barter';
   const stats: { k: string; v: string; mono?: boolean; money?: boolean }[] = [
     { k: 'Applicants', v: String(c.applicants) },
-    { k: 'Confirmed', v: `${c.confirmed}/${c.creators_needed}` },
+    { k: 'Spots filled', v: `${c.confirmed}/${c.creators_needed}` },
     { k: 'Budget', v: budgetLabel(c), mono: true },
     { k: 'Due', v: fmtDeadline(c.deadline), mono: true },
     isBarter ? { k: 'Available', v: String(c.available) } : { k: 'Protected', v: formatSGD(c.inEscrow), mono: true, money: c.inEscrow > 0 },
@@ -73,7 +73,7 @@ export function CampaignDesktopCard({ c }: { c: CampaignRow }) {
         {stats.map((s) => (
           <div key={s.k}>
             <div className="eyebrow" style={{ fontSize: 9.5, marginBottom: 6 }}>{s.k}</div>
-            {s.k === 'Confirmed' ? (
+            {s.k === 'Spots filled' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 19, letterSpacing: '-0.02em' }}>{s.v}</span>
                 <span style={{ flex: 1, maxWidth: 54, height: 5, borderRadius: 999, background: 'rgba(14,16,22,.1)', position: 'relative', overflow: 'hidden' }}>
@@ -121,7 +121,7 @@ export function CampaignMobileCard({ c }: { c: CampaignRow }) {
           <div style={{ fontSize: 12.5, fontWeight: 600 }}>{c.applicants}</div>
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="eyebrow" style={{ fontSize: 8.5, marginBottom: 4 }}>Confirmed</div>
+          <div className="eyebrow" style={{ fontSize: 8.5, marginBottom: 4 }}>Spots filled</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ fontSize: 12.5, fontWeight: 600 }}>{c.confirmed}/{c.creators_needed}</span>
             <span style={{ flex: 1, height: 4, borderRadius: 999, background: 'rgba(14,16,22,.1)', position: 'relative', overflow: 'hidden' }}>

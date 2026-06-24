@@ -68,6 +68,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
 
+  // Title: required, trimmed, capped at 70 chars (matches the form) so it stays
+  // legible everywhere it's shown (cards, notifications, emails).
+  const title = typeof body.title === 'string' ? body.title.trim() : ''
+  if (!title) return NextResponse.json({ error: 'Campaign title is required.' }, { status: 400 })
+  if (title.length > 70) return NextResponse.json({ error: 'Campaign title must be 70 characters or fewer.' }, { status: 400 })
+
   // Barter campaigns are a Pro feature (complimentary while in beta).
   if (['barter', 'both'].includes(body.comp_type)) {
     const gate = proGateResponse(plan, 'Barter campaigns')
@@ -76,7 +82,7 @@ export async function POST(req: NextRequest) {
   const admin = createAdminClient()
   const { data, error } = await admin.from('campaigns').insert({
     brand_id: brand.id,
-    title: body.title,
+    title,
     brief: body.brief,
     deliverable_types: body.deliverable_types || [],
     comp_type: body.comp_type,
@@ -95,7 +101,7 @@ export async function POST(req: NextRequest) {
 
   // Public, shareable slug from title + brand name (best-effort).
   if (data?.id) {
-    const slug = await ensureCampaignSlug(admin, data.id, body.title, brand.company_name || '')
+    const slug = await ensureCampaignSlug(admin, data.id, title, brand.company_name || '')
     if (slug) (data as { slug?: string }).slug = slug
   }
   return NextResponse.json(data, { status: 201 })

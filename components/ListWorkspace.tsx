@@ -141,14 +141,16 @@ export default function ListWorkspace({
       <div className="cl-mobile" style={{ display: 'none', flexDirection: 'column', gap: 11, marginBottom: 18 }}>
         {heroTile && <HeroCard t={heroTile} mobile />}
         {chipTiles.length > 0 && (
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
             {chipTiles.map((t, i) => {
               const active = tileActive(t.filter);
               return (
                 <button key={i} type="button" onClick={() => t.filter && tileClick(t.filter)} className="card"
-                  style={{ flex: 1, padding: 11, textAlign: 'left', cursor: t.filter ? 'pointer' : 'default', boxShadow: active ? '0 0 0 1px var(--brand) inset' : undefined }}>
+                  style={{ flex: 1, minWidth: 0, minHeight: 62, padding: 11, textAlign: 'left', display: 'flex', flexDirection: 'column', cursor: t.filter ? 'pointer' : 'default', boxShadow: active ? '0 0 0 1px var(--brand) inset' : undefined }}>
+                  {/* number pinned to the top so all chips' numbers line up even when
+                      one label is a single line and another wraps to two */}
                   <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 19, lineHeight: 1, color: t.valueColor || 'var(--ink)' }}>{t.value}</div>
-                  <div style={{ fontSize: 10.5, color: 'var(--ink-faint-solid)', marginTop: 4 }}>{t.label}</div>
+                  <div style={{ fontSize: 10.5, color: 'var(--ink-faint-solid)', marginTop: 4, lineHeight: 1.25 }}>{t.label}</div>
                 </button>
               );
             })}
