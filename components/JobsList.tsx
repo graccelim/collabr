@@ -155,7 +155,13 @@ export default function JobsList({
       aria-label={ariaLabel}
       className={block ? 'input' : 'cf-pill'}
       style={block
-        ? { width: '100%', fontSize: 14, padding: '11px 34px 11px 12px' }
+        ? {
+            width: '100%', fontSize: 14, padding: '11px 36px 11px 12px',
+            // Inset custom chevron (so the arrow isn't jammed to the edge).
+            appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
+            backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A909C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")",
+            backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center',
+          }
         : { fontSize: 13 }}
       value={value}
       onChange={e => onChange(e.target.value)}

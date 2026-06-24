@@ -65,10 +65,10 @@ function AttentionRow({
       style={{
         width: '100%',
         textDecoration: 'none',
-        background: 'var(--surface)',
-        border: '1px solid var(--line)',
+        // Flat soft-amber = "action needed" (semantic, in-system) — no gradient/rail.
+        background: 'var(--warn-tint)',
+        border: '1px solid rgba(178,106,30,.22)',
         borderRadius: 'var(--radius)',
-        boxShadow: 'var(--shadow-sm)',
         padding: '15px 18px',
         display: 'flex',
         alignItems: 'center',
@@ -84,7 +84,7 @@ function AttentionRow({
             width: 8,
             height: 8,
             borderRadius: 99,
-            background: 'var(--accent)',
+            background: 'var(--warn)',
             flexShrink: 0,
           }}
         />
@@ -97,9 +97,9 @@ function AttentionRow({
           display: 'flex',
           alignItems: 'center',
           gap: 5,
-          color: 'var(--ink-soft)',
+          color: 'var(--warn-deep)',
           fontSize: 13.5,
-          fontWeight: 530,
+          fontWeight: 600,
           flexShrink: 0,
         }}
       >

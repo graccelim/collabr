@@ -256,13 +256,13 @@
     overflow: hidden;
     border-radius: var(--radius-lg);
     color: var(--brand-ink);
-    /* Brushed-steel navy: a cool steel-blue body with a crisp top-right light
-       source + a faint diagonal sheen, so it reads premium instead of washed out. */
+    /* Dark brushed-steel: deep gunmetal body with a tight top-right sheen, so it
+       reads like dark steel rather than washed-out navy. */
     background:
-      radial-gradient(120% 110% at 82% -12%, rgba(255,255,255,0.12), transparent 46%),
-      linear-gradient(152deg, #3a4575 0%, #1d2449 44%, #0a0d24 100%);
+      radial-gradient(115% 105% at 84% -14%, rgba(255,255,255,0.10), transparent 40%),
+      linear-gradient(152deg, #2a3150 0%, #12172e 46%, #07091a 100%);
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.16),
+      inset 0 1px 0 rgba(255,255,255,0.14),
       inset 0 0 0 1px rgba(255,255,255,0.06),
       0 22px 50px -26px rgba(8,10,26,0.62),
       0 6px 18px -12px rgba(8,10,26,0.45);
@@ -715,7 +715,7 @@
   background-color: var(--surface);
   border: 1px solid var(--line-strong);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A909C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 11px center;
+  background-repeat: no-repeat; background-position: right 13px center;
 }
 .cf-pill:hover { border-color: var(--ink-faint-solid); }
 @media (max-width: 768px) {
