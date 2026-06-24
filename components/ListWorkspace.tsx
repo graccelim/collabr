@@ -38,15 +38,6 @@ const SORT_LABEL: Record<LWSort, string> = {
   amount: 'Amount: high to low',
 };
 
-function HeroIcon({ kind }: { kind?: LWTile['heroIcon'] }) {
-  if (kind === 'dot') return <span style={{ width: 8, height: 8, borderRadius: 999, background: 'var(--money)' }} />;
-  const chip = (child: ReactNode) => (
-    <span className="cl-pulse" style={{ width: 28, height: 28, borderRadius: 8, background: 'var(--money)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{child}</span>
-  );
-  if (kind === 'dollar') return chip(<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>);
-  return chip(<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></svg>);
-}
-
 export default function ListWorkspace({
   tiles,
   statuses,
@@ -104,14 +95,12 @@ export default function ListWorkspace({
   const HeroCard = ({ t, mobile }: { t: LWTile; mobile?: boolean }) => (
     <div style={{
       borderRadius: 14, padding: mobile ? 15 : 18, color: '#fff',
-      // Dark brushed-steel, matching the Overview earnings panel.
-      background: 'radial-gradient(115% 105% at 84% -14%, rgba(255,255,255,0.10), transparent 40%), linear-gradient(152deg, #2a3150 0%, #12172e 46%, #07091a 100%)',
+      position: 'relative', overflow: 'hidden',
+      // Dark brushed-steel + a glassy reflection sweep toward the right end.
+      background: 'linear-gradient(100deg, transparent 56%, rgba(255,255,255,0.07) 73%, rgba(255,255,255,0.14) 82%, rgba(255,255,255,0.03) 90%, transparent 98%), radial-gradient(115% 105% at 84% -14%, rgba(255,255,255,0.10), transparent 40%), linear-gradient(152deg, #2a3150 0%, #12172e 46%, #07091a 100%)',
       boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 0 0 1px rgba(255,255,255,0.05)',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5 }}>{t.label}</span>
-        <HeroIcon kind={t.heroIcon} />
-      </div>
+      <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5, display: 'block', marginBottom: 12 }}>{t.label}</span>
       <div className="cl-stat-num shiny-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, fontSize: mobile ? 28 : undefined }}>{t.value}</div>
       {t.heroSub && <div style={{ fontSize: mobile ? 12 : 11.5, color: 'var(--accent-on-dark)', marginTop: 7 }}>{t.heroSub}</div>}
     </div>
