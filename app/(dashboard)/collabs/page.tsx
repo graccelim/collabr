@@ -121,11 +121,15 @@ export default async function CollabsPage() {
     const completed = c.status === 'completed';
     const secured = isPaymentSecured(c.payment_status);
     // Barter has no escrow — "Briefed/funded" reads as "Collaboration active".
+    // A paid collab that's briefed but not yet funded reads "Awaiting funds"
+    // rather than "Briefed", so the pending payment is obvious.
     const statusLabel =
       (isBarter && c.status === 'briefed')
         ? 'Collaboration active'
-        : COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label ||
-          c.status;
+        : (c.status === 'briefed' && !secured)
+          ? 'Awaiting funds'
+          : COLLAB_STATUSES[c.status as keyof typeof COLLAB_STATUSES]?.label ||
+            c.status;
     const statusKind = cancelled
       ? 'cancelled'
       : completed
