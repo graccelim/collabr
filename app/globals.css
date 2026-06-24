@@ -782,9 +782,12 @@
      a touch bigger and bolder. */
   .split-bullets > div { font-size: 15.5px !important; font-weight: 500 !important; }
 
-  /* Money panel: "secured in escrow" stacks left-aligned under "total earned"
-     instead of floating awkwardly to the right. */
-  .money-secured { text-align: left !important; width: 100%; }
+  /* Money panel on phones: keep "Total earned" + "Protected now" in one row and
+     tighten the card so it's shorter. Desktop is untouched. */
+  .money-panel { padding: 20px 20px !important; }
+  .money-rows { flex-wrap: nowrap !important; gap: 14px !important; }
+  .money-secured { text-align: right !important; width: auto !important; flex-shrink: 0; }
+  .money-panel .money-value { font-size: 30px !important; }
 
   /* Boost modal → bottom sheet on phones. */
   .boost-modal-overlay { align-items: flex-end !important; padding: 0 !important; }
