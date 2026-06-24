@@ -221,7 +221,7 @@ export function deriveWorkflow(opts: {
   }
 }
 
-/** "Your turn" / "Waiting on …" label for list rows and headers. */
+/** "Action needed" / "Waiting on …" label for list rows and headers. */
 export function actorLabel(view: Pick<WorkflowView, 'actor' | 'frozen'>, isBrand: boolean, counterpartName: string): {
   label: string
   yourTurn: boolean
@@ -230,7 +230,7 @@ export function actorLabel(view: Pick<WorkflowView, 'actor' | 'frozen'>, isBrand
   if (view.actor === 'platform') return { label: 'collabr is processing', yourTurn: false }
   const yourTurn = (view.actor === 'brand') === isBrand
   return yourTurn
-    ? { label: 'Your turn', yourTurn: true }
+    ? { label: 'Action needed', yourTurn: true }
     : { label: `Waiting on ${counterpartName.split(' ')[0]}`, yourTurn: false }
 }
 

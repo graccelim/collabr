@@ -60,12 +60,14 @@ const BRAND_TABS: NavItem[] = [
   { href: '/billing',   label: 'Billing',   icon: CreditCard },
 ]
 
+// Earnings drops off the bottom bar (it's the hero card on Overview) to make
+// room for Applications, which otherwise had no mobile entry point.
 const CREATOR_TABS: NavItem[] = [
-  { href: '/dashboard',    label: 'Overview',  icon: LayoutGrid, exact: true },
-  { href: '/jobs',         label: 'Discover',  icon: Compass },
-  { href: '/invites',      label: 'Invites',   icon: Mail },
-  { href: '/collabs',      label: 'Collabs',   icon: Link2 },
-  { href: '/earnings',     label: 'Earnings',  icon: Wallet },
+  { href: '/dashboard',    label: 'Overview',     icon: LayoutGrid, exact: true },
+  { href: '/jobs',         label: 'Discover',     icon: Compass },
+  { href: '/applications', label: 'Applications', icon: FileText },
+  { href: '/collabs',      label: 'Collabs',      icon: Link2 },
+  { href: '/invites',      label: 'Invites',      icon: Mail },
 ]
 
 interface AppNavProps {

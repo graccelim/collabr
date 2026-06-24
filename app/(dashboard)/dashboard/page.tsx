@@ -65,10 +65,10 @@ function AttentionRow({
       style={{
         width: '100%',
         textDecoration: 'none',
-        background: 'linear-gradient(100deg, var(--warn-tint) 0%, var(--surface) 32%)',
+        background: 'var(--surface)',
         border: '1px solid var(--line)',
-        borderLeft: '3px solid var(--warn)',
         borderRadius: 'var(--radius)',
+        boxShadow: 'var(--shadow-sm)',
         padding: '15px 18px',
         display: 'flex',
         alignItems: 'center',
@@ -84,7 +84,7 @@ function AttentionRow({
             width: 8,
             height: 8,
             borderRadius: 99,
-            background: 'var(--warn)',
+            background: 'var(--accent)',
             flexShrink: 0,
           }}
         />
@@ -132,8 +132,6 @@ function QuietRow({
         width: '100%',
         textDecoration: 'none',
         padding: '16px 18px',
-        // Amber rail only when the creator/brand has to act - calm rows stay clean.
-        borderLeft: statusColor === 'var(--warn)' ? '3px solid var(--warn)' : '3px solid transparent',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -832,7 +830,7 @@ async function CreatorDashboard({
           {isEmpty
             ? 'Browse campaigns and land your first paid collab.'
             : needsYou.length > 0
-              ? `${needsYou.length} collab${needsYou.length > 1 ? 's need' : ' needs'} your next move.`
+              ? `${needsYou.length} collab${needsYou.length > 1 ? 's need' : ' needs'} your attention.`
               : 'Everything is on track.'}
           {isBoosted ? ' Boost is active, you appear first to brands.' : ''}
         </p>
@@ -1041,7 +1039,7 @@ async function CreatorDashboard({
                   sub={c.campaigns?.title || 'Campaign'}
                   status={
                     turn.yourTurn
-                      ? 'Your move'
+                      ? 'Action needed'
                       : view.actor === 'platform'
                         ? 'Processing'
                         : 'Waiting on brand'

@@ -149,6 +149,21 @@ function SignupForm() {
     && (Boolean(normalizeUrl(website)) || filledSocials.length > 0)
   const formComplete = isBrand ? brandComplete : creatorComplete
 
+  // Spell out what's still required so a disabled button never feels mysterious.
+  const missing: string[] = []
+  if (name.trim().length < 2) missing.push(isBrand ? 'company name' : 'your name')
+  if (!emailLooksValid) missing.push('a valid email')
+  if (password.length < 8) missing.push('a password (8+ characters)')
+  if (isBrand) {
+    if (industry.trim() === '') missing.push('your industry')
+    if (!(Boolean(normalizeUrl(website)) || filledSocials.length > 0)) missing.push('a website or one social')
+  } else {
+    if (niches.length === 0) missing.push('at least one niche')
+    if (filledSocials.length === 0) missing.push('one social profile')
+    else if (!filledSocials.every(r => r.followers.trim() !== '' && Number(r.followers) >= 0)) missing.push('a follower count for each social')
+  }
+  if (!agree) missing.push('agree to the terms')
+
   return (
     <AuthShell role={role}>
       <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Create your account</h1>
@@ -246,6 +261,12 @@ function SignupForm() {
             </Link>.
           </span>
         </label>
+
+        {!busy && (!formComplete || !agree) && missing.length > 0 && (
+          <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', lineHeight: 1.5, margin: '-4px 0 0' }}>
+            Still needed: {missing.join(', ')}.
+          </p>
+        )}
 
         <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy || !agree || !formComplete}>
           {status === 'success' ? (

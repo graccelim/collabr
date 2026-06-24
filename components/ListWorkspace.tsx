@@ -98,16 +98,26 @@ export default function ListWorkspace({
   const tileActive = (keys?: string[]) =>
     !!keys && keys.length === selected.length && keys.every((k) => selected.includes(k));
 
-  const chipTiles = tiles.filter((t) => !t.hero && !t.mobileHidden);
+  // On mobile the filter chips already show per-status counts, so a count tile
+  // that maps to exactly one status just repeats them — drop those (keeps tiles
+  // that carry unique info, e.g. "Applicants to review", "Spots to fill").
+  const statusKeys = new Set(statuses.map((s) => s.key));
+  const isStatusDup = (t: LWTile) => !!t.filter && t.filter.length === 1 && statusKeys.has(t.filter[0]);
+  const chipTiles = tiles.filter((t) => !t.hero && !t.mobileHidden && !isStatusDup(t));
   const heroTile = tiles.find((t) => t.hero);
 
   const HeroCard = ({ t, mobile }: { t: LWTile; mobile?: boolean }) => (
-    <div style={{ background: 'var(--brand)', borderRadius: 14, padding: mobile ? 15 : 18, color: '#fff' }}>
+    <div style={{
+      borderRadius: 14, padding: mobile ? 15 : 18, color: '#fff',
+      // Brushed-steel navy, matching the Overview earnings panel.
+      background: 'radial-gradient(120% 110% at 82% -12%, rgba(255,255,255,0.10), transparent 46%), linear-gradient(152deg, #3a4575 0%, #1d2449 44%, #0a0d24 100%)',
+      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 0 0 1px rgba(255,255,255,0.05)',
+    }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
         <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5 }}>{t.label}</span>
         <HeroIcon kind={t.heroIcon} />
       </div>
-      <div className="cl-stat-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff', fontSize: mobile ? 28 : undefined }}>{t.value}</div>
+      <div className="cl-stat-num shiny-num" style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1, fontSize: mobile ? 28 : undefined }}>{t.value}</div>
       {t.heroSub && <div style={{ fontSize: mobile ? 12 : 11.5, color: 'var(--accent-on-dark)', marginTop: 7 }}>{t.heroSub}</div>}
     </div>
   );
