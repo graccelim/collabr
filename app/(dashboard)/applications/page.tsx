@@ -56,7 +56,7 @@ function ActionEl({ r }: { r: AppRowData }) {
 function DesktopRow({ r, last }: { r: AppRowData; last: boolean }) {
   return (
     <div style={{
-      display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 160px 130px 110px', gap: 18,
+      display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 150px 132px 118px', gap: 16,
       alignItems: 'center', padding: '15px 18px', borderBottom: last ? 'none' : '1px solid var(--line)',
     }}>
       <Link href={r.href} style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, textDecoration: 'none' }}>
@@ -172,10 +172,12 @@ export default async function ApplicationsPage() {
       : (app.proposed_rate ? formatSGD(app.proposed_rate) : '—');
     let pillKind: StatusPillKind = 'applied';
     let pillLabel = CREATOR_APP_LABEL[state] || 'Applied';
+    // Keep pill labels short — the "Protected on start" tag under the amount
+    // already conveys the secured payment, and long labels overflow the column.
     if (rejected) { pillKind = 'declined'; pillLabel = 'Not selected'; }
     else if (withdrawnStatus) { pillKind = 'withdrawn'; pillLabel = 'Withdrawn'; }
-    else if (inviteAccepted) { pillKind = 'accepted'; pillLabel = 'Invite accepted'; }
-    else if (confirmed) { pillKind = 'accepted'; pillLabel = collab?.agreed_rate === 0 ? 'Confirmed' : (CREATOR_APP_LABEL.confirmed || 'Confirmed'); }
+    else if (inviteAccepted) { pillKind = 'accepted'; pillLabel = 'Accepted'; }
+    else if (confirmed) { pillKind = 'accepted'; pillLabel = 'Confirmed'; }
     return {
       id: app.id,
       campaignTitle: campaign?.title || 'Campaign',
@@ -243,13 +245,13 @@ export default async function ApplicationsPage() {
 
           {/* mobile stat band — value hero + 3 chips */}
           <div className="cl-mobile" style={{ display: 'none', flexDirection: 'column', gap: 11, marginBottom: 18 }}>
-            <div className="card" style={{ padding: 15, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ background: 'var(--brand)', borderRadius: 14, padding: 15, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div>
-                <div className="eyebrow" style={{ fontSize: 10, marginBottom: 6 }}>Potential value</div>
-                <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 24, letterSpacing: '-0.03em', lineHeight: 1 }}>{potential > 0 ? `up to ${formatSGD(potential)}` : '—'}</div>
+                <div className="eyebrow" style={{ fontSize: 10, marginBottom: 6, color: 'var(--accent-on-dark)' }}>Potential value</div>
+                <div style={{ fontFamily: 'var(--font-grotesk)', fontWeight: 700, fontSize: 24, letterSpacing: '-0.03em', lineHeight: 1, color: '#fff' }}>{potential > 0 ? `up to ${formatSGD(potential)}` : '—'}</div>
               </div>
-              <span style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--money-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--money)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v16M6 8h9a3 3 0 010 6H8" /></svg>
+              <span style={{ width: 34, height: 34, borderRadius: 10, background: 'var(--money)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
