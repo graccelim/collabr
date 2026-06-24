@@ -7,6 +7,10 @@ import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
 import SaveCampaignButton from '@/components/SaveCampaignButton'
 import ShareProfileButton from '@/components/ShareProfileButton'
+import FilterSelect from '@/components/FilterSelect'
+
+// Native option tuples → FilterSelect's {value,label} shape.
+const toOpts = (arr: ReadonlyArray<readonly [string, string]>) => arr.map(([value, label]) => ({ value, label }))
 
 export interface JobsListCampaign {
   id: string
@@ -196,16 +200,16 @@ export default function JobsList({
     <>
       {/* Desktop: full inline filter bar (mirrors the brand Discover bar). */}
       <div className="cf-inline" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
-        {select(niche, setNiche, nicheOpts, 'Filter by niche')}
-        {select(comp, setComp, COMP_OPTS, 'Filter by compensation')}
-        {select(minPay, setMinPay, PAY_OPTS, 'Filter by minimum pay')}
-        {select(deliverable, setDeliverable, deliverableOpts, 'Filter by deliverable')}
+        <FilterSelect ariaLabel="Filter by niche" value={niche} onChange={setNiche} options={toOpts(nicheOpts)} align="left" />
+        <FilterSelect ariaLabel="Filter by compensation" value={comp} onChange={setComp} options={toOpts(COMP_OPTS)} align="left" />
+        <FilterSelect ariaLabel="Filter by minimum pay" value={minPay} onChange={setMinPay} options={toOpts(PAY_OPTS)} align="left" />
+        <FilterSelect ariaLabel="Filter by deliverable" value={deliverable} onChange={setDeliverable} options={toOpts(deliverableOpts)} align="left" />
         {savedToggle()}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {hasFilters && (
             <button type="button" className="btn-ghost btn-sm" onClick={clearAll}>Clear</button>
           )}
-          {select(sort, setSort, SORT_OPTS, 'Sort campaigns')}
+          <FilterSelect ariaLabel="Sort campaigns" value={sort} onChange={setSort} options={toOpts(SORT_OPTS)} align="right" />
         </div>
       </div>
 
@@ -220,7 +224,7 @@ export default function JobsList({
           style={{ flex: 1, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7, fontSize: 13.5 }}>
           <SlidersHorizontal size={15} /> Filters{activeCount ? ` · ${activeCount}` : ''}
         </button>
-        <div style={{ flex: 1 }}>{select(sort, setSort, SORT_OPTS, 'Sort campaigns', true)}</div>
+        <div style={{ flex: 1 }}><FilterSelect ariaLabel="Sort campaigns" value={sort} onChange={setSort} options={toOpts(SORT_OPTS)} align="right" full /></div>
       </div>
 
       {/* Mobile filter sheet — filters apply live. */}

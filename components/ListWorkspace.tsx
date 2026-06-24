@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState, type ReactNode } from 'react';
+import FilterSelect from './FilterSelect';
 
 /* One row in the list. The page renders `desktop`/`mobile` (preserving all of
    its own logic + action components); this component only filters, sorts and
@@ -171,15 +172,20 @@ export default function ListWorkspace({
         </div>
         <div className="lw-controls">
           {campaigns && campaigns.length > 1 && (
-            <select value={campaign} onChange={(e) => setCampaign(e.target.value)} style={selectStyle} aria-label="Filter by campaign">
-              <option value="all">All campaigns</option>
-              {campaigns.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
+            <FilterSelect
+              ariaLabel="Filter by campaign"
+              value={campaign}
+              onChange={setCampaign}
+              options={[{ value: 'all', label: 'All campaigns' }, ...campaigns.map((c) => ({ value: c, label: c }))]}
+            />
           )}
           {sorts.length > 1 && (
-            <select value={sort} onChange={(e) => setSort(e.target.value as LWSort)} style={selectStyle} aria-label="Sort">
-              {sorts.map((s) => <option key={s} value={s}>{SORT_LABEL[s]}</option>)}
-            </select>
+            <FilterSelect
+              ariaLabel="Sort"
+              value={sort}
+              onChange={(v) => setSort(v as LWSort)}
+              options={sorts.map((s) => ({ value: s, label: SORT_LABEL[s] }))}
+            />
           )}
           {dirty && (
             <button type="button" onClick={clear} className="lw-clear" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>Clear</button>
@@ -224,14 +230,3 @@ function chipStyle(on: boolean): React.CSSProperties {
   };
 }
 
-const CHEVRON =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A909C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E\")";
-
-const selectStyle: React.CSSProperties = {
-  height: 34, padding: '0 32px 0 12px', borderRadius: 9, cursor: 'pointer',
-  fontSize: 13, fontFamily: 'var(--font-body)', color: 'var(--ink)',
-  background: 'var(--surface)', border: '1px solid var(--line-strong)',
-  // Inset custom chevron so the arrow isn't jammed against the right edge.
-  appearance: 'none', WebkitAppearance: 'none', MozAppearance: 'none',
-  backgroundImage: CHEVRON, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 12px center',
-};

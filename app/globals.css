@@ -725,7 +725,7 @@
   .lw-chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .lw-chips::-webkit-scrollbar { display: none; }
   .lw-controls { flex: 1 1 100%; }
-  .lw-controls select { flex: 1; min-width: 0; }
+  .lw-controls .lw-select { flex: 1; min-width: 0; }
 }
 
 
