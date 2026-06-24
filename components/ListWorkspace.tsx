@@ -156,9 +156,10 @@ export default function ListWorkspace({
         )}
       </div>
 
-      {/* ── Filter bar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
-        <div className="cl-tabs" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', flex: 1, minWidth: 0 }}>
+      {/* ── Filter bar ── (responsive via .lw-* classes; chips scroll + controls
+          wrap to their own full-width row on mobile so nothing overflows) */}
+      <div className="lw-bar">
+        <div className="cl-tabs lw-chips">
           <button type="button" onClick={() => setSelected([])}
             style={chipStyle(selected.length === 0)}>All <span style={{ color: selected.length === 0 ? 'rgba(255,255,255,.6)' : 'var(--ink-faint-solid)' }}>{items.length}</span></button>
           {statuses.map((s) => {
@@ -172,18 +173,18 @@ export default function ListWorkspace({
             );
           })}
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+        <div className="lw-controls">
           {campaigns && campaigns.length > 1 && (
-            <select value={campaign} onChange={(e) => setCampaign(e.target.value)} style={selectStyle}>
+            <select value={campaign} onChange={(e) => setCampaign(e.target.value)} style={selectStyle} aria-label="Filter by campaign">
               <option value="all">All campaigns</option>
               {campaigns.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           )}
-          <select value={sort} onChange={(e) => setSort(e.target.value as LWSort)} style={selectStyle}>
+          <select value={sort} onChange={(e) => setSort(e.target.value as LWSort)} style={selectStyle} aria-label="Sort">
             {sorts.map((s) => <option key={s} value={s}>{SORT_LABEL[s]}</option>)}
           </select>
           {dirty && (
-            <button type="button" onClick={clear} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>Clear</button>
+            <button type="button" onClick={clear} className="lw-clear" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600, color: 'var(--ink-soft)', whiteSpace: 'nowrap' }}>Clear</button>
           )}
         </div>
       </div>

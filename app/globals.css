@@ -663,6 +663,8 @@
 /* desktop table row hover */
 .cl-trow { transition: background .12s ease; }
 .cl-trow:hover { background: var(--surface-2); }
+/* mobile collab card is an <a> — force block so the card fills its width */
+.cl-mcard { display: block; }
 @media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
 
 @media (max-width: 768px) {
@@ -675,6 +677,18 @@
   /* filter chips scroll horizontally instead of wrapping */
   .cl-tabs { flex-wrap: nowrap !important; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .cl-tabs::-webkit-scrollbar { display: none; }
+}
+
+/* List filter bar (ListWorkspace) — chips + sort/campaign/clear controls. */
+.lw-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+.lw-chips { display: flex; gap: 8px; flex-wrap: wrap; flex: 1; min-width: 0; }
+.lw-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+@media (max-width: 768px) {
+  /* chips take their own scrolling row; controls drop to a full-width row */
+  .lw-chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .lw-chips::-webkit-scrollbar { display: none; }
+  .lw-controls { flex: 1 1 100%; }
+  .lw-controls select { flex: 1; min-width: 0; }
 }
 
 

@@ -92,7 +92,7 @@ export function CollabDesktopRow({ r }: { r: CollabRowData }) {
 export function CollabMobileCard({ r }: { r: CollabRowData }) {
   const action = r.bucket === 'cancelled' ? 'closed' : r.bucket === 'needs' ? 'review' : 'view';
   return (
-    <Link href={`/collabs/${r.id}`} className="cl-mcard card" style={{ padding: 15, textDecoration: 'none', opacity: r.dimmed ? 0.7 : 1 }}>
+    <Link href={`/collabs/${r.id}`} className="cl-mcard card" style={{ display: 'block', padding: 15, textDecoration: 'none', opacity: r.dimmed ? 0.7 : 1 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 13 }}>
         {AV(r, 38)}
         <div style={{ minWidth: 0, flex: 1 }}>
