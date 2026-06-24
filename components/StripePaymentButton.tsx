@@ -1,6 +1,5 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js'
 import toast from 'react-hot-toast'
 import { formatSGD } from '@/lib/utils'
@@ -35,10 +34,6 @@ function getStripe() {
  * Auto-opens when the brand arrives via "Accept & fund" (`?fund=1`).
  */
 export default function StripePaymentButton({ collabId, amountCents, label, onSuccess }: Props) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const searchParams = useSearchParams()
-
   const [starting, setStarting] = useState(false)
   const [open, setOpen] = useState(false)
   const [ready, setReady] = useState(false)
@@ -99,15 +94,20 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
   }, [collabId, onSuccess, starting, paying, open])
 
   // Auto-open when the brand was sent here straight from "Accept & fund".
+  // Read the flag from window (client-only) rather than useSearchParams — the
+  // latter renders during SSR and can crash the page without a Suspense wrapper.
   useEffect(() => {
-    if (autoStarted.current) return
-    if (searchParams.get('fund') === '1' && hasKey) {
+    if (autoStarted.current || !hasKey) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('fund') === '1') {
       autoStarted.current = true
       // Strip the flag so a refresh doesn't reopen the modal.
-      router.replace(pathname, { scroll: false })
+      params.delete('fund')
+      const qs = params.toString()
+      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''))
       startPayment()
     }
-  }, [searchParams, hasKey, pathname, router, startPayment])
+  }, [hasKey, startPayment])
 
   // Mount the Payment Element once the modal is open and we have a client secret.
   useEffect(() => {

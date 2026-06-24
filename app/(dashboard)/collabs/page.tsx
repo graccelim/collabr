@@ -5,7 +5,8 @@ import { deriveWorkflow, actorLabel, escrowStep } from '@/lib/workflow';
 import { isPaymentSecured } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import CollabsList, { type CollabRowData } from '@/components/CollabsList';
-import InfoTip, { TERMS } from '@/components/InfoTip';
+import InfoTip from '@/components/InfoTip';
+import { TERMS } from '@/lib/terms';
 import { Briefcase, Compass, Megaphone } from 'lucide-react';
 import Link from 'next/link';
 

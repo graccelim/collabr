@@ -86,10 +86,3 @@ export default function InfoTip({ text }: { text: string }) {
     </span>
   )
 }
-
-// Canonical plain-language definitions, reused across the app.
-export const TERMS = {
-  escrow: 'Payment is securely held until campaign requirements are completed.',
-  barter: 'Products or services exchanged instead of cash payment.',
-  collab: 'A collaboration between a brand and creator.',
-} as const
