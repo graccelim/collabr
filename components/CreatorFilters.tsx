@@ -1,9 +1,10 @@
 'use client'
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { SlidersHorizontal, X, Bookmark } from 'lucide-react'
+import { SlidersHorizontal, X, Bookmark, ShieldCheck } from 'lucide-react'
 import { CREATOR_NICHES, SOCIAL_PLATFORMS, NICHE_LABELS } from '@/lib/onboarding'
 import { AVAILABILITY_STATUSES, AVAILABILITY_LABELS } from '@/lib/profiles'
+import { flags } from '@/lib/flags'
 
 const SORTS = [
   ['', 'Most relevant'],
@@ -32,7 +33,7 @@ const RATE_CAPS = [
   ['2500', 'Up to S$2,500'],
 ] as const
 
-const FILTER_KEYS = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'location', 'saved']
+const FILTER_KEYS = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'location', 'saved', 'certified']
 
 export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
   const router = useRouter()
@@ -109,6 +110,28 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     </button>
   )
 
+  // 🛡️ Collabr Certified toggle (flag-gated). Filters to certified creators; the
+  // default sort is untouched so smaller/newer creators stay discoverable.
+  const certifiedActive = valueOf('certified') === '1'
+  const certifiedToggle = (full = false) => (
+    <button
+      type="button"
+      onClick={() => setParam('certified', certifiedActive ? '' : '1')}
+      aria-pressed={certifiedActive}
+      style={{
+        display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+        cursor: 'pointer', fontWeight: 600, fontFamily: 'var(--font-body)',
+        borderRadius: full ? 'var(--radius)' : 999,
+        border: '1px solid ' + (certifiedActive ? 'var(--money)' : 'var(--line-strong)'),
+        background: certifiedActive ? 'var(--money)' : 'var(--surface)',
+        color: certifiedActive ? '#fff' : 'var(--ink)',
+        ...(full ? { width: '100%', height: 46, fontSize: 14 } : { fontSize: 13, padding: '7px 13px' }),
+      }}
+    >
+      <ShieldCheck size={full ? 16 : 14} /> Collabr Certified
+    </button>
+  )
+
   const platformOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any platform'], ...SOCIAL_PLATFORMS.map(p => [p, p[0].toUpperCase() + p.slice(1)] as const)]
   const nicheOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any niche'], ...CREATOR_NICHES.map(n => [n, NICHE_LABELS[n]] as const)]
   const availOpts: ReadonlyArray<readonly [string, string]> = [['', 'Any availability'], ...AVAILABILITY_STATUSES.map(a => [a, AVAILABILITY_LABELS[a]] as const)]
@@ -126,6 +149,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
         {select('availability', availOpts)}
         {select('maxRate', RATE_CAPS)}
         {locationInput()}
+        {flags.collabrCertified && certifiedToggle()}
         {showSaved && savedToggle()}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {hasFilters && (
@@ -172,6 +196,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
               <Field label="Availability">{select('availability', availOpts, true)}</Field>
               <Field label="Max rate">{select('maxRate', RATE_CAPS, true)}</Field>
               <Field label="Location">{locationInput(true)}</Field>
+              {flags.collabrCertified && <Field label="Reliability">{certifiedToggle(true)}</Field>}
             </div>
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               {hasFilters && (

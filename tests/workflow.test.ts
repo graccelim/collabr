@@ -100,7 +100,7 @@ describe('deriveWorkflow - stage and actor derivation', () => {
 describe('actorLabel - "your turn" derivation', () => {
   it('marks the acting side as "Your turn" and the other as waiting', () => {
     const v = deriveWorkflow({ ...base, status: 'briefed', paymentStatus: 'unfunded' }) // brand acts
-    expect(actorLabel(v, true, 'Sara Reyes')).toEqual({ label: 'Your turn', yourTurn: true })
+    expect(actorLabel(v, true, 'Sara Reyes')).toEqual({ label: 'Action needed', yourTurn: true })
     expect(actorLabel(v, false, 'Glow Works')).toEqual({ label: 'Waiting on Glow', yourTurn: false })
   })
 

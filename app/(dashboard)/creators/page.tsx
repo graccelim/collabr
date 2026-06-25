@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { formatSGD } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
+import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge';
 import {
   NICHE_LABELS,
   socialHandleLabel,
@@ -35,6 +36,7 @@ interface Search {
   maxRate?: string;
   location?: string;
   saved?: string;
+  certified?: string;
   sort?: string;
   page?: string;
 }
@@ -140,7 +142,7 @@ export default async function CreatorsPage({
   let query = admin
     .from('creator_profiles')
     .select(
-      'id, slug, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
+      'id, slug, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, certified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
       { count: 'exact' }
     );
 
@@ -152,6 +154,7 @@ export default async function CreatorsPage({
     }
   }
   if (searchParams.niche) query = query.eq('niche', searchParams.niche);
+  if (searchParams.certified === '1') query = query.eq('certified', true);
   if (searchParams.availability)
     query = query.eq('availability_status', searchParams.availability);
   if (searchParams.location)
@@ -397,6 +400,7 @@ export default async function CreatorsPage({
                   >
                     {name}
                   </span>
+                  <CollabrCertifiedBadge certified={!!(c as any).certified} size="sm" showTip={false} />
                   {availability === 'available' && (
                     <span
                       title="Available"

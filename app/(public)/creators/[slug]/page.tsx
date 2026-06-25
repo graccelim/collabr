@@ -7,6 +7,7 @@ import { NICHE_LABELS, SOCIAL_LABELS, socialHandleLabel, type CreatorNiche, type
 import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import BrandCreatorActions from '@/components/BrandCreatorActions'
 import CreatorTrust from '@/components/CreatorTrust'
+import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -46,7 +47,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // UUID so both /creators/girl-devours and /creators/<uuid> work.
   const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
+    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, certified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
     .eq(byCol, params.slug).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
   const creatorId = creator.id
@@ -188,6 +189,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
                     <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                    <CollabrCertifiedBadge certified={!!creator.certified} />
                     {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
                     {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
                     {/* Phones, no other CTA: Share sits inline at the end of the
