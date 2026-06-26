@@ -190,7 +190,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
         {hid.length > 0 && open && hid.map((m, i) => <Row key={`h${i}`} m={m} top={false} />)}
         {hid.length > 0 && (
           <button type="button" onClick={() => setOpen((o) => !o)} style={{ width: '100%', cursor: 'pointer', marginTop: 4, padding: '13px 0 2px', border: 'none', borderTop: '1px solid rgba(14,16,22,.07)', background: 'transparent', color: '#545A66', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
-            {open ? 'Show fewer' : `Show ${hid.length} more`}
+            {open ? 'Show less' : `Show ${hid.length} more`}
             <ChevronDown size={14} style={{ transition: 'transform .2s ease', transform: open ? 'rotate(180deg)' : 'none' }} />
           </button>
         )}
