@@ -33,7 +33,11 @@ export default async function AppShell({ children }: { children: React.ReactNode
   const [roleState, { count: unreadCount }] = await Promise.all([
     role === 'creator'
       ? (async () => {
-          const { data: creator } = await supabase.from('creator_profiles')
+          // Admin read (mirrors the brand branch) so the owner's own profile row
+          // is always found — otherwise RLS can return null and the Profile nav
+          // falls back to /profile (edit) instead of the public /creators/[id].
+          const admin = createAdminClient()
+          const { data: creator } = await admin.from('creator_profiles')
             .select('id, onboarding_completed_at, invites_seen_at').eq('user_id', user.id).single()
           // Badge only counts invites that arrived since the tab was last opened.
           let inviteQuery = creator
