@@ -18,7 +18,6 @@ import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
 import PlansCTA from '@/components/PlansCTA';
-import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
 import type { SocialAccount } from '@/types';
 import { socialIcon } from '@/components/SocialIcon';
@@ -76,7 +75,7 @@ export default async function CreatorsPage({
           <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 22px' }}>
             Search the full roster, filter to your perfect fit, and invite creators directly — instead of waiting to be found.
           </p>
-          <PlansCTA beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} label="Unlock Discovery" />
+          <PlansCTA beta={isBetaFreePro()} label="Unlock Discovery" />
         </div>
       </div>
     );

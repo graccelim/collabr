@@ -22,7 +22,7 @@ export interface ResolvedPlan {
   state: SubscriptionState
   /** Has at least Pro (barter access). True for Pro AND Plus. */
   isPro: boolean
-  /** Has Plus (Creator Discovery + Connected insights + campaign analytics). */
+  /** Has Plus — the Creator Discovery product (search, filters, invites, saved). */
   isPlus: boolean
   /** Human label: "Pro Beta" | "Plus Beta" | "Pro" | "Plus" | "Free" */
   label: string
@@ -63,13 +63,6 @@ export const PLUS_DISCOVERY_FEATURES = [
   'Creator Invites',
   'Saved Creators',
 ] as const
-/** Plus analytics features — only when the Analytics Suite is ON. */
-export const PLUS_ANALYTICS_FEATURES = [
-  'Connected Creator insights',
-  'Campaign Analytics',
-] as const
-/** All Plus features (suite-on view). */
-export const PLUS_FEATURES = [...PLUS_DISCOVERY_FEATURES, ...PLUS_ANALYTICS_FEATURES] as const
 
 function inFuture(iso: string | null | undefined): boolean {
   return Boolean(iso && new Date(iso) > new Date())

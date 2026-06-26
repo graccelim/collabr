@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import { Sparkles, Search, Send, Bookmark, ShieldCheck, BarChart3, Check, X, Gift } from 'lucide-react'
+import { Sparkles, Search, Send, Bookmark, ShieldCheck, Check, X, Gift } from 'lucide-react'
 import { CURRENCY, PLAN_PRICING, betaPlusPrice, annualPerMonth } from '@/lib/pricing'
 
 // Two-column pricing modal (desktop): navy value panel + Pro/Plus tier cards.
@@ -66,8 +66,8 @@ function TierCard({ name, tagline, benefits, price, cta, featured = false }: {
 }
 
 export default function PlansPanel({
-  beta, analyticsSuite = false, onClose,
-}: { beta: boolean; analyticsSuite?: boolean; onClose?: () => void }) {
+  beta, onClose,
+}: { beta: boolean; onClose?: () => void }) {
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly') // monthly first
   const [busy, setBusy] = useState<'pro' | 'plus' | null>(null)
   const [active, setActive] = useState(0)
@@ -77,7 +77,6 @@ export default function PlansPanel({
     { icon: Send, title: 'Invite creators directly', desc: 'Reach the exact people you want — no waiting.' },
     { icon: Bookmark, title: 'Save & shortlist for later', desc: 'Build a shortlist for your next campaign.' },
     { icon: ShieldCheck, title: 'See trust signals as you browse', desc: 'Certified & Connected badges, inline.' },
-    ...(analyticsSuite ? [{ icon: BarChart3, title: 'Verified analytics + campaign ROI', desc: 'Prove performance and measure spend.' }] : []),
   ]
   useEffect(() => {
     const id = setInterval(() => setActive((i) => (i + 1) % valueBenefits.length), 1900)
@@ -171,7 +170,7 @@ export default function PlansPanel({
               : <button className="btn-secondary btn-block btn-sheen" onClick={() => checkout('pro')} disabled={busy === 'pro'}>{busy === 'pro' ? 'Opening…' : 'Choose Pro'}</button>}
           />
           <TierCard featured name="Plus" tagline="Discover & invite creators"
-            benefits={analyticsSuite ? ['Creator Discovery + invites', 'Verified analytics + campaign ROI', 'Everything in Pro'] : ['Creator Discovery + invites', 'Save & shortlist creators', 'Everything in Pro']}
+            benefits={['Creator Discovery + invites', 'Save & shortlist creators', 'Everything in Pro']}
             price={beta
               ? <Price amount={betaPlusPrice(cycle)} struck={`${CURRENCY}${PLAN_PRICING.plus[cycle]}`} period={cycle === 'annual' ? '/yr' : '/mo'} note="50% off during beta" />
               : <Price amount={PLAN_PRICING.plus[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? `≈ ${CURRENCY}${annualPerMonth('plus')}/mo · 2 months free` : undefined} />}

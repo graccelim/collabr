@@ -1,8 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
-import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLUS_DISCOVERY_FEATURES, PLUS_ANALYTICS_FEATURES, PLAN_COLUMNS } from '@/lib/plans'
-import { flags } from '@/lib/flags'
+import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLUS_DISCOVERY_FEATURES, PLAN_COLUMNS } from '@/lib/plans'
 import { getBrandStripeCustomerId } from '@/lib/brand-billing'
 import BillingActions from '@/components/BillingActions'
 import PlansCTA from '@/components/PlansCTA'
@@ -86,7 +85,6 @@ export default async function BillingPage() {
           <ul className="mt-4 space-y-1.5">
             {[...PRO_FEATURES,
               ...(plan.isPlus ? PLUS_DISCOVERY_FEATURES : []),
-              ...(plan.isPlus && flags.analyticsSuite ? PLUS_ANALYTICS_FEATURES : []),
             ].map(f => (
               <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
                 <Check size={14} style={{ color: 'var(--safe)' }} />
@@ -168,7 +166,7 @@ export default async function BillingPage() {
               ? 'Plus is 50% off during beta — unlock Creator Discovery, direct invites and analytics.'
               : 'Upgrade for unlimited barter campaigns (Pro), or Creator Discovery + analytics (Plus).'}
           </p>
-          <PlansCTA beta={beta} analyticsSuite={flags.analyticsSuite} label="View plans" />
+          <PlansCTA beta={beta} label="View plans" />
         </div>
       )}
 

@@ -1,6 +1,6 @@
 import { getAnthropic, AI_MODELS } from './client'
 import { enforceAiText } from './guard'
-import { PLATFORM_INSIGHTS_SYSTEM, REPORT_SYSTEM, COLLAB_ANALYSIS_SYSTEM, CONTENT_LAB_SYSTEM, CAMPAIGN_RECAP_SYSTEM } from './prompts'
+import { PLATFORM_INSIGHTS_SYSTEM, REPORT_SYSTEM, COLLAB_ANALYSIS_SYSTEM, CONTENT_LAB_SYSTEM } from './prompts'
 import type Anthropic from '@anthropic-ai/sdk'
 
 // All functions: deterministic data in → Claude explains → guard enforces. They
@@ -96,20 +96,6 @@ export function collaborationAnalysis(input: CollabAnalysisInput): Promise<strin
     `Analyse this completed collaboration using only the creator's own deterministic data — explain why it ` +
       `performed as it did, which patterns contributed, what to repeat, and what to improve:\n${JSON.stringify(input)}`,
     AI_MODELS.interactive,
-  )
-}
-
-export interface CampaignRecapInput {
-  campaign: { title?: string | null }
-  metrics: unknown // deterministic campaign_rollups (totals/derived/by_platform/per_creator/top_post/coverage)
-}
-export function campaignRecap(input: CampaignRecapInput): Promise<string> {
-  return run(
-    CAMPAIGN_RECAP_SYSTEM,
-    `Write a recap of this brand's own campaign using only these deterministic metrics. Cover what performed ` +
-      `well, which content styles and platform worked best, and suggestions for the next campaign.\n${JSON.stringify(input)}`,
-    AI_MODELS.batch,
-    1400,
   )
 }
 

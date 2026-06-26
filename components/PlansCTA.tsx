@@ -5,8 +5,8 @@ import PlansPanel from '@/components/PlansPanel'
 
 // Button that opens the shared two-tier pricing panel (Pro + Plus) in a modal.
 export default function PlansCTA({
-  beta, analyticsSuite = false, label = 'View plans', variant = 'primary',
-}: { beta: boolean; analyticsSuite?: boolean; label?: string; variant?: 'primary' | 'secondary' }) {
+  beta, label = 'View plans', variant = 'primary',
+}: { beta: boolean; label?: string; variant?: 'primary' | 'secondary' }) {
   const [open, setOpen] = useState(false)
   return (
     <>
@@ -21,7 +21,7 @@ export default function PlansCTA({
         }}>
           <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-              <PlansPanel beta={beta} analyticsSuite={analyticsSuite} onClose={() => setOpen(false)} />
+              <PlansPanel beta={beta} onClose={() => setOpen(false)} />
             </div>
           </div>
         </div>
