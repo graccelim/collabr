@@ -3,6 +3,8 @@ import { BarChart3, Trophy } from 'lucide-react'
 import CampaignRecapButton from '@/components/CampaignRecapButton'
 import TrendBars from '@/components/TrendBars'
 import MockBanner from '@/components/MockBanner'
+import PlansCTA from '@/components/PlansCTA'
+import { isBetaFreePro } from '@/lib/plans'
 
 // Brand campaign analytics (Brand Plus + analytics suite). Deterministic only —
 // the brand's OWN campaign, no marketplace comparison, no global ranking. States:
@@ -39,11 +41,19 @@ export default function CampaignAnalytics({
     return (
       <section style={{ marginTop: 28 }}>
         {Header}
-        <div className="card" style={{ padding: 18 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700 }}>Campaign analytics is part of Brand Plus</div>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '3px 0 0', lineHeight: 1.5 }}>
-            See views, reach, engagement, cost-per-view and per-creator results for your campaigns. Upgrade from Billing.
-          </p>
+        <div style={{
+          position: 'relative', overflow: 'hidden', borderRadius: 'var(--radius)', padding: '22px 24px', color: '#fff',
+          background: 'linear-gradient(152deg, #232c57 0%, #0e1538 46%, #05081c 100%)',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1)',
+        }}>
+          <div style={{ position: 'absolute', top: -70, right: -50, width: 220, height: 220, borderRadius: '50%', background: 'radial-gradient(circle,rgba(91,83,224,.4),transparent 70%)', filter: 'blur(20px)' }} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontSize: 16, fontWeight: 700 }}>Campaign analytics is part of Brand Plus</div>
+            <p style={{ fontSize: 13.5, color: 'rgba(255,255,255,.8)', margin: '6px 0 16px', lineHeight: 1.5, maxWidth: 540 }}>
+              See views, reach, engagement, cost-per-view and per-creator results for your campaigns — proven from creators' own synced numbers.
+            </p>
+            <PlansCTA beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} label="Upgrade to Plus" variant="secondary" />
+          </div>
         </div>
       </section>
     )
