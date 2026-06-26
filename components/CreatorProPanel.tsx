@@ -118,7 +118,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
 
       {/* pricing + CTA */}
       <div className="cp-cta-wrap" style={{ padding: '18px 30px 28px' }}>
-        <div style={{ borderTop: '1px solid rgba(14,16,22,.07)', paddingTop: 20 }}>
+        <div className="cp-cta-inner" style={{ borderTop: '1px solid rgba(14,16,22,.07)', paddingTop: 20 }}>
           <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F1F3F7', borderRadius: 11, padding: 4, marginBottom: 18 }}>
             <span style={{ position: 'absolute', top: 4, left: 4, width: 'calc(50% - 4px)', height: 'calc(100% - 8px)', background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(14,16,22,.12)', transform: plan === 'monthly' ? 'translateX(100%)' : 'translateX(0)', transition: 'transform .32s cubic-bezier(.16,1,.3,1)' }} />
             {(['annual', 'monthly'] as const).map((p) => (

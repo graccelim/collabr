@@ -292,12 +292,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             repeatBrands={repeatBrands}
           />
 
-          {/* Connected analytics — curated aggregate (or honest empty state) */}
+          {/* Connected analytics — verified snapshot when connected; hidden for
+              non-connected creators (owner sees a private connect nudge). */}
           <BrandConnectedAnalytics
             connected={!!creator.connected}
             lastSyncedAt={creator.insights_last_synced_at as string | null}
             platforms={(creator.connected_platforms as string[]) || []}
             rollup={connectedRollup}
+            isOwner={isOwner}
           />
 
           {/* About */}
