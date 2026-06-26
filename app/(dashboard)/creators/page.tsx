@@ -17,7 +17,7 @@ import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
-import PlusUpgradePanel from '@/components/PlusUpgradePanel';
+import PlansPanel from '@/components/PlansPanel';
 import BlurredRoster from '@/components/BlurredRoster';
 import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
@@ -72,7 +72,7 @@ export default async function CreatorsPage({
       <div style={{ position: 'relative', minHeight: 'calc(100vh - 150px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '-8px 0' }}>
         <BlurredRoster />
         <div style={{ position: 'relative', zIndex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: 20 }}>
-          <PlusUpgradePanel beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} />
+          <PlansPanel beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} />
         </div>
       </div>
     );
