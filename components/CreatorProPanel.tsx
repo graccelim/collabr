@@ -68,11 +68,22 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
 
       {/* outcomes */}
       <div style={{ padding: '14px 18px 0', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* 1 */}
-        <Row {...OUTCOMES[0]} delay={0.06} />
+        {/* 1 — commission (green, financial benefit) — top item */}
+        <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .06s both', display: 'flex', gap: 13, alignItems: 'center', padding: '13px 12px', borderRadius: 13, background: '#F2FAF6', border: '1px solid rgba(21,122,85,.16)' }}>
+          <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#157A55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DollarSign size={17} /></span>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>Keep more of every collaboration</div>
+            <div style={{ fontSize: 13, color: '#5A6072', lineHeight: 1.45, marginTop: 2 }}>
+              Pay <span style={{ textDecoration: 'line-through', color: '#9AA0AE' }}>10%</span> commission — just <span style={{ color: '#0F5A3E', fontWeight: 600 }}>8%</span> on Pro.
+            </div>
+          </div>
+        </div>
 
-        {/* 2 — expandable preview */}
-        <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .12s both', borderRadius: 13 }}>
+        {/* 2 */}
+        <Row {...OUTCOMES[0]} delay={0.12} />
+
+        {/* 3 — expandable preview */}
+        <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .18s both', borderRadius: 13 }}>
           <button type="button" onClick={() => setExpanded((v) => !v)} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', padding: '13px 12px' }}>
             <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#F1F5FC', color: '#0A0C22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 size={17} /></span>
             <span style={{ flex: 1 }}>
@@ -98,19 +109,8 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
           </div>
         </div>
 
-        {/* 3 */}
-        <Row {...OUTCOMES[1]} delay={0.18} />
-
-        {/* 4 — commission (green, financial benefit) */}
-        <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .24s both', display: 'flex', gap: 13, alignItems: 'center', padding: '13px 12px', borderRadius: 13, background: '#F2FAF6', border: '1px solid rgba(21,122,85,.16)' }}>
-          <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#157A55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DollarSign size={17} /></span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>Keep more of every collaboration</div>
-            <div style={{ fontSize: 13, color: '#5A6072', lineHeight: 1.45, marginTop: 2 }}>
-              Pay <span style={{ textDecoration: 'line-through', color: '#9AA0AE' }}>10%</span> commission — just <span style={{ color: '#0F5A3E', fontWeight: 600 }}>8%</span> on Pro.
-            </div>
-          </div>
-        </div>
+        {/* 4 */}
+        <Row {...OUTCOMES[1]} delay={0.24} />
 
         {/* 5 */}
         <Row {...OUTCOMES[2]} delay={0.3} />
