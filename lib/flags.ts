@@ -21,8 +21,9 @@ export const flags = {
   connectedCreator: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_CONNECTED_CREATOR === 'true',
   /** Creator Studio surfaces. Subordinate. */
   creatorStudio: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_CREATOR_STUDIO === 'true',
-  /** AI Growth/Brand Coach + Content Lab + recaps. Subordinate. */
-  aiGrowthCoach: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_AI_GROWTH_COACH === 'true',
+  /** All analytics AI: per-platform analyst's read, Content Lab, collaboration
+   *  analysis, weekly reports, campaign recap. Subordinate to the suite. */
+  analyticsAi: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_ANALYTICS_AI === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags

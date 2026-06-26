@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 // reset modules + set env per case and dynamically import.
 const ENV_KEYS = [
   'NEXT_PUBLIC_ANALYTICS_SUITE', 'NEXT_PUBLIC_CREATOR_PRO', 'NEXT_PUBLIC_CONNECTED_CREATOR',
-  'NEXT_PUBLIC_CREATOR_STUDIO', 'NEXT_PUBLIC_AI_GROWTH_COACH', 'CRON_SECRET',
+  'NEXT_PUBLIC_CREATOR_STUDIO', 'NEXT_PUBLIC_ANALYTICS_AI', 'CRON_SECRET',
   'YOUTUBE_API_KEY', 'META_APP_ID', 'META_APP_SECRET', 'TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'ANTHROPIC_API_KEY',
 ]
 const saved: Record<string, string | undefined> = {}
@@ -15,7 +15,7 @@ async function loadFlags(suite: string | undefined, granularOn: boolean) {
   vi.resetModules()
   if (suite === undefined) delete process.env.NEXT_PUBLIC_ANALYTICS_SUITE
   else process.env.NEXT_PUBLIC_ANALYTICS_SUITE = suite
-  for (const k of ['NEXT_PUBLIC_CREATOR_PRO', 'NEXT_PUBLIC_CONNECTED_CREATOR', 'NEXT_PUBLIC_CREATOR_STUDIO', 'NEXT_PUBLIC_AI_GROWTH_COACH']) {
+  for (const k of ['NEXT_PUBLIC_CREATOR_PRO', 'NEXT_PUBLIC_CONNECTED_CREATOR', 'NEXT_PUBLIC_CREATOR_STUDIO', 'NEXT_PUBLIC_ANALYTICS_AI']) {
     process.env[k] = granularOn ? 'true' : 'false'
   }
   return (await import('@/lib/flags')).flags
@@ -28,13 +28,13 @@ describe('master flag — subordination', () => {
     expect(flags.creatorPro).toBe(false)
     expect(flags.connectedCreator).toBe(false)
     expect(flags.creatorStudio).toBe(false)
-    expect(flags.aiGrowthCoach).toBe(false)
+    expect(flags.analyticsAi).toBe(false)
   })
 
   it('suite OFF explicitly "false" also overrides', async () => {
     const flags = await loadFlags('false', true)
     expect(flags.creatorPro).toBe(false)
-    expect(flags.aiGrowthCoach).toBe(false)
+    expect(flags.analyticsAi).toBe(false)
   })
 
   it('7: suite ON lets the granular flags control their surfaces', async () => {
@@ -42,10 +42,10 @@ describe('master flag — subordination', () => {
     expect(on.creatorPro).toBe(true)
     expect(on.connectedCreator).toBe(true)
     expect(on.creatorStudio).toBe(true)
-    expect(on.aiGrowthCoach).toBe(true)
+    expect(on.analyticsAi).toBe(true)
     const off = await loadFlags('true', false) // suite on, granular off
     expect(off.creatorPro).toBe(false)
-    expect(off.aiGrowthCoach).toBe(false)
+    expect(off.analyticsAi).toBe(false)
   })
 
   it('Collabr Certified is independent of the suite', async () => {

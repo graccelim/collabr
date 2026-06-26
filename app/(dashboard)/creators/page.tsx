@@ -17,7 +17,7 @@ import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
-import PlansPanel from '@/components/PlansPanel';
+import PlansCTA from '@/components/PlansCTA';
 import BlurredRoster from '@/components/BlurredRoster';
 import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
@@ -71,8 +71,14 @@ export default async function CreatorsPage({
     return (
       <div style={{ position: 'relative', minHeight: 'calc(100vh - 150px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '-8px 0' }}>
         <BlurredRoster />
-        <div style={{ position: 'relative', zIndex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: 20 }}>
-          <PlansPanel beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} />
+        <div style={{ position: 'relative', zIndex: 1, textAlign: 'center', padding: 24, maxWidth: 540 }}>
+          <h1 style={{ fontSize: 'clamp(24px,4vw,34px)', fontWeight: 800, letterSpacing: '-0.025em', color: '#fff', margin: '0 0 12px', textShadow: '0 2px 24px rgba(0,0,0,.45)' }}>
+            Discover the right creators for your campaigns
+          </h1>
+          <p style={{ fontSize: 15, color: 'rgba(255,255,255,.88)', lineHeight: 1.55, margin: '0 0 22px', textShadow: '0 1px 12px rgba(0,0,0,.45)' }}>
+            Search the full roster, filter to your perfect fit, and invite creators directly — instead of waiting to be found.
+          </p>
+          <PlansCTA beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} label="Unlock Discovery" />
         </div>
       </div>
     );

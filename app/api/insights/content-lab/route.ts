@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (!flags.analyticsSuite) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (!flags.aiGrowthCoach) return NextResponse.json({ error: 'Not available' }, { status: 503 })
+  if (!flags.analyticsAi) return NextResponse.json({ error: 'Not available' }, { status: 503 })
   if (!aiConfigured()) return NextResponse.json({ error: 'AI is not configured yet.' }, { status: 503 })
 
   const admin = createAdminClient()

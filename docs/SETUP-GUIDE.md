@@ -85,7 +85,7 @@ Each platform is independent; configure only what you've set up. **None of this 
 ## 4. Anthropic
 - **API key:** console.anthropic.com → set `ANTHROPIC_API_KEY` (server-only, Vercel).
 - **Models used:** `claude-haiku-4-5` (batch summaries, weekly reports, campaign recaps — cheap), `claude-sonnet-4-6` (interactive coach / content lab / brand coach). Set in `lib/ai/client.ts`.
-- **Cost control (built in):** prompt caching on the stable system prompt; weekly reports + campaign recaps skip regeneration when the underlying metrics are unchanged (`input_hash`); per-user rate limits on all AI routes; bounded `max_tokens`; AI runs only when the suite + `NEXT_PUBLIC_AI_GROWTH_COACH` are on and a key is present (else routes 404/503, crons no-op — no spend).
+- **Cost control (built in):** prompt caching on the stable system prompt; weekly reports + campaign recaps skip regeneration when the underlying metrics are unchanged (`input_hash`); per-user rate limits on all AI routes; bounded `max_tokens`; AI runs only when the suite + `NEXT_PUBLIC_ANALYTICS_AI` are on and a key is present (else routes 404/503, crons no-op — no spend).
 
 ## 5. Resend
 - `RESEND_API_KEY` + `RESEND_FROM_EMAIL` (e.g. `hello@collabr.sg`). Verify the sending domain in Resend; add the SPF + DKIM DNS records it gives you. Supabase auth emails can use Supabase's built-in SMTP or your Resend domain — no extra SMTP wiring required by this feature set.
@@ -106,7 +106,7 @@ Each platform is independent; configure only what you've set up. **None of this 
 | `NEXT_PUBLIC_CREATOR_PRO` | Creator Pro upgrade + checkout + Studio gate | `false` | `true` |
 | `NEXT_PUBLIC_CONNECTED_CREATOR` | ⭐ badge + connect flow + brand Connected analytics | `false` | `true` (after ≥1 platform set up) |
 | `NEXT_PUBLIC_CREATOR_STUDIO` | Studio nav + pages | `false` | `true` |
-| `NEXT_PUBLIC_AI_GROWTH_COACH` | AI coach/lab/brand-coach/recap | `false` | `true` (after Anthropic) |
+| `NEXT_PUBLIC_ANALYTICS_AI` | AI coach/lab/brand-coach/recap | `false` | `true` (after Anthropic) |
 | `NEXT_PUBLIC_COLLABR_CERTIFIED` | 🛡️ Certified badge + filter (**independent of suite**) | your call | `true` |
 | `BETA_FREE_PRO` | Brand Pro free in beta | `true` | `false` when charging brands |
 | `BETA_FREE_PLUS` | Brand Plus/Discovery free in beta (else gated) | `false` | `false` |
@@ -162,5 +162,5 @@ RESEND_API_KEY=  RESEND_FROM_EMAIL=
 NEXT_PUBLIC_ANALYTICS_SUITE=false   # master switch
 BETA_FREE_PRO=true  BETA_FREE_PLUS=false  NEXT_PUBLIC_COLLABR_CERTIFIED=false
 NEXT_PUBLIC_CREATOR_PRO=false  NEXT_PUBLIC_CONNECTED_CREATOR=false
-NEXT_PUBLIC_CREATOR_STUDIO=false  NEXT_PUBLIC_AI_GROWTH_COACH=false
+NEXT_PUBLIC_CREATOR_STUDIO=false  NEXT_PUBLIC_ANALYTICS_AI=false
 ```

@@ -10,7 +10,7 @@ import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import ProfileCompletion from '@/components/ProfileCompletion';
-import CreatorProUpgradeCard from '@/components/CreatorProUpgradeCard';
+import CreatorProCTA from '@/components/CreatorProCTA';
 import { isProActive } from '@/lib/entitlements';
 import BrandActivation from '@/components/BrandActivation';
 import {
@@ -806,7 +806,7 @@ async function CreatorDashboard({
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {showUpgrade && (
         <div style={{ marginTop: 8, marginBottom: 18 }}>
-          <CreatorProUpgradeCard returnTo="/studio" />
+          <CreatorProCTA returnTo="/studio" />
         </div>
       )}
       <div style={{ marginTop: 8, marginBottom: 18 }}>

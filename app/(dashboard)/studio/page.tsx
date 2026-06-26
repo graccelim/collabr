@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { studioAccess } from '@/lib/entitlements'
 import { flags } from '@/lib/flags'
-import CreatorProUpgradeCard from '@/components/CreatorProUpgradeCard'
+import CreatorProPanel from '@/components/CreatorProPanel'
 import StudioNav from '@/components/studio/StudioNav'
 import InsightsPanel from '@/components/studio/InsightsPanel'
 import ConnectAccounts from '@/components/studio/ConnectAccounts'
@@ -37,7 +37,9 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
             Your growth workspace — connect your socials, see your strengths, and get proactive AI growth suggestions. A Creator Pro feature.
           </p>
         </header>
-        {flags.creatorPro ? <CreatorProUpgradeCard returnTo="/studio" /> : (
+        {flags.creatorPro ? (
+          <div style={{ display: 'flex', justifyContent: 'center' }}><CreatorProPanel returnTo="/studio" /></div>
+        ) : (
           <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'center' }}>
             <Lock size={18} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
             <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>Creator Studio is available with Creator Pro.</p>
@@ -87,11 +89,11 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
             />
           )}
           <InsightsPanel platformInsights={platformInsights ?? []} />
-          {flags.aiGrowthCoach && <BrandCoachPanel collabs={collabs} />}
+          {flags.analyticsAi && <BrandCoachPanel collabs={collabs} />}
         </div>
       )}
 
-      {tab === 'content-lab' && (flags.aiGrowthCoach ? <ContentLab /> : <ComingSoon label="Content Lab" />)}
+      {tab === 'content-lab' && (flags.analyticsAi ? <ContentLab /> : <ComingSoon label="Content Lab" />)}
       {tab === 'reports' && (await ReportsTab(creator.id))}
     </div>
   )

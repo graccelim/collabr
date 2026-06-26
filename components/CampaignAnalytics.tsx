@@ -138,7 +138,7 @@ export default function CampaignAnalytics({
         Your campaign's own results — never a comparison to other brands or a global creator ranking.
       </p>
 
-      {flags.aiGrowthCoach && <CampaignRecapButton campaignId={campaignId} />}
+      {flags.analyticsAi && <CampaignRecapButton campaignId={campaignId} />}
     </section>
   )
 }

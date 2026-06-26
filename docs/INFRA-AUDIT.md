@@ -53,7 +53,7 @@ Legend: ✅ in `.env.local` · ⚠️ referenced but **missing from `.env.local`
 | `NEXT_PUBLIC_CREATOR_PRO` | `lib/flags` | optional | both | Creator Pro UI | ⚠️ | set `true` to launch Phase 2 |
 | `NEXT_PUBLIC_CONNECTED_CREATOR` | `lib/flags` | optional | both | Connected badge | ⚠️ | Phase 3 |
 | `NEXT_PUBLIC_CREATOR_STUDIO` | `lib/flags` | optional | both | Studio | ⚠️ | Phase 4 |
-| `NEXT_PUBLIC_AI_GROWTH_COACH` | `lib/flags` | optional | both | AI | ⚠️ | Phase 5 |
+| `NEXT_PUBLIC_ANALYTICS_AI` | `lib/flags` | optional | both | AI | ⚠️ | Phase 5 |
 | `INSTAGRAM_APP_ID` / `INSTAGRAM_APP_SECRET` | — | — | — | (intended social) | 🗑️ in `.env.example`, **unused in code** | ignore until Phyllo/social |
 | `TIKTOK_CLIENT_KEY` / `TIKTOK_CLIENT_SECRET` | — | — | — | (intended social) | 🗑️ unused in code | ignore until Phyllo |
 | `STRIPE_CONNECT_CLIENT_ID` | — | — | — | Connect payouts | 🗑️ in `.env.example`, **not referenced** | ❓ verify Connect onboarding still works without it (it uses account links) |
@@ -128,7 +128,7 @@ Legend: ✅ in `.env.local` · ⚠️ referenced but **missing from `.env.local`
 | `NEXT_PUBLIC_CREATOR_PRO` | upgrade card + checkout button show | hidden; checkout still gated by price config | **true** once Stripe prices+webhook live |
 | `NEXT_PUBLIC_CONNECTED_CREATOR` | ⭐ Connected badge + connect UI show | hidden | **false** (Phase 3 not built) |
 | `NEXT_PUBLIC_CREATOR_STUDIO` | Studio nav/surfaces show | `/studio` still gated by entitlements | **false** until Phase 4 |
-| `NEXT_PUBLIC_AI_GROWTH_COACH` | AI surfaces show | hidden | **false** until Phase 5 |
+| `NEXT_PUBLIC_ANALYTICS_AI` | AI surfaces show | hidden | **false** until Phase 5 |
 | `boostEnabled()` (config: `STRIPE_BOOST_PRICE_*`) | Boost purchasable + ranking bump | Boost hidden | off unless you sell Boost |
 | `BOOST_UI_PREVIEW` / `CREATOR_PRO_UI_PREVIEW` | render UI without real prices (dev) | normal | dev only |
 | `analyticsConfigured()` (`adapters/index`) | returns adapter | **hardcoded false** (Phase 3 stub) | leave until Phyllo |
