@@ -4,6 +4,7 @@ import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 import { notifyCollabFunded } from '@/lib/collab-funding'
 import { computeFee } from '@/lib/utils'
+import { isCreatorProActive } from '@/lib/creator-pro'
 
 // Creator accepts or declines an invite. Acceptance converges into the
 // existing collab workflow: ensure an application exists, then create the
@@ -142,8 +143,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
     collabId = (selection as any)?.collab_id
   } else {
-    const plan: 'free' | 'pro' = campaign.brand_profiles?.plan || 'free'
-    const { fee, payout } = computeFee(invite.proposed_rate, plan)
+    // Commission is the CREATOR's rate (10% Pro / 12% Free) — not the brand's.
+    const creatorPro = await isCreatorProActive(admin, creator.id)
+    const { fee, payout } = computeFee(invite.proposed_rate, creatorPro)
     const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
       p_application_id: applicationId,
       p_agreed_rate: invite.proposed_rate,

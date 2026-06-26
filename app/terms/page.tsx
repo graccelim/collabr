@@ -75,7 +75,7 @@ export default function TermsPage() {
 
         <Section n={4} title="Payments, payment protection and fees">
           <p>Payments are processed by our third-party payment provider (Stripe). By transacting on the Platform you also agree to the applicable Stripe terms. When a Brand funds a Collab, the agreed amount is authorised and held safely. Funds are released to the Creator after the Brand approves the work, or automatically after the applicable review window if the Brand does not act.</p>
-          <p>Collabr charges a platform fee, deducted from the Creator&rsquo;s payout, as disclosed at the point of application and/or funding (currently up to 12%). Fees are non-refundable except as required by law or expressly stated. Creators are responsible for connecting a valid payout account; payouts cannot be made until they do so.</p>
+          <p>Collabr charges a platform fee, deducted from the Creator&rsquo;s payout, as disclosed at the point of application and/or funding (currently up to 10%). Fees are non-refundable except as required by law or expressly stated. Creators are responsible for connecting a valid payout account; payouts cannot be made until they do so.</p>
           <p>Refunds of an authorised-but-not-released amount may be made to the Brand where a Collab is cancelled before work is delivered or where a funding authorisation expires. Once funds have been released to a Creator, they are generally non-refundable. You are responsible for your own taxes arising from your use of the Platform.</p>
         </Section>
 

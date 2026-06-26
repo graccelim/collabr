@@ -1,6 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
+import { getBrandStripeCustomerId } from '@/lib/brand-billing'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
@@ -17,10 +18,12 @@ export async function POST() {
     return NextResponse.json({ error: 'Only brands have billing portals' }, { status: 403 })
   }
 
-  // Admin client: stripe_customer_id is server-only; scoped to own row.
-  const { data: brand } = await createAdminClient().from('brand_profiles')
-    .select('id, stripe_customer_id').eq('user_id', user.id).single()
-  if (!brand?.stripe_customer_id) {
+  // Stripe customer id lives in the private brand_subscriptions table.
+  const admin = createAdminClient()
+  const { data: brand } = await admin.from('brand_profiles')
+    .select('id').eq('user_id', user.id).single()
+  const customerId = brand ? await getBrandStripeCustomerId(admin, brand.id) : null
+  if (!customerId) {
     return NextResponse.json(
       { error: 'No billing account yet, subscribe to Pro first.' },
       { status: 404 }
@@ -28,7 +31,7 @@ export async function POST() {
   }
 
   const session = await stripe.billingPortal.sessions.create({
-    customer: brand.stripe_customer_id,
+    customer: customerId,
     return_url: `${APP_URL}/billing`,
   })
 

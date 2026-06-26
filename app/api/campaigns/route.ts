@@ -53,18 +53,9 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Plan resolution: during beta every brand resolves to Pro.
+  // Brand Free includes UNLIMITED paid campaigns (Collabr earns commission from
+  // the creator's payout, not the brand). Only barter is tier-gated (below).
   const plan = resolvePlan(brand)
-
-  // Free plan: max 2 active campaigns
-  if (!plan.isPro) {
-    const { count } = await supabase.from('campaigns')
-      .select('*', { count: 'exact', head: true }).eq('brand_id', brand.id).eq('status', 'active')
-    if ((count || 0) >= 2) return NextResponse.json(
-      { error: 'The Free plan supports 2 active campaigns. Manage your plan from the Billing page.' },
-      { status: 403 }
-    )
-  }
 
   const body = await req.json()
 

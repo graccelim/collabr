@@ -1,8 +1,12 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { requireBrand } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
-import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLAN_COLUMNS } from '@/lib/plans'
+import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLUS_DISCOVERY_FEATURES, PLUS_ANALYTICS_FEATURES, PLAN_COLUMNS } from '@/lib/plans'
+import { flags } from '@/lib/flags'
+import { getBrandStripeCustomerId } from '@/lib/brand-billing'
 import BillingActions from '@/components/BillingActions'
+import PlusUpgradeCard from '@/components/PlusUpgradeCard'
+import { CURRENCY, PLAN_PRICING } from '@/lib/pricing'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import { Check, Receipt } from 'lucide-react'
@@ -11,11 +15,14 @@ export default async function BillingPage() {
   const user = await requireBrand()
   const supabase = createClient()
 
-  // Admin client: stripe_customer_id and subscription columns are not
-  // client-readable; this is the signed-in brand's own row, scoped by user_id.
-  const { data: brand } = await createAdminClient().from('brand_profiles')
-    .select(`id, company_name, stripe_customer_id, ${PLAN_COLUMNS}`)
+  // Admin client: subscription columns are not client-readable; this is the
+  // signed-in brand's own row, scoped by user_id.
+  const admin = createAdminClient()
+  const { data: brand } = await admin.from('brand_profiles')
+    .select(`id, company_name, ${PLAN_COLUMNS}`)
     .eq('user_id', user.id).single()
+  // Stripe customer id lives in the private brand_subscriptions table.
+  const stripeCustomerId = brand ? await getBrandStripeCustomerId(admin, brand.id) : null
 
   // Admin client: creator display identity is RLS own-row-only for session
   // clients; the query is scoped to this brand's own collabs.
@@ -64,10 +71,23 @@ export default async function BillingPage() {
           <span className={`badge ${statusBadge}`}>{statusLabel}</span>
         </div>
 
+        {/* Beta: show Pro's normal price struck through + a Free badge. */}
+        {beta && plan.isPro && !plan.isPlus && (
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
+            <span style={{ textDecoration: 'line-through', color: 'var(--ink-faint-solid)', fontSize: 15 }}>
+              {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
+            </span>
+            <span className="badge badge-safe">Free during beta</span>
+          </div>
+        )}
+
         {/* Benefits */}
         {plan.isPro && (
           <ul className="mt-4 space-y-1.5">
-            {PRO_FEATURES.map(f => (
+            {[...PRO_FEATURES,
+              ...(plan.isPlus ? PLUS_DISCOVERY_FEATURES : []),
+              ...(plan.isPlus && flags.analyticsSuite ? PLUS_ANALYTICS_FEATURES : []),
+            ].map(f => (
               <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
                 <Check size={14} style={{ color: 'var(--safe)' }} />
                 {f}
@@ -79,8 +99,8 @@ export default async function BillingPage() {
         {/* Beta explanation - the one place this is spelled out */}
         {beta && (
           <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-border leading-relaxed">
-            Pro is on us while collabr is in beta, so enjoy it. We might add paid
-            plans down the line, and if we do, we'll give you plenty of notice first.
+            Pro (normally {CURRENCY}{PLAN_PRICING.pro.monthly}/mo) is on us while collabr is in beta, so enjoy it.
+            We might add paid plans down the line, and if we do, we&rsquo;ll give you plenty of notice first.
           </p>
         )}
 
@@ -119,16 +139,16 @@ export default async function BillingPage() {
               <>
                 <div className="w-full">
                   <p className="text-sm text-gray-600 mb-1">
-                    Pro gives you creator discovery, invites, saved creators, advanced filters
-                    and barter campaigns.
+                    Pro adds unlimited barter (product-for-content) campaigns — {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
+                    or {CURRENCY}{PLAN_PRICING.pro.annual}/yr (2 months free).
                   </p>
                   <p className="text-xs text-gray-400 mb-3">
-                    Pricing is shown at checkout. Campaigns, applications, payment protection, reviews
-                    and disputes stay on the Free plan.
+                    Creator Discovery, invites and saved creators are part of Plus (below). Paid campaigns, payment
+                    protection, reviews and disputes stay free.
                   </p>
                   <div className="flex gap-2">
                     <BillingActions action="checkout" label="Continue to checkout" variant="primary" />
-                    {brand?.stripe_customer_id && (
+                    {stripeCustomerId && (
                       <BillingActions action="portal" label="Billing portal" />
                     )}
                   </div>
@@ -138,6 +158,9 @@ export default async function BillingPage() {
           </div>
         )}
       </div>
+
+      {/* Brand Plus upsell — shown until the brand is on Plus */}
+      {!plan.isPlus && <PlusUpgradeCard analyticsSuite={flags.analyticsSuite} />}
 
       {/* Spend summary */}
       <div className="grid grid-cols-2 gap-4">

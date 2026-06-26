@@ -5,6 +5,7 @@ import { sendProductEmail, productEmails } from '@/lib/email'
 import { notifyCollabFunded } from '@/lib/collab-funding'
 import { capacityBreakdown } from '@/lib/collab-status'
 import { computeFee } from '@/lib/utils'
+import { isCreatorProActive } from '@/lib/creator-pro'
 
 // Turn a raw "capacity reached" RPC error into a brand-clear message that names
 // the real cause when reserved (selected-but-unfunded) slots are what's full.
@@ -58,7 +59,6 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     if (!creatorUserId || !creatorId) {
       return NextResponse.json({ error: 'Creator profile is incomplete; selection cannot create a collab.' }, { status: 409 })
     }
-    const plan: 'free' | 'pro' = (application.campaigns as any)?.brand_profiles?.plan || 'free'
     const compType = (application.campaigns as any)?.comp_type
     const agreedRate = application.proposed_rate
     const isBarterDeal = !agreedRate || agreedRate <= 0
@@ -84,7 +84,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         try { await notifyCollabFunded(admin, collabId) } catch (e) { console.error('[BARTER NOTIFY]', e) }
       }
     } else {
-      const { fee, payout } = computeFee(agreedRate, plan)
+      // Commission is the CREATOR's rate (10% Pro / 12% Free) — not the brand's.
+      const creatorPro = await isCreatorProActive(admin, creatorId)
+      const { fee, payout } = computeFee(agreedRate, creatorPro)
       const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
         p_application_id: params.id,
         p_agreed_rate: agreedRate,

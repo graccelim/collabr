@@ -8,8 +8,9 @@ import {
   LayoutGrid, Briefcase, Link2, Users, Wallet,
   Compass, FileText, Settings, Bell, User,
   CreditCard, ChevronLeft, ChevronRight, LogOut,
-  Mail, Bookmark,
+  Mail, Bookmark, BarChart3,
 } from 'lucide-react'
+import { flags } from '@/lib/flags'
 
 type Icon = React.ComponentType<Partial<LucideProps>>
 
@@ -47,6 +48,7 @@ const CREATOR_NAV: NavItem[] = [
   { href: '/invites',       label: 'Invites',            icon: Mail },
   { href: '/collabs',       label: 'Collabs',            icon: Link2 },
   { href: '/applications',  label: 'Applications',       icon: FileText },
+  ...(flags.creatorStudio ? [{ href: '/studio', label: 'Creator Studio', icon: BarChart3 } as NavItem] : []),
   { href: '/earnings',      label: 'Earnings',           icon: Wallet },
 ]
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterAll } from 'vitest'
-import { resolvePlan, proGateResponse, isBetaFreePro } from '@/lib/plans'
+import { resolvePlan, proGateResponse, featureGateResponse, isBetaFreePro } from '@/lib/plans'
 
 const ORIGINAL = process.env.BETA_FREE_PRO
 afterAll(() => { process.env.BETA_FREE_PRO = ORIGINAL })
@@ -114,5 +114,58 @@ describe('paid mode resolution', () => {
 
     const pro = resolvePlan({ plan: 'pro', subscription_status: 'active' })
     expect(proGateResponse(pro, 'Saved creators')).toBeNull()
+  })
+})
+
+describe('Brand Plus tier', () => {
+  const ORIG = process.env.BETA_FREE_PRO
+  const ORIG_PLUS = process.env.BETA_FREE_PLUS
+  afterAll(() => { process.env.BETA_FREE_PRO = ORIG; process.env.BETA_FREE_PLUS = ORIG_PLUS })
+
+  it('beta gives Pro but NOT Plus by default (Plus stays gated)', () => {
+    process.env.BETA_FREE_PRO = 'true'
+    delete process.env.BETA_FREE_PLUS
+    const plan = resolvePlan(null)
+    expect(plan.isPro).toBe(true)
+    expect(plan.isPlus).toBe(false)
+    expect(plan.tier).toBe('pro')
+  })
+
+  it('BETA_FREE_PLUS opens Plus in beta', () => {
+    process.env.BETA_FREE_PRO = 'true'
+    process.env.BETA_FREE_PLUS = 'true'
+    const plan = resolvePlan(null)
+    expect(plan.isPlus).toBe(true)
+    expect(plan.tier).toBe('plus')
+  })
+
+  it('paid: plan=plus active → isPro AND isPlus', () => {
+    process.env.BETA_FREE_PRO = 'false'
+    delete process.env.BETA_FREE_PLUS
+    const plan = resolvePlan({ plan: 'plus', subscription_status: 'active' })
+    expect(plan).toMatchObject({ tier: 'plus', isPro: true, isPlus: true, label: 'Plus' })
+  })
+
+  it('paid: plan=pro active → isPro but NOT isPlus', () => {
+    process.env.BETA_FREE_PRO = 'false'
+    const plan = resolvePlan({ plan: 'pro', subscription_status: 'active' })
+    expect(plan).toMatchObject({ tier: 'pro', isPro: true, isPlus: false })
+  })
+
+  it('grandfathering grants Pro only, never Plus', () => {
+    process.env.BETA_FREE_PRO = 'false'
+    const plan = resolvePlan({ plan: 'free', subscription_status: 'beta_free', grandfathered_pro_until: future })
+    expect(plan.isPro).toBe(true)
+    expect(plan.isPlus).toBe(false)
+  })
+
+  it('featureGateResponse: a Plus feature is blocked for a Pro brand, allowed for Plus', async () => {
+    process.env.BETA_FREE_PRO = 'false'
+    const pro = resolvePlan({ plan: 'pro', subscription_status: 'active' })
+    const gate = featureGateResponse(pro, 'Creator Discovery', 'plus')
+    expect(gate).not.toBeNull()
+    expect((await gate!.json()).error).toContain('Plus')
+    const plus = resolvePlan({ plan: 'plus', subscription_status: 'active' })
+    expect(featureGateResponse(plus, 'Creator Discovery', 'plus')).toBeNull()
   })
 })

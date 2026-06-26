@@ -5,6 +5,7 @@ import { Suspense } from 'react';
 import { formatSGD } from '@/lib/utils';
 import Avatar from '@/components/Avatar';
 import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge';
+import ConnectedCreatorBadge from '@/components/ConnectedCreatorBadge';
 import {
   NICHE_LABELS,
   socialHandleLabel,
@@ -16,6 +17,8 @@ import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans';
+import PlusUpgradeCard from '@/components/PlusUpgradeCard';
+import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
 import type { SocialAccount } from '@/types';
 import { socialIcon } from '@/components/SocialIcon';
@@ -57,52 +60,21 @@ export default async function CreatorsPage({
     .eq('user_id', user.id)
     .single();
 
-  // Creator Discovery is a Pro feature - complimentary for every brand while
-  // in beta. In paid mode, Free brands see a calm gate (no pricing, no modal).
+  // Creator Discovery is a Brand Plus feature. Gated unless the brand has Plus
+  // (stays gated even in beta unless BETA_FREE_PLUS is set) — show the Plus upsell
+  // so a brand can upgrade right here, even during beta.
   const plan = resolvePlan(brand);
-  if (!plan.isPro) {
+  if (!plan.isPlus) {
     return (
-      <div className="max-w-4xl mx-auto space-y-5">
+      <div className="max-w-xl mx-auto space-y-5">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
-            Browse creators
-          </h1>
-        </div>
-        <div className="empty-state">
-          <div className="empty-state-icon">
-            <Sparkles size={18} />
-          </div>
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: 'var(--ink)',
-              marginBottom: 4,
-            }}
-          >
-            Creator Discovery is part of collabr Pro
-          </h3>
-          <p
-            style={{
-              fontSize: 13,
-              color: 'var(--ink-soft)',
-              maxWidth: 400,
-              margin: '0 auto',
-              lineHeight: 1.5,
-            }}
-          >
-            Search, filter, save, and directly invite creators with Pro. Your
-            campaigns and applications continue to work as usual on the Free
-            plan.
+          <h1 className="text-xl font-semibold text-gray-900">Discover creators</h1>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.5 }}>
+            Search, filter, save and invite the right creators directly — a collabr Plus feature.
+            Your campaigns, applications and payment protection stay free.
           </p>
-          <Link
-            href="/billing"
-            className="btn-primary"
-            style={{ marginTop: 14 }}
-          >
-            Manage plan
-          </Link>
         </div>
+        <PlusUpgradeCard analyticsSuite={flags.analyticsSuite} />
       </div>
     );
   }
@@ -142,7 +114,7 @@ export default async function CreatorsPage({
   let query = admin
     .from('creator_profiles')
     .select(
-      'id, slug, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, certified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
+      'id, slug, user_id, bio, niche, niches, niche_tags, location, average_rate_sgd, availability_status, base_rate, is_verified, certified, connected, insights_last_synced_at, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)',
       { count: 'exact' }
     );
 
@@ -401,6 +373,7 @@ export default async function CreatorsPage({
                     {name}
                   </span>
                   <CollabrCertifiedBadge certified={!!(c as any).certified} size="sm" showTip={false} />
+                  <ConnectedCreatorBadge connected={!!(c as any).connected} showSync={false} />
                   {availability === 'available' && (
                     <span
                       title="Available"

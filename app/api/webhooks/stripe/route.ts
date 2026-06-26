@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { notifyCollabFunded, retryStuckPayoutsForAccount } from '@/lib/collab-funding'
-import { stripe, BOOST_MAX_HORIZON_DAYS } from '@/lib/stripe'
+import { stripe, BOOST_MAX_HORIZON_DAYS, brandPlusPriceIds } from '@/lib/stripe'
+import { setBrandStripeCustomer, getBrandIdByStripeCustomer } from '@/lib/brand-billing'
 import { paymentStatusFromIntent } from '@/lib/payments'
 import { sendPayoutAdminEmail, link } from '@/lib/email'
 import Stripe from 'stripe'
@@ -29,17 +30,23 @@ async function applySubscriptionToBrand(
     ? new Date(subscription.current_period_end * 1000).toISOString()
     : null
 
+  // Map the subscribed price to the brand tier (Pro vs Plus).
+  const priceId = subscription.items?.data?.[0]?.price?.id
+  const plusIds = brandPlusPriceIds()
+  const paidTier: 'pro' | 'plus' =
+    priceId && (priceId === plusIds.monthly || priceId === plusIds.annual) ? 'plus' : 'pro'
+
   let status: 'active' | 'cancelled' | 'past_due'
-  let plan: 'free' | 'pro'
+  let plan: 'free' | 'pro' | 'plus'
   switch (subscription.status) {
     case 'active':
     case 'trialing':
       status = subscription.cancel_at_period_end ? 'cancelled' : 'active'
-      plan = 'pro'
+      plan = paidTier
       break
     case 'past_due':
       status = 'past_due'
-      plan = 'pro' // access continues while Stripe retries payment
+      plan = paidTier // access continues while Stripe retries payment
       break
     case 'canceled':
     case 'unpaid':
@@ -55,20 +62,25 @@ async function applySubscriptionToBrand(
       return
   }
 
-  const updates = {
-    plan,
-    subscription_status: status,
-    stripe_subscription_id: subscription.id,
-    subscription_current_period_end: periodEnd,
-    ...(customerId ? { stripe_customer_id: customerId } : {}),
+  // Resolve the brand: prefer metadata, else look up by the private Stripe customer.
+  let resolvedBrandId = brandId || null
+  if (!resolvedBrandId && customerId) {
+    resolvedBrandId = await getBrandIdByStripeCustomer(supabase, customerId)
+  }
+  if (!resolvedBrandId) {
+    console.error('[WEBHOOK] Subscription has no brand_id metadata or known customer:', subscription.id)
+    return
   }
 
-  if (brandId) {
-    await ensureWrite(supabase.from('brand_profiles').update(updates).eq('id', brandId))
-  } else if (customerId) {
-    await ensureWrite(supabase.from('brand_profiles').update(updates).eq('stripe_customer_id', customerId))
-  } else {
-    console.error('[WEBHOOK] Subscription has no brand_id metadata or customer:', subscription.id)
+  // Plan/state on the public profile (no Stripe IDs); Stripe IDs stay private.
+  await ensureWrite(supabase.from('brand_profiles').update({
+    plan,
+    subscription_status: status,
+    subscription_current_period_end: periodEnd,
+  }).eq('id', resolvedBrandId))
+
+  if (customerId) {
+    await setBrandStripeCustomer(supabase, resolvedBrandId, customerId, subscription.id)
   }
 }
 

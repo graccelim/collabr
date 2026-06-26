@@ -14,16 +14,19 @@ import { NextResponse } from 'next/server'
 // grants existing beta users a complimentary window at launch. Downgrades only
 // lock functionality - saved creators, invites and history are never deleted.
 
-export type PlanTier = 'free' | 'pro'
+export type PlanTier = 'free' | 'pro' | 'plus'
 export type SubscriptionState = 'beta_free' | 'active' | 'cancelled' | 'past_due'
 
 export interface ResolvedPlan {
   tier: PlanTier
   state: SubscriptionState
+  /** Has at least Pro (barter access). True for Pro AND Plus. */
   isPro: boolean
-  /** Human label: "Pro Beta" | "Pro" | "Free" */
+  /** Has Plus (Creator Discovery + Connected insights + campaign analytics). */
+  isPlus: boolean
+  /** Human label: "Pro Beta" | "Plus Beta" | "Pro" | "Plus" | "Free" */
   label: string
-  /** Why this brand is Pro (drives billing-page copy). */
+  /** Why this brand has access (drives billing-page copy). */
   proReason: 'beta' | 'subscription' | 'cancelled_until_period_end' | 'grandfathered' | null
 }
 
@@ -42,13 +45,31 @@ export function isBetaFreePro(): boolean {
   return process.env.BETA_FREE_PRO !== 'false'
 }
 
-export const PRO_FEATURES = [
+/**
+ * Plus is GATED during beta by default (Brand Pro is free in beta, Brand Plus is
+ * not). Set BETA_FREE_PLUS=true to also make Plus (Creator Discovery + analytics)
+ * complimentary during beta — off by default per product direction.
+ */
+export function isBetaFreePlus(): boolean {
+  return process.env.BETA_FREE_PLUS === 'true'
+}
+
+/** Pro-tier features (barter). */
+export const PRO_FEATURES = ['Unlimited barter campaigns'] as const
+/** Plus discovery features — independent of the Analytics Suite. */
+export const PLUS_DISCOVERY_FEATURES = [
   'Creator Discovery',
   'Creator Search & Advanced Filters',
   'Creator Invites',
   'Saved Creators',
-  'Barter Campaigns',
 ] as const
+/** Plus analytics features — only when the Analytics Suite is ON. */
+export const PLUS_ANALYTICS_FEATURES = [
+  'Connected Creator insights',
+  'Campaign Analytics',
+] as const
+/** All Plus features (suite-on view). */
+export const PLUS_FEATURES = [...PLUS_DISCOVERY_FEATURES, ...PLUS_ANALYTICS_FEATURES] as const
 
 function inFuture(iso: string | null | undefined): boolean {
   return Boolean(iso && new Date(iso) > new Date())
@@ -56,27 +77,44 @@ function inFuture(iso: string | null | undefined): boolean {
 
 export function resolvePlan(brand: BrandPlanRow | null): ResolvedPlan {
   if (isBetaFreePro()) {
-    return { tier: 'pro', state: 'beta_free', isPro: true, label: 'Pro Beta', proReason: 'beta' }
+    // Pro free in beta; Plus stays gated unless BETA_FREE_PLUS is set.
+    const plus = isBetaFreePlus()
+    return {
+      tier: plus ? 'plus' : 'pro',
+      state: 'beta_free',
+      isPro: true,
+      isPlus: plus,
+      label: plus ? 'Plus Beta' : 'Pro Beta',
+      proReason: 'beta',
+    }
   }
 
   const state = (brand?.subscription_status as SubscriptionState) || 'beta_free'
+  const planTier = (brand?.plan as PlanTier) || 'free'
+  const paidTier = planTier === 'pro' || planTier === 'plus'
 
   // Active subscription, or past_due while Stripe retries payment.
-  if (brand?.plan === 'pro' && (state === 'active' || state === 'past_due')) {
-    return { tier: 'pro', state, isPro: true, label: 'Pro', proReason: 'subscription' }
+  if (paidTier && (state === 'active' || state === 'past_due')) {
+    return {
+      tier: planTier, state, isPro: true, isPlus: planTier === 'plus',
+      label: planTier === 'plus' ? 'Plus' : 'Pro', proReason: 'subscription',
+    }
   }
 
-  // Cancelled but the paid period hasn't ended yet - access remains.
-  if (brand?.plan === 'pro' && state === 'cancelled' && inFuture(brand?.subscription_current_period_end)) {
-    return { tier: 'pro', state, isPro: true, label: 'Pro', proReason: 'cancelled_until_period_end' }
+  // Cancelled but the paid period hasn't ended yet - access remains at the tier.
+  if (paidTier && state === 'cancelled' && inFuture(brand?.subscription_current_period_end)) {
+    return {
+      tier: planTier, state, isPro: true, isPlus: planTier === 'plus',
+      label: planTier === 'plus' ? 'Plus' : 'Pro', proReason: 'cancelled_until_period_end',
+    }
   }
 
-  // Launch-transition grace window for existing beta users.
+  // Launch-transition grace window — grants Pro (barter), not Plus.
   if (inFuture(brand?.grandfathered_pro_until)) {
-    return { tier: 'pro', state, isPro: true, label: 'Pro', proReason: 'grandfathered' }
+    return { tier: 'pro', state, isPro: true, isPlus: false, label: 'Pro', proReason: 'grandfathered' }
   }
 
-  return { tier: 'free', state, isPro: false, label: 'Free', proReason: null }
+  return { tier: 'free', state, isPro: false, isPlus: false, label: 'Free', proReason: null }
 }
 
 /** Resolve the signed-in brand's plan. Non-brands get null. */
@@ -93,13 +131,25 @@ export async function getBrandPlanForUser(userId: string): Promise<{
 }
 
 /**
- * API gate for Pro features. Returns null when allowed, or a 403 response
- * when paid mode is active and the brand is on Free. Calm copy - no pricing.
+ * API gate for a tiered feature. `need` is the minimum tier: 'pro' (barter) or
+ * 'plus' (discovery + analytics). Returns null when allowed, or a calm 403 (no
+ * pricing) otherwise.
  */
-export function proGateResponse(plan: ResolvedPlan, feature: string): NextResponse | null {
-  if (plan.isPro) return null
+export function featureGateResponse(
+  plan: ResolvedPlan,
+  feature: string,
+  need: 'pro' | 'plus' = 'pro',
+): NextResponse | null {
+  const ok = need === 'plus' ? plan.isPlus : plan.isPro
+  if (ok) return null
+  const tierLabel = need === 'plus' ? 'Plus' : 'Pro'
   return NextResponse.json(
-    { error: `${feature} is part of collabr Pro. Upgrade from the Billing page to unlock it.` },
+    { error: `${feature} is part of collabr ${tierLabel}. Upgrade from the Billing page to unlock it.` },
     { status: 403 }
   )
+}
+
+/** Back-compat alias — gates a Pro feature (barter). */
+export function proGateResponse(plan: ResolvedPlan, feature: string): NextResponse | null {
+  return featureGateResponse(plan, feature, 'pro')
 }

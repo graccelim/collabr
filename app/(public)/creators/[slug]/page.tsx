@@ -8,6 +8,8 @@ import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles'
 import BrandCreatorActions from '@/components/BrandCreatorActions'
 import CreatorTrust from '@/components/CreatorTrust'
 import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge'
+import ConnectedCreatorBadge from '@/components/ConnectedCreatorBadge'
+import BrandConnectedAnalytics from '@/components/BrandConnectedAnalytics'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
 import ShareProfileButton from '@/components/ShareProfileButton'
@@ -47,7 +49,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // UUID so both /creators/girl-devours and /creators/<uuid> work.
   const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, certified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
+    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, certified, connected, connected_platforms, insights_last_synced_at, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
     .eq(byCol, params.slug).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
   const creatorId = creator.id
@@ -95,7 +97,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   if (isBrandViewer && user) {
     const { data: brand } = await admin.from('brand_profiles')
       .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
-    viewerIsPro = resolvePlan(brand).isPro
+    viewerIsPro = resolvePlan(brand).isPlus // inviting is a Brand Plus feature
     if (brand) {
       const [{ data: saved }, { data: campaigns }, { data: pendingInvites }] = await Promise.all([
         supabase.from('saved_creators')
@@ -190,6 +192,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
                     <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
                     <CollabrCertifiedBadge certified={!!creator.certified} />
+                    <ConnectedCreatorBadge connected={!!creator.connected} lastSyncedAt={creator.insights_last_synced_at as string | null} showSync={false} />
                     {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
                     {isBoosted && <span className="badge badge-accent" style={{ fontSize: 11 }} title="Sponsored placement">Boosted</span>}
                     {/* Phones, no other CTA: Share sits inline at the end of the
@@ -273,6 +276,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           </div>
   )
 
+  const { data: connectedRollup } = await admin.from('creator_rollups')
+    .select('averages').eq('creator_id', creatorId).maybeSingle()
+
   const mainContent = (
         <>
           {/* Trust & reliability — real reputation, placeholder when no history */}
@@ -284,6 +290,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             ratingAvg={creator.rating_avg ?? 0}
             ratingCount={creator.rating_count ?? 0}
             repeatBrands={repeatBrands}
+          />
+
+          {/* Connected analytics — curated aggregate (or honest empty state) */}
+          <BrandConnectedAnalytics
+            connected={!!creator.connected}
+            lastSyncedAt={creator.insights_last_synced_at as string | null}
+            platforms={(creator.connected_platforms as string[]) || []}
+            rollup={connectedRollup}
           />
 
           {/* About */}

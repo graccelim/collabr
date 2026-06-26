@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
+import { flags } from '@/lib/flags';
 import WorkflowSteps from '@/components/WorkflowSteps';
 import CountUp from '@/components/CountUp';
 
@@ -597,6 +598,37 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ══ CONNECTED CREATOR / proven performance USP — analytics suite only ══ */}
+      {flags.analyticsSuite && (
+      <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
+        <div style={{ maxWidth: 1040, margin: '0 auto', padding: '0 20px' }}>
+          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,44px)' }}>
+            <span className="eyebrow" style={{ color: 'var(--ink-faint-solid)' }}>Proven performance</span>
+            <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.2vw,38px)', fontWeight: 700, letterSpacing: '-0.025em', marginTop: 10 }}>
+              Hire on real results, not follower counts
+            </h2>
+            <p style={{ fontSize: 'clamp(15px,1.5vw,17px)', color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 560, margin: '12px auto 0' }}>
+              ⭐ Connected Creators sync their TikTok, Instagram and YouTube performance automatically — so brands
+              see average views, engagement and reach. 🛡️ Collabr Certified shows who's reliable. No rankings, no
+              vanity metrics — just a creator's own track record.
+            </p>
+          </Reveal>
+          <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+            {[
+              ['🛡️ Collabr Certified', 'Earned from completed collaborations, strong ratings and reliability — kept current, suspendable.'],
+              ['⭐ Connected Creator', 'Auto-synced performance metrics from connected social accounts. A Creator Pro benefit.'],
+              ['💎 Creator Pro', 'Creator Studio, AI Growth & Brand Coach, Content Lab, weekly reports — and a lower platform fee.'],
+            ].map(([title, body]) => (
+              <Reveal key={title} className="card" style={{ padding: 24 }}>
+                <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>{title}</h3>
+                <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}>{body}</p>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+      )}
 
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}

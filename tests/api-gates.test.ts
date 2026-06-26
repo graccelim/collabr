@@ -246,16 +246,31 @@ describe('Pro gates (BETA_FREE_PRO=false)', () => {
     const { POST } = await import('@/app/api/saved-creators/route')
     const res = await POST(jsonRequest('POST', { creator_id: 'cr-1' }))
     expect(res.status).toBe(403)
-    expect((await res.json()).error).toMatch(/pro/i)
+    expect((await res.json()).error).toMatch(/plus/i) // Saved creators is a Brand Plus feature
   })
 
-  it('saved-creators works for every brand in beta mode', async () => {
-    process.env.BETA_FREE_PRO = 'true'
-    const calls = useStub({
+  it('saved-creators is GATED in beta (Plus stays gated, unlike Pro)', async () => {
+    process.env.BETA_FREE_PRO = 'true' // Pro free in beta, but Plus is not
+    useStub({
       user: verifiedUser(),
       tables: {
         users: [{ data: { role: 'brand' } }],
         brand_profiles: [{ data: { id: 'b-1', plan: 'free', subscription_status: 'beta_free' } }],
+      },
+    })
+    const { POST } = await import('@/app/api/saved-creators/route')
+    const res = await POST(jsonRequest('POST', { creator_id: 'cr-1' }))
+    expect(res.status).toBe(403)
+    expect((await res.json()).error).toMatch(/plus/i)
+  })
+
+  it('saved-creators works for a Brand Plus subscriber', async () => {
+    process.env.BETA_FREE_PRO = 'false'
+    const calls = useStub({
+      user: verifiedUser(),
+      tables: {
+        users: [{ data: { role: 'brand' } }],
+        brand_profiles: [{ data: { id: 'b-1', plan: 'plus', subscription_status: 'active' } }],
         creator_profiles: [{ data: { id: 'cr-1' } }],
         saved_creators: [{ count: 0 }, { data: null, error: null }],
       },
@@ -306,7 +321,7 @@ describe('Pro gates (BETA_FREE_PRO=false)', () => {
     expect((await res.json()).error).toMatch(/only brands/i)
   })
 
-  it('invite creation is gated for Free brands in paid mode', async () => {
+  it('invite creation is gated (Plus) for non-Plus brands in paid mode', async () => {
     process.env.BETA_FREE_PRO = 'false'
     useStub({
       user: verifiedUser(),
@@ -322,7 +337,7 @@ describe('Pro gates (BETA_FREE_PRO=false)', () => {
       proposed_rate: 10000,
     }))
     expect(res.status).toBe(403)
-    expect((await res.json()).error).toMatch(/pro/i)
+    expect((await res.json()).error).toMatch(/plus/i)
   })
 })
 

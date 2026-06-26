@@ -674,6 +674,7 @@
 .cl-mobile  { display: none; }
 /* secured-money chip pulse on the funds-protected hero */
 @keyframes cl-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(21,122,85,.26); } 50% { box-shadow: 0 0 0 5px rgba(21,122,85,0); } }
+@keyframes cl-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
 .cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
 /* desktop table row hover */
 .cl-trow { transition: background .12s ease; }

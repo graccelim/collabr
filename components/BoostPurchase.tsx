@@ -3,10 +3,11 @@ import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Zap, ArrowUp, TrendingUp, Eye, ShieldCheck } from 'lucide-react'
+import { CURRENCY, BOOST_PRICING } from '@/lib/pricing'
 
 const OPTIONS = [
-  { type: 'per_app' as const, days: '7 days', price: 'S$4', tag: 'Quick boost' },
-  { type: 'monthly' as const, days: '30 days', price: 'S$20', tag: 'Popular', featured: true },
+  { type: 'per_app' as const, days: '7 days', price: `${CURRENCY}${BOOST_PRICING.per_app}`, tag: 'Quick boost' },
+  { type: 'monthly' as const, days: '30 days', price: `${CURRENCY}${BOOST_PRICING.monthly}`, tag: 'Popular', featured: true },
 ]
 
 const BENEFITS = [

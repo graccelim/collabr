@@ -9,10 +9,15 @@ export function formatSGD(cents: number): string {
   return `S$${(cents / 100).toFixed(2)}`
 }
 
-export function computeFee(rateCents: number, plan: 'free' | 'pro'): {
+// Platform commission is charged to the CREATOR, never the brand: 10% on Creator
+// Free, 8% on Creator Pro. The brand pays the full agreed rate and has NO commission
+// logic of any kind. The invariant fee + payout === rate holds exactly (whole cents).
+export const CREATOR_COMMISSION = { free: 0.1, pro: 0.08 } as const
+
+export function computeFee(rateCents: number, creatorPro: boolean): {
   fee: number; payout: number
 } {
-  const pct = plan === 'pro' ? 0.08 : 0.12
+  const pct = creatorPro ? CREATOR_COMMISSION.pro : CREATOR_COMMISSION.free
   const fee = Math.round(rateCents * pct)
   return { fee, payout: rateCents - fee }
 }

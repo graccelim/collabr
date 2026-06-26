@@ -4,7 +4,8 @@ import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
 import EmptyState from '@/components/EmptyState'
-import { PLAN_COLUMNS } from '@/lib/plans'
+import { PLAN_COLUMNS, resolvePlan } from '@/lib/plans'
+import CampaignAnalytics from '@/components/CampaignAnalytics'
 import { computeMatch, creatorIndicators } from '@/lib/recommend'
 import { toCreatorSignals, toCampaignSignals, type ScoreRow } from '@/lib/discovery-data'
 import { consumesSpot } from '@/lib/collab-status'
@@ -118,6 +119,18 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // and required for honest auto-decline). Pro monetises via Discovery/invites/boost.
   const visibleApps = rankedApplications
 
+  // Campaign analytics (Brand Plus + analytics suite); component self-hides when suite off.
+  const { data: campaignRollup } = await createAdminClient().from('campaign_rollups')
+    .select('*').eq('campaign_id', params.id).maybeSingle()
+  const isPlus = resolvePlan(brand).isPlus
+  let unlinkedNames: string[] = []
+  const unlinkedIds = (campaignRollup?.coverage as any)?.unlinkedCreatorIds as string[] | undefined
+  if (unlinkedIds?.length) {
+    const { data: cps } = await createAdminClient().from('creator_profiles')
+      .select('id, users(display_name)').in('id', unlinkedIds)
+    unlinkedNames = (cps ?? []).map((c: any) => c.users?.display_name).filter(Boolean)
+  }
+
   const isActive = campaign.status === 'active'
   const dueLabel = campaign.deadline
     ? new Date(campaign.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
@@ -226,6 +239,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           </div>
         </div>
       </div>
+
+      <CampaignAnalytics campaignId={params.id} isPlus={isPlus} rollup={campaignRollup} unlinkedNames={unlinkedNames} />
     </div>
   )
 }

@@ -10,6 +10,8 @@ import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import ProfileCompletion from '@/components/ProfileCompletion';
+import CreatorProUpgradeCard from '@/components/CreatorProUpgradeCard';
+import { isProActive } from '@/lib/entitlements';
 import BrandActivation from '@/components/BrandActivation';
 import {
   ArrowRight,
@@ -795,8 +797,18 @@ async function CreatorDashboard({
     new Date(creator.boost_active_until) > new Date();
   const isEmpty = !collabs || collabs.length === 0;
 
+  // Entice non-Pro creators to upgrade (card self-hides when the flag is off).
+  const { data: proSub } = await createAdminClient()
+    .from('creator_subscriptions').select('status, pro_until').eq('creator_id', creator.id).maybeSingle();
+  const showUpgrade = !isProActive(proSub ?? null);
+
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {showUpgrade && (
+        <div style={{ marginTop: 8, marginBottom: 18 }}>
+          <CreatorProUpgradeCard returnTo="/studio" />
+        </div>
+      )}
       <div style={{ marginTop: 8, marginBottom: 18 }}>
         <ProfileCompletion
           hasPhoto={Boolean(avatarUrl)}

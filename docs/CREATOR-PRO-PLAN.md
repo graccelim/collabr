@@ -7,6 +7,69 @@
 
 ---
 
+## ROADMAP v4 — AUTHORITATIVE (supersedes all earlier build-order / funnel guidance below)
+
+> Wherever anything below this section mentions a "free YouTube funnel", "YouTube first (free API)",
+> "free taste", or gating only IG/TikTok behind Pro — **it is superseded by this section.** The free
+> YouTube funnel is removed. Connected (all of TikTok + Instagram + YouTube) is a **Creator Pro–only**
+> feature, synced via **Phyllo only**, and Phyllo is **never touched for a non-paying creator**.
+
+### Positioning
+- **Free Creator** → Marketplace · Portfolio · Applications · Reviews · 🛡️ Collabr Certified.
+- **Creator Pro 💎** → ⭐ Connected Creator (Connect TikTok / Instagram / YouTube) · Creator Studio ·
+  AI Growth Coach · AI Brand Coach · Content Lab · Historical analytics · Weekly reports.
+
+### Cost control (hard rules — design around minimizing Phyllo spend)
+- **Never** create a Phyllo user at signup, or for any free creator.
+- **Never** sync analytics for a free creator.
+- Only **after Stripe confirms an active Creator Pro subscription** do we, in order:
+  1. create the Phyllo user, 2. store `phyllo_user_id`, 3. launch Phyllo Connect, 4. allow connecting
+  TikTok/Instagram/YouTube, 5. begin syncing. If a creator never upgrades, **we never call Phyllo.**
+
+### Expiry (freeze, never delete)
+Stop all syncing · keep historical analytics · **Creator Studio becomes read-only** · keep the ⭐ badge
+visible with "Last synced X days ago" · AI stops generating new reports (existing remain) · renewing
+resumes syncing automatically. Nothing is deleted. (Enforced by `lib/entitlements.ts` `proState` →
+`active` / `frozen`; frozen ⇒ `shouldSyncAccount=false`, Studio read-only, `canGenerateAI=false`.)
+
+### Phase order (revised)
+1. ✅ **Collabr Certified** (done).
+2. **Creator Pro billing** — Stripe subscriptions · entitlements · Creator Studio gating.
+3. **Phyllo integration** — TikTok · Instagram · YouTube (provider-specific code waits for an account).
+4. **Creator Studio** — Analytics · Content DNA.
+5. **AI** — Growth Coach · Brand Coach · Content Lab.
+
+### Phyllo research (answers to the specific questions; current June 2026)
+| Question | Finding |
+|---|---|
+| Pricing model | **Custom / quote-based, sales-gated.** No public tiers. Reportedly scales with connected accounts + the products enabled (Identity/Engagement/Income). |
+| Per connected vs per active account | **Not publicly stated — must confirm with sales.** Treat as "per connected account" for cost modelling (worst case) and minimize connections accordingly. |
+| Sandbox | **Yes, free** — `dashboard.getphyllo.com` (sandbox env + keys for development). |
+| Startup credits / pricing | **Not publicly documented** — ask sales for a startup plan/credits when you talk to them. |
+| When billing begins | **Not public — confirm with sales** (on connect vs on first data fetch). Our design connects only after payment, so billing can't start for free users regardless. |
+| Best practice: create users only after payment | Supported — user creation is an explicit API call you control; gate it behind the Stripe `active` webhook (our design). |
+| Disconnect / expiry effect on billing | **Not public — confirm with sales.** Design: on expiry, stop syncing; **and disconnect accounts at Phyllo** if their billing is per-connected-account, to stop charges (we keep our local history regardless). |
+| Supported metrics (TikTok/IG/YouTube) | Connected metrics include views/impressions, likes, comments, shares, saves (IG), audience demographics, and income — **exact per-platform availability must be read from their live docs at integration time** (don't overclaim per platform). |
+| Webhook architecture | **Webhook-driven** (primary mechanism, not polling): subscribe to account-linked + per-datatype "data available" events; verify signature; idempotent on event id; enqueue sync. |
+| OAuth flow | Connect SDK handles platform OAuth: create user → create SDK token (≈1-week TTL) → init Connect → `accountConnected` event returns `account_id` → backend pulls data. |
+| Rate limits | Phyllo abstracts native platform limits with auto-retry; its own API has rate limits — see their "respecting rate limits" guide; rely on webhooks rather than polling. |
+
+Sources: getphyllo.com/pricing (sales-gated), docs.getphyllo.com (Connect SDK, webhooks, rate-limits guide),
+modash.io Phyllo comparison (~$20k/yr at scale, sales-gated). **Confirm the gated items (exact pricing,
+per-account vs per-active, billing-start, disconnect effect, startup credits) on your sales call.**
+
+### What to create in the Phyllo dashboard (once you have an account)
+1. Sign up at `getphyllo.com` / `dashboard.getphyllo.com` (request access; start in **sandbox**).
+2. Create an **application** → gives **sandbox** + **production** environments, each with `client_id` + `secret`.
+3. Configure the **webhook URL** (`https://<host>/api/webhooks/phyllo`) and any redirect URLs.
+4. Enable only the **products you need** (Identity + Engagement; add Income later) to limit cost.
+5. Copy **sandbox** `client_id` + `secret` + webhook signing secret → set as **server-only** env vars
+   (`PHYLLO_CLIENT_ID`, `PHYLLO_SECRET`, `PHYLLO_ENV=sandbox`, `PHYLLO_BASE_URL`, `PHYLLO_WEBHOOK_SECRET`).
+6. Then I wire the `PhylloAdapter` into the abstraction built in Phase 2/3 (no other code changes).
+Full step-by-step integration guide: `VERIFIED-CREATOR-PLAN.md` §12 (the 15-step beginner guide) — still current.
+
+---
+
 ## 0. TL;DR / verdict
 
 - **Three clean concepts, and they're correctly separated.** 🛡️ Collabr Certified (free, Collabr behaviour),
@@ -233,7 +296,7 @@ RSC rendering), **plus** a subscription/entitlement layer that gates everything 
         │                    │ gates: connect, sync, studio, AI
         ▼                    ▼
  ┌─ Ingestion adapters ──────────────────────────┐   PlatformAdapter interface:
- │  YouTubeAdapter (free)  PhylloAdapter (Pro)    │   fetchAccount() / fetchPosts()
+ │  PhylloAdapter (Pro only — TikTok/IG/YouTube)  │   fetchAccount() / fetchPosts()
  │  → NormalizedAccount / NormalizedPost          │   → identical shape per source
  └───────────────┬────────────────────────────────┘
                  ▼
@@ -247,7 +310,7 @@ RSC rendering), **plus** a subscription/entitlement layer that gates everything 
 ```
 
 **The entitlement gate is the most important new piece** — it appears in three places:
-1. `/api/verify/connect-token` refuses if not Pro-active (except free YouTube, if you allow it).
+1. `/api/verify/connect-token` refuses if not Pro-active (no exceptions — Connect is Pro-only).
 2. The **sync cron skips accounts whose owner is not Pro-active** (this is how expiry "freezes" sync).
 3. AI cron + Studio routes refuse if not Pro-active (history still *readable*, just not *regenerated*).
 
@@ -697,7 +760,8 @@ Creator Studio, all AI (Growth Coach, Content Lab, Brand Coach). None are touche
 ---
 
 ## Decisions needed before Phase 1
-1. **Free YouTube connect funnel** (recommended) vs strict "all connection = Pro only"?
+1. ✅ RESOLVED (Roadmap v4): **no free funnel** — all connection is Creator Pro–only, Phyllo-only,
+   created only after Stripe confirms payment.
 2. **Build order**: Collabr Certified first (recommended), or all three together?
 3. **Pricing**: S$15/mo + S$144/yr + 7-day trial (recommended) vs your S$12–19 — and founding price?
 4. **AI models**: Haiku (batch) + Sonnet (interactive) — or Opus for interactive?

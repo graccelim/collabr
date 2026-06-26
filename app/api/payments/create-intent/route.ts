@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { persistIntentTruth } from '@/lib/payments'
+import { getBrandStripeCustomerId, setBrandStripeCustomer } from '@/lib/brand-billing'
 
 export async function POST(req: NextRequest) {
   const supabase = createClient()
@@ -28,8 +29,8 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createAdminClient()
-  const { data: brand } = await admin.from('brand_profiles')
-    .select('stripe_customer_id').eq('id', collab.brand_id).single()
+  // Brand Stripe customer lives in the private brand_subscriptions table.
+  const existingCustomerId = await getBrandStripeCustomerId(admin, collab.brand_id)
 
   // Return and synchronize an existing intent instead of treating its ID as funding.
   if (collab.stripe_payment_intent_id) {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Get or create Stripe customer for brand
-  let customerId: string = brand?.stripe_customer_id
+  let customerId: string = existingCustomerId || ''
   if (!customerId) {
     const { data: userProfile } = await supabase.from('users')
       .select('email, display_name').eq('id', user.id).single()
@@ -55,8 +56,7 @@ export async function POST(req: NextRequest) {
       metadata: { user_id: user.id },
     })
     customerId = customer.id
-    await admin.from('brand_profiles')
-      .update({ stripe_customer_id: customerId }).eq('user_id', user.id)
+    await setBrandStripeCustomer(admin, collab.brand_id, customerId)
   }
 
   const intent = await stripe.paymentIntents.create({

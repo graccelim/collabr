@@ -1,6 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
+import { resolvePlan, featureGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
 async function getOwnBrand() {
   const supabase = createClient()
@@ -11,8 +11,8 @@ async function getOwnBrand() {
   // Admin client: subscription columns are server-only; own row by user_id.
   const { data: brand } = await createAdminClient().from('brand_profiles')
     .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
-  // Pro feature (complimentary for every brand while in beta).
-  const gate = brand ? proGateResponse(resolvePlan(brand), 'Saved creators') : null
+  // Brand Plus feature (Discovery).
+  const gate = brand ? featureGateResponse(resolvePlan(brand), 'Saved creators', 'plus') : null
   return { user, brand, gate }
 }
 

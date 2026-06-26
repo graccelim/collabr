@@ -2,9 +2,27 @@
 // until its env var is explicitly "true", so unfinished features never surface.
 // NEXT_PUBLIC_* so the same value is readable on server and client.
 
+// MASTER kill-switch for the entire analytics / Creator Pro / Connected / AI
+// ecosystem. When OFF (default), every analytics surface is invisible + every
+// analytics route/cron fails safe, restoring the original pre-analytics product.
+// All granular analytics flags are SUBORDINATE to it (suite OFF overrides them).
+// NOTE: Collabr Certified is NOT part of the suite — it's free Collabr-behaviour
+// reputation, controlled independently by its own flag.
+const ANALYTICS_SUITE = process.env.NEXT_PUBLIC_ANALYTICS_SUITE === 'true'
+
 export const flags = {
-  /** Collabr Certified 🛡️ badge + brand-facing filter. Phase 1. */
+  /** Master switch — analytics/Creator Pro/Connected/AI ecosystem. */
+  analyticsSuite: ANALYTICS_SUITE,
+  /** Collabr Certified 🛡️ badge + brand-facing filter. Independent of the suite. */
   collabrCertified: process.env.NEXT_PUBLIC_COLLABR_CERTIFIED === 'true',
+  /** Creator Pro 💎 subscription. Subordinate to the suite. */
+  creatorPro: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_CREATOR_PRO === 'true',
+  /** ⭐ Connected Creator badge + connect-accounts UI. Subordinate. */
+  connectedCreator: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_CONNECTED_CREATOR === 'true',
+  /** Creator Studio surfaces. Subordinate. */
+  creatorStudio: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_CREATOR_STUDIO === 'true',
+  /** AI Growth/Brand Coach + Content Lab + recaps. Subordinate. */
+  aiGrowthCoach: ANALYTICS_SUITE && process.env.NEXT_PUBLIC_AI_GROWTH_COACH === 'true',
 } as const
 
 export type FeatureFlag = keyof typeof flags

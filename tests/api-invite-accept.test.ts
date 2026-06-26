@@ -68,7 +68,7 @@ describe('PATCH /api/invites/[id] - acceptance converges into ONE collab', () =>
     const rpcCalls = calls.rpc.filter(c => c.name === 'select_application_atomic')
     expect(rpcCalls).toHaveLength(1)
     const args = rpcCalls[0].args as Record<string, number>
-    const { fee, payout } = computeFee(RATE, 'free')
+    const { fee, payout } = computeFee(RATE, false) // creator is not Pro in this fixture
     expect(args.p_agreed_rate).toBe(RATE)
     expect(args.p_platform_fee).toBe(fee)
     expect(args.p_creator_payout).toBe(payout)

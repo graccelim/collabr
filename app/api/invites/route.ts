@@ -4,7 +4,7 @@ import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
+import { resolvePlan, featureGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
 const inviteSchema = z.object({
   creator_id: z.string().uuid(),
@@ -37,8 +37,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Complete onboarding before inviting creators' }, { status: 403 })
   }
 
-  // Pro feature (complimentary for every brand while in beta).
-  const gate = proGateResponse(resolvePlan(brand), 'Inviting creators')
+  // Brand Plus feature (Discovery / direct invites).
+  const gate = featureGateResponse(resolvePlan(brand), 'Inviting creators', 'plus')
   if (gate) return gate
 
   // Anti-spam: 20 invites per hour per brand.
