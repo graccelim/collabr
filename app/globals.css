@@ -678,6 +678,8 @@
 @keyframes clp-sheen { 0% { transform: translateX(-140%) skewX(-18deg); } 55%,100% { transform: translateX(360%) skewX(-18deg); } }
 @keyframes clp-pulse { 0%,100% { box-shadow: 0 14px 30px -14px rgba(10,12,34,.55); } 50% { box-shadow: 0 16px 36px -10px rgba(91,83,224,.5); } }
 @keyframes clp-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes clp-rise-safe { from { transform: translateY(18px); } to { transform: none; } }
+@keyframes clp-floatlock { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-9px) rotate(-4deg); } }
 .cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
 /* desktop table row hover */
 .cl-trow { transition: background .12s ease; }

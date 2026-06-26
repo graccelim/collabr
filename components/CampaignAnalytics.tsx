@@ -2,6 +2,7 @@ import { flags } from '@/lib/flags'
 import { BarChart3, Trophy } from 'lucide-react'
 import CampaignRecapButton from '@/components/CampaignRecapButton'
 import TrendBars from '@/components/TrendBars'
+import MockBanner from '@/components/MockBanner'
 
 // Brand campaign analytics (Brand Plus + analytics suite). Deterministic only —
 // the brand's OWN campaign, no marketplace comparison, no global ranking. States:
@@ -71,6 +72,7 @@ export default function CampaignAnalytics({
   return (
     <section style={{ marginTop: 28 }}>
       {Header}
+      <div style={{ marginBottom: 12 }}><MockBanner /></div>
 
       {partial && (
         <div className="card" style={{ padding: '11px 14px', marginBottom: 12, background: 'var(--warn-tint)', border: '1px solid rgba(178,106,30,.22)' }}>

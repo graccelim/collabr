@@ -25,7 +25,9 @@ function useCountUp(target: number, ms = 450): number {
       if (p < 1) raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
+    // Safety net: guarantee the final value even if rAF is throttled (per handoff).
+    const safe = setTimeout(() => setV(to), 600)
+    return () => { cancelAnimationFrame(raf); clearTimeout(safe) }
   }, [target, ms])
   return v
 }
@@ -53,6 +55,20 @@ export default function PlansPanel({
 }: { beta: boolean; analyticsSuite?: boolean; onClose?: () => void }) {
   const [cycle, setCycle] = useState<'monthly' | 'annual'>('monthly') // monthly first
   const [busy, setBusy] = useState<'pro' | 'plus' | null>(null)
+  const [active, setActive] = useState(0) // cycling benefit highlight
+
+  const valueBenefits = [
+    { icon: Search, title: 'Search the full creator roster', desc: 'Filter by niche, platform, location and rate.' },
+    { icon: Send, title: 'Invite creators directly', desc: 'Reach the exact people you want — no waiting for applications.' },
+    { icon: Bookmark, title: 'Save & shortlist for later', desc: 'Build a shortlist for your next campaign in one place.' },
+    { icon: ShieldCheck, title: 'See trust signals as you browse', desc: 'Collabr Certified & Connected badges, surfaced inline.' },
+    ...(analyticsSuite ? [{ icon: BarChart3, title: 'Verified analytics + campaign ROI', desc: 'Real views, engagement and campaign performance.' }] : []),
+  ]
+
+  useEffect(() => {
+    const id = setInterval(() => setActive((i) => (i + 1) % valueBenefits.length), 1900)
+    return () => clearInterval(id)
+  }, [valueBenefits.length])
 
   async function checkout(tier: 'pro' | 'plus') {
     if (busy) return
@@ -68,19 +84,11 @@ export default function PlansPanel({
     setBusy(null)
   }
 
-  const valueBenefits = [
-    { icon: Search, text: 'Search the full creator roster — filter by niche, platform, rate' },
-    { icon: Send, text: 'Invite creators directly — no waiting for applications' },
-    { icon: Bookmark, text: 'Save & shortlist creators for later' },
-    { icon: ShieldCheck, text: 'Certified & Connected trust signals while you browse' },
-    ...(analyticsSuite ? [{ icon: BarChart3, text: 'Verified performance + campaign analytics' }] : []),
-  ]
-
   return (
     <div className="resp-1col" style={{
       position: 'relative', width: 'min(940px, 100%)', display: 'grid', gridTemplateColumns: '0.82fr 1fr',
       background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 50px 110px -30px rgba(8,10,40,.6)',
-      animation: 'clp-rise .55s cubic-bezier(.16,1,.3,1) both',
+      animation: 'clp-rise-safe .55s cubic-bezier(.16,1,.3,1) both',
     }}>
       {/* LEFT — navy value panel */}
       <div style={{ position: 'relative', padding: '34px 30px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
@@ -92,15 +100,28 @@ export default function PlansPanel({
           </div>
           <h2 style={{ fontWeight: 800, fontSize: 26, lineHeight: 1.08, letterSpacing: '-.03em', color: '#fff', margin: '0 0 10px' }}>Reach the right creators first.</h2>
           <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#9CA2D6', margin: '0 0 22px' }}>Stop waiting to be found. Search the roster, filter to your perfect fit, and invite creators directly.</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
-            {valueBenefits.map((b, i) => (
-              <div key={i} style={{ display: 'flex', gap: 11, alignItems: 'flex-start' }}>
-                <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, background: 'rgba(255,255,255,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <b.icon size={15} color="#fff" />
-                </span>
-                <span style={{ color: '#D7DAF2', fontSize: 13, lineHeight: 1.4, paddingTop: 5 }}>{b.text}</span>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {valueBenefits.map((b, i) => {
+              const on = i === active
+              return (
+                <div key={i} style={{
+                  display: 'flex', gap: 12, alignItems: 'flex-start', padding: '12px 13px', borderRadius: 13,
+                  border: `1px solid ${on ? 'rgba(91,83,224,.55)' : 'rgba(255,255,255,.1)'}`,
+                  background: on ? 'rgba(91,83,224,.16)' : 'rgba(255,255,255,.04)',
+                  transform: on ? 'translateX(3px)' : 'none',
+                  transition: 'background .4s ease, border-color .4s ease, transform .4s ease',
+                  animation: `clp-rise-safe .55s cubic-bezier(.16,1,.3,1) ${(0.12 + i * 0.08).toFixed(2)}s both`,
+                }}>
+                  <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', background: on ? '#5B53E0' : 'rgba(255,255,255,.08)', transform: on ? 'scale(1.08)' : 'none', transition: 'all .4s ease' }}>
+                    <b.icon size={16} color="#fff" />
+                  </span>
+                  <div>
+                    <div style={{ color: '#fff', fontWeight: 600, fontSize: 13.5 }}>{b.title}</div>
+                    <div style={{ color: '#9CA2D6', fontSize: 12, lineHeight: 1.4, marginTop: 2 }}>{b.desc}</div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -148,7 +169,10 @@ export default function PlansPanel({
               : <Price amount={PLAN_PRICING.plus[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? `≈ ${CURRENCY}${annualPerMonth('plus')}/mo · 2 months free` : undefined} />}
             cta={
               <button className="btn-primary btn-block" onClick={() => checkout('plus')} disabled={busy === 'plus'}
-                style={{ position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, animation: 'clp-pulse 3s ease-in-out infinite' }}>
+                onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(.97)' }}
+                onMouseUp={(e) => { e.currentTarget.style.transform = '' }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
+                style={{ position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, animation: 'clp-pulse 3s ease-in-out infinite', transition: 'transform .14s ease' }}>
                 <span style={{ position: 'absolute', top: 0, left: 0, width: '34%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)', animation: 'clp-sheen 6s ease-in-out infinite', pointerEvents: 'none' }} />
                 <Sparkles size={14} />{busy === 'plus' ? 'Opening…' : 'Upgrade to Plus'}
               </button>}

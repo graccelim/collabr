@@ -10,6 +10,7 @@ import ConnectAccounts from '@/components/studio/ConnectAccounts'
 import ContentLab from '@/components/studio/ContentLab'
 import BrandCoachPanel from '@/components/studio/BrandCoachPanel'
 import EmptyState from '@/components/EmptyState'
+import MockBanner from '@/components/MockBanner'
 import { platformConnectable } from '@/lib/analytics/oauth'
 import type { Platform } from '@/lib/analytics/adapters/types'
 import { Lock, FileText } from 'lucide-react'
@@ -63,6 +64,8 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
         <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Creator Studio</h1>
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>Your private growth workspace.</p>
       </header>
+
+      <MockBanner />
 
       {readOnly && (
         <div className="card" style={{ padding: '13px 16px', background: 'var(--warn-tint)', border: '1px solid rgba(178,106,30,.22)' }}>
