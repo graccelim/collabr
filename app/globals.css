@@ -825,6 +825,9 @@
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
   .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
+  /* Pricing modal: hide the navy value/benefit panel on mobile so pricing is
+     immediately visible (no scrolling past a tall benefits list). */
+  .plans-hide-mobile { display: none !important; }
 
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }
