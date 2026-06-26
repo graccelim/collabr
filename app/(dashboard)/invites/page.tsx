@@ -11,6 +11,8 @@ import StatusPill, { type StatusPillKind } from '@/components/StatusPill';
 import ListWorkspace, { type LWItem, type LWTile, type LWStatus } from '@/components/ListWorkspace';
 import { boostUiEnabled, boostPreview } from '@/lib/stripe';
 import { Send, Mail, Zap, Shield } from 'lucide-react';
+import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
+import PlansShowcase from '@/components/PlansShowcase';
 
 const PILL_KIND: Record<string, StatusPillKind> = { pending: 'pending', accepted: 'accepted', declined: 'declined', expired: 'expired' };
 const PILL_LABEL: Record<string, string> = { pending: 'Pending', accepted: 'Accepted', declined: 'Declined', expired: 'Expired' };
@@ -26,8 +28,19 @@ export default async function InvitesPage() {
 
   // ═══════════════════ BRAND · INVITES SENT ═══════════════════
   if (isBrand) {
-    const { data: brand } = await supabase.from('brand_profiles').select('id').eq('user_id', user.id).single();
     const admin = createAdminClient();
+    const { data: brand } = await admin.from('brand_profiles').select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single();
+    // Brand Plus gate — inviting creators is part of the Discovery product.
+    if (!resolvePlan(brand).isPlus) {
+      return (
+        <PlansShowcase
+          beta={isBetaFreePro()}
+          heading="Invite the creators you want"
+          sub="Reach out to your perfect-fit creators directly — Brand Plus unlocks Creator Discovery and direct invites."
+          label="Unlock invites"
+        />
+      );
+    }
     const { data: invites } = brand
       ? await admin
           .from('campaign_invites')

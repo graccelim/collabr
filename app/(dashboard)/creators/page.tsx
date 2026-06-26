@@ -17,7 +17,7 @@ import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
-import PlansCTA from '@/components/PlansCTA';
+import PlansShowcase from '@/components/PlansShowcase';
 import { Users, Star, Sparkles } from 'lucide-react';
 import type { SocialAccount } from '@/types';
 import { socialIcon } from '@/components/SocialIcon';
@@ -64,20 +64,14 @@ export default async function CreatorsPage({
   // so a brand can upgrade right here, even during beta.
   const plan = resolvePlan(brand);
   if (!plan.isPlus) {
-    // Immersive gate: the (blurred) roster you can't reach yet, with the upgrade
-    // centered on top — like the Collabr Plus Upgrade design.
+    // Brand Plus gate: a benefits showcase with a CTA that opens the plans modal.
     return (
-      <div style={{ minHeight: 'calc(100vh - 180px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
-        <div style={{ textAlign: 'center', maxWidth: 520 }}>
-          <h1 style={{ fontSize: 'clamp(24px,4vw,32px)', fontWeight: 800, letterSpacing: '-0.025em', color: 'var(--ink)', margin: '0 0 12px' }}>
-            Discover the right creators for your campaigns
-          </h1>
-          <p style={{ fontSize: 15, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 22px' }}>
-            Search the full roster, filter to your perfect fit, and invite creators directly — instead of waiting to be found.
-          </p>
-          <PlansCTA beta={isBetaFreePro()} label="Unlock Discovery" />
-        </div>
-      </div>
+      <PlansShowcase
+        beta={isBetaFreePro()}
+        heading="Discover the right creators for your campaigns"
+        sub="Search the full roster, filter to your perfect fit, and invite creators directly — instead of waiting to be found."
+        label="Unlock Discovery"
+      />
     );
   }
 

@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { studioAccess } from '@/lib/entitlements'
 import { flags } from '@/lib/flags'
-import CreatorProPanel from '@/components/CreatorProPanel'
+import CreatorProShowcase from '@/components/studio/CreatorProShowcase'
 import StudioNav from '@/components/studio/StudioNav'
 import BackButton from '@/components/BackButton'
 import InsightsPanel from '@/components/studio/InsightsPanel'
@@ -40,7 +40,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
           </p>
         </header>
         {flags.creatorPro ? (
-          <div style={{ display: 'flex', justifyContent: 'center' }}><CreatorProPanel returnTo="/studio" /></div>
+          <CreatorProShowcase returnTo="/studio" />
         ) : (
           <div className="card" style={{ padding: 18, display: 'flex', gap: 12, alignItems: 'center' }}>
             <Lock size={18} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
