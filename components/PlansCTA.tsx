@@ -17,11 +17,12 @@ export default function PlansCTA({
 
       {open && (
         <div onClick={() => setOpen(false)} style={{
-          position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(8,10,30,.55)', backdropFilter: 'blur(3px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto',
+          position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(8,10,30,.55)', backdropFilter: 'blur(3px)', overflowY: 'auto',
         }}>
-          <div onClick={(e) => e.stopPropagation()}>
-            <PlansPanel beta={beta} analyticsSuite={analyticsSuite} onClose={() => setOpen(false)} />
+          <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+              <PlansPanel beta={beta} analyticsSuite={analyticsSuite} onClose={() => setOpen(false)} />
+            </div>
           </div>
         </div>
       )}

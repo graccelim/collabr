@@ -105,16 +105,16 @@ export default function PlansPanel({
       animation: 'clp-rise-safe .55s cubic-bezier(.16,1,.3,1) both',
     }}>
       {/* LEFT — navy value panel */}
-      <div style={{ position: 'relative', padding: '30px 28px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
+      <div className="plans-navy" style={{ position: 'relative', padding: '30px 28px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -90, right: -70, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle,rgba(91,83,224,.4),transparent 70%)', filter: 'blur(20px)' }} />
         <div style={{ position: 'relative' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Sparkles size={15} color="#A9AEE8" />
             <span style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#9CA2D6', fontWeight: 600 }}>Collabr Plus</span>
           </div>
-          <h2 style={{ fontWeight: 800, fontSize: 25, lineHeight: 1.08, letterSpacing: '-.03em', color: '#fff', margin: '0 0 10px' }}>Reach the right creators first.</h2>
-          <p style={{ fontSize: 13, lineHeight: 1.5, color: '#9CA2D6', margin: '0 0 20px' }}>Stop waiting to be found. Search the roster, filter to your perfect fit, and invite creators directly.</p>
-          <div className="plans-hide-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+          <h2 style={{ fontWeight: 800, fontSize: 25, lineHeight: 1.08, letterSpacing: '-.03em', color: '#fff', margin: 0 }}>Reach the right creators first.</h2>
+          <div className="plans-hide-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 12 }}>
+            <p style={{ fontSize: 13, lineHeight: 1.5, color: '#9CA2D6', margin: '0 0 2px' }}>Stop waiting to be found. Search the roster, filter to your perfect fit, and invite creators directly.</p>
             {valueBenefits.map((b, i) => {
               const on = i === active
               return (
@@ -139,7 +139,7 @@ export default function PlansPanel({
       </div>
 
       {/* RIGHT — pricing */}
-      <div style={{ position: 'relative', padding: '28px 26px' }}>
+      <div className="plans-body" style={{ position: 'relative', padding: '28px 26px' }}>
         {onClose && (
           <button aria-label="Close" onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 32, height: 32, borderRadius: 999, border: '1px solid rgba(14,16,22,.12)', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}>
             <X size={16} color="#545A66" />
