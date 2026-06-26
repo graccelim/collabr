@@ -143,7 +143,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
           )
         })()}
         {!collapsed && item.pro && (
-          <span style={{ marginLeft: 'auto', position: 'relative', zIndex: 1, fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em', color: on ? '#fff' : 'rgba(255,255,255,.55)', border: `1px solid rgba(255,255,255,.22)`, padding: '0px 4px', borderRadius: 4, lineHeight: '12px' }}>PRO</span>
+          <span style={{ marginLeft: 'auto', position: 'relative', zIndex: 1, fontSize: 8.5, fontWeight: 600, letterSpacing: '.06em', color: on ? '#fff' : 'rgba(255,255,255,.55)', border: `1px solid rgba(255,255,255,.22)`, padding: '0px 4px', borderRadius: 4, lineHeight: '12px' }}>PLUS</span>
         )}
       </Link>
     )
