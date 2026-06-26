@@ -1,70 +1,178 @@
 'use client'
 import { useState } from 'react'
-import { FlaskConical, Sparkles } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { Zap, AlignLeft, Send, Hash, Video, Copy } from 'lucide-react'
 
 const PLATFORMS = [
   ['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['youtube', 'YouTube'],
   ['lemon8', 'Lemon8'], ['xhs', 'Xiaohongshu'], ['x', 'X'],
 ] as const
 
-// AI Content Lab. Calls /api/insights/content-lab (Pro + AI gated). Graceful 503.
+type Result = {
+  hooks: string[]; captions: string[]; ctas: string[]; hashtags: string[]
+  videos: { title: string; structure: string }[]; tailored: string | null
+}
+type CatKey = 'hooks' | 'captions' | 'ctas' | 'hashtags' | 'videos'
+const CATS: { key: CatKey; label: string; accent: string; icon: typeof Zap }[] = [
+  { key: 'hooks', label: 'Hooks', accent: '#5B53E0', icon: Zap },
+  { key: 'captions', label: 'Captions', accent: '#0A0C22', icon: AlignLeft },
+  { key: 'ctas', label: 'CTA ideas', accent: '#157A55', icon: Send },
+  { key: 'hashtags', label: 'Hashtags', accent: '#5B53E0', icon: Hash },
+  { key: 'videos', label: 'Video ideas', accent: '#0A0C22', icon: Video },
+]
+
+const GRID = 'linear-gradient(118deg,#0A0C22,#181E45 58%,#0A0C22)'
+const TEXTURE: React.CSSProperties = {
+  position: 'absolute', inset: 0,
+  backgroundImage: 'linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px)',
+  backgroundSize: '26px 26px', WebkitMaskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)', maskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
+}
+const CARD: React.CSSProperties = { background: '#fff', border: '1px solid rgba(20,30,80,.09)', borderRadius: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 14px 34px -28px rgba(20,30,80,.28)' }
+const MONO = "var(--font-mono, ui-monospace, monospace)"
+const darkInput: React.CSSProperties = { fontSize: 14, color: '#fff', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 10, padding: '11px 13px', outline: 'none' }
+
+function copy(text: string) {
+  navigator.clipboard?.writeText(text).then(() => toast.success('Copied')).catch(() => toast.error('Could not copy'))
+}
+
+function catText(r: Result, cat: CatKey): string {
+  if (cat === 'videos') return r.videos.map((v) => `${v.title} — ${v.structure}`).join('\n')
+  if (cat === 'hashtags') return r.hashtags.join(' ')
+  return (r[cat] as string[]).join('\n')
+}
+
 export default function ContentLab() {
   const [topic, setTopic] = useState('')
   const [platform, setPlatform] = useState('tiktok')
   const [tone, setTone] = useState('')
   const [goal, setGoal] = useState('')
-  const [result, setResult] = useState<string | null>(null)
+  const [result, setResult] = useState<Result | null>(null)
+  const [cat, setCat] = useState<CatKey>('hooks')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
   async function generate() {
     if (!topic.trim() || loading) return
-    setLoading(true); setErr(null); setResult(null)
+    setLoading(true); setErr(null)
     try {
       const res = await fetch('/api/insights/content-lab', {
         method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ topic: topic.trim(), platform, tone: tone.trim() || undefined, goal: goal.trim() || undefined }),
       })
       const data = await res.json().catch(() => ({}))
-      if (res.ok && data.result) setResult(data.result)
+      if (res.ok && data.result) { setResult(data.result); setCat('hooks') }
       else setErr(res.status === 503 ? 'Content Lab is being set up — check back soon.' : data.error || 'Could not generate ideas.')
     } catch { setErr('Could not generate ideas.') }
     setLoading(false)
   }
 
+  const active = CATS.find((c) => c.key === cat)!
+  const count = (k: CatKey) => (result ? (result[k] as unknown[]).length : 0)
+
   return (
-    <div className="card" style={{ padding: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-        <FlaskConical size={17} color="var(--accent)" />
-        <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Content Lab</h3>
-      </div>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 14px' }}>
-        Hooks, captions, CTAs, hashtags and video ideas for your next post — tailored to your own best-performing styles.
-      </p>
-
-      <div style={{ display: 'grid', gap: 10, marginBottom: 12 }}>
-        <input className="input" value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Topic / idea (e.g. new ramen spot review)" style={{ fontSize: 14 }} />
-        <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-          <select className="input" value={platform} onChange={(e) => setPlatform(e.target.value)} style={{ fontSize: 14 }}>
-            {PLATFORMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-          </select>
-          <input className="input" value={tone} onChange={(e) => setTone(e.target.value)} placeholder="Tone (optional)" style={{ fontSize: 14 }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* dark header + compact form */}
+      <div style={{ ...CARD, borderRadius: 18, overflow: 'hidden', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 22px 48px -30px rgba(20,30,80,.32)' }}>
+        <div style={{ position: 'relative', padding: '18px 24px', background: GRID, overflow: 'hidden' }}>
+          <div style={TEXTURE} />
+          <div style={{ position: 'relative' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9AA0D6', marginBottom: 10 }}>Content Lab</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Topic / idea (required)" style={{ ...darkInput, flex: 1, minWidth: 180 }} />
+              <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={{ ...darkInput, width: 150 }}>
+                {PLATFORMS.map(([v, l]) => <option key={v} value={v} style={{ color: '#0E1016' }}>{l}</option>)}
+              </select>
+              <button type="button" onClick={generate} disabled={loading || !topic.trim()}
+                style={{ cursor: topic.trim() ? 'pointer' : 'not-allowed', background: '#fff', color: '#0A0C22', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', opacity: topic.trim() ? 1 : 0.6 }}>
+                {loading ? 'Generating…' : 'Generate'}
+              </button>
+            </div>
+            <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
+              <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="Tone (optional)" style={{ ...darkInput, flex: 1, minWidth: 140 }} />
+              <input value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Goal (optional)" style={{ ...darkInput, flex: 1, minWidth: 140 }} />
+            </div>
+          </div>
         </div>
-        <input className="input" value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Goal (e.g. more saves, drive bookings) — optional" style={{ fontSize: 14 }} />
       </div>
 
-      <button type="button" className="btn-primary" onClick={generate} disabled={loading}
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-        <Sparkles size={14} /> {loading ? 'Generating…' : 'Generate ideas'}
-      </button>
+      {err && <div style={{ ...CARD, padding: 14, fontSize: 13, color: '#B23A33' }}>{err}</div>}
 
-      {err && <div style={{ fontSize: 12.5, color: 'var(--danger, #B23A33)', marginTop: 12 }}>{err}</div>}
-      {result && (
-        <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-body)', fontSize: 13.5, lineHeight: 1.6, color: 'var(--ink)', marginTop: 14, background: 'var(--surface-2)', padding: 14, borderRadius: 10 }}>{result}</pre>
+      {!result && !err && (
+        <div style={{ ...CARD, padding: '28px 24px', textAlign: 'center' }}>
+          <p style={{ fontSize: 13.5, color: '#545A66', margin: 0 }}>Enter a topic and generate hooks, captions, CTAs, hashtags and video ideas — tuned to your own winning patterns.</p>
+        </div>
       )}
-      <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 12 }}>
-        Suggestions are based on available performance data and may not guarantee results.
-      </p>
+
+      {result && (
+        <>
+          <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '212px 1fr', gap: 16, alignItems: 'start' }}>
+            {/* category menu */}
+            <div style={{ ...CARD, padding: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {CATS.map((c) => {
+                const on = c.key === cat
+                const Icon = c.icon
+                return (
+                  <button key={c.key} type="button" onClick={() => setCat(c.key)}
+                    style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', border: 'none', borderRadius: 11, background: on ? `${c.accent}12` : 'transparent', width: '100%' }}>
+                    <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, background: on ? c.accent : '#EEF1F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon size={16} color={on ? '#fff' : '#8A909C'} />
+                    </span>
+                    <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: on ? '#0E1016' : '#545A66' }}>{c.label}</span>
+                    <span style={{ fontSize: 12, color: '#B4B9C4' }}>{count(c.key)}</span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* panel */}
+            <div style={{ ...CARD, padding: 22 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 15, marginBottom: 4, borderBottom: '1px solid rgba(14,16,22,.07)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 9, background: `${active.accent}16`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <active.icon size={16} color={active.accent} />
+                  </span>
+                  <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: '#0E1016' }}>{active.label}</span>
+                  <span style={{ fontSize: 12, color: '#B4B9C4' }}>{count(active.key)}</span>
+                </div>
+                <button type="button" onClick={() => copy(catText(result, cat))}
+                  style={{ display: 'flex', alignItems: 'center', gap: 6, border: 'none', background: 'transparent', cursor: 'pointer', fontSize: 12.5, fontWeight: 600, color: active.accent }}>
+                  <Copy size={14} color={active.accent} /> Copy all
+                </button>
+              </div>
+              {cat === 'hashtags' ? (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, paddingTop: 12 }}>
+                  {result.hashtags.map((t, i) => (
+                    <button key={i} type="button" onClick={() => copy(t)} style={{ cursor: 'pointer', fontSize: 13, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '7px 13px' }}>{t}</button>
+                  ))}
+                </div>
+              ) : cat === 'videos' ? (
+                result.videos.map((v, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12, padding: i ? '15px 0' : '12px 0 15px', borderTop: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
+                    <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, background: '#F1F5FC', border: '1px solid rgba(20,30,80,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 12, color: '#0A0C22' }}>{i + 1}</span>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#0E1016' }}>{v.title}</div>
+                      <div style={{ fontSize: 12.5, color: '#8A909C', marginTop: 2 }}>{v.structure}</div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                (result[cat] as string[]).map((t, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, padding: i ? '14px 0' : '12px 0 14px', borderTop: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
+                    <div style={{ display: 'flex', gap: 12 }}>
+                      <span style={{ fontFamily: MONO, fontSize: 11, color: '#C4CAD6', marginTop: 2 }}>{String(i + 1).padStart(2, '0')}</span>
+                      <span style={{ fontSize: 14, lineHeight: 1.5, color: '#0E1016' }}>{t}</span>
+                    </div>
+                    <button type="button" onClick={() => copy(t)} aria-label="Copy" style={{ flex: 'none', border: 'none', background: 'transparent', cursor: 'pointer', marginTop: 2 }}><Copy size={15} color="#B4B9C4" /></button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div style={{ fontSize: 11.5, color: '#B4B9C4', textAlign: 'center' }}>
+            {result.tailored ? `${result.tailored} · ` : ''}Suggestions are based on available data and may not guarantee results.
+          </div>
+        </>
+      )}
     </div>
   )
 }

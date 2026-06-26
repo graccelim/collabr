@@ -680,6 +680,7 @@
 @keyframes clp-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
 @keyframes clp-rise-safe { from { transform: translateY(18px); } to { transform: none; } }
 @keyframes clp-floatlock { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-9px) rotate(-4deg); } }
+@keyframes ci-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 .cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
 /* desktop table row hover */
 .cl-trow { transition: background .12s ease; }

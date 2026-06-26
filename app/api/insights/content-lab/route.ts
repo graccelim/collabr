@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const result = await contentLab({ topic, platform, tone, goal, insights })
     await admin.from('ai_chat_messages').insert([
       { creator_id: creator.id, role: 'user', surface: 'content_lab', content: `${topic} (${platform})` },
-      { creator_id: creator.id, role: 'assistant', surface: 'content_lab', content: result },
+      { creator_id: creator.id, role: 'assistant', surface: 'content_lab', content: JSON.stringify(result) },
     ])
     return NextResponse.json({ result })
   } catch (e: any) {

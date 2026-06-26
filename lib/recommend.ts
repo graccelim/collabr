@@ -226,7 +226,8 @@ export function rankCampaignsForCreator(
       const reasons: string[] = []
       if (nicheOverlap(creator.niches, cam.niches) > 0) reasons.push('Matches your niche')
       const bf = budgetFit(creator.rate, cam.budgetMin, cam.budgetMax)
-      if (bf.fits && creator.rate != null) reasons.push('Fits your usual rates')
+      // Only claim a rate fit when the creator has actually set a (non-zero) rate.
+      if (bf.fits && creator.rate != null && creator.rate > 0) reasons.push('Fits your usual rates')
       if (cam.brandCompletedCampaigns > 0) reasons.push('Active brand')
 
       return { campaign: cam, score, tier: m.tier, label: m.label, reasons, featured }

@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
     //    recovery token and set the correct user's session, then redirected here.
     //  - SIGNED_IN / PASSWORD_RECOVERY: the PKCE `?code` was exchanged on load for
     //    the link's user (this fires even if a different user was signed in
-    //    before — the exchange replaces the session).
+    //    before; the exchange replaces the session).
     //
     // A bare pre-existing session (INITIAL_SESSION) is intentionally ignored.
     if (search.get('verified') === '1') {

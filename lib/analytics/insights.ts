@@ -33,6 +33,10 @@ export interface Insight {
   evidence: string
   recommendation: string
   confidence: Confidence
+  /** Your value vs your baseline (engagement %, 1dp) — drives the bar + "+N pts"
+   *  delta in the UI. Present only on insights that compare a bucket to baseline. */
+  you?: number
+  base?: number
   narrative?: string // filled by AI (optional)
 }
 
@@ -65,6 +69,7 @@ function median(xs: number[]): number | null {
   return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
 }
 const pct = (x: number | null) => (x == null ? '—' : `${(x * 100).toFixed(1)}%`)
+const pctNum = (x: number | null | undefined): number | undefined => (x == null ? undefined : +(x * 100).toFixed(1))
 const conf = (sample: number): Confidence => (sample >= 12 ? 'high' : sample >= 6 ? 'medium' : 'low')
 
 function lengthBucket(sec: number | null): string | null {
@@ -128,6 +133,7 @@ export function computePlatformInsights(
     evidence: `${len.key}: ${pct(len.value)} avg engagement vs your ${pct(baseline)} baseline (${len.sample} posts).`,
     recommendation: `Make more ${len.key} content and watch whether the lift holds.`,
     confidence: conf(len.sample),
+    you: pctNum(len.value), base: pctNum(baseline),
   })
 
   // 2. Best posting window (by OUTCOME, not follower presence)
@@ -139,6 +145,7 @@ export function computePlatformInsights(
     evidence: `${win.key}: ${pct(win.value)} avg engagement vs ${pct(baseline)} baseline (${win.sample} posts).`,
     recommendation: `Schedule more posts in the ${win.key}.`,
     confidence: conf(win.sample),
+    you: pctNum(win.value), base: pctNum(baseline),
   })
 
   // 3. Best category / style (only when classified)
@@ -151,6 +158,7 @@ export function computePlatformInsights(
       evidence: `${cat.key}: ${pct(cat.value)} vs ${pct(baseline)} baseline (${cat.sample} posts).`,
       recommendation: `Lean into “${cat.key}” while it’s working.`,
       confidence: conf(cat.sample),
+      you: pctNum(cat.value), base: pctNum(baseline),
     })
     strongest = cat.key
   }
@@ -162,6 +170,7 @@ export function computePlatformInsights(
     evidence: `${style.key}: ${pct(style.value)} vs ${pct(baseline)} baseline (${style.sample} posts).`,
     recommendation: `Use the “${style.key}” style more often.`,
     confidence: conf(style.sample),
+    you: pctNum(style.value), base: pctNum(baseline),
   })
 
   const sub = bestBy(posts, (p) => p.subcategory, baseline)
@@ -172,6 +181,7 @@ export function computePlatformInsights(
     evidence: `${sub.key}: ${pct(sub.value)} vs ${pct(baseline)} baseline (${sub.sample} posts).`,
     recommendation: `Double down on “${sub.key}”.`,
     confidence: conf(sub.sample),
+    you: pctNum(sub.value), base: pctNum(baseline),
   })
 
   const fmt2 = bestBy(posts, (p) => p.format, baseline)
@@ -182,6 +192,7 @@ export function computePlatformInsights(
     evidence: `${fmt2.key}: ${pct(fmt2.value)} vs ${pct(baseline)} baseline (${fmt2.sample} posts).`,
     recommendation: `Prioritise ${fmt2.key}.`,
     confidence: conf(fmt2.sample),
+    you: pctNum(fmt2.value), base: pctNum(baseline),
   })
 
   // Emerging / declining categories (time-split; needs enough history in each).
@@ -193,6 +204,7 @@ export function computePlatformInsights(
     evidence: `${e.key}: ${pct(e.recent)} recently vs ${pct(e.older)} earlier.`,
     recommendation: `Lean into “${e.key}” while it’s rising.`,
     confidence: e.confidence,
+    you: pctNum(e.recent), base: pctNum(e.older),
   })
   for (const dn of mom.declining) insights.push({
     key: 'declining_category',
@@ -201,6 +213,7 @@ export function computePlatformInsights(
     evidence: `${dn.key}: ${pct(dn.recent)} recently vs ${pct(dn.older)} earlier.`,
     recommendation: `Refresh your “${dn.key}” angle, or rebalance toward what’s working.`,
     confidence: dn.confidence,
+    you: pctNum(dn.recent), base: pctNum(dn.older),
   })
 
   // 4. Outperformers vs own average
@@ -216,6 +229,7 @@ export function computePlatformInsights(
         evidence: `${over.length} posts ≥ 25% above your ${pct(baseline)} baseline${common ? `; most are ${common}` : ''}.`,
         recommendation: common ? `Your winners skew ${common} — produce more like them.` : 'Study these posts and reuse what worked.',
         confidence: conf(over.length),
+        you: pctNum(avg(over.map(rate).filter((x): x is number => x != null))), base: pctNum(baseline),
       })
     }
   }

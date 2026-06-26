@@ -22,6 +22,20 @@ async function run(system: string, userContent: string, model: string, maxTokens
   return enforceAiText(textOf(msg))
 }
 
+// Raw variant for structured (JSON) outputs — no prose guard (the guard targets
+// human-facing narration). Callers JSON.parse the result and validate the shape.
+async function runRaw(system: string, userContent: string, model: string, maxTokens = 1400): Promise<string> {
+  const client = getAnthropic()
+  const msg = await client.messages.create({
+    model,
+    max_tokens: maxTokens,
+    system: [{ type: 'text', text: system, cache_control: { type: 'ephemeral' } }],
+    messages: [{ role: 'user', content: userContent }],
+  })
+  return textOf(msg)
+}
+const stripJson = (s: string): string => s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+
 // AI NARRATOR (not a tool): explains the deterministic per-platform insights.
 // Input is the structured engine output; output is a short "analyst's read".
 // If AI is disabled this is simply skipped — the deterministic insights remain.
@@ -40,14 +54,34 @@ export interface ContentLabInput {
   // category/style), so generation is tailored. Optional → generic fallback.
   insights?: unknown
 }
-export function contentLab(input: ContentLabInput): Promise<string> {
-  return run(
+export interface ContentLabResult {
+  hooks: string[]
+  captions: string[]
+  ctas: string[]
+  hashtags: string[]
+  videos: { title: string; structure: string }[]
+  tailored: string | null
+}
+export async function contentLab(input: ContentLabInput): Promise<ContentLabResult> {
+  const raw = await runRaw(
     CONTENT_LAB_SYSTEM,
     `Generate content for this input. If "insights" are present, tailor hooks/captions/length/timing to the ` +
-      `creator's own winning patterns; if absent, produce solid generic ideas:\n${JSON.stringify(input)}`,
+      `creator's own winning patterns; if absent, produce solid generic ideas. Return ONLY the JSON object:\n${JSON.stringify(input)}`,
     AI_MODELS.interactive,
-    1400,
+    1600,
   )
+  const j = JSON.parse(stripJson(raw))
+  const arr = (x: unknown, n: number): string[] => (Array.isArray(x) ? x.filter((s) => typeof s === 'string').slice(0, n) : [])
+  const videos = Array.isArray(j?.videos)
+    ? j.videos.filter((v: any) => v && typeof v.title === 'string' && typeof v.structure === 'string').slice(0, 3).map((v: any) => ({ title: v.title, structure: v.structure }))
+    : []
+  const result: ContentLabResult = {
+    hooks: arr(j?.hooks, 5), captions: arr(j?.captions, 3), ctas: arr(j?.ctas, 3),
+    hashtags: arr(j?.hashtags, 12).map((t) => (t.startsWith('#') ? t : `#${t}`)),
+    videos, tailored: typeof j?.tailored === 'string' ? j.tailored : null,
+  }
+  if (!result.hooks.length && !result.captions.length && !result.videos.length) throw new Error('empty content lab result')
+  return result
 }
 
 // Collaboration analysis (grounded in deterministic data, not "coaching").

@@ -1,17 +1,23 @@
+'use client'
+import { useState } from 'react'
 import EmptyState from '@/components/EmptyState'
 import PlatformInsights from '@/components/studio/PlatformInsights'
-import { BarChart3, Layers } from 'lucide-react'
+import { socialIcon } from '@/components/SocialIcon'
+import { BarChart3 } from 'lucide-react'
 
-// Flagship Insights: each platform analysed SEPARATELY (content behaves
-// differently per platform), then a lightweight cross-platform strengths summary.
-// No merged metrics. Deterministic-first; AI narration is an overlay per section.
+// Flagship Insights: ONE platform at a time (content behaves differently per
+// platform — never merged). A segmented switcher (our brand glyphs) flips between
+// the connected platforms; each renders the full per-platform analytics panel.
 const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube' }
-const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 }
+const ORDER = ['tiktok', 'instagram', 'youtube']
 
 type Row = { platform: string; data: any; ai_narrative: string | null }
 
 export default function InsightsPanel({ platformInsights }: { platformInsights: Row[] }) {
-  if (!platformInsights.length) {
+  const rows = [...platformInsights].sort((a, b) => ORDER.indexOf(a.platform) - ORDER.indexOf(b.platform))
+  const [active, setActive] = useState(rows[0]?.platform ?? '')
+
+  if (!rows.length) {
     return (
       <EmptyState
         icon={BarChart3}
@@ -22,35 +28,30 @@ export default function InsightsPanel({ platformInsights }: { platformInsights: 
     )
   }
 
-  // Cross-platform strengths: each platform's single highest-confidence insight.
-  const strengths = platformInsights.map((r) => {
-    const ins: any[] = Array.isArray(r.data?.insights) ? r.data.insights : []
-    const best = [...ins].sort((a, b) => (RANK[b.confidence] || 0) - (RANK[a.confidence] || 0))[0]
-    return { platform: r.platform, headline: r.data?.strongest || best?.title || null }
-  }).filter((s) => s.headline)
+  const row = rows.find((r) => r.platform === active) ?? rows[0]
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {platformInsights.map((r) => <PlatformInsights key={r.platform} row={r} />)}
-
-      {strengths.length >= 2 && (
-        <section className="card" style={{ padding: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Layers size={16} color="var(--accent)" /> Across your platforms
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {strengths.map((s) => (
-              <div key={s.platform} style={{ display: 'flex', gap: 10, fontSize: 13.5 }}>
-                <span style={{ fontWeight: 700, minWidth: 92 }}>{LABEL[s.platform] || s.platform}</span>
-                <span style={{ color: 'var(--ink-soft)' }}>{s.headline}</span>
-              </div>
-            ))}
-          </div>
-          <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 12 }}>
-            Each platform is analysed on its own — never merged — and only against your own history.
-          </p>
-        </section>
+    <div>
+      {rows.length > 1 && (
+        <div style={{ marginBottom: 18, display: 'inline-flex', background: '#F1F5FC', border: '1px solid rgba(20,30,80,.09)', borderRadius: 11, padding: 4 }}>
+          {rows.map((r) => {
+            const on = r.platform === row.platform
+            const Glyph = socialIcon(r.platform)
+            return (
+              <button key={r.platform} type="button" onClick={() => setActive(r.platform)}
+                style={{
+                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 8,
+                  padding: '8px 15px', fontSize: 13.5, fontWeight: 600,
+                  background: on ? '#fff' : 'transparent', color: on ? '#0E1016' : '#8A909C',
+                  boxShadow: on ? '0 2px 6px -2px rgba(14,16,22,.18)' : 'none',
+                }}>
+                <Glyph size={15} /> {LABEL[r.platform] || r.platform}
+              </button>
+            )
+          })}
+        </div>
       )}
+      <PlatformInsights key={row.platform} row={row} />
     </div>
   )
 }

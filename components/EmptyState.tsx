@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import type { LucideProps } from 'lucide-react'
-import { Sparkles } from 'lucide-react'
 
 interface Props {
   icon: React.ComponentType<Partial<LucideProps>>
@@ -40,7 +39,6 @@ export default function EmptyState({ icon: Icon, title, body, actionHref, action
         }}>
           <Icon size={25} />
         </div>
-        <Sparkles size={14} style={{ position: 'absolute', top: 12, right: 16, color: c, opacity: .85 }} />
       </div>
 
       <h3 style={{ fontSize: 18, fontWeight: 600, color: 'var(--ink)', letterSpacing: '-0.015em', marginBottom: 8 }}>

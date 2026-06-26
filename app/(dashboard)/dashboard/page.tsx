@@ -4,7 +4,7 @@ import { getAuthUser, getUserRow } from '@/lib/auth';
 import Link from 'next/link';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel } from '@/lib/workflow';
-import { brandCompletion, creatorCompletion } from '@/lib/profile-completion';
+import { brandCompletion } from '@/lib/profile-completion';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
@@ -19,7 +19,6 @@ import {
   Compass,
   Mail,
   Send,
-  Sparkles,
   Check,
   Zap,
   UserRound,
@@ -787,11 +786,6 @@ async function CreatorDashboard({
   const securedNow = (collabs || [])
     .filter((c) => c.payment_status === 'funded')
     .reduce((sum, c) => sum + (c.creator_payout || 0), 0);
-  const completion = creatorCompletion({
-    ...creator,
-    avatar_url: avatarUrl,
-    socials_count: socialsCount || 0,
-  });
   const isBoosted =
     creator.boost_active_until &&
     new Date(creator.boost_active_until) > new Date();
@@ -804,21 +798,15 @@ async function CreatorDashboard({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {/* Creator Pro upsell is the ONLY thing allowed above the greeting. */}
       {showUpgrade && (
         <div style={{ marginTop: 8, marginBottom: 18 }}>
           <CreatorProCTA returnTo="/studio" />
         </div>
       )}
+
+      {/* Greeting — always at the top of the page content. */}
       <div style={{ marginTop: 8, marginBottom: 18 }}>
-        <ProfileCompletion
-          hasPhoto={Boolean(avatarUrl)}
-          hasBio={Boolean(creator.bio)}
-          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
-          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
-          hasExtraSocials={(socials?.length ?? 0) > 1}
-        />
-      </div>
-      <div style={{ marginTop: 8, marginBottom: isEmpty ? 28 : 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Creator studio
         </div>
@@ -848,12 +836,18 @@ async function CreatorDashboard({
         </p>
       </div>
 
-      <CompletionNudge
-        href="/profile"
-        label="Finish your profile"
-        done={completion.items.filter((i) => i.done).length}
-        total={completion.items.length}
-      />
+      {/* Single onboarding-progress surface (the "Welcome to Collabr" checklist),
+          below the greeting. The old "Finish your profile, N of M" nudge was a
+          duplicate with a different count, so it's removed. */}
+      <div style={{ marginBottom: isEmpty ? 28 : 18 }}>
+        <ProfileCompletion
+          hasPhoto={Boolean(avatarUrl)}
+          hasBio={Boolean(creator.bio)}
+          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
+          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
+          hasExtraSocials={(socials?.length ?? 0) > 1}
+        />
+      </div>
 
       {/* Connect-your-payout nudge - sits with the profile nudge, above earnings */}
       {needsPayoutSetup && (
@@ -1259,7 +1253,7 @@ async function CreatorDashboard({
                 fontWeight: 700,
               }}
             >
-              <Sparkles size={13} /> Matched to you
+              Matched to you
             </span>
             <Link
               href="/jobs"
@@ -1380,7 +1374,7 @@ async function CreatorDashboard({
                     className="badge badge-match"
                     style={{ flexShrink: 0, gap: 4 }}
                   >
-                    <Sparkles size={11} /> {m.label}
+                    {m.label}
                   </span>
                 )}
               </Link>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Check, Circle, Sparkles } from 'lucide-react'
+import { Check, Circle } from 'lucide-react'
 
 interface Props {
   hasPhoto: boolean
@@ -29,7 +29,6 @@ export default function ProfileCompletion({ hasPhoto, hasBio, hasNiche, hasRates
   return (
     <div className="card" style={{ padding: 20, marginBottom: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
-        <Sparkles size={17} color="var(--accent-deep)" />
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Welcome to Collabr</h2>
         <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: 'var(--accent-deep)' }}>{pct}% complete</span>
       </div>

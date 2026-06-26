@@ -16,7 +16,7 @@ export default function ForgotPasswordPage() {
     setStatus('loading')
     const supabase = createClient()
     // Production domain when configured; falls back to the current origin.
-    // (With the token_hash recovery template this redirectTo is ignored — the
+    // (With the token_hash recovery template this redirectTo is ignored; the
     // template's own ?next= controls where the link lands.)
     const base = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/+$/, '')
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Check your email</h1>
         <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 28, lineHeight: 1.6 }}>
-          If an account exists for <strong style={{ color: 'var(--ink)' }}>{email}</strong>, we&rsquo;ve sent a link to reset your password. It expires in 1 hour — check your spam folder if it doesn&rsquo;t arrive.
+          If an account exists for <strong style={{ color: 'var(--ink)' }}>{email}</strong>, we&rsquo;ve sent a link to reset your password. It expires in 1 hour. Check your spam folder if it doesn&rsquo;t arrive.
         </p>
         <button type="button" onClick={() => setStatus('idle')} className="btn-secondary btn-lg btn-block" style={{ justifyContent: 'center' }}>
           Use a different email

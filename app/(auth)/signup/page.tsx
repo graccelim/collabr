@@ -23,7 +23,9 @@ function Field({ label, hint, optional, children }: {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
       <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <span style={{ fontSize: 13, fontWeight: 550, color: 'var(--ink)' }}>{label}</span>
+        <span style={{ fontSize: 13, fontWeight: 550, color: 'var(--ink)' }}>
+          {label}{!optional && <span title="Required" style={{ color: 'var(--danger, #B23A33)', marginLeft: 3 }}>*</span>}
+        </span>
         {optional && <span style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)' }}>optional</span>}
       </span>
       {children}

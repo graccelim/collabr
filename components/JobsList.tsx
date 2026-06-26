@@ -1,7 +1,7 @@
 'use client'
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, X, Bookmark, Sparkles } from 'lucide-react'
+import { ArrowRight, Check, Target, Wallet, CircleCheck, Building2, Award, SlidersHorizontal, X, Bookmark } from 'lucide-react'
 import { formatSGD, getInitials } from '@/lib/utils'
 import RatingChip from '@/components/RatingChip'
 import { NICHE_LABELS, CREATOR_NICHES, type CreatorNiche } from '@/lib/onboarding'
@@ -272,7 +272,7 @@ export default function JobsList({
             New opportunities are added daily. Try broadening your filters, or finish your profile so brands can match you faster.
           </p>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 7, marginBottom: 20, fontSize: 12.5, color: 'var(--match)', background: 'var(--match-soft)', border: '1px solid var(--match)33', padding: '6px 12px', borderRadius: 999 }}>
-            <Sparkles size={13} /> Matched on your work, not your follower count
+            Matched on your work, not your follower count
           </div>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
             {hasFilters && <button type="button" className="btn btn-primary" onClick={clearAll}>Clear filters</button>}
@@ -331,7 +331,7 @@ export default function JobsList({
                   ))}
                   {c.matchLabel && (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: 'var(--match-soft)', border: '1px solid var(--match)33', color: 'var(--match)', fontSize: 11.5, fontWeight: 500, padding: '4px 10px', borderRadius: 999 }}>
-                      <Sparkles size={11} />{c.matchLabel}
+                      {c.matchLabel}
                     </span>
                   )}
                   {fitsRates && (
