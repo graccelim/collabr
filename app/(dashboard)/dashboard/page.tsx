@@ -960,8 +960,8 @@ async function CreatorDashboard({
         </Link>
         {flags.creatorStudio && (
           <Link href="/studio"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)', textDecoration: 'none', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)', borderRadius: 999, padding: '8px 14px' }}>
-            <BarChart3 size={14} /> Creator Studio <ArrowRight size={13} />
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#1E4FBF', textDecoration: 'none', background: '#E4EDFF', border: '1px solid rgba(47,107,230,.3)', borderRadius: 999, padding: '9px 15px', boxShadow: '0 2px 8px -2px rgba(47,107,230,.32)' }}>
+            <BarChart3 size={14} color="#2F6BE6" /> Creator Studio <ArrowRight size={13} color="#2F6BE6" />
           </Link>
         )}
       </div>

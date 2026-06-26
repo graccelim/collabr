@@ -21,20 +21,14 @@ const CATS: { key: CatKey; label: string; accent: string; icon: typeof Zap }[] =
   { key: 'videos', label: 'Video ideas', accent: '#0A0C22', icon: Video },
 ]
 
-const GRID = 'linear-gradient(118deg,#0A0C22,#181E45 58%,#0A0C22)'
-const TEXTURE: React.CSSProperties = {
-  position: 'absolute', inset: 0,
-  backgroundImage: 'linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px)',
-  backgroundSize: '26px 26px', WebkitMaskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)', maskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
-}
 const CARD: React.CSSProperties = { background: '#fff', border: '1px solid rgba(20,30,80,.09)', borderRadius: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 14px 34px -28px rgba(20,30,80,.28)' }
 const MONO = "var(--font-mono, ui-monospace, monospace)"
-const darkInput: React.CSSProperties = { fontSize: 14, color: '#fff', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.18)', borderRadius: 10, padding: '11px 13px', outline: 'none' }
+const EYEBROW: React.CSSProperties = { fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }
+const FIELD: React.CSSProperties = { fontSize: 14, color: '#0E1016', background: '#F7F8FC', border: '1px solid rgba(20,30,80,.12)', borderRadius: 10, padding: '11px 13px', outline: 'none', width: '100%' }
 
 function copy(text: string) {
   navigator.clipboard?.writeText(text).then(() => toast.success('Copied')).catch(() => toast.error('Could not copy'))
 }
-
 function catText(r: Result, cat: CatKey): string {
   if (cat === 'videos') return r.videos.map((v) => `${v.title} — ${v.structure}`).join('\n')
   if (cat === 'hashtags') return r.hashtags.join(' ')
@@ -44,8 +38,6 @@ function catText(r: Result, cat: CatKey): string {
 export default function ContentLab() {
   const [topic, setTopic] = useState('')
   const [platform, setPlatform] = useState('tiktok')
-  const [tone, setTone] = useState('')
-  const [goal, setGoal] = useState('')
   const [result, setResult] = useState<Result | null>(null)
   const [cat, setCat] = useState<CatKey>('hooks')
   const [loading, setLoading] = useState(false)
@@ -57,7 +49,7 @@ export default function ContentLab() {
     try {
       const res = await fetch('/api/insights/content-lab', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ topic: topic.trim(), platform, tone: tone.trim() || undefined, goal: goal.trim() || undefined }),
+        body: JSON.stringify({ topic: topic.trim(), platform }),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.result) { setResult(data.result); setCat('hooks') }
@@ -71,27 +63,24 @@ export default function ContentLab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* dark header + compact form */}
-      <div style={{ ...CARD, borderRadius: 18, overflow: 'hidden', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 22px 48px -30px rgba(20,30,80,.32)' }}>
-        <div style={{ position: 'relative', padding: '18px 24px', background: GRID, overflow: 'hidden' }}>
-          <div style={TEXTURE} />
-          <div style={{ position: 'relative' }}>
-            <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9AA0D6', marginBottom: 10 }}>Content Lab</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="Topic / idea (required)" style={{ ...darkInput, flex: 1, minWidth: 180 }} />
-              <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={{ ...darkInput, width: 150 }}>
-                {PLATFORMS.map(([v, l]) => <option key={v} value={v} style={{ color: '#0E1016' }}>{l}</option>)}
-              </select>
-              <button type="button" onClick={generate} disabled={loading || !topic.trim()}
-                style={{ cursor: topic.trim() ? 'pointer' : 'not-allowed', background: '#fff', color: '#0A0C22', border: 'none', borderRadius: 10, padding: '11px 20px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', opacity: topic.trim() ? 1 : 0.6 }}>
-                {loading ? 'Generating…' : 'Generate'}
-              </button>
-            </div>
-            <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap' }}>
-              <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="Tone (optional)" style={{ ...darkInput, flex: 1, minWidth: 140 }} />
-              <input value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="Goal (optional)" style={{ ...darkInput, flex: 1, minWidth: 140 }} />
-            </div>
-          </div>
+      {/* light form card */}
+      <div style={{ ...CARD, padding: 18 }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap' }}>
+          <label style={{ flex: 1, minWidth: 200, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <span style={EYEBROW}>Topic</span>
+            <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Western hawker food" style={FIELD}
+              onKeyDown={(e) => { if (e.key === 'Enter') generate() }} />
+          </label>
+          <label style={{ width: 170, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            <span style={EYEBROW}>Platform</span>
+            <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={FIELD}>
+              {PLATFORMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </label>
+          <button type="button" onClick={generate} disabled={loading || !topic.trim()}
+            style={{ cursor: topic.trim() ? 'pointer' : 'not-allowed', background: '#0A0C22', color: '#fff', border: 'none', borderRadius: 11, padding: '12px 24px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', opacity: topic.trim() ? 1 : 0.55 }}>
+            {loading ? 'Generating…' : 'Generate'}
+          </button>
         </div>
       </div>
 
