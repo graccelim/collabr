@@ -681,6 +681,15 @@
 @keyframes clp-rise-safe { from { transform: translateY(18px); } to { transform: none; } }
 @keyframes clp-floatlock { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-9px) rotate(-4deg); } }
 @keyframes ci-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+/* Creator Pro modal (design handoff 7) */
+@keyframes cp-modalin { from { transform: translateY(18px) scale(.965); } to { transform: none; } }
+@keyframes cp-row { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: none; } }
+@keyframes cp-spin { to { transform: rotate(360deg); } }
+/* Visibility must never be stuck off if motion is disabled. */
+@media (prefers-reduced-motion: reduce) { .cp-row { opacity: 1 !important; animation: none !important; } }
+@media (max-width: 520px) {
+  .cp-cta-wrap { position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(255,255,255,0), #fff 22%); }
+}
 .cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
 /* desktop table row hover */
 .cl-trow { transition: background .12s ease; }
@@ -833,6 +842,10 @@
   .plans-navy { padding: 20px 20px 18px !important; }
   .plans-navy h2 { font-size: 21px !important; }
   .plans-body { padding: 18px 18px 20px !important; }
+  /* Mobile-only premium feel: darker navy header + light-blue body so the white
+     tier cards stand out (desktop is untouched). */
+  .plans-modal { background: #EEF2FA !important; }
+  .plans-navy { background: linear-gradient(150deg,#05060E 0%,#10143A 58%,#05060E 100%) !important; }
 
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }

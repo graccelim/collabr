@@ -50,7 +50,10 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
           </button>
         </div>
       )}
-      {!onboardingComplete && pathname !== '/onboarding' && (
+      {/* Hidden on the dashboard home — the "Welcome to Collabr" completion card
+          already prompts this there (avoids a redundant double nudge). Links to
+          the editable profile, not /onboarding (which just bounces to overview). */}
+      {!onboardingComplete && pathname !== '/onboarding' && pathname !== '/dashboard' && (
         <div className="card flex items-center gap-3 py-2.5"
           style={{ borderColor: 'rgba(79,70,229,.25)', background: 'var(--accent-tint)' }}>
           <UserCheck size={16} className="shrink-0" style={{ color: 'var(--accent)' }} />
@@ -59,7 +62,7 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
               ? 'Complete onboarding to apply to campaigns.'
               : 'Complete onboarding to create campaigns.'}
           </p>
-          <Link href="/onboarding" className="text-sm font-medium"
+          <Link href={profileHref} className="text-sm font-medium"
             style={{ color: 'var(--accent-deep)' }}>
             Finish setup →
           </Link>

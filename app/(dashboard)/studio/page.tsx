@@ -9,11 +9,11 @@ import InsightsPanel from '@/components/studio/InsightsPanel'
 import ConnectAccounts from '@/components/studio/ConnectAccounts'
 import ContentLab from '@/components/studio/ContentLab'
 import BrandCoachPanel from '@/components/studio/BrandCoachPanel'
-import EmptyState from '@/components/EmptyState'
+import ReportsTab from '@/components/studio/ReportsTab'
 import MockBanner from '@/components/MockBanner'
 import { platformConnectable } from '@/lib/analytics/oauth'
 import type { Platform } from '@/lib/analytics/adapters/types'
-import { Lock, FileText } from 'lucide-react'
+import { Lock } from 'lucide-react'
 
 export default async function StudioPage({ searchParams }: { searchParams: { tab?: string } }) {
   if (!flags.analyticsSuite) redirect('/dashboard')
@@ -53,10 +53,11 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
   const tab = searchParams.tab || 'insights'
 
   // Data (own-row RLS / admin for owner-private tables).
-  const [{ data: accounts }, { data: collabsRaw }, { data: platformInsights }] = await Promise.all([
+  const [{ data: accounts }, { data: collabsRaw }, { data: platformInsights }, { data: reports }] = await Promise.all([
     supabase.from('connected_accounts').select('id, platform, status, last_synced_at, sync_frozen').eq('creator_id', creator.id),
     admin.from('collabs').select('id, campaigns(title)').eq('creator_id', creator.id).order('created_at', { ascending: false }).limit(20),
     supabase.from('creator_platform_insights').select('platform, data, ai_narrative').eq('creator_id', creator.id),
+    admin.from('ai_reports').select('period_start, period_end, report').eq('creator_id', creator.id).order('period_end', { ascending: false }).limit(12),
   ])
   const collabs = (collabsRaw ?? []).map((c) => ({ id: c.id as string, title: ((c.campaigns as any)?.title as string) || 'Collaboration' }))
 
@@ -94,7 +95,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
       )}
 
       {tab === 'content-lab' && (flags.analyticsAi ? <ContentLab /> : <ComingSoon label="Content Lab" />)}
-      {tab === 'reports' && (await ReportsTab(creator.id))}
+      {tab === 'reports' && <ReportsTab platformInsights={platformInsights ?? []} reports={reports ?? []} />}
     </div>
   )
 }
@@ -107,22 +108,3 @@ function ComingSoon({ label }: { label: string }) {
   )
 }
 
-async function ReportsTab(creatorId: string) {
-  const admin = createAdminClient()
-  const { data: reports } = await admin.from('ai_reports')
-    .select('period_start, period_end, report, created_at').eq('creator_id', creatorId)
-    .order('period_end', { ascending: false }).limit(12)
-  if (!reports?.length) {
-    return <EmptyState icon={FileText} title="Weekly reports appear here" body="Once your accounts are syncing, Collabr generates a weekly report — top posts, what worked, and your next actions." />
-  }
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      {reports.map((r, i) => (
-        <div key={i} className="card" style={{ padding: 16 }}>
-          <div className="eyebrow" style={{ fontSize: 10.5, color: 'var(--ink-faint-solid)' }}>{r.period_start} → {r.period_end}</div>
-          <pre style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--font-body)', fontSize: 13, lineHeight: 1.6, marginTop: 8 }}>{(r.report as any)?.text || ''}</pre>
-        </div>
-      ))}
-    </div>
-  )
-}

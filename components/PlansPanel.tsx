@@ -99,9 +99,9 @@ export default function PlansPanel({
   }
 
   return (
-    <div className="resp-1col" style={{
-      position: 'relative', width: 'min(920px, 100%)', display: 'grid', gridTemplateColumns: '0.82fr 1fr',
-      background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 50px 110px -30px rgba(8,10,40,.6)',
+    <div className="resp-1col plans-modal" style={{
+      position: 'relative', width: 'min(1040px, 100%)', display: 'grid', gridTemplateColumns: '0.82fr 1fr',
+      textAlign: 'left', background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 50px 110px -30px rgba(8,10,40,.6)',
       animation: 'clp-rise-safe .55s cubic-bezier(.16,1,.3,1) both',
     }}>
       {/* LEFT — navy value panel */}

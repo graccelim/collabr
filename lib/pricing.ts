@@ -10,9 +10,12 @@ export const PLAN_PRICING = {
 } as const
 
 // Creator Pro subscription (display only — keep in sync with the Stripe prices).
-export const CREATOR_PRO_PRICING = { monthly: 15, annual: 149 } as const
-export function creatorProAnnualPerMonth(): number {
-  return Math.round(CREATOR_PRO_PRICING.annual / 12)
+// Annual 150 → S$12.50/mo (2 months free vs S$15/mo).
+export const CREATOR_PRO_PRICING = { monthly: 15, annual: 150 } as const
+/** Effective monthly cost when paying annually, formatted (e.g. "12.50" or "12"). */
+export function creatorProAnnualPerMonth(): string {
+  const v = CREATOR_PRO_PRICING.annual / 12
+  return v % 1 === 0 ? String(v) : v.toFixed(2)
 }
 
 // Creator profile Boost (one-time). per_app = 7-day, monthly = 30-day.

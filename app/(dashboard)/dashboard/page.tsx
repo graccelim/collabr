@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState';
 import ProfileCompletion from '@/components/ProfileCompletion';
 import CreatorProCTA from '@/components/CreatorProCTA';
 import { isProActive } from '@/lib/entitlements';
+import { flags } from '@/lib/flags';
 import BrandActivation from '@/components/BrandActivation';
 import {
   ArrowRight,
@@ -21,6 +22,7 @@ import {
   Send,
   Check,
   Zap,
+  BarChart3,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -66,9 +68,9 @@ function AttentionRow({
       style={{
         width: '100%',
         textDecoration: 'none',
-        // Flat soft-amber = "action needed" (semantic, in-system) — no gradient/rail.
-        background: 'var(--warn-tint)',
-        border: '1px solid rgba(178,106,30,.22)',
+        // Warm pastel orange = "action needed" (friendlier than the dull amber).
+        background: '#FFF2E8',
+        border: '1px solid rgba(232,140,54,.30)',
         borderRadius: 'var(--radius)',
         padding: '15px 18px',
         display: 'flex',
@@ -85,7 +87,7 @@ function AttentionRow({
             width: 8,
             height: 8,
             borderRadius: 99,
-            background: 'var(--warn)',
+            background: '#F08A35',
             flexShrink: 0,
           }}
         />
@@ -98,7 +100,7 @@ function AttentionRow({
           display: 'flex',
           alignItems: 'center',
           gap: 5,
-          color: 'var(--warn-deep)',
+          color: '#B45712',
           fontSize: 13.5,
           fontWeight: 600,
           flexShrink: 0,
@@ -849,7 +851,52 @@ async function CreatorDashboard({
         />
       </div>
 
-      {/* Connect-your-payout nudge - sits with the profile nudge, above earnings */}
+      {/* earnings - the one dark anchor */}
+      <div className="money-panel" style={{ marginBottom: 14 }}>
+        <div
+          className="money-rows"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: 20,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div className="money-label">Total earned</div>
+            <div className="money-value">
+              {formatSGD(connectProfile?.total_earned || 0)}
+            </div>
+          </div>
+          <div className="money-secured" style={{ textAlign: 'right' }}>
+            <div className="money-label">Protected now</div>
+            <div
+              className="mono-num"
+              style={{
+                fontSize: 22,
+                fontWeight: 560,
+                marginTop: 10,
+                color: securedNow > 0 ? '#6FCFB2' : 'rgba(255,255,255,.55)',
+              }}
+            >
+              {formatSGD(securedNow)}
+            </div>
+          </div>
+        </div>
+        <div className="money-sub">
+          {creator.collabs_completed || 0} collab
+          {creator.collabs_completed !== 1 ? 's' : ''} completed
+          {creator.rating_count > 0
+            ? ` · ${creator.rating_avg} ★ average rating`
+            : ''}
+          {securedNow > 0
+            ? ' · protected funds release when your work is approved.'
+            : ''}
+        </div>
+      </div>
+
+      {/* Connect-your-payout nudge - sits directly under the earnings card */}
       {needsPayoutSetup && (
         <Link
           href="/earnings"
@@ -904,55 +951,20 @@ async function CreatorDashboard({
         </Link>
       )}
 
-      {/* earnings - the one dark anchor */}
-      <div className="money-panel" style={{ marginBottom: 14 }}>
-        <div
-          className="money-rows"
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: 20,
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <div className="money-label">Total earned</div>
-            <div className="money-value">
-              {formatSGD(connectProfile?.total_earned || 0)}
-            </div>
-          </div>
-          <div className="money-secured" style={{ textAlign: 'right' }}>
-            <div className="money-label">Protected now</div>
-            <div
-              className="mono-num"
-              style={{
-                fontSize: 22,
-                fontWeight: 560,
-                marginTop: 10,
-                color: securedNow > 0 ? '#6FCFB2' : 'rgba(255,255,255,.55)',
-              }}
-            >
-              {formatSGD(securedNow)}
-            </div>
-          </div>
-        </div>
-        <div className="money-sub">
-          {creator.collabs_completed || 0} collab
-          {creator.collabs_completed !== 1 ? 's' : ''} completed
-          {creator.rating_count > 0
-            ? ` · ${creator.rating_avg} ★ average rating`
-            : ''}
-          {securedNow > 0
-            ? ' · protected funds release when your work is approved.'
-            : ''}
-        </div>
+      {/* Mobile has no Creator Studio tab in the bottom nav — surface it here,
+          opposite "View my profile". */}
+      <div className="md:hidden" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
+        <Link href={`/creators/${creator.id}`}
+          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--ink-faint-solid)', textDecoration: 'none' }}>
+          <UserRound size={13} /> View my profile
+        </Link>
+        {flags.creatorStudio && (
+          <Link href="/studio"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)', textDecoration: 'none', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)', borderRadius: 999, padding: '8px 14px' }}>
+            <BarChart3 size={14} /> Creator Studio <ArrowRight size={13} />
+          </Link>
+        )}
       </div>
-
-      <Link href={`/creators/${creator.id}`} className="md:hidden"
-        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 14, fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
-        <UserRound size={13} /> View my profile
-      </Link>
 
       {isEmpty ? (
         <EmptyState
