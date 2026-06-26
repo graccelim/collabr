@@ -17,7 +17,8 @@ import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
 import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
-import PlansCTA from '@/components/PlansCTA';
+import PlusUpgradePanel from '@/components/PlusUpgradePanel';
+import BlurredRoster from '@/components/BlurredRoster';
 import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
 import type { SocialAccount } from '@/types';
@@ -65,16 +66,14 @@ export default async function CreatorsPage({
   // so a brand can upgrade right here, even during beta.
   const plan = resolvePlan(brand);
   if (!plan.isPlus) {
+    // Immersive gate: the (blurred) roster you can't reach yet, with the upgrade
+    // centered on top — like the Collabr Plus Upgrade design.
     return (
-      <div className="max-w-xl mx-auto space-y-5">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-900">Discover creators</h1>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4, lineHeight: 1.5 }}>
-            Search, filter, save and invite the right creators directly — a collabr Plus feature.
-            Your campaigns, applications and payment protection stay free.
-          </p>
+      <div style={{ position: 'relative', minHeight: 'calc(100vh - 150px)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '-8px 0' }}>
+        <BlurredRoster />
+        <div style={{ position: 'relative', zIndex: 1, width: '100%', display: 'flex', justifyContent: 'center', padding: 20 }}>
+          <PlusUpgradePanel beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} />
         </div>
-        <PlansCTA beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} label="Upgrade to Plus" />
       </div>
     );
   }

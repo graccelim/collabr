@@ -13,7 +13,7 @@ export default function PlansCTA({
   beta, analyticsSuite = false, label = 'View plans', variant = 'primary',
 }: { beta: boolean; analyticsSuite?: boolean; label?: string; variant?: 'primary' | 'secondary' }) {
   const [open, setOpen] = useState(false)
-  const [cycle, setCycle] = useState<'annual' | 'monthly'>('annual')
+  const [cycle, setCycle] = useState<'annual' | 'monthly'>('monthly') // monthly first
   const [busy, setBusy] = useState<'pro' | 'plus' | null>(null)
 
   async function checkout(tier: 'pro' | 'plus') {
