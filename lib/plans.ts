@@ -76,24 +76,13 @@ function inFuture(iso: string | null | undefined): boolean {
 }
 
 export function resolvePlan(brand: BrandPlanRow | null): ResolvedPlan {
-  if (isBetaFreePro()) {
-    // Pro free in beta; Plus stays gated unless BETA_FREE_PLUS is set.
-    const plus = isBetaFreePlus()
-    return {
-      tier: plus ? 'plus' : 'pro',
-      state: 'beta_free',
-      isPro: true,
-      isPlus: plus,
-      label: plus ? 'Plus Beta' : 'Pro Beta',
-      proReason: 'beta',
-    }
-  }
-
   const state = (brand?.subscription_status as SubscriptionState) || 'beta_free'
   const planTier = (brand?.plan as PlanTier) || 'free'
   const paidTier = planTier === 'pro' || planTier === 'plus'
 
-  // Active subscription, or past_due while Stripe retries payment.
+  // An ACTIVE paid subscription is honored REGARDLESS of beta — so a brand that
+  // actually paid for Plus gets Plus even while Pro is complimentary in beta.
+  // (Pro is free in beta + its checkout 409s, so a paid 'pro' here is benign.)
   if (paidTier && (state === 'active' || state === 'past_due')) {
     return {
       tier: planTier, state, isPro: true, isPlus: planTier === 'plus',
@@ -106,6 +95,19 @@ export function resolvePlan(brand: BrandPlanRow | null): ResolvedPlan {
     return {
       tier: planTier, state, isPro: true, isPlus: planTier === 'plus',
       label: planTier === 'plus' ? 'Plus' : 'Pro', proReason: 'cancelled_until_period_end',
+    }
+  }
+
+  // Beta: Pro is free for everyone; Plus stays gated unless BETA_FREE_PLUS is set.
+  if (isBetaFreePro()) {
+    const plus = isBetaFreePlus()
+    return {
+      tier: plus ? 'plus' : 'pro',
+      state: 'beta_free',
+      isPro: true,
+      isPlus: plus,
+      label: plus ? 'Plus Beta' : 'Pro Beta',
+      proReason: 'beta',
     }
   }
 

@@ -32,6 +32,21 @@ describe('beta mode (BETA_FREE_PRO)', () => {
     process.env.BETA_FREE_PRO = 'true'
     expect(proGateResponse(resolvePlan({ plan: 'free', subscription_status: 'beta_free' }), 'X')).toBeNull()
   })
+
+  it('honors a PAID Plus subscription even during beta (they paid → they get Plus)', () => {
+    process.env.BETA_FREE_PRO = 'true'
+    const plan = resolvePlan({ plan: 'plus', subscription_status: 'active' })
+    expect(plan.isPlus).toBe(true)
+    expect(plan.label).toBe('Plus')
+    expect(plan.proReason).toBe('subscription')
+  })
+
+  it('a beta brand WITHOUT a paid sub stays Pro Beta with Plus gated', () => {
+    process.env.BETA_FREE_PRO = 'true'
+    const plan = resolvePlan({ plan: 'free', subscription_status: 'beta_free' })
+    expect(plan.isPlus).toBe(false)
+    expect(plan.label).toBe('Pro Beta')
+  })
 })
 
 describe('paid mode resolution', () => {
