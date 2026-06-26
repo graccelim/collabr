@@ -15,7 +15,9 @@ export interface InsightPost {
   postedAt: Date | null
   durationSec: number | null
   category: string | null
+  subcategory: string | null
   style: string | null
+  format: string | null
   views: number | null
   likes: number | null
   comments: number | null
@@ -155,11 +157,50 @@ export function computePlatformInsights(
   const style = bestBy(posts, (p) => p.style, baseline)
   if (style) insights.push({
     key: 'best_style',
-    title: `“${style.key}” is your strongest format`,
+    title: `The “${style.key}” style works best for you`,
     why: 'This content style outperforms your own baseline.',
     evidence: `${style.key}: ${pct(style.value)} vs ${pct(baseline)} baseline (${style.sample} posts).`,
     recommendation: `Use the “${style.key}” style more often.`,
     confidence: conf(style.sample),
+  })
+
+  const sub = bestBy(posts, (p) => p.subcategory, baseline)
+  if (sub) insights.push({
+    key: 'best_subcategory',
+    title: `“${sub.key}” is your strongest topic`,
+    why: 'This specific topic beats your own average engagement.',
+    evidence: `${sub.key}: ${pct(sub.value)} vs ${pct(baseline)} baseline (${sub.sample} posts).`,
+    recommendation: `Double down on “${sub.key}”.`,
+    confidence: conf(sub.sample),
+  })
+
+  const fmt2 = bestBy(posts, (p) => p.format, baseline)
+  if (fmt2) insights.push({
+    key: 'best_format',
+    title: `${fmt2.key} performs best for you here`,
+    why: 'This content format suits your audience on this platform.',
+    evidence: `${fmt2.key}: ${pct(fmt2.value)} vs ${pct(baseline)} baseline (${fmt2.sample} posts).`,
+    recommendation: `Prioritise ${fmt2.key}.`,
+    confidence: conf(fmt2.sample),
+  })
+
+  // Emerging / declining categories (time-split; needs enough history in each).
+  const mom = categoryMomentum(posts)
+  for (const e of mom.emerging) insights.push({
+    key: 'emerging_category',
+    title: `“${e.key}” is gaining momentum`,
+    why: 'This category is improving versus your earlier posts in it.',
+    evidence: `${e.key}: ${pct(e.recent)} recently vs ${pct(e.older)} earlier.`,
+    recommendation: `Lean into “${e.key}” while it’s rising.`,
+    confidence: e.confidence,
+  })
+  for (const dn of mom.declining) insights.push({
+    key: 'declining_category',
+    title: `“${dn.key}” is cooling off`,
+    why: 'This category is performing worse than it used to for you.',
+    evidence: `${dn.key}: ${pct(dn.recent)} recently vs ${pct(dn.older)} earlier.`,
+    recommendation: `Refresh your “${dn.key}” angle, or rebalance toward what’s working.`,
+    confidence: dn.confidence,
   })
 
   // 4. Outperformers vs own average
@@ -233,6 +274,33 @@ export function computePlatformInsights(
 
   const dataConfidence: Confidence = posts.length >= 20 ? 'high' : posts.length >= 8 ? 'medium' : 'low'
   return { platform, postCount: posts.length, overview, trend, insights, strongest, dataConfidence }
+}
+
+// Per-category momentum: compare each category's recent vs earlier engagement
+// (split at the median post date). Confidence-gated; needs ≥3 posts per half.
+function categoryMomentum(posts: InsightPost[]): {
+  emerging: { key: string; recent: number; older: number; confidence: Confidence }[]
+  declining: { key: string; recent: number; older: number; confidence: Confidence }[]
+} {
+  const emerging: { key: string; recent: number; older: number; confidence: Confidence }[] = []
+  const declining: { key: string; recent: number; older: number; confidence: Confidence }[] = []
+  const dated = posts.filter((p) => p.postedAt && p.category)
+  if (dated.length < 8) return { emerging, declining }
+  const times = dated.map((p) => p.postedAt!.getTime()).sort((a, b) => a - b)
+  const mid = times[Math.floor(times.length / 2)]
+  const cats = Array.from(new Set(dated.map((p) => p.category as string)))
+  for (const cat of cats) {
+    const older = dated.filter((p) => p.category === cat && p.postedAt!.getTime() < mid)
+    const recent = dated.filter((p) => p.category === cat && p.postedAt!.getTime() >= mid)
+    if (older.length < 3 || recent.length < 3) continue
+    const o = avg(older.map(rate).filter((x): x is number => x != null))
+    const r = avg(recent.map(rate).filter((x): x is number => x != null))
+    if (o == null || r == null || o <= 0) continue
+    const c = conf(Math.min(older.length, recent.length))
+    if (r > o * 1.15) emerging.push({ key: cat, recent: r, older: o, confidence: c })
+    else if (r < o * 0.85) declining.push({ key: cat, recent: r, older: o, confidence: c })
+  }
+  return { emerging, declining }
 }
 
 function topCount(xs: string[]): string | null {

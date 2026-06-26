@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { computePlatformInsights, type InsightPost } from '@/lib/analytics/insights'
 
 function post(p: Partial<InsightPost>): InsightPost {
-  return { postedAt: null, durationSec: null, category: null, style: null, views: 1000, likes: 0, comments: 0, shares: 0, saves: 0, reach: null, ...p }
+  return { postedAt: null, durationSec: null, category: null, subcategory: null, style: null, format: null, views: 1000, likes: 0, comments: 0, shares: 0, saves: 0, reach: null, ...p }
 }
 
 describe('computePlatformInsights', () => {

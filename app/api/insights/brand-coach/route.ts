@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { flags } from '@/lib/flags'
 import { aiConfigured } from '@/lib/ai/client'
 import { isCreatorProActive } from '@/lib/creator-pro'
-import { brandCoachInviteAnalysis } from '@/lib/ai/service'
+import { collaborationAnalysis } from '@/lib/ai/service'
 import { checkRateLimit } from '@/lib/rate-limit'
 
-// AI Brand Coach — analyses a campaign invite/collab for the creator. Pro-gated,
-// flag-gated, fail-safe. Cached per (creator, collab) in ai_invite_analyses.
+// Collaboration analysis — grounded in the campaign's own performance + the
+// creator's platform insights (not "coaching"). Pro/flag/AI-gated, fail-safe.
+// Cached per (creator, collab) in ai_invite_analyses.
 export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -32,22 +33,28 @@ export async function POST(req: NextRequest) {
 
   // Ownership: the collab must belong to this creator.
   const { data: collab } = await admin.from('collabs')
-    .select('id, creator_id, agreed_rate, campaigns(title, brief, deliverable_types)')
+    .select('id, creator_id, campaign_id, campaigns(title)')
     .eq('id', collabId).maybeSingle()
   if (!collab || collab.creator_id !== creator.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const { data: dna } = await supabase.from('content_dna').select('*').eq('creator_id', creator.id).maybeSingle()
-  if (!dna) {
-    return NextResponse.json({ analysis: 'Not enough comparable history yet. Connect your accounts and complete a few collaborations for tailored advice.' })
+  // Ground the analysis in deterministic data: the campaign's own performance +
+  // the creator's per-platform winning patterns.
+  const [{ data: rollup }, { data: platformInsights }] = await Promise.all([
+    collab.campaign_id ? admin.from('campaign_rollups').select('totals, derived, by_platform, top_post').eq('campaign_id', collab.campaign_id).maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from('creator_platform_insights').select('platform, data').eq('creator_id', creator.id),
+  ])
+  if (!rollup && !(platformInsights?.length)) {
+    return NextResponse.json({ analysis: 'Not enough data yet. Once this campaign’s posts sync (and your accounts are connected), a grounded analysis appears here.' })
   }
 
   const campaign = (collab.campaigns as any) || {}
   try {
-    const analysis = await brandCoachInviteAnalysis({
-      campaign: { title: campaign.title, brief: campaign.brief, deliverables: campaign.deliverable_types, budgetCents: collab.agreed_rate },
-      contentDna: dna,
+    const analysis = await collaborationAnalysis({
+      campaign: { title: campaign.title },
+      performance: rollup ?? undefined,
+      platformInsights: (platformInsights ?? []).map((p) => ({ platform: p.platform, insights: (p.data as any)?.insights })),
     })
     await admin.from('ai_invite_analyses').upsert(
       { creator_id: creator.id, collab_id: collabId, model: 'claude-sonnet-4-6', analysis: { text: analysis } },

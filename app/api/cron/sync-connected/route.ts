@@ -5,6 +5,7 @@ import { flags } from '@/lib/flags'
 import { getAdapter, analyticsConfigured } from '@/lib/analytics/adapters'
 import { getAccountAuth } from '@/lib/analytics/tokens'
 import { matchPostToCollab } from '@/lib/analytics/match'
+import { formatFromMetadata } from '@/lib/analytics/taxonomy'
 import type { Platform } from '@/lib/analytics/adapters/types'
 
 // Nightly Connected sync (first-party APIs, no Phyllo). ONLY Pro-active creators;
@@ -65,10 +66,14 @@ export async function GET(req: NextRequest) {
       for (const p of posts) {
         if (!p.externalId) continue
         const matchedCollab = collabUrls.length ? matchPostToCollab(p.url, collabUrls) : null
+        // NOTE: we do NOT write category/subcategory/style here — those are owned
+        // by the classification step, so nightly re-syncs never clobber them.
         const row: Record<string, unknown> = {
           account_id: a.id, creator_id: a.creator_id, platform: p.platform,
           external_id: p.externalId, url: p.url, posted_at: p.postedAt?.toISOString() ?? null,
-          duration_sec: p.durationSec ?? null, category: p.category ?? null, style: p.style ?? null,
+          duration_sec: p.durationSec ?? null,
+          title: p.title ?? null, caption: p.caption ?? null, hashtags: p.hashtags ?? null,
+          format: formatFromMetadata(p.mediaType ?? null, p.durationSec ?? null),
         }
         if (matchedCollab) row.collab_id = matchedCollab // never clobber an existing link with null
         const { data: post } = await admin.from('content_posts').upsert(row, { onConflict: 'account_id,external_id' }).select('id').single()

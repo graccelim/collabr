@@ -28,19 +28,18 @@ export async function GET(req: NextRequest) {
 
   let generated = 0
   for (const creatorId of active) {
-    const [{ data: rollup }, { data: dna }] = await Promise.all([
-      admin.from('creator_rollups').select('*').eq('creator_id', creatorId).maybeSingle(),
-      admin.from('content_dna').select('*').eq('creator_id', creatorId).maybeSingle(),
-    ])
-    if (!rollup && !dna) continue
+    const { data: pi } = await admin.from('creator_platform_insights')
+      .select('platform, data').eq('creator_id', creatorId)
+    if (!pi?.length) continue
 
-    const inputHash = crypto.createHash('sha256').update(JSON.stringify({ rollup, dna })).digest('hex')
+    const platforms = pi.map((p) => ({ platform: p.platform, insights: (p.data as any)?.insights ?? [] }))
+    const inputHash = crypto.createHash('sha256').update(JSON.stringify(platforms)).digest('hex')
     const { data: existing } = await admin.from('ai_reports')
       .select('input_hash').eq('creator_id', creatorId).eq('period_start', periodStart).eq('period_end', periodEnd).maybeSingle()
     if (existing?.input_hash === inputHash) continue // unchanged — skip (cost control)
 
     try {
-      const text = await weeklyReport({ contentDna: dna, rollup })
+      const text = await weeklyReport({ periodStart, periodEnd, platforms })
       await admin.from('ai_reports').upsert(
         { creator_id: creatorId, period_start: periodStart, period_end: periodEnd, model: 'claude-haiku-4-5', report: { text }, input_hash: inputHash },
         { onConflict: 'creator_id,period_start,period_end' },

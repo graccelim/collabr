@@ -58,8 +58,12 @@ export class YouTubeAdapter implements PlatformAdapter {
       likes: num(v?.statistics?.likeCount),
       comments: num(v?.statistics?.commentCount),
       shares: null, saves: null, reach: null,
-      category: v?.snippet?.categoryId ?? null, style: null,
+      category: null, style: null,
       durationSec: isoDuration(v?.contentDetails?.duration),
+      title: v?.snippet?.title ?? null,
+      caption: v?.snippet?.description ?? null,
+      hashtags: Array.isArray(v?.snippet?.tags) ? v.snippet.tags.slice(0, 20) : null,
+      mediaType: 'video',
     })).filter((p: NormalizedPost) => p.externalId)
   }
 }

@@ -3,14 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { isProActive } from '@/lib/entitlements'
 import { computeCreatorRollup, computeCampaignRollup, type RollupPost } from '@/lib/analytics/rollups'
-import { computeContentDna } from '@/lib/analytics/contentDna'
 import { computePlatformInsights, type InsightPost } from '@/lib/analytics/insights'
 import { aiConfigured } from '@/lib/ai/client'
 import { narratePlatformInsights } from '@/lib/ai/service'
-import type { NormalizedPost, Platform } from '@/lib/analytics/adapters/types'
+import type { Platform } from '@/lib/analytics/adapters/types'
 import { flags } from '@/lib/flags'
 
-// Nightly: recompute creator_rollups + content_dna from synced analytics — ONLY
+// Nightly: recompute creator_rollups + per-platform creator insights — ONLY
 // for Pro-active creators (lapsed Pro = frozen = skipped, history retained).
 // Deterministic; reads normalized tables, never a provider. Safe no-op until the
 // Connected pipeline (Phyllo sync) has written snapshots.
@@ -37,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const { data: posts } = await admin
       .from('content_posts')
-      .select('id, platform, url, posted_at, category, style, duration_sec')
+      .select('id, platform, url, posted_at, category, subcategory, style, format, duration_sec')
       .eq('creator_id', creatorId)
     if (!posts?.length) continue
 
@@ -59,19 +58,7 @@ export async function GET(req: NextRequest) {
         shares: s?.shares ?? null, saves: s?.saves ?? null, reach: s?.reach ?? null,
       }
     })
-    const dnaPosts: NormalizedPost[] = posts.map((p) => {
-      const s = latest.get(p.id)
-      return {
-        externalId: p.id, platform: p.platform as Platform, url: p.url,
-        postedAt: p.posted_at ? new Date(p.posted_at) : null,
-        views: s?.views ?? null, likes: s?.likes ?? null, comments: s?.comments ?? null,
-        shares: s?.shares ?? null, saves: s?.saves ?? null, reach: s?.reach ?? null,
-        category: p.category, style: p.style, durationSec: p.duration_sec,
-      }
-    })
-
     const rollup = computeCreatorRollup(rollupPosts)
-    const dna = computeContentDna(dnaPosts)
 
     // Historical trend: total cumulative views across posts per snapshot date.
     const trendMap = new Map<string, number>()
@@ -81,20 +68,13 @@ export async function GET(req: NextRequest) {
     }
     const trends = Array.from(trendMap.entries()).sort().map(([date, views]) => ({ date, views }))
 
+    // creator_rollups = the brand-facing verified aggregate (per-platform insights
+    // are the creator-facing source of truth, written below).
     await admin.from('creator_rollups').upsert({
       creator_id: creatorId, time_window: '90d',
       totals: rollup.totals, averages: rollup.averages, by_platform: rollup.byPlatform,
       best_posts: rollup.bestPosts, worst_posts: rollup.worstPosts, trends,
       computed_at: new Date().toISOString(),
-    }, { onConflict: 'creator_id' })
-
-    await admin.from('content_dna').upsert({
-      creator_id: creatorId, time_window: dna.window,
-      best_categories: dna.bestCategories, best_platforms: dna.bestPlatforms,
-      averages: dna.averages, best_video_length: dna.bestVideoLength,
-      best_posting_days: dna.bestPostingDays, best_posting_times: dna.bestPostingTimes,
-      best_content_styles: dna.bestContentStyles, posting_consistency: dna.postingConsistency,
-      confidence: dna.confidence, computed_at: new Date().toISOString(),
     }, { onConflict: 'creator_id' })
 
     await admin.from('creator_profiles').update({
@@ -113,12 +93,17 @@ export async function GET(req: NextRequest) {
       const m = ptrend.get(plat) ?? new Map<string, number>()
       m.set(day, (m.get(day) || 0) + (s.views || 0)); ptrend.set(plat, m)
     }
-    const platforms = Array.from(new Set(dnaPosts.map((p) => p.platform)))
+    const platforms = Array.from(new Set(posts.map((p) => p.platform)))
     for (const platform of platforms) {
-      const pPosts: InsightPost[] = dnaPosts.filter((p) => p.platform === platform).map((p) => ({
-        postedAt: p.postedAt, durationSec: p.durationSec ?? null, category: p.category ?? null, style: p.style ?? null,
-        views: p.views, likes: p.likes, comments: p.comments, shares: p.shares, saves: p.saves, reach: p.reach,
-      }))
+      const pPosts: InsightPost[] = posts.filter((p) => p.platform === platform).map((p) => {
+        const s = latest.get(p.id)
+        return {
+          postedAt: p.posted_at ? new Date(p.posted_at) : null, durationSec: p.duration_sec ?? null,
+          category: p.category ?? null, subcategory: p.subcategory ?? null, style: p.style ?? null, format: p.format ?? null,
+          views: s?.views ?? null, likes: s?.likes ?? null, comments: s?.comments ?? null,
+          shares: s?.shares ?? null, saves: s?.saves ?? null, reach: s?.reach ?? null,
+        }
+      })
       const trend = Array.from((ptrend.get(platform) ?? new Map()).entries())
         .sort().map(([date, views]) => ({ date, views: views as number }))
       const data = computePlatformInsights(platform as Platform, pPosts, trend)

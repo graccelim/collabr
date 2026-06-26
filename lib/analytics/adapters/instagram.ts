@@ -31,7 +31,7 @@ export class InstagramAdapter implements PlatformAdapter {
     const token = auth.accessToken
     if (!token || !igUserId) return []
     const d = await get(`${igUserId}/media`, {
-      fields: 'id,permalink,timestamp,media_type,like_count,comments_count',
+      fields: 'id,permalink,timestamp,media_type,like_count,comments_count,caption',
       limit: '50',
     }, token)
     const out: NormalizedPost[] = []
@@ -54,7 +54,10 @@ export class InstagramAdapter implements PlatformAdapter {
         postedAt: m?.timestamp ? new Date(m.timestamp) : null,
         views: plays, likes: num(m?.like_count), comments: num(m?.comments_count),
         shares: null, saves: saved, reach,
-        category: null, style: m?.media_type ?? null, durationSec: null,
+        category: null, style: null, durationSec: null,
+        caption: m?.caption ?? null,
+        hashtags: typeof m?.caption === 'string' ? (m.caption.match(/#[\w]+/g) || []).slice(0, 20) : null,
+        mediaType: m?.media_type ?? null,
       })
     }
     return out.filter((p) => p.externalId)

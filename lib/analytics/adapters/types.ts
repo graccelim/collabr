@@ -48,6 +48,11 @@ export interface NormalizedPost {
   category?: string | null
   style?: string | null
   durationSec?: number | null
+  // Creator-authored metadata — classification INPUT only (never performance).
+  title?: string | null
+  caption?: string | null
+  hashtags?: string[] | null
+  mediaType?: string | null
 }
 
 export interface PlatformAdapter {

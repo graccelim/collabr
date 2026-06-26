@@ -1,6 +1,6 @@
 import { getAnthropic, AI_MODELS } from './client'
 import { enforceAiText } from './guard'
-import { GROWTH_COACH_SYSTEM, PLATFORM_INSIGHTS_SYSTEM, BRAND_COACH_SYSTEM, CONTENT_LAB_SYSTEM, CAMPAIGN_RECAP_SYSTEM } from './prompts'
+import { PLATFORM_INSIGHTS_SYSTEM, REPORT_SYSTEM, COLLAB_ANALYSIS_SYSTEM, CONTENT_LAB_SYSTEM, CAMPAIGN_RECAP_SYSTEM } from './prompts'
 import type Anthropic from '@anthropic-ai/sdk'
 
 // All functions: deterministic data in → Claude explains → guard enforces. They
@@ -20,21 +20,6 @@ async function run(system: string, userContent: string, model: string, maxTokens
     messages: [{ role: 'user', content: userContent }],
   })
   return enforceAiText(textOf(msg))
-}
-
-export interface CoachContext {
-  contentDna: unknown
-  rollup: unknown
-}
-
-export function growthSummary(ctx: CoachContext): Promise<string> {
-  return run(
-    GROWTH_COACH_SYSTEM,
-    `Here is the creator's own Content DNA and rollup. Write a short growth summary: what improved or declined ` +
-      `vs their own prior period, their strongest platform and content style, and 2–3 next actions. ` +
-      `Data:\n${JSON.stringify(ctx)}`,
-    AI_MODELS.batch,
-  )
 }
 
 // AI NARRATOR (not a tool): explains the deterministic per-platform insights.
@@ -65,17 +50,17 @@ export function contentLab(input: ContentLabInput): Promise<string> {
   )
 }
 
-export interface BrandCoachInput {
-  campaign: { title?: string; brief?: string; deliverables?: unknown; budgetCents?: number }
-  contentDna: unknown
-  ownHistory?: unknown // the creator's own past collabs/posts
+// Collaboration analysis (grounded in deterministic data, not "coaching").
+export interface CollabAnalysisInput {
+  campaign: { title?: string | null }
+  performance?: unknown // the campaign's own deterministic rollup, if any
+  platformInsights?: unknown // the creator's per-platform winning patterns
 }
-export function brandCoachInviteAnalysis(input: BrandCoachInput): Promise<string> {
+export function collaborationAnalysis(input: CollabAnalysisInput): Promise<string> {
   return run(
-    BRAND_COACH_SYSTEM,
-    `A brand invited this creator to a campaign. Using ONLY the creator's own Content DNA and history, ` +
-      `explain fit, portfolio gaps, ways to improve selection odds, which of their own posts to showcase, ` +
-      `negotiation points and risks. Guide qualitatively — do not forecast numbers.\n${JSON.stringify(input)}`,
+    COLLAB_ANALYSIS_SYSTEM,
+    `Analyse this completed collaboration using only the creator's own deterministic data — explain why it ` +
+      `performed as it did, which patterns contributed, what to repeat, and what to improve:\n${JSON.stringify(input)}`,
     AI_MODELS.interactive,
   )
 }
@@ -94,11 +79,13 @@ export function campaignRecap(input: CampaignRecapInput): Promise<string> {
   )
 }
 
-export function weeklyReport(ctx: CoachContext): Promise<string> {
+// Weekly/monthly report from the deterministic per-platform insights.
+export interface ReportInput { periodStart: string; periodEnd: string; platforms: unknown }
+export function weeklyReport(input: ReportInput): Promise<string> {
   return run(
-    GROWTH_COACH_SYSTEM,
-    `Write this week's report from the creator's own data: top posts, growth, what worked / didn't, best ` +
-      `time to post, and next actions. Data:\n${JSON.stringify(ctx)}`,
+    REPORT_SYSTEM,
+    `Write the report for ${input.periodStart} → ${input.periodEnd} from these per-platform insights ` +
+      `(keep platforms separate):\n${JSON.stringify(input.platforms)}`,
     AI_MODELS.batch,
     1600,
   )

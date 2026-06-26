@@ -34,7 +34,7 @@ export class TikTokAdapter implements PlatformAdapter {
   async fetchPosts(auth: AdapterAuth, _openId: string | null, _since: Date): Promise<NormalizedPost[]> {
     const token = auth.accessToken
     if (!token) return []
-    const fields = ['id', 'create_time', 'share_url', 'view_count', 'like_count', 'comment_count', 'share_count', 'duration']
+    const fields = ['id', 'create_time', 'share_url', 'view_count', 'like_count', 'comment_count', 'share_count', 'duration', 'title', 'video_description']
     const d = await post('video/list/', fields, token, { max_count: 20 })
     return (d?.data?.videos ?? []).map((v: any): NormalizedPost => ({
       externalId: String(v?.id ?? ''),
@@ -44,6 +44,11 @@ export class TikTokAdapter implements PlatformAdapter {
       views: num(v?.view_count), likes: num(v?.like_count), comments: num(v?.comment_count),
       shares: num(v?.share_count), saves: null, reach: null,
       category: null, style: null, durationSec: num(v?.duration),
+      title: v?.title ?? null,
+      caption: v?.video_description ?? v?.title ?? null,
+      hashtags: typeof (v?.video_description ?? v?.title) === 'string'
+        ? ((v.video_description ?? v.title).match(/#[\w]+/g) || []).slice(0, 20) : null,
+      mediaType: 'video',
     })).filter((p: NormalizedPost) => p.externalId)
   }
 }
