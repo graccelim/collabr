@@ -1,6 +1,6 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe, brandProPriceIds, brandPlusPriceIds } from '@/lib/stripe'
+import { stripe, brandProPriceIds, brandPlusPriceIds, brandPlusBetaPriceIds } from '@/lib/stripe'
 import { isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans'
 import { getBrandStripeCustomerId, setBrandStripeCustomer } from '@/lib/brand-billing'
 
@@ -25,7 +25,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const priceId = (tier === 'plus' ? brandPlusPriceIds() : brandProPriceIds())[cycle]
+  // Plus is 50% off during beta (beta price IDs), falling back to full price.
+  const priceId = tier === 'plus'
+    ? ((isBetaFreePro() ? brandPlusBetaPriceIds()[cycle] : null) || brandPlusPriceIds()[cycle])
+    : brandProPriceIds()[cycle]
   if (!priceId) {
     console.error(`[BILLING] Brand ${tier} ${cycle} price is not configured`)
     return NextResponse.json({ error: 'This plan is not available yet.' }, { status: 503 })

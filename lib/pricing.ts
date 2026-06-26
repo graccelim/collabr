@@ -12,6 +12,12 @@ export const PLAN_PRICING = {
 // Creator profile Boost (one-time). per_app = 7-day, monthly = 30-day.
 export const BOOST_PRICING = { per_app: 5, monthly: 20 } as const
 
+// Brand Plus is 50% off during beta (launch incentive). Pro is free in beta.
+export const BETA_PLUS_DISCOUNT = 0.5
+export function betaPlusPrice(cycle: 'monthly' | 'annual'): number {
+  return Math.round(PLAN_PRICING.plus[cycle] * BETA_PLUS_DISCOUNT)
+}
+
 export type PricedTier = keyof typeof PLAN_PRICING
 
 /** Rounded effective monthly cost when paying annually (for "≈ S$x/mo"). */

@@ -5,7 +5,7 @@ import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLUS_DISCOVERY_FEATURES, PLUS
 import { flags } from '@/lib/flags'
 import { getBrandStripeCustomerId } from '@/lib/brand-billing'
 import BillingActions from '@/components/BillingActions'
-import PlusUpgradeCard from '@/components/PlusUpgradeCard'
+import PlansCTA from '@/components/PlansCTA'
 import { CURRENCY, PLAN_PRICING } from '@/lib/pricing'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
@@ -159,8 +159,18 @@ export default async function BillingPage() {
         )}
       </div>
 
-      {/* Brand Plus upsell — shown until the brand is on Plus */}
-      {!plan.isPlus && <PlusUpgradeCard analyticsSuite={flags.analyticsSuite} />}
+      {/* Upgrade — shown until the brand is on Plus */}
+      {!plan.isPlus && (
+        <div className="card" style={{ padding: 18 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Do more with Collabr</h3>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
+            {beta
+              ? 'Plus is 50% off during beta — unlock Creator Discovery, direct invites and analytics.'
+              : 'Upgrade for unlimited barter campaigns (Pro), or Creator Discovery + analytics (Plus).'}
+          </p>
+          <PlansCTA beta={beta} analyticsSuite={flags.analyticsSuite} label="View plans" />
+        </div>
+      )}
 
       {/* Spend summary */}
       <div className="grid grid-cols-2 gap-4">

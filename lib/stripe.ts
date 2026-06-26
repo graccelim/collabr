@@ -26,6 +26,15 @@ export function brandPlusPriceIds() {
   }
 }
 
+// Beta-only 50%-off Plus prices (used while BETA_FREE_PRO is on). Optional —
+// the checkout falls back to the full-price IDs when these aren't configured.
+export function brandPlusBetaPriceIds() {
+  return {
+    monthly: process.env.STRIPE_BRAND_PLUS_BETA_PRICE_MONTHLY || null,
+    annual: process.env.STRIPE_BRAND_PLUS_BETA_PRICE_ANNUAL || null,
+  }
+}
+
 // ── Creator Boost (paid placement) configuration ────────────────────────────
 // Boost is a PAID feature. It is enabled only when Stripe is wired AND at least
 // one boost Price ID is configured. When disabled, the Boost UI is hidden and

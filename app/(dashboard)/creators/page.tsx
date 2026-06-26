@@ -16,8 +16,8 @@ import { AVAILABILITY_LABELS, type AvailabilityStatus } from '@/lib/profiles';
 import CreatorFilters from '@/components/CreatorFilters';
 import SaveCreatorButton from '@/components/SaveCreatorButton';
 import EmptyState from '@/components/EmptyState';
-import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans';
-import PlusUpgradeCard from '@/components/PlusUpgradeCard';
+import { resolvePlan, isBetaFreePro, PLAN_COLUMNS } from '@/lib/plans';
+import PlansCTA from '@/components/PlansCTA';
 import { flags } from '@/lib/flags';
 import { Users, Star, Sparkles } from 'lucide-react';
 import type { SocialAccount } from '@/types';
@@ -74,7 +74,7 @@ export default async function CreatorsPage({
             Your campaigns, applications and payment protection stay free.
           </p>
         </div>
-        <PlusUpgradeCard analyticsSuite={flags.analyticsSuite} />
+        <PlansCTA beta={isBetaFreePro()} analyticsSuite={flags.analyticsSuite} label="Upgrade to Plus" />
       </div>
     );
   }
