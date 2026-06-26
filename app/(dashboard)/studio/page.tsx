@@ -5,6 +5,7 @@ import { studioAccess } from '@/lib/entitlements'
 import { flags } from '@/lib/flags'
 import CreatorProPanel from '@/components/CreatorProPanel'
 import StudioNav from '@/components/studio/StudioNav'
+import BackButton from '@/components/BackButton'
 import InsightsPanel from '@/components/studio/InsightsPanel'
 import ConnectAccounts from '@/components/studio/ConnectAccounts'
 import ContentLab from '@/components/studio/ContentLab'
@@ -31,6 +32,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
   if (access === 'locked' || !creator) {
     return (
       <div className="max-w-3xl mx-auto space-y-5">
+        <BackButton />
         <header>
           <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Creator Studio</h1>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>
@@ -63,6 +65,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
+      <BackButton />
       <header>
         <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Creator Studio</h1>
         <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>Your private growth workspace.</p>

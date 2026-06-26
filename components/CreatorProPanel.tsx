@@ -135,7 +135,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
           </div>
           <div style={{ fontSize: 12.5, color: '#8A909C', marginBottom: 18 }}>{sub}</div>
 
-          <button type="button" onClick={upgrade} disabled={busy}
+          <button type="button" className="btn-sheen" onClick={upgrade} disabled={busy}
             onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(.985)' }}
             onMouseUp={(e) => { e.currentTarget.style.transform = '' }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}

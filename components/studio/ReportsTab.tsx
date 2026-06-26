@@ -38,6 +38,7 @@ const beforeColon = (s: string) => (s || '').split(':')[0].trim()
 
 export default function ReportsTab({ platformInsights, reports }: { platformInsights: Row[]; reports: Report[] }) {
   const [open, setOpen] = useState<number | null>(null)
+  const [metric, setMetric] = useState(0)
 
   const all = platformInsights.flatMap((r) => ((r.data?.insights as Insight[]) || []).map((i) => ({ ...i, platform: r.platform })))
   const hasData = all.length > 0
@@ -112,14 +113,19 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
             </div>
           </div>
           <div style={{ padding: '20px 24px' }}>
-            <div className="resp-stats" style={{ display: 'flex', gap: 12, marginBottom: 22 }}>
+            {/* metric switcher → selected metric shown full-width (no cramped 3-up) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', background: '#F1F3F7', borderRadius: 11, padding: 4, marginBottom: 12 }}>
               {tiles.map((t, i) => (
-                <div key={i} style={{ flex: 1, minWidth: 0, padding: '15px 16px', background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 13 }}>
-                  <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: MUTED, marginBottom: 8 }}>{t.label}</div>
-                  <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 23, fontWeight: 700, letterSpacing: '-.02em', color: t.color }}>{t.value}</div>
-                  <div style={{ fontSize: 11.5, color: '#A2A8B6', marginTop: 3 }}>{t.sub}</div>
-                </div>
+                <button key={i} type="button" onClick={() => setMetric(i)}
+                  style={{ border: 'none', cursor: 'pointer', borderRadius: 8, padding: '8px 6px', fontSize: 12.5, fontWeight: 600, background: i === metric ? '#fff' : 'transparent', color: i === metric ? '#0E1016' : '#8A909C', boxShadow: i === metric ? '0 1px 3px rgba(14,16,22,.12)' : 'none' }}>
+                  {t.label}
+                </button>
               ))}
+            </div>
+            <div style={{ padding: '18px 20px', background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 13, marginBottom: 22 }}>
+              <div style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: MUTED, marginBottom: 8 }}>{tiles[metric].label}</div>
+              <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 30, fontWeight: 700, letterSpacing: '-.02em', color: tiles[metric].color, lineHeight: 1.1 }}>{tiles[metric].value}</div>
+              <div style={{ fontSize: 12, color: '#A2A8B6', marginTop: 4 }}>{tiles[metric].sub}</div>
             </div>
 
             {moves.length > 0 && <>

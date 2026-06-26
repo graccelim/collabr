@@ -36,7 +36,7 @@ function Price({ amount, free = false, struck, period, note }: { amount: number;
     <div style={{ marginBottom: 12 }}>
       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, flexWrap: 'wrap' }}>
         {struck && <span style={{ textDecoration: 'line-through', color: '#B4B9C4', fontSize: 15 }}>{struck}</span>}
-        <span style={{ fontFamily: 'var(--font-money)', fontWeight: 800, fontSize: 30, letterSpacing: '-.03em', color: '#0E1016', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{free ? 'Free' : `${CURRENCY}${v}`}</span>
+        <span style={{ fontFamily: 'var(--font-money)', fontWeight: 800, fontSize: 38, letterSpacing: '-.03em', color: '#0E1016', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{free ? 'Free' : `${CURRENCY}${v}`}</span>
         {period && !free && <span style={{ fontSize: 13, color: '#8A909C' }}>{period}</span>}
       </div>
       {note && <div style={{ fontSize: 12, fontWeight: 600, color: '#157A55', marginTop: 4 }}>{note}</div>}
@@ -48,15 +48,15 @@ function TierCard({ name, tagline, benefits, price, cta, featured = false }: {
   name: string; tagline: string; benefits: string[]; price: React.ReactNode; cta: React.ReactNode; featured?: boolean
 }) {
   return (
-    <div style={{ position: 'relative', border: featured ? '1.5px solid #5B53E0' : '1px solid rgba(14,16,22,.1)', borderRadius: 14, padding: 16, background: featured ? 'linear-gradient(170deg,#F4F3FF,#fff 60%)' : '#fff', display: 'flex', flexDirection: 'column' }}>
-      {featured && <span style={{ position: 'absolute', top: -10, right: 12, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: '#fff', background: '#5B53E0', padding: '2px 8px', borderRadius: 999 }}>Most popular</span>}
-      <div style={{ fontWeight: 700, fontSize: 15, color: '#0E1016' }}>{name}</div>
-      <div style={{ fontSize: 12, color: '#8A909C', margin: '2px 0 12px' }}>{tagline}</div>
+    <div style={{ position: 'relative', border: featured ? '1.5px solid #5B53E0' : '1px solid rgba(14,16,22,.1)', borderRadius: 16, padding: 22, background: featured ? 'linear-gradient(170deg,#F4F3FF,#fff 60%)' : '#fff', display: 'flex', flexDirection: 'column' }}>
+      {featured && <span style={{ position: 'absolute', top: -10, right: 14, fontSize: 10, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase', color: '#fff', background: '#5B53E0', padding: '3px 9px', borderRadius: 999 }}>Most popular</span>}
+      <div style={{ fontWeight: 700, fontSize: 17, color: '#0E1016' }}>{name}</div>
+      <div style={{ fontSize: 12.5, color: '#8A909C', margin: '3px 0 14px' }}>{tagline}</div>
       {price}
       <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 14px', display: 'flex', flexDirection: 'column', gap: 7, flex: 1 }}>
         {benefits.map((b, i) => (
-          <li key={i} style={{ display: 'flex', gap: 7, fontSize: 12.5, color: '#3A4150', lineHeight: 1.4 }}>
-            <Check size={14} color="#157A55" style={{ flexShrink: 0, marginTop: 2 }} /> {b}
+          <li key={i} style={{ display: 'flex', gap: 8, fontSize: 13.5, color: '#3A4150', lineHeight: 1.45 }}>
+            <Check size={15} color="#157A55" style={{ flexShrink: 0, marginTop: 2 }} /> {b}
           </li>
         ))}
       </ul>
@@ -100,19 +100,19 @@ export default function PlansPanel({
 
   return (
     <div className="resp-1col plans-modal" style={{
-      position: 'relative', width: 'min(1040px, 100%)', display: 'grid', gridTemplateColumns: '0.82fr 1fr',
-      textAlign: 'left', background: '#fff', borderRadius: 22, overflow: 'hidden', boxShadow: '0 50px 110px -30px rgba(8,10,40,.6)',
+      position: 'relative', width: 'min(1180px, 96vw)', display: 'grid', gridTemplateColumns: '0.85fr 1fr',
+      textAlign: 'left', background: '#fff', borderRadius: 24, overflow: 'hidden', boxShadow: '0 50px 110px -30px rgba(8,10,40,.6)',
       animation: 'clp-rise-safe .55s cubic-bezier(.16,1,.3,1) both',
     }}>
       {/* LEFT — navy value panel */}
-      <div className="plans-navy" style={{ position: 'relative', padding: '30px 28px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
+      <div className="plans-navy" style={{ position: 'relative', padding: '42px 38px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -90, right: -70, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle,rgba(91,83,224,.4),transparent 70%)', filter: 'blur(20px)' }} />
         <div style={{ position: 'relative' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Sparkles size={15} color="#A9AEE8" />
             <span style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#9CA2D6', fontWeight: 600 }}>Collabr Plus</span>
           </div>
-          <h2 style={{ fontWeight: 800, fontSize: 25, lineHeight: 1.08, letterSpacing: '-.03em', color: '#fff', margin: 0 }}>Reach the right creators first.</h2>
+          <h2 style={{ fontWeight: 800, fontSize: 31, lineHeight: 1.06, letterSpacing: '-.03em', color: '#fff', margin: 0 }}>Reach the right creators first.</h2>
           <div className="plans-hide-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 12 }}>
             <p style={{ fontSize: 13, lineHeight: 1.5, color: '#9CA2D6', margin: '0 0 2px' }}>Stop waiting to be found. Search the roster, filter to your perfect fit, and invite creators directly.</p>
             {valueBenefits.map((b, i) => {
@@ -139,14 +139,14 @@ export default function PlansPanel({
       </div>
 
       {/* RIGHT — pricing */}
-      <div className="plans-body" style={{ position: 'relative', padding: '28px 26px' }}>
+      <div className="plans-body" style={{ position: 'relative', padding: '38px 38px' }}>
         {onClose && (
           <button aria-label="Close" onClick={onClose} style={{ position: 'absolute', top: 16, right: 16, width: 32, height: 32, borderRadius: 999, border: '1px solid rgba(14,16,22,.12)', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 2 }}>
             <X size={16} color="#545A66" />
           </button>
         )}
-        <div style={{ fontWeight: 700, fontSize: 19, letterSpacing: '-.02em', color: '#0E1016' }}>Choose your plan</div>
-        <div style={{ fontSize: 13, color: '#8A909C', margin: '3px 0 16px' }}>Your campaigns, applications & payment protection stay free.</div>
+        <div style={{ fontWeight: 700, fontSize: 23, letterSpacing: '-.02em', color: '#0E1016' }}>Choose your plan</div>
+        <div style={{ fontSize: 13.5, color: '#8A909C', margin: '4px 0 18px' }}>Your campaigns, applications & payment protection stay free.</div>
 
         {/* cycle toggle */}
         <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: '1fr 1fr', background: '#F1F5FC', border: '1px solid rgba(14,16,22,.07)', borderRadius: 11, padding: 4, marginBottom: 16 }}>
@@ -160,7 +160,7 @@ export default function PlansPanel({
         </div>
 
         {/* two tiers */}
-        <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <TierCard name="Pro" tagline="Unlimited barter campaigns"
             benefits={['Unlimited barter (product-for-content) campaigns', 'Everything on Free']}
             price={beta
@@ -168,7 +168,7 @@ export default function PlansPanel({
               : <Price amount={PLAN_PRICING.pro[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? '2 months free' : undefined} />}
             cta={beta
               ? <button className="btn-secondary btn-block" disabled style={{ opacity: .7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Gift size={14} />Free during beta</button>
-              : <button className="btn-secondary btn-block" onClick={() => checkout('pro')} disabled={busy === 'pro'}>{busy === 'pro' ? 'Opening…' : 'Choose Pro'}</button>}
+              : <button className="btn-secondary btn-block btn-sheen" onClick={() => checkout('pro')} disabled={busy === 'pro'}>{busy === 'pro' ? 'Opening…' : 'Choose Pro'}</button>}
           />
           <TierCard featured name="Plus" tagline="Discover & invite creators"
             benefits={analyticsSuite ? ['Creator Discovery + invites', 'Verified analytics + campaign ROI', 'Everything in Pro'] : ['Creator Discovery + invites', 'Save & shortlist creators', 'Everything in Pro']}
@@ -176,12 +176,11 @@ export default function PlansPanel({
               ? <Price amount={betaPlusPrice(cycle)} struck={`${CURRENCY}${PLAN_PRICING.plus[cycle]}`} period={cycle === 'annual' ? '/yr' : '/mo'} note="50% off during beta" />
               : <Price amount={PLAN_PRICING.plus[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? `≈ ${CURRENCY}${annualPerMonth('plus')}/mo · 2 months free` : undefined} />}
             cta={
-              <button className="btn-primary btn-block" onClick={() => checkout('plus')} disabled={busy === 'plus'}
+              <button className="btn-primary btn-block btn-sheen" onClick={() => checkout('plus')} disabled={busy === 'plus'}
                 onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(.97)' }}
                 onMouseUp={(e) => { e.currentTarget.style.transform = '' }}
                 onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
-                style={{ position: 'relative', overflow: 'hidden', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, animation: 'clp-pulse 3s ease-in-out infinite', transition: 'transform .14s ease' }}>
-                <span style={{ position: 'absolute', top: 0, left: 0, width: '34%', height: '100%', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent)', animation: 'clp-sheen 6s ease-in-out infinite', pointerEvents: 'none' }} />
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6, transition: 'transform .14s ease' }}>
                 <Sparkles size={14} />{busy === 'plus' ? 'Opening…' : 'Upgrade to Plus'}
               </button>}
           />

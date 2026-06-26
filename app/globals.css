@@ -681,6 +681,15 @@
 @keyframes clp-rise-safe { from { transform: translateY(18px); } to { transform: none; } }
 @keyframes clp-floatlock { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-9px) rotate(-4deg); } }
 @keyframes ci-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+/* Reflective sweep for payment CTAs (Upgrade to Plus, Start trial, etc.). */
+.btn-sheen { position: relative; overflow: hidden; }
+.btn-sheen::after {
+  content: ''; position: absolute; top: 0; left: -150%; width: 55%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.38), transparent);
+  transform: skewX(-20deg); pointer-events: none; animation: btn-sheen 4.5s ease-in-out infinite;
+}
+@keyframes btn-sheen { 0% { left: -150%; } 58%, 100% { left: 150%; } }
+@media (prefers-reduced-motion: reduce) { .btn-sheen::after { animation: none; display: none; } }
 /* Creator Pro modal (design handoff 7) */
 @keyframes cp-modalin { from { transform: translateY(18px) scale(.965); } to { transform: none; } }
 @keyframes cp-row { from { opacity: 0; transform: translateY(11px); } to { opacity: 1; transform: none; } }
