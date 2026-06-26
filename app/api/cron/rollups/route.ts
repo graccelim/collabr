@@ -1,8 +1,12 @@
 import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { isProActive } from '@/lib/entitlements'
 import { computeCreatorRollup, computeCampaignRollup, type RollupPost } from '@/lib/analytics/rollups'
 import { computeContentDna } from '@/lib/analytics/contentDna'
+import { computePlatformInsights, type InsightPost } from '@/lib/analytics/insights'
+import { aiConfigured } from '@/lib/ai/client'
+import { narratePlatformInsights } from '@/lib/ai/service'
 import type { NormalizedPost, Platform } from '@/lib/analytics/adapters/types'
 import { flags } from '@/lib/flags'
 
@@ -98,6 +102,45 @@ export async function GET(req: NextRequest) {
       connected_platforms: Array.from(new Set(usable.map((a) => a.platform))),
       insights_last_synced_at: new Date().toISOString(),
     }).eq('id', creatorId)
+
+    // ── Per-platform Creator Insights (the flagship). Computed separately per
+    // platform (content behaves differently); AI narration is optional overlay. ──
+    const postPlatform = new Map((posts ?? []).map((p) => [p.id as string, p.platform as string]))
+    const ptrend = new Map<string, Map<string, number>>()
+    for (const s of snaps ?? []) {
+      const plat = postPlatform.get(s.post_id); if (!plat) continue
+      const day = String(s.captured_at).slice(0, 10)
+      const m = ptrend.get(plat) ?? new Map<string, number>()
+      m.set(day, (m.get(day) || 0) + (s.views || 0)); ptrend.set(plat, m)
+    }
+    const platforms = Array.from(new Set(dnaPosts.map((p) => p.platform)))
+    for (const platform of platforms) {
+      const pPosts: InsightPost[] = dnaPosts.filter((p) => p.platform === platform).map((p) => ({
+        postedAt: p.postedAt, durationSec: p.durationSec ?? null, category: p.category ?? null, style: p.style ?? null,
+        views: p.views, likes: p.likes, comments: p.comments, shares: p.shares, saves: p.saves, reach: p.reach,
+      }))
+      const trend = Array.from((ptrend.get(platform) ?? new Map()).entries())
+        .sort().map(([date, views]) => ({ date, views: views as number }))
+      const data = computePlatformInsights(platform as Platform, pPosts, trend)
+
+      // Optional AI "analyst's read", cached by a hash of the deterministic insights.
+      let aiNarrative: string | null = null
+      let aiHash: string | null = null
+      if (aiConfigured()) {
+        aiHash = crypto.createHash('sha256').update(JSON.stringify(data.insights)).digest('hex')
+        const { data: prev } = await admin.from('creator_platform_insights')
+          .select('ai_hash, ai_narrative').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
+        if (prev?.ai_hash === aiHash && prev.ai_narrative) aiNarrative = prev.ai_narrative
+        else {
+          try { aiNarrative = await narratePlatformInsights(platform, { overview: data.overview, insights: data.insights, dataConfidence: data.dataConfidence }) }
+          catch { aiNarrative = null }
+        }
+      }
+      await admin.from('creator_platform_insights').upsert({
+        creator_id: creatorId, platform, data, ai_narrative: aiNarrative, ai_hash: aiHash,
+        computed_at: new Date().toISOString(),
+      }, { onConflict: 'creator_id,platform' })
+    }
 
     rolledUp++
   }

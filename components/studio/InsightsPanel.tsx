@@ -1,115 +1,56 @@
 import EmptyState from '@/components/EmptyState'
-import TrendBars from '@/components/TrendBars'
-import { BarChart3, TrendingUp } from 'lucide-react'
+import PlatformInsights from '@/components/studio/PlatformInsights'
+import { BarChart3, Layers } from 'lucide-react'
 
-// Renders the creator's OWN deterministic analytics (content_dna + creator_rollups):
-// Performance Overview + "Your Strengths" (Content DNA). Self-only, facts-only — no
-// comparison, no score. High-quality empty state when nothing has synced yet.
-function fmt(n: number | null | undefined): string {
-  if (n == null) return '—'
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`
-  return String(Math.round(n))
-}
-function pct(n: number | null | undefined): string {
-  return n == null ? '—' : `${(n * 100).toFixed(1)}%`
-}
+// Flagship Insights: each platform analysed SEPARATELY (content behaves
+// differently per platform), then a lightweight cross-platform strengths summary.
+// No merged metrics. Deterministic-first; AI narration is an overlay per section.
+const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube' }
+const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 }
 
-type Row = Record<string, any> | null
+type Row = { platform: string; data: any; ai_narrative: string | null }
 
-export default function InsightsPanel({ rollup, dna }: { rollup: Row; dna: Row }) {
-  if (!rollup && !dna) {
+export default function InsightsPanel({ platformInsights }: { platformInsights: Row[] }) {
+  if (!platformInsights.length) {
     return (
       <EmptyState
         icon={BarChart3}
         title="Your insights appear here once accounts sync"
-        body="Connect TikTok, Instagram or YouTube above. Within a day you'll see your average views, engagement, strongest content and best times to post — all from your own history."
-        steps={['Connect an account', 'We sync overnight', 'See your strengths']}
+        body="Connect TikTok, Instagram or YouTube above. We analyse each platform separately and surface your winning patterns, best posting windows and long-term trends — kept forever, even after the native apps delete the data."
+        steps={['Connect an account', 'We analyse each platform', 'See your winning patterns']}
       />
     )
   }
 
-  const avg = rollup?.averages || {}
-  const byPlatform: Record<string, any> = rollup?.by_platform || {}
-  const platforms = Object.entries(byPlatform)
-
-  const best = (key: string) => (Array.isArray(dna?.[key]) ? dna[key].slice(0, 3) : [])
-  const cats = best('best_categories'), plats = best('best_platforms'), styles = best('best_content_styles')
-  const days = best('best_posting_days'), times = best('best_posting_times')
-  const videoLen = dna?.best_video_length?.key ?? null
-  const ppw = dna?.posting_consistency?.postsPerWeek ?? null
-
-  const Strength = ({ label, value }: { label: string; value: string | null }) =>
-    value ? (
-      <div>
-        <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-faint-solid)' }}>{label}</div>
-        <div style={{ fontSize: 13.5, fontWeight: 600, marginTop: 3 }}>{value}</div>
-      </div>
-    ) : null
-  const join = (items: any[]) => items.map((i) => i.key || i.platform || i).filter(Boolean).join(' · ') || null
-  const hasStrengths = cats.length || plats.length || styles.length || days.length || times.length || videoLen || ppw != null
+  // Cross-platform strengths: each platform's single highest-confidence insight.
+  const strengths = platformInsights.map((r) => {
+    const ins: any[] = Array.isArray(r.data?.insights) ? r.data.insights : []
+    const best = [...ins].sort((a, b) => (RANK[b.confidence] || 0) - (RANK[a.confidence] || 0))[0]
+    return { platform: r.platform, headline: r.data?.strongest || best?.title || null }
+  }).filter((s) => s.headline)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* ── Performance Overview ── */}
-      <section style={{
-        borderRadius: 14, padding: 18, color: '#fff', position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(100deg, transparent 58%, rgba(118,146,228,0.05) 74%, rgba(128,156,238,0.10) 82%, rgba(118,146,228,0.02) 90%, transparent 98%), radial-gradient(115% 105% at 84% -14%, rgba(150,172,235,0.09), transparent 42%), linear-gradient(152deg, #232c57 0%, #0e1538 46%, #05081c 100%)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.05)',
-      }}>
-        <span className="eyebrow" style={{ color: 'var(--accent-on-dark)', fontSize: 10.5 }}>Performance overview</span>
-        <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginTop: 12 }}>
-          {[['Avg views', fmt(avg.views)], ['Avg engagement', pct(avg.engagementRate)], ['Avg reach', fmt(avg.reach)], ['Posts', fmt(rollup?.posts ?? null)]].map(([l, v]) => (
-            <div key={l}>
-              <div className="shiny-num" style={{ fontFamily: 'var(--font-money)', fontVariantNumeric: 'tabular-nums', fontWeight: 600, fontSize: 24, letterSpacing: '-0.02em' }}>{v}</div>
-              <div style={{ fontSize: 11, color: 'var(--accent-on-dark)', marginTop: 3 }}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {platformInsights.map((r) => <PlatformInsights key={r.platform} row={r} />)}
 
-      {/* Historical trend + platform breakdown */}
-      {(Array.isArray(rollup?.trends) && rollup!.trends.length >= 2) || platforms.length ? (
-        <section className="card" style={{ padding: 18, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <TrendBars data={rollup?.trends} label="Total views over time" />
-          {platforms.length > 0 && (
-            <div>
-              <div className="eyebrow" style={{ fontSize: 10, color: 'var(--ink-faint-solid)', marginBottom: 8 }}>Platform breakdown</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {platforms.map(([p, m]) => (
-                  <div key={p} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
-                    <span style={{ flex: 1, fontWeight: 600, textTransform: 'capitalize' }}>{p}</span>
-                    <span style={{ color: 'var(--ink-soft)' }}>{fmt(m.totals?.views)} views</span>
-                    <span style={{ color: 'var(--ink-faint-solid)' }}>{m.posts} post{m.posts === 1 ? '' : 's'}</span>
-                    <span style={{ color: 'var(--ink-faint-solid)' }}>{pct(m.avgEngagementRate)} eng.</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-      ) : null}
-
-      {/* ── Your Strengths (Content DNA) ── */}
-      {hasStrengths ? (
+      {strengths.length >= 2 && (
         <section className="card" style={{ padding: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <TrendingUp size={16} color="var(--accent)" /> Your Strengths
+          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Layers size={16} color="var(--accent)" /> Across your platforms
           </h3>
-          <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Strength label="Best performing categories" value={join(cats)} />
-            <Strength label="Best platforms" value={join(plats)} />
-            <Strength label="Best content styles" value={join(styles)} />
-            <Strength label="Best posting days" value={join(days)} />
-            <Strength label="Best posting times" value={join(times)} />
-            <Strength label="Best video length" value={videoLen} />
-            <Strength label="Posting consistency" value={ppw != null ? `${ppw} posts / week` : null} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {strengths.map((s) => (
+              <div key={s.platform} style={{ display: 'flex', gap: 10, fontSize: 13.5 }}>
+                <span style={{ fontWeight: 700, minWidth: 92 }}>{LABEL[s.platform] || s.platform}</span>
+                <span style={{ color: 'var(--ink-soft)' }}>{s.headline}</span>
+              </div>
+            ))}
           </div>
-          <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
-            Calculated from your own posts. Compared only against your own history — never other creators.
+          <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', marginTop: 12 }}>
+            Each platform is analysed on its own — never merged — and only against your own history.
           </p>
         </section>
-      ) : null}
+      )}
     </div>
   )
 }

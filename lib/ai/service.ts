@@ -1,6 +1,6 @@
 import { getAnthropic, AI_MODELS } from './client'
 import { enforceAiText } from './guard'
-import { GROWTH_COACH_SYSTEM, GROWTH_SUGGESTIONS_SYSTEM, BRAND_COACH_SYSTEM, CONTENT_LAB_SYSTEM, CAMPAIGN_RECAP_SYSTEM } from './prompts'
+import { GROWTH_COACH_SYSTEM, PLATFORM_INSIGHTS_SYSTEM, BRAND_COACH_SYSTEM, CONTENT_LAB_SYSTEM, CAMPAIGN_RECAP_SYSTEM } from './prompts'
 import type Anthropic from '@anthropic-ai/sdk'
 
 // All functions: deterministic data in → Claude explains → guard enforces. They
@@ -37,39 +37,29 @@ export function growthSummary(ctx: CoachContext): Promise<string> {
   )
 }
 
-// Proactive growth insights from the creator's OWN data (replaces the chat coach).
-// Returns structured cards; parses the model's JSON defensively (guard already ran).
-export interface GrowthSuggestion { title: string; why: string; evidence: string; action: string }
-function stripFences(s: string): string {
-  return s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim()
-}
-export async function growthSuggestions(ctx: CoachContext): Promise<GrowthSuggestion[]> {
-  const raw = await run(
-    GROWTH_SUGGESTIONS_SYSTEM,
-    `Generate proactive growth insights from this creator's own data:\n${JSON.stringify(ctx)}`,
+// AI NARRATOR (not a tool): explains the deterministic per-platform insights.
+// Input is the structured engine output; output is a short "analyst's read".
+// If AI is disabled this is simply skipped — the deterministic insights remain.
+export function narratePlatformInsights(platform: string, payload: unknown): Promise<string> {
+  return run(
+    PLATFORM_INSIGHTS_SYSTEM,
+    `Platform: ${platform}. Deterministic insights for this creator's own ${platform} history:\n${JSON.stringify(payload)}`,
     AI_MODELS.batch,
-    1600,
+    600,
   )
-  let parsed: unknown
-  try { parsed = JSON.parse(stripFences(raw)) } catch { return [] }
-  if (!Array.isArray(parsed)) return []
-  return parsed
-    .filter((x): x is Record<string, unknown> => !!x && typeof (x as any).title === 'string')
-    .slice(0, 10)
-    .map((x) => ({
-      title: String(x.title), why: String(x.why ?? ''),
-      evidence: String(x.evidence ?? ''), action: String(x.action ?? ''),
-    }))
 }
 
 export interface ContentLabInput {
   topic: string; platform: string; tone?: string; goal?: string
-  contentDna?: unknown // their own best styles/categories, optional
+  // The creator's own winning patterns for this platform (best length/window/
+  // category/style), so generation is tailored. Optional → generic fallback.
+  insights?: unknown
 }
 export function contentLab(input: ContentLabInput): Promise<string> {
   return run(
     CONTENT_LAB_SYSTEM,
-    `Generate content for this input. Use the creator's Content DNA to tailor it:\n${JSON.stringify(input)}`,
+    `Generate content for this input. If "insights" are present, tailor hooks/captions/length/timing to the ` +
+      `creator's own winning patterns; if absent, produce solid generic ideas:\n${JSON.stringify(input)}`,
     AI_MODELS.interactive,
     1400,
   )

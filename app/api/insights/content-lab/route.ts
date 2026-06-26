@@ -36,12 +36,17 @@ export async function POST(req: NextRequest) {
   const tone = typeof body?.tone === 'string' ? body.tone.slice(0, 60) : undefined
   const goal = typeof body?.goal === 'string' ? body.goal.slice(0, 80) : undefined
 
-  const { data: dna } = await supabase.from('content_dna')
-    .select('best_content_styles, best_categories, best_platforms, best_posting_times, best_video_length')
-    .eq('creator_id', creator.id).maybeSingle()
+  // Tailor to the creator's OWN winning patterns for this platform (best length/
+  // window/category/style). Falls back to a generic generator when absent.
+  const { data: pi } = await supabase.from('creator_platform_insights')
+    .select('data').eq('creator_id', creator.id).eq('platform', platform).maybeSingle()
+  const piData = pi?.data as any
+  const insights = piData?.insights?.length
+    ? { overview: piData.overview, insights: piData.insights }
+    : undefined
 
   try {
-    const result = await contentLab({ topic, platform, tone, goal, contentDna: dna ?? undefined })
+    const result = await contentLab({ topic, platform, tone, goal, insights })
     await admin.from('ai_chat_messages').insert([
       { creator_id: creator.id, role: 'user', surface: 'content_lab', content: `${topic} (${platform})` },
       { creator_id: creator.id, role: 'assistant', surface: 'content_lab', content: result },

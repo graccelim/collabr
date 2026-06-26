@@ -1,6 +1,5 @@
 import { requireCreator } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import crypto from 'crypto'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { studioAccess } from '@/lib/entitlements'
 import { flags } from '@/lib/flags'
@@ -8,7 +7,6 @@ import CreatorProUpgradeCard from '@/components/CreatorProUpgradeCard'
 import StudioNav from '@/components/studio/StudioNav'
 import InsightsPanel from '@/components/studio/InsightsPanel'
 import ConnectAccounts from '@/components/studio/ConnectAccounts'
-import GrowthSuggestions from '@/components/studio/GrowthSuggestions'
 import ContentLab from '@/components/studio/ContentLab'
 import BrandCoachPanel from '@/components/studio/BrandCoachPanel'
 import EmptyState from '@/components/EmptyState'
@@ -52,19 +50,12 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
   const tab = searchParams.tab || 'insights'
 
   // Data (own-row RLS / admin for owner-private tables).
-  const [{ data: rollup }, { data: dna }, { data: accounts }, { data: collabsRaw }, { data: cachedSug }] = await Promise.all([
-    supabase.from('creator_rollups').select('*').eq('creator_id', creator.id).maybeSingle(),
-    supabase.from('content_dna').select('*').eq('creator_id', creator.id).maybeSingle(),
+  const [{ data: accounts }, { data: collabsRaw }, { data: platformInsights }] = await Promise.all([
     supabase.from('connected_accounts').select('id, platform, status, last_synced_at, sync_frozen').eq('creator_id', creator.id),
     admin.from('collabs').select('id, campaigns(title)').eq('creator_id', creator.id).order('created_at', { ascending: false }).limit(20),
-    admin.from('ai_insights').select('input_hash, suggestions').eq('creator_id', creator.id).eq('period', 'growth_suggestions').maybeSingle(),
+    supabase.from('creator_platform_insights').select('platform, data, ai_narrative').eq('creator_id', creator.id),
   ])
   const collabs = (collabsRaw ?? []).map((c) => ({ id: c.id as string, title: ((c.campaigns as any)?.title as string) || 'Collaboration' }))
-  const hasData = Boolean(rollup || dna)
-  // Show cached growth suggestions only when they still match the current data.
-  const sugHash = crypto.createHash('sha256').update(JSON.stringify({ rollup, dna })).digest('hex')
-  const freshSuggestions = cachedSug?.input_hash === sugHash && Array.isArray(cachedSug.suggestions)
-    ? (cachedSug.suggestions as any[]) : []
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
@@ -92,8 +83,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
               connectable={(['youtube', 'instagram', 'tiktok'] as Platform[]).filter(platformConnectable)}
             />
           )}
-          <InsightsPanel rollup={rollup} dna={dna} />
-          {flags.aiGrowthCoach && <GrowthSuggestions initial={freshSuggestions} hasData={hasData} />}
+          <InsightsPanel platformInsights={platformInsights ?? []} />
           {flags.aiGrowthCoach && <BrandCoachPanel collabs={collabs} />}
         </div>
       )}
