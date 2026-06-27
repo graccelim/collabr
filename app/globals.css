@@ -877,6 +877,9 @@
   .gate-hero { padding: 20px 18px 18px !important; border-radius: 16px !important; }
   .gate-hero h1 { font-size: 21px !important; line-height: 1.14 !important; margin: 10px 0 7px !important; }
   .gate-hero p { font-size: 13.5px !important; margin-bottom: 16px !important; }
+  /* Tight heroes drop the long supporting paragraph on mobile (headline + CTA only). */
+  .gate-hero-tight p { display: none !important; }
+  .gate-hero-tight h1 { margin-bottom: 16px !important; }
 
   /* Creator Studio Insights tab — declutter on mobile (desktop untouched).
      Hide the per-row "why" line and the inline bar, leaving the title, action,

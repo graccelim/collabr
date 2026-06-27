@@ -19,7 +19,7 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
   return (
     <div className="gate-wrap" style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* hero */}
-      <div className="gate-hero" style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, padding: '34px 30px 30px', background: 'linear-gradient(150deg,#05060E 0%,#10143A 58%,#05060E 100%)', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 30px 60px -34px rgba(20,30,80,.45)' }}>
+      <div className="gate-hero gate-hero-tight" style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, padding: '34px 30px 30px', background: 'linear-gradient(150deg,#05060E 0%,#10143A 58%,#05060E 100%)', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 30px 60px -34px rgba(20,30,80,.45)' }}>
         <div style={TEXTURE} />
         <div style={{ position: 'absolute', top: -70, right: -50, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle,rgba(123,115,240,.45),transparent 70%)', filter: 'blur(22px)' }} />
         <div style={{ position: 'relative', maxWidth: 560 }}>
