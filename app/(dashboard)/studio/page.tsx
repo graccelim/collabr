@@ -4,13 +4,8 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { studioAccess } from '@/lib/entitlements';
 import { flags } from '@/lib/flags';
 import CreatorProShowcase from '@/components/studio/CreatorProShowcase';
-import StudioNav from '@/components/studio/StudioNav';
+import StudioTabs from '@/components/studio/StudioTabs';
 import BackButton from '@/components/BackButton';
-import InsightsPanel from '@/components/studio/InsightsPanel';
-import ConnectAccounts from '@/components/studio/ConnectAccounts';
-import ContentLab from '@/components/studio/ContentLab';
-import BrandCoachPanel from '@/components/studio/BrandCoachPanel';
-import ReportsTab from '@/components/studio/ReportsTab';
 import MockBanner from '@/components/MockBanner';
 import { platformConnectable } from '@/lib/analytics/oauth';
 import type { Platform } from '@/lib/analytics/adapters/types';
@@ -151,46 +146,15 @@ export default async function StudioPage({
         </div>
       )}
 
-      <StudioNav active={tab} />
-
-      {tab === 'insights' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {flags.connectedCreator && (
-            <ConnectAccounts
-              accounts={accounts ?? []}
-              readOnly={readOnly}
-              connectable={(
-                ['youtube', 'instagram', 'tiktok'] as Platform[]
-              ).filter(platformConnectable)}
-            />
-          )}
-          <InsightsPanel platformInsights={platformInsights ?? []} />
-          {flags.analyticsAi && <BrandCoachPanel collabs={collabs} />}
-        </div>
-      )}
-
-      {tab === 'content-lab' &&
-        (flags.analyticsAi ? (
-          <ContentLab />
-        ) : (
-          <ComingSoon label="Content Lab" />
-        ))}
-      {tab === 'reports' && (
-        <ReportsTab
-          platformInsights={platformInsights ?? []}
-          reports={reports ?? []}
-        />
-      )}
-    </div>
-  );
-}
-
-function ComingSoon({ label }: { label: string }) {
-  return (
-    <div className="card" style={{ padding: 18 }}>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>
-        {label} is coming soon to your Studio.
-      </p>
+      <StudioTabs
+        accounts={accounts ?? []}
+        connectable={(['youtube', 'instagram', 'tiktok'] as Platform[]).filter(platformConnectable)}
+        readOnly={readOnly}
+        platformInsights={platformInsights ?? []}
+        reports={reports ?? []}
+        collabs={collabs}
+        initial={tab}
+      />
     </div>
   );
 }
