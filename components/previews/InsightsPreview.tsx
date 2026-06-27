@@ -14,10 +14,14 @@ const TEXTURE: React.CSSProperties = {
   backgroundSize: '26px 26px', WebkitMaskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)', maskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
 }
 
-const TREND = [10, 7, 12, 16, 9, 11, 7, 8, 12, 14, 15, 13, 12, 16, 14, 18]
+// Average views by time of day (the "best time to post" chart). Best block = evening.
+const TIMES = [
+  { label: '12a', v: 4 }, { label: '4a', v: 3 }, { label: '8a', v: 7 },
+  { label: '12p', v: 10 }, { label: '4p', v: 13 }, { label: '8p', v: 18 },
+]
 const WORKING = [
-  { t: 'Post in the evening', s: '6pm to 12am', you: 18.9, base: 17.8, conf: 'High', col: '#157A55' },
-  { t: 'Keep videos short', s: 'under 15 seconds', you: 20.1, base: 17.8, conf: 'Medium', col: '#5B53E0' },
+  { t: 'Reviews are your strongest style', s: 'best style', you: 21.2, base: 17.8, conf: 'High', col: '#157A55' },
+  { t: 'Carousels beat single images', s: 'best format', you: 20.1, base: 17.8, conf: 'Medium', col: '#5B53E0' },
 ]
 
 function useCountUp(target: number, run: boolean, ms = 900, dp = 0): string {
@@ -38,24 +42,22 @@ function useCountUp(target: number, run: boolean, ms = 900, dp = 0): string {
   return v.toFixed(dp)
 }
 
-function Sparkline({ run }: { run: boolean }) {
-  const W = 560, H = 60, n = TREND.length, max = Math.max(...TREND), min = Math.min(...TREND)
-  const x = (i: number) => (i / (n - 1)) * W
-  const y = (val: number) => H - 5 - ((val - min) / Math.max(1, max - min)) * (H - 14)
-  let line = `M ${x(0).toFixed(1)} ${y(TREND[0]).toFixed(1)}`
-  for (let i = 1; i < n; i++) line += ` L ${x(i).toFixed(1)} ${y(TREND[i]).toFixed(1)}`
-  const area = `${line} L ${W} ${H} L 0 ${H} Z`
+function PostingBars({ run }: { run: boolean }) {
+  const max = Math.max(...TIMES.map((t) => t.v))
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" width="100%" height={60} style={{ display: 'block', animation: run ? 'ci-wipe 1s ease both' : 'none' }}>
-      <defs>
-        <linearGradient id="ipg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5B53E0" stopOpacity="0.16" /><stop offset="1" stopColor="#5B53E0" stopOpacity="0" /></linearGradient>
-        <linearGradient id="ipl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#3B4470" /><stop offset="1" stopColor="#5B53E0" /></linearGradient>
-      </defs>
-      {[0.33, 0.66].map((f) => <line key={f} x1="0" y1={H * f} x2={W} y2={H * f} stroke="rgba(20,30,80,.07)" strokeWidth={1} />)}
-      <path d={area} fill="url(#ipg)" />
-      <path d={line} fill="none" stroke="url(#ipl)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={x(n - 1)} cy={y(TREND[n - 1])} r={3.5} fill="#5B53E0" />
-    </svg>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 64 }}>
+      {TIMES.map((t, i) => {
+        const best = t.v === max
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%' }}>
+            <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }}>
+              <div style={{ width: '100%', height: run ? `${Math.max(8, (t.v / max) * 100)}%` : '0%', background: best ? '#5B53E0' : '#D7DAEC', borderRadius: '4px 4px 0 0', transition: `height .6s cubic-bezier(.16,1,.3,1) ${(i * 0.06).toFixed(2)}s` }} />
+            </div>
+            <span style={{ fontSize: 10, fontWeight: best ? 700 : 500, color: best ? '#5B53E0' : '#9AA0AE', fontFamily: MONO }}>{t.label}</span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -96,13 +98,13 @@ export default function InsightsPreview() {
         ))}
       </div>
 
-      {/* trend */}
+      {/* best time to post */}
       <div style={{ padding: '14px 22px 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Views over time</span>
-          <span style={{ fontSize: 11, color: '#B4B9C4' }}>your full history</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>8pm to 12am</span>
         </div>
-        <Sparkline run={run} />
+        <PostingBars run={run} />
       </div>
 
       {/* what's working */}

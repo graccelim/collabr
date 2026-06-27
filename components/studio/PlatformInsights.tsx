@@ -50,24 +50,24 @@ function Bar({ you, base }: { you: number; base: number }) {
   )
 }
 
-function Sparkline({ vals }: { vals: number[] }) {
-  const W = 720, H = 72, n = vals.length, max = Math.max(...vals), min = Math.min(...vals)
-  const x = (i: number) => (i / (n - 1)) * W
-  const y = (v: number) => H - 6 - ((v - min) / Math.max(1, max - min)) * (H - 16)
-  let line = `M ${x(0).toFixed(1)} ${y(vals[0]).toFixed(1)}`
-  for (let i = 1; i < n; i++) line += ` L ${x(i).toFixed(1)} ${y(vals[i]).toFixed(1)}`
-  const area = `${line} L ${W} ${H} L 0 ${H} Z`
+// Average-views-by-time-of-day bar chart (the "best time to post" view). The
+// highest-average block is highlighted in violet.
+function PostingBars({ data }: { data: { label: string; avgViews: number; posts: number }[] }) {
+  const max = Math.max(1, ...data.map((b) => b.avgViews))
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" width="100%" height={72} style={{ display: 'block', animation: 'ci-wipe .9s ease both' }}>
-      <defs>
-        <linearGradient id="cig" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5B53E0" stopOpacity="0.16" /><stop offset="1" stopColor="#5B53E0" stopOpacity="0" /></linearGradient>
-        <linearGradient id="cil" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#3B4470" /><stop offset="1" stopColor="#5B53E0" /></linearGradient>
-      </defs>
-      {[0.25, 0.5, 0.75].map((f) => <line key={f} x1="0" y1={H * f} x2={W} y2={H * f} stroke="rgba(20,30,80,.07)" strokeWidth={1} />)}
-      <path d={area} fill="url(#cig)" />
-      <path d={line} fill="none" stroke="url(#cil)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-      <circle cx={x(n - 1)} cy={y(vals[n - 1])} r={3.5} fill="#5B53E0" />
-    </svg>
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 92 }}>
+      {data.map((b, i) => {
+        const best = b.avgViews > 0 && b.avgViews === max
+        return (
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%' }}>
+            <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }} title={`${b.posts} post${b.posts === 1 ? '' : 's'}`}>
+              <div style={{ width: '100%', height: b.avgViews ? `${Math.max(6, (b.avgViews / max) * 100)}%` : 3, background: best ? '#5B53E0' : '#D7DAEC', borderRadius: '4px 4px 0 0', animation: 'ci-wipe .7s ease both' }} />
+            </div>
+            <span style={{ fontSize: 10, fontWeight: best ? 700 : 500, color: best ? '#5B53E0' : '#9AA0AE', fontFamily: MONO }}>{b.label}</span>
+          </div>
+        )
+      })}
+    </div>
   )
 }
 
@@ -108,10 +108,15 @@ function Row({ m, top }: { m: Insight; top: boolean }) {
 type Data = {
   postCount?: number
   overview?: { medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null }
-  trend?: { date: string; views: number }[]
+  postingTimes?: { label: string; name: string; avgViews: number; posts: number }[]
+  bestTime?: string | null
   insights?: Insight[]
   strongest?: string | null
 }
+
+// "What's working" focuses on CONTENT levers only (topic, format, length, style).
+// Posting time has its own chart; cadence/views-trend/outperformers are excluded.
+const CONTENT_KEYS = ['best_category', 'best_subcategory', 'best_format', 'best_length', 'best_style', 'emerging_category']
 
 export default function PlatformInsights({ row }: { row: { platform: string; data: Data; ai_narrative: string | null } }) {
   const [open, setOpen] = useState(false)
@@ -132,10 +137,9 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
     )
   }
 
-  const isWatch = (i: Insight) => i.key === 'declining_category' || (i.key === 'trend' && /cool|declin|easing|slip|down/i.test(i.title)) || (i.key === 'consistency' && /uneven|gap|erratic|irregular/i.test(i.title))
   const experiment = insights.find((i) => i.key === 'experiment')
-  const watch = insights.find(isWatch)
-  const working = insights.filter((i) => i !== experiment && i !== watch && !isWatch(i))
+  const watch = insights.find((i) => i.key === 'declining_category')
+  const working = insights.filter((i) => CONTENT_KEYS.includes(i.key) && i !== watch)
     .sort((a, b) => (RANK[b.confidence] - RANK[a.confidence]) || (((b.you ?? 0) - (b.base ?? 0)) - ((a.you ?? 0) - (a.base ?? 0))))
   const vis = working.slice(0, 3), hid = working.slice(3)
 
@@ -145,7 +149,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
     { v: fmtViews(d.overview?.avgViews), label: 'Avg views' },
     { v: fmtPct(d.overview?.avgEngagementRate), label: 'Avg engagement' },
   ]
-  const trendVals = (d.trend || []).map((t) => t.views)
+  const postingTimes = d.postingTimes || []
 
   return (
     <div>
@@ -169,13 +173,14 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             </div>
           ))}
         </div>
-        {trendVals.length >= 2 && (
+        {postingTimes.some((b) => b.posts > 0) && (
           <div style={{ padding: '16px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Views over time</span>
-              <span style={{ fontSize: 11.5, color: '#B4B9C4' }}>{postCount} posts · your full history</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
+              {d.bestTime && <span style={{ fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>{d.bestTime}</span>}
             </div>
-            <Sparkline vals={trendVals} />
+            <PostingBars data={postingTimes} />
+            <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 8 }}>Average views by time of day, from {postCount} of your posts.</div>
           </div>
         )}
       </div>

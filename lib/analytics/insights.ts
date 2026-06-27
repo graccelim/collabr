@@ -46,6 +46,10 @@ export interface PlatformInsights {
   postCount: number
   overview: { medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null }
   trend: { date: string; views: number }[]
+  /** Average views by time-of-day block (6 × 4h, 12am→12am) — drives the "best
+   *  time to post" bar chart. `bestTime` names the highest-average block. */
+  postingTimes: { label: string; name: string; avgViews: number; posts: number }[]
+  bestTime: string | null
   insights: Insight[]
   /** One-line "strongest at …" for the cross-platform summary (null if unknown). */
   strongest: string | null
@@ -76,6 +80,19 @@ function lengthBucket(sec: number | null): string | null {
   if (sec < 30) return '15 to 30s'
   if (sec < 60) return '30 to 60s'
   return '60s+'
+}
+// Average views per 4-hour block across the day (12am → 12am). Reveals the best
+// time to post by OUTCOME (views), robust to sparse data (6 buckets, not 24 hours).
+const TIME_SHORT = ['12a', '4a', '8a', '12p', '4p', '8p']
+const TIME_NAME = ['12–4am', '4–8am', '8am–12pm', '12–4pm', '4–8pm', '8pm–12am']
+function postingTimesOf(posts: InsightPost[]): { label: string; name: string; avgViews: number; posts: number }[] {
+  const acc: number[][] = TIME_SHORT.map(() => [])
+  for (const p of posts) {
+    if (!p.postedAt || p.views == null) continue
+    const idx = Math.min(5, Math.floor(p.postedAt.getHours() / 4))
+    acc[idx].push(p.views)
+  }
+  return acc.map((v, i) => ({ label: TIME_SHORT[i], name: TIME_NAME[i], avgViews: v.length ? Math.round(avg(v)!) : 0, posts: v.length }))
 }
 function dayPart(h: number): string {
   if (h < 6) return 'late night (12 to 6am)'
@@ -285,7 +302,10 @@ export function computePlatformInsights(
   }
 
   const dataConfidence: Confidence = posts.length >= 20 ? 'high' : posts.length >= 8 ? 'medium' : 'low'
-  return { platform, postCount: posts.length, overview, trend, insights, strongest, dataConfidence }
+  const postingTimes = postingTimesOf(posts)
+  const withPosts = postingTimes.filter((b) => b.posts > 0)
+  const bestTime = withPosts.length ? withPosts.reduce((a, b) => (b.avgViews > a.avgViews ? b : a)).name : null
+  return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, insights, strongest, dataConfidence }
 }
 
 // Per-category momentum: compare each category's recent vs earlier engagement
