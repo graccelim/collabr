@@ -870,6 +870,25 @@
   .plans-modal { background: #EEF2FA !important; }
   .plans-navy { background: linear-gradient(150deg,#05060E 0%,#10143A 58%,#05060E 100%) !important; }
 
+  /* Gated showcase pages (Creator Studio / Discover / Invites): on mobile the navy
+     hero is too tall, so tighten its padding, radius, type and the section gaps.
+     Desktop is untouched (these only apply under 768px). */
+  .gate-wrap { gap: 14px !important; }
+  .gate-hero { padding: 20px 18px 18px !important; border-radius: 16px !important; }
+  .gate-hero h1 { font-size: 21px !important; line-height: 1.14 !important; margin: 10px 0 7px !important; }
+  .gate-hero p { font-size: 13.5px !important; margin-bottom: 16px !important; }
+
+  /* Creator Studio Insights tab — declutter on mobile (desktop untouched).
+     Hide the per-row "why" line and the inline bar, leaving the title, action,
+     delta and confidence; shrink the 3-up stats; full-width platform switcher;
+     drop the cramped platform glyphs in the connected-accounts one-liner. */
+  .pi-why, .pi-bar { display: none !important; }
+  .pi-stats .pi-stat { padding: 2px 12px !important; }
+  .pi-statv { font-size: 22px !important; }
+  .pi-switch { display: flex !important; width: 100% !important; }
+  .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }
+  .ca-glyphs { display: none !important; }
+
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }
   .profile-stat-top { gap: 6px; justify-content: center; }

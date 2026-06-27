@@ -33,7 +33,7 @@ export default function InsightsPanel({ platformInsights }: { platformInsights: 
   return (
     <div>
       {rows.length > 1 && (
-        <div style={{ marginBottom: 18, display: 'inline-flex', background: '#F1F5FC', border: '1px solid rgba(20,30,80,.09)', borderRadius: 11, padding: 4 }}>
+        <div className="pi-switch" style={{ marginBottom: 18, display: 'inline-flex', background: '#F1F5FC', border: '1px solid rgba(20,30,80,.09)', borderRadius: 11, padding: 4 }}>
           {rows.map((r) => {
             const on = r.platform === row.platform
             const Glyph = socialIcon(r.platform)

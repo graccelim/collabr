@@ -81,12 +81,12 @@ function Row({ m, top }: { m: Insight; top: boolean }) {
   const hasBar = typeof m.you === 'number' && typeof m.base === 'number'
   const delta = hasBar ? (m.you! - m.base!) : null
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'center', padding: top ? '2px 0 18px' : '18px 0', borderTop: top ? 'none' : '1px solid rgba(14,16,22,.07)' }}>
+    <div className="pi-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'center', padding: top ? '2px 0 18px' : '18px 0', borderTop: top ? 'none' : '1px solid rgba(14,16,22,.07)' }}>
       <div style={{ minWidth: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 600, color: '#0E1016' }}>{m.title}</div>
-        <div style={{ fontSize: 12.5, color: '#8A909C', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
+        <div className="pi-why" style={{ fontSize: 12.5, color: '#8A909C', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
         {hasBar && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 11 }}>
+          <div className="pi-bar" style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 11 }}>
             <Bar you={m.you!} base={m.base!} />
             <span style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#8A909C' }}>{m.you}% <span style={{ color: '#B4B9C4' }}>vs {m.base}% avg</span></span>
           </div>
@@ -161,10 +161,10 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff', maxWidth: 660 }}>{read}</div>
           </div>
         </div>
-        <div style={{ display: 'flex', padding: '20px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
+        <div className="pi-stats" style={{ display: 'flex', padding: '20px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
           {stats.map((s, i) => (
-            <div key={i} style={{ flex: 1, padding: '2px 22px' }}>
-              <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 30, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
+            <div key={i} className="pi-stat" style={{ flex: 1, padding: '2px 22px' }}>
+              <div className="pi-statv" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 30, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
               <div style={{ fontSize: 12, color: '#8A909C', marginTop: 3 }}>{s.label}</div>
             </div>
           ))}
@@ -198,7 +198,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
 
       {/* watch + experiment */}
       {(watch || experiment) && (
-        <div style={{ display: 'grid', gridTemplateColumns: watch && experiment ? '1fr 1fr' : '1fr', gap: 14 }}>
+        <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: watch && experiment ? '1fr 1fr' : '1fr', gap: 14 }}>
           {watch && (
             <div style={{ ...CARD, borderRadius: 14, padding: 18 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>

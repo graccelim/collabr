@@ -77,14 +77,14 @@ export default function ConnectAccounts({
         display: 'flex', alignItems: 'center', gap: 11,
       }}>
         <span style={{ width: 8, height: 8, borderRadius: 999, background: dot, flex: 'none' }} />
-        <span style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 'none' }}>
+        <span className="ca-glyphs" style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 'none' }}>
           {connected.length > 0
             ? connected.map((a) => { const G = socialIcon(a.platform); return <G key={a.id} size={16} /> })
             : null}
         </span>
-        <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{summary}</span>
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)' }}>
-          <Settings2 size={14} /> Manage <ChevronRight size={14} />
+        <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{summary}</span>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, fontWeight: 600, color: 'var(--ink-soft)', flex: 'none' }}>
+          <Settings2 size={14} /> <span className="ca-manage-label">Manage</span> <ChevronRight size={14} />
         </span>
       </button>
 
