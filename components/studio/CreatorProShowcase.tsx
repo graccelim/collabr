@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import CreatorProPanel from '@/components/CreatorProPanel'
-import InsightsPreview from '@/components/previews/InsightsPreview'
+import StudioDemoCarousel from '@/components/previews/StudioDemoCarousel'
 
 // Locked Creator Studio: lead with a LIVE (sample-data) preview of the product so
 // it feels like an experience you want in — not a pricing page. CTA opens the modal.
@@ -39,8 +39,8 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
         </div>
       </div>
 
-      {/* the product, live (sample data) */}
-      <InsightsPreview />
+      {/* the product, live (sample data) — cycles Insights → Content Lab → Collab */}
+      <StudioDemoCarousel />
 
       {/* what else + secondary CTA */}
       <div style={{ textAlign: 'center' }}>

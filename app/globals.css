@@ -682,6 +682,9 @@
 @keyframes clp-floatlock { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-9px) rotate(-4deg); } }
 @keyframes ci-wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
 @keyframes prev-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes demo-slide-in { from { transform: translateX(30px); } to { transform: none; } }
+@keyframes demo-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { [style*="demo-slide-in"], [style*="demo-progress"] { animation: none !important; transform: none !important; } }
 @media (prefers-reduced-motion: reduce) { [style*="prev-bob"] { animation: none !important; } }
 /* Reflective sweep for payment CTAs (Upgrade to Plus, Start trial, etc.). */
 .btn-sheen { position: relative; overflow: hidden; }
