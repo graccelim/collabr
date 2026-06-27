@@ -696,7 +696,7 @@
 }
 @keyframes demo-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes comm-strike { 0%, 6% { transform: scaleX(0); } 28%, 90% { transform: scaleX(1); } 100% { transform: scaleX(0); } }
-@keyframes comm-bounce { 0%, 100% { transform: translateY(-1px); } 50% { transform: translateY(3px); } }
+@keyframes comm-bounce { 0%, 100% { transform: translateY(1px); } 50% { transform: translateY(-3px); } }
 @keyframes comm-pop { 0%, 14% { opacity: .35; transform: scale(.86); } 30%, 100% { opacity: 1; transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) { [style*="comm-strike"], [style*="comm-bounce"], [style*="comm-pop"] { animation: none !important; opacity: 1 !important; transform: none !important; } }
 @media (prefers-reduced-motion: reduce) { [style*="prev-cursor"], [style*="demo-pop"] { animation: none !important; } }
@@ -906,6 +906,13 @@
   .pi-switch { display: flex !important; width: 100% !important; }
   .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }
   .ca-glyphs { display: none !important; }
+
+  /* Why-list (Discover / Invites reasons): smaller and tighter on mobile so it
+     doesn't dominate the screen. Desktop sizing is untouched. */
+  .why-list .why-tick { width: 20px !important; height: 20px !important; }
+  .why-list .why-tick svg { width: 12px !important; height: 12px !important; }
+  .why-list .why-text { font-size: 12.5px !important; padding-bottom: 12px !important; }
+  .why-list .why-row { gap: 10px !important; }
 
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }
