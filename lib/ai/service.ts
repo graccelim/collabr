@@ -93,7 +93,7 @@ export interface CollabAnalysisInput {
 export function collaborationAnalysis(input: CollabAnalysisInput): Promise<string> {
   return run(
     COLLAB_ANALYSIS_SYSTEM,
-    `Analyse this completed collaboration using only the creator's own deterministic data — explain why it ` +
+    `Analyse this completed collaboration using only the creator's own deterministic data, explain why it ` +
       `performed as it did, which patterns contributed, what to repeat, and what to improve:\n${JSON.stringify(input)}`,
     AI_MODELS.interactive,
   )

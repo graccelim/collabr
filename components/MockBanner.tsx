@@ -14,7 +14,7 @@ export default function MockBanner() {
       fontSize: 12.5, color: 'var(--warn-deep, #8a531a)', fontWeight: 600, flexWrap: 'wrap',
     }}>
       <FlaskConical size={14} style={{ flex: 'none' }} />
-      <span style={{ minWidth: 0 }}>Demo data — mock analytics mode is on. Seeded for testing, not real performance.</span>
+      <span style={{ minWidth: 0 }}>Demo data, mock analytics mode is on. Seeded for testing, not real performance.</span>
       <MockSeedControls />
     </div>
   )

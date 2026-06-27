@@ -137,7 +137,7 @@ export default async function BillingPage() {
               <>
                 <div className="w-full">
                   <p className="text-sm text-gray-600 mb-1">
-                    Pro adds unlimited barter (product-for-content) campaigns — {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
+                    Pro adds unlimited barter campaigns (product for content) at {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
                     or {CURRENCY}{PLAN_PRICING.pro.annual}/yr (2 months free).
                   </p>
                   <p className="text-xs text-gray-400 mb-3">
@@ -157,13 +157,13 @@ export default async function BillingPage() {
         )}
       </div>
 
-      {/* Upgrade — shown until the brand is on Plus */}
+      {/* Upgrade, shown until the brand is on Plus */}
       {!plan.isPlus && (
         <div className="card" style={{ padding: 18 }}>
           <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Do more with Collabr</h3>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
             {beta
-              ? 'Plus is 50% off during beta — unlock Creator Discovery, direct invites and analytics.'
+              ? 'Plus is 50% off during beta, unlock Creator Discovery, direct invites and analytics.'
               : 'Upgrade for unlimited barter campaigns (Pro), or Creator Discovery + analytics (Plus).'}
           </p>
           <PlansCTA beta={beta} label="View plans" />

@@ -61,7 +61,7 @@ export default function PostJobPage() {
     : ''
   const previewPay = hasPay
     ? form.budget_min
-      ? `S$${form.budget_min}${form.budget_max ? `–S$${form.budget_max}` : ''}`
+      ? `S$${form.budget_min}${form.budget_max ? ` to S$${form.budget_max}` : ''}`
       : 'Paid'
     : hasBarter
       ? (form.barter_detail || 'Barter')
@@ -256,7 +256,7 @@ export default function PostJobPage() {
                   <button type="button"
                     onClick={() => setForm(f => ({ ...f, creators_needed: String(Math.max(1, parseInt(f.creators_needed || '1') - 1)) }))}
                     style={{ width: 42, height: 42, borderRadius: 10, border: '1.5px solid var(--line-strong)', background: 'var(--surface)', fontSize: 20, color: 'var(--ink)', cursor: 'pointer' }}>
-                    –
+                    −
                   </button>
                   <div className="input" style={{ textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 18, display: 'grid', placeItems: 'center', width: 64 }}>
                     {form.creators_needed}

@@ -77,7 +77,7 @@ function paysLabel(c: JobsListCampaign): { value: string; money: boolean } {
   const hasPay = c.comp_type === 'paid' || c.comp_type === 'both'
   if (!hasPay) return { value: 'Barter', money: false }
   if (c.budget_min && c.budget_max) {
-    return { value: `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`, money: true }
+    return { value: `${formatSGD(c.budget_min)} to ${formatSGD(c.budget_max)}`, money: true }
   }
   if (c.budget_min) return { value: formatSGD(c.budget_min), money: true }
   if (c.budget_max) return { value: formatSGD(c.budget_max), money: true }
@@ -192,7 +192,7 @@ export default function JobsList({
       }}
     >
       <Bookmark size={full ? 16 : 14} fill={savedOnly ? '#fff' : 'none'} />
-      {full ? (savedOnly ? 'Showing saved — view all' : 'View saved campaigns') : 'Saved'}
+      {full ? (savedOnly ? 'Showing saved, view all' : 'View saved campaigns') : 'Saved'}
     </button>
   )
 
@@ -227,7 +227,7 @@ export default function JobsList({
         <div style={{ flex: 1 }}><FilterSelect ariaLabel="Sort campaigns" value={sort} onChange={setSort} options={toOpts(SORT_OPTS)} align="right" full /></div>
       </div>
 
-      {/* Mobile filter sheet — filters apply live. */}
+      {/* Mobile filter sheet, filters apply live. */}
       {sheetOpen && (
         <div onClick={() => setSheetOpen(false)}
           style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(14,16,22,.45)', display: 'flex', alignItems: 'flex-end' }}>
@@ -261,7 +261,7 @@ export default function JobsList({
         </div>
       )}
 
-      {/* Campaign cards — 2-col grid on desktop, single column on mobile */}
+      {/* Campaign cards, 2-col grid on desktop, single column on mobile */}
       {visible.length === 0 ? (
         <div className="card" style={{ padding: 'clamp(32px,6vw,52px) 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
           <span style={{ width: 56, height: 56, borderRadius: 15, background: 'var(--surface-2)', border: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
@@ -341,7 +341,7 @@ export default function JobsList({
                   )}
                 </div>
 
-                {/* stat row — 4 across on desktop, 2×2 on mobile (keeps the pay
+                {/* stat row, 4 across on desktop, 2×2 on mobile (keeps the pay
                     amount readable instead of truncating in a cramped row) */}
                 <div className="discover-stats">
                   {stats.map(s => (

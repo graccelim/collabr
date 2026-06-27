@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     .select('users(display_name)').eq(byCol, params.slug).maybeSingle()
   const name = (data?.users as any)?.display_name || 'Creator'
   const title = `${name} on Collabr`
-  return { title, description: `${name}'s creator profile on Collabr — work, niches and rates.`, openGraph: { title }, twitter: { title } }
+  return { title, description: `${name}'s creator profile on Collabr, work, niches and rates.`, openGraph: { title }, twitter: { title } }
 }
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string } }) {
@@ -281,7 +281,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   const mainContent = (
         <>
-          {/* Trust & reliability — real reputation, placeholder when no history */}
+          {/* Trust & reliability, real reputation, placeholder when no history */}
           <CreatorTrust
             completedCount={completedCollabs}
             completionRate={(scoreRow as any)?.completion_rate ?? null}
@@ -292,7 +292,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             repeatBrands={repeatBrands}
           />
 
-          {/* Connected analytics — verified snapshot when connected; hidden for
+          {/* Connected analytics, verified snapshot when connected; hidden for
               non-connected creators (owner sees a private connect nudge). */}
           <BrandConnectedAnalytics
             connected={!!creator.connected}

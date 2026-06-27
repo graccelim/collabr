@@ -35,7 +35,7 @@ const PLAN: Record<Platform, Niche[]> = {
   ],
   youtube: [
     { cat: 'Tech', sub: 'Reviews', style: 'review', baseRate: 0.09, lenPref: 'long', count: 6, captions: ['Honest 6-month laptop review', 'Best budget phone 2026', 'Is this gadget worth it?'], tags: ['#tech', '#review', '#gadgets'] },
-    { cat: 'Travel', sub: 'Itineraries', style: 'vlog', baseRate: 0.07, lenPref: 'long', trend: 'up', count: 4, captions: ['7 days in Vietnam — full guide', 'How I travel for cheap', 'Japan rail pass explained'], tags: ['#travel', '#itinerary', '#travelvlog'] },
+    { cat: 'Travel', sub: 'Itineraries', style: 'vlog', baseRate: 0.07, lenPref: 'long', trend: 'up', count: 4, captions: ['7 days in Vietnam, full guide', 'How I travel for cheap', 'Japan rail pass explained'], tags: ['#travel', '#itinerary', '#travelvlog'] },
     { cat: 'Lifestyle', sub: 'Productivity', style: 'talking-head', baseRate: 0.05, lenPref: 'long', count: 4, captions: ['My realistic 5am routine', 'Notion setup for 2026', 'How I plan my week'], tags: ['#productivity', '#lifestyle', '#notion'] },
   ],
 }
@@ -208,7 +208,7 @@ export async function seedCreatorAnalytics(
   // 'mock-…' so reset only removes seeded reports, never real ones).
   const day = (offset: number) => new Date(Date.now() - offset * 86_400_000).toISOString().slice(0, 10)
   const reports = [
-    { period_start: day(6), period_end: day(0), report: { text: 'What changed: Engagement rose ~1.1 pts week-over-week, led by evening posts; your shortest clips kept over-indexing while Food softened against its own earlier run.\n\nStrongest patterns: Evening (6pm–12am) posting and street-food reviews stayed your most reliable lifts.\n\nDeclining patterns: Food slipped from its earlier high — worth a fresh angle.\n\nExperiments to try: Post 2–3 sub-15s cuts and compare to your baseline; hold an even cadence on Instagram.\n\nPer-platform: TikTok → street-food reviews · Instagram → fashion carousels · YouTube → travel vlogs (early). Each measured only against your own history.' }, input_hash: 'mock-w1' },
+    { period_start: day(6), period_end: day(0), report: { text: 'What changed: Engagement rose ~1.1 pts week-over-week, led by evening posts; your shortest clips kept over-indexing while Food softened against its own earlier run.\n\nStrongest patterns: Evening (6pm to 12am) posting and street-food reviews stayed your most reliable lifts.\n\nDeclining patterns: Food slipped from its earlier high, worth a fresh angle.\n\nExperiments to try: Post 2 to 3 sub-15s cuts and compare to your baseline; hold an even cadence on Instagram.\n\nPer-platform: TikTok → street-food reviews · Instagram → fashion carousels · YouTube → travel vlogs (early). Each measured only against your own history.' }, input_hash: 'mock-w1' },
     { period_start: day(13), period_end: day(7), report: { text: 'What changed: Street food held strong and your cadence steadied.\n\nStrongest patterns: Review-style short clips continued to beat your baseline.\n\nExperiments to try: Keep the evening rhythm; test one longer explainer.' }, input_hash: 'mock-w2' },
     { period_start: day(43), period_end: day(14), report: { text: 'Monthly recap: Short-form formats drove your best month so far. Evening posting and street-food reviews were the throughline; consider widening into one adjacent topic next month.' }, input_hash: 'mock-m1' },
   ]

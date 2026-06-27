@@ -153,7 +153,7 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
           body: JSON.stringify({ collab_id: collabId }),
         })
       } catch { /* webhook will reconcile if this sync call fails */ }
-      toast.success('Payment secured — work can begin.')
+      toast.success('Payment secured, work can begin.')
       setOpen(false)
       onSuccess()
     } catch (e: any) {

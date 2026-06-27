@@ -106,7 +106,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
       }}
     >
       <Bookmark size={full ? 16 : 14} fill={savedActive ? '#fff' : 'none'} />
-      {full ? (savedActive ? 'Showing saved — view all' : 'View saved creators') : 'Saved'}
+      {full ? (savedActive ? 'Showing saved, view all' : 'View saved creators') : 'Saved'}
     </button>
   )
 

@@ -44,7 +44,7 @@ export async function retryCreatorPayout(admin: Admin, collab: StuckCollab): Pro
     await sendNotification({
       userId: creatorUserId, type: 'payment_released',
       title: `${amount} transferred`,
-      body: 'Your payout account is connected — your held payment was released.',
+      body: 'Your payout account is connected, your held payment was released.',
       payload: { collab_id: collab.id }, dedupeKey: `collab:${collab.id}:payment-released`,
     })
     await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: collab.id }) })

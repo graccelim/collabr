@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     .select('company_name').eq(byCol, params.slug).maybeSingle()
   const name = data?.company_name || 'Brand'
   const title = `${name} on Collabr`
-  return { title, description: `${name}'s brand profile on Collabr — campaigns, reputation and reviews.`, openGraph: { title }, twitter: { title } }
+  return { title, description: `${name}'s brand profile on Collabr, campaigns, reputation and reviews.`, openGraph: { title }, twitter: { title } }
 }
 
 export default async function BrandProfilePage({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string } }) {
@@ -237,7 +237,7 @@ export default async function BrandProfilePage({ params, searchParams }: { param
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {campaigns.slice(0, 4).map(c => {
                   const budget = c.budget_min && c.budget_max
-                    ? `${formatSGD(c.budget_min)}–${formatSGD(c.budget_max)}`
+                    ? `${formatSGD(c.budget_min)} to ${formatSGD(c.budget_max)}`
                     : c.comp_type === 'barter' ? 'Barter' : 'Negotiable'
                   return (
                     <Link key={c.id} href={`/jobs/${(c as { slug?: string }).slug || c.id}`} className="rail-link">

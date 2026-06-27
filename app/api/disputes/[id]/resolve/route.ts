@@ -22,7 +22,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: 'Invalid outcome' }, { status: 400 })
   }
   if (outcome === 'split' && (!split_percentage || split_percentage < 0 || split_percentage > 100)) {
-    return NextResponse.json({ error: 'split_percentage 0–100 required for split outcome' }, { status: 400 })
+    return NextResponse.json({ error: 'split_percentage 0 to 100 required for split outcome' }, { status: 400 })
   }
 
   const { data: claimed, error: claimError } = await admin.rpc('claim_dispute_resolution', {

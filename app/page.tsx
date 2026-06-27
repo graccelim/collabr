@@ -198,7 +198,7 @@ function WhySection() {
               >
                 <Icon />
               </div>
-              {/* Title is the primary focus — larger and bolder. */}
+              {/* Title is the primary focus, larger and bolder. */}
               <h3
                 style={{
                   fontSize: 19,
@@ -210,7 +210,7 @@ function WhySection() {
               >
                 {title}
               </h3>
-              {/* Benefit — medium emphasis. */}
+              {/* Benefit, medium emphasis. */}
               <p
                 style={{
                   fontSize: 14.5,
@@ -221,7 +221,7 @@ function WhySection() {
               >
                 {benefit}
               </p>
-              {/* "No more…" reinforcement — smaller and muted. */}
+              {/* "No more…" reinforcement, smaller and muted. */}
               <p
                 style={{
                   fontSize: 13,
@@ -520,7 +520,7 @@ export default async function HomePage() {
 
 
       {/* ══ WHY COLLABR ══ benefit-led USP grid. Value before mechanism on every
-          viewport — the stronger conversion order. ══ */}
+          viewport, the stronger conversion order. ══ */}
       <WhySection />
 
       {/* ══ HOW IT WORKS ══ one workflow section, two columns ══ */}
@@ -599,7 +599,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ══ CONNECTED CREATOR / proven performance USP — analytics suite only ══ */}
+      {/* ══ CONNECTED CREATOR / proven performance USP, analytics suite only ══ */}
       {flags.analyticsSuite && (
       <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
         <div style={{ maxWidth: 1040, margin: '0 auto', padding: '0 20px' }}>
@@ -609,16 +609,16 @@ export default async function HomePage() {
               Hire on real results, not follower counts
             </h2>
             <p style={{ fontSize: 'clamp(15px,1.5vw,17px)', color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 560, margin: '12px auto 0' }}>
-              ⭐ Connected Creators sync their TikTok, Instagram and YouTube performance automatically — so brands
+              ⭐ Connected Creators sync their TikTok, Instagram and YouTube performance automatically, so brands
               see average views, engagement and reach. 🛡️ Collabr Certified shows who's reliable. No rankings, no
-              vanity metrics — just a creator's own track record.
+              vanity metrics, just a creator's own track record.
             </p>
           </Reveal>
           <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
             {[
-              ['🛡️ Collabr Certified', 'Earned from completed collaborations, strong ratings and reliability — kept current, suspendable.'],
+              ['🛡️ Collabr Certified', 'Earned from completed collaborations, strong ratings and reliability, kept current, suspendable.'],
               ['⭐ Connected Creator', 'Auto-synced performance metrics from connected social accounts. A Creator Pro benefit.'],
-              ['💎 Creator Pro', 'Creator Studio, AI Growth & Brand Coach, Content Lab, weekly reports — and a lower platform fee.'],
+              ['💎 Creator Pro', 'Creator Studio, AI Growth & Brand Coach, Content Lab, weekly reports, and a lower platform fee.'],
             ].map(([title, body]) => (
               <Reveal key={title} className="card" style={{ padding: 24 }}>
                 <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>{title}</h3>

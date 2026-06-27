@@ -46,7 +46,7 @@ export class InstagramAdapter implements PlatformAdapter {
           else if (row?.name === 'saved') saved = val
           else if (row?.name === 'plays') plays = val
         }
-      } catch { /* insights not available for this media type — leave null */ }
+      } catch { /* insights not available for this media type, leave null */ }
       out.push({
         externalId: String(m?.id ?? ''),
         platform: 'instagram',

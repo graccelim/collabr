@@ -8,7 +8,7 @@ export interface CompletionItem {
 }
 
 export interface CompletionResult {
-  score: number // 0–100
+  score: number // 0 to 100
   items: CompletionItem[]
 }
 

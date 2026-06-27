@@ -589,7 +589,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
           >
             {(collabs || []).length === 0 && (
               <div style={{ padding: '18px 16px', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-                No active collaborations yet — they’ll appear here once a creator is confirmed.
+                No active collaborations yet, they’ll appear here once a creator is confirmed.
               </div>
             )}
             {(collabs || []).map((c) => {
@@ -760,7 +760,7 @@ async function CreatorDashboard({
       const hasPay = c.comp_type === 'paid' || c.comp_type === 'both';
       const pay = hasPay
         ? c.budget_min
-          ? `${formatSGD(c.budget_min)}${c.budget_max ? `–${formatSGD(c.budget_max)}` : ''}`
+          ? `${formatSGD(c.budget_min)}${c.budget_max ? ` to ${formatSGD(c.budget_max)}` : ''}`
           : 'Paid'
         : 'Barter';
       return {
@@ -807,7 +807,7 @@ async function CreatorDashboard({
         </div>
       )}
 
-      {/* Greeting — always at the top of the page content. */}
+      {/* Greeting, always at the top of the page content. */}
       <div style={{ marginTop: 8, marginBottom: 18 }}>
         <div className="eyebrow" style={{ marginBottom: 12 }}>
           Creator studio
@@ -951,7 +951,7 @@ async function CreatorDashboard({
         </Link>
       )}
 
-      {/* Mobile has no Creator Studio tab in the bottom nav — surface it here,
+      {/* Mobile has no Creator Studio tab in the bottom nav, surface it here,
           opposite "View my profile". */}
       <div className="md:hidden" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
         <Link href={`/creators/${creator.id}`}
@@ -1037,7 +1037,7 @@ async function CreatorDashboard({
           >
             {(collabs || []).length === 0 && (
               <div style={{ padding: '18px 16px', fontSize: 13, color: 'var(--ink-faint-solid)' }}>
-                No active collaborations yet — they’ll appear here once one is underway.
+                No active collaborations yet, they’ll appear here once one is underway.
               </div>
             )}
             {(collabs || []).map((c) => {
@@ -1238,7 +1238,7 @@ async function CreatorDashboard({
       )}
 
       {/* Matched to you - active campaigns ranked by the two-sided recommender;
-          honest tier label + 1–2 reasons, never a percentage */}
+          honest tier label + 1 to 2 reasons, never a percentage */}
       {matched.length > 0 && (
         <div
           style={{

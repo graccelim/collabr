@@ -203,7 +203,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'var(--accent-tint)', borderRadius: 'var(--radius-sm)', marginBottom: 28, border: '1px solid var(--accent-tint-2)' }}>
           <CheckCircle2 size={16} color="var(--accent-deep)" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: 'var(--accent-deep)', display: 'inline-flex', alignItems: 'center' }}>
-            Barter collaboration — no payment <InfoTip text={TERMS.barter} />
+            Barter collaboration, no payment <InfoTip text={TERMS.barter} />
           </span>
           <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)' }}>Product / service exchange</span>
         </div>
@@ -280,7 +280,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             />
           )}
 
-          {/* Financials — barter has no payment, so no breakdown is shown. */}
+          {/* Financials, barter has no payment, so no breakdown is shown. */}
           {!isBarter && (
             <div className="card">
               <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 14 }}>Payment breakdown</h2>
@@ -416,7 +416,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             existingReview={existingReview ?? null}
           />
 
-          {/* Open or resolved dispute — status, evidence thread, add-evidence form */}
+          {/* Open or resolved dispute, status, evidence thread, add-evidence form */}
           {showDisputeCard && dispute && (
             <DisputeStatusCard
               collabId={params.id}

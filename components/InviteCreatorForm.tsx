@@ -108,7 +108,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
           onChange={e => setRate(e.target.value)} placeholder={isBarter ? 'Leave blank for pure barter' : '250'} required={!isBarter} />
         <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 4 }}>
           {isBarter
-            ? `Barter campaign — no cash changes hands. Leave blank for a pure product/service exchange.`
+            ? `Barter campaign, no cash changes hands. Leave blank for a pure product/service exchange.`
             : `This becomes the protected deal value if ${first} accepts.`}
         </p>
       </div>

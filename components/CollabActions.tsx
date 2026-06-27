@@ -64,8 +64,8 @@ export default function CollabActions({
           <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)', marginBottom: 4 }}>Collaboration active</div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
             {isBrand
-              ? `No payment — this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
-              : 'No payment — this is a barter exchange. Submit your draft to get started.'}
+              ? `No payment, this is a product or service exchange. ${creatorName.split(' ')[0]} will submit their draft next.`
+              : 'No payment, this is a barter exchange. Submit your draft to get started.'}
           </p>
         </div>
       </div>
@@ -152,7 +152,7 @@ export default function CollabActions({
           </p>
           {!creatorHasConnect && (
             <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.4 }}>
-              {creatorName.split(' ')[0]} hasn’t connected a payout account yet — that’s fine to fund now; the payout is released to them once they connect.
+              {creatorName.split(' ')[0]} hasn’t connected a payout account yet, that’s fine to fund now; the payout is released to them once they connect.
             </p>
           )}
         </div>
@@ -300,9 +300,9 @@ export default function CollabActions({
           <Clock size={17} color="var(--warn)" />
         </div>
         <div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>You&rsquo;re in — waiting on the brand</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>You&rsquo;re in, waiting on the brand</div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-            You accepted this collaboration. {creatorName.split(' ')[0]} needs to secure payment before you start — we&rsquo;ll let you know the moment it&rsquo;s ready.
+            You accepted this collaboration. {creatorName.split(' ')[0]} needs to secure payment before you start, we&rsquo;ll let you know the moment it&rsquo;s ready.
           </p>
         </div>
       </div>
@@ -332,13 +332,13 @@ export default function CollabActions({
       <div className="card" style={{ padding: 18, border: '1px solid rgba(217,119,6,.25)' }}>
         <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 4 }}>
           {isBrand
-            ? (underReview ? 'Payment held — under support review' : 'Payment captured — waiting on payout setup')
+            ? (underReview ? 'Payment held, under support review' : 'Payment captured, waiting on payout setup')
             : (underReview ? 'Your payout is under review' : 'Connect your payout account to get paid')}
         </div>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
           {isBrand
             ? (underReview
-                ? `Your payment is captured and safe. We're following up with ${creatorName.split(' ')[0]} to finish their payout setup — nothing is required from you.`
+                ? `Your payment is captured and safe. We're following up with ${creatorName.split(' ')[0]} to finish their payout setup, nothing is required from you.`
                 : `Your payment is secured. We'll release it to ${creatorName.split(' ')[0]} automatically once they connect their payout account.`)
             : (underReview
                 ? 'Your payment is held safely and our team is reviewing it. Connect your payout account in Earnings to release it automatically, or contact support if you need help.'

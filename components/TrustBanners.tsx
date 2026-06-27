@@ -50,7 +50,7 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
           </button>
         </div>
       )}
-      {/* Hidden on the dashboard home — the "Welcome to Collabr" completion card
+      {/* Hidden on the dashboard home, the "Welcome to Collabr" completion card
           already prompts this there (avoids a redundant double nudge). Links to
           the editable profile, not /onboarding (which just bounces to overview). */}
       {!onboardingComplete && pathname !== '/onboarding' && pathname !== '/dashboard' && (

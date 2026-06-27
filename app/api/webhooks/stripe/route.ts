@@ -256,9 +256,9 @@ export async function POST(req: NextRequest) {
             // would say brand-refunded AND creator-paid). Flag for manual review.
             await ensureWrite(supabase.from('collabs').update({
               payout_review_at: new Date().toISOString(),
-              payment_failure_reason: 'A refund was issued on an already-paid collab — manual reconciliation needed.',
+              payment_failure_reason: 'A refund was issued on an already-paid collab, manual reconciliation needed.',
             }).eq('id', c.id))
-            await sendPayoutAdminEmail('Refund on an already-paid collab — manual review', {
+            await sendPayoutAdminEmail('Refund on an already-paid collab, manual review', {
               Event: 'charge.refunded on a collab already paid out to the creator',
               'Payment status': c.payment_status as string,
               Charge: charge.id,
@@ -287,9 +287,9 @@ export async function POST(req: NextRequest) {
           if (paidOut) {
             await ensureWrite(supabase.from('collabs').update({
               payout_review_at: new Date().toISOString(),
-              payment_failure_reason: 'A refund was updated on an already-paid collab — manual reconciliation needed.',
+              payment_failure_reason: 'A refund was updated on an already-paid collab, manual reconciliation needed.',
             }).eq('id', c.id))
-            await sendPayoutAdminEmail('Refund on an already-paid collab — manual review', {
+            await sendPayoutAdminEmail('Refund on an already-paid collab, manual review', {
               Event: 'refund.updated on a collab already paid out to the creator',
               'Payment status': c.payment_status as string,
               Refund: refund.id,
@@ -324,9 +324,9 @@ export async function POST(req: NextRequest) {
         await ensureWrite(supabase.from('collabs').update({
           payment_status: 'transfer_reversed',
           payout_review_at: new Date().toISOString(),
-          payment_failure_reason: 'Stripe transfer was reversed — manual reconciliation needed.',
+          payment_failure_reason: 'Stripe transfer was reversed, manual reconciliation needed.',
         }).eq('id', c.id))
-        await sendPayoutAdminEmail('Transfer reversed — manual review', {
+        await sendPayoutAdminEmail('Transfer reversed, manual review', {
           Event: 'transfer.reversed; the creator payout was clawed back',
           'Prior payment status': c.payment_status as string,
           Transfer: transfer.id,

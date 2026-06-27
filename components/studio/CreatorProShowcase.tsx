@@ -39,7 +39,7 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
         </div>
       </div>
 
-      {/* the product, live (sample data) — cycles Insights → Content Lab → Collab */}
+      {/* the product, live (sample data), cycles Insights → Content Lab → Collab */}
       <StudioDemoCarousel />
 
       {/* what else + secondary CTA */}

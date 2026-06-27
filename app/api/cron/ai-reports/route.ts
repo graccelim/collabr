@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     const inputHash = crypto.createHash('sha256').update(JSON.stringify(platforms)).digest('hex')
     const { data: existing } = await admin.from('ai_reports')
       .select('input_hash').eq('creator_id', creatorId).eq('period_start', periodStart).eq('period_end', periodEnd).maybeSingle()
-    if (existing?.input_hash === inputHash) continue // unchanged — skip (cost control)
+    if (existing?.input_hash === inputHash) continue // unchanged, skip (cost control)
 
     try {
       const text = await weeklyReport({ periodStart, periodEnd, platforms })

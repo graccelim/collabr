@@ -68,7 +68,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
 
       {/* outcomes */}
       <div style={{ padding: '14px 18px 0', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {/* 1 — commission (green, financial benefit) — top item */}
+        {/* 1, commission (green, financial benefit), top item */}
         <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .06s both', display: 'flex', gap: 13, alignItems: 'center', padding: '13px 12px', borderRadius: 13, background: '#F2FAF6', border: '1px solid rgba(21,122,85,.16)' }}>
           <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#157A55', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><DollarSign size={17} /></span>
           <div style={{ flex: 1 }}>
@@ -82,7 +82,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
         {/* 2 */}
         <Row {...OUTCOMES[0]} delay={0.12} />
 
-        {/* 3 — expandable preview */}
+        {/* 3, expandable preview */}
         <div className="cp-row" style={{ opacity: 0, animation: 'cp-row .5s cubic-bezier(.16,1,.3,1) .18s both', borderRadius: 13 }}>
           <button type="button" onClick={() => setExpanded((v) => !v)} style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', gap: 13, alignItems: 'flex-start', padding: '13px 12px' }}>
             <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#F1F5FC', color: '#0A0C22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 size={17} /></span>

@@ -356,7 +356,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                         style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 540, color: 'var(--money-deep)' }}>
                         <Check size={15} /> {app.collab_agreed_rate === 0 ? 'Confirmed · open collab →' : 'Confirmed · Payment Secured · open collab →'}
                       </Link>
-                      {/* Funded: undo is gone — escrow changes go through support. */}
+                      {/* Funded: undo is gone, escrow changes go through support. */}
                       <a href="mailto:joincollabr@gmail.com" style={{ fontSize: 12, color: 'var(--ink-faint-solid)' }}>
                         Contact support
                       </a>

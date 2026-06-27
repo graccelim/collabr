@@ -157,7 +157,7 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
         </div>
       )}
 
-      {/* earlier reports — clickable, expand to show that period's report */}
+      {/* earlier reports, clickable, expand to show that period's report */}
       {reports.length > 0 && (
         <div style={{ ...CARD, padding: '8px 22px 12px' }}>
           <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: MUTED, padding: '16px 0 4px' }}>Earlier reports</div>

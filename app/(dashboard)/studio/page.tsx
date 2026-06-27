@@ -36,7 +36,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
         <header>
           <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>Creator Studio</h1>
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>
-            Your growth workspace — connect your socials, see your strengths, and get proactive AI growth suggestions. A Creator Pro feature.
+            Your growth workspace, connect your socials, see your strengths, and get proactive AI growth suggestions. A Creator Pro feature.
           </p>
         </header>
         {flags.creatorPro ? (
@@ -75,7 +75,7 @@ export default async function StudioPage({ searchParams }: { searchParams: { tab
 
       {readOnly && (
         <div className="card" style={{ padding: '13px 16px', background: 'var(--warn-tint)', border: '1px solid rgba(178,106,30,.22)' }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--warn-deep)' }}>Read-only — Creator Pro lapsed</div>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--warn-deep)' }}>Read-only, Creator Pro lapsed</div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '2px 0 0' }}>
             Your historical analytics stay visible. Renew Creator Pro to resume syncing and new reports.
           </p>

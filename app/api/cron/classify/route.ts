@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
   if (!flags.analyticsSuite) return NextResponse.json({ classified: 0, note: 'analytics suite off' })
-  if (!aiConfigured()) return NextResponse.json({ classified: 0, note: 'AI not configured — classification skipped' })
+  if (!aiConfigured()) return NextResponse.json({ classified: 0, note: 'AI not configured, classification skipped' })
 
   const admin = createAdminClient()
   const { data: posts } = await admin.from('content_posts')

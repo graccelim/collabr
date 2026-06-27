@@ -79,7 +79,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         return NextResponse.json({ error: 'Creators needed must be between 1 and 50.' }, { status: 400 })
       }
       if (n < liveCollabs) {
-        return NextResponse.json({ error: `You already have ${liveCollabs} collaboration${liveCollabs === 1 ? '' : 's'} on this campaign — you can't set creators needed below that.` }, { status: 409 })
+        return NextResponse.json({ error: `You already have ${liveCollabs} collaboration${liveCollabs === 1 ? '' : 's'} on this campaign, you can't set creators needed below that.` }, { status: 409 })
       }
     }
     if (updates.comp_type !== undefined && updates.comp_type !== campaign.comp_type && liveCollabs > 0) {

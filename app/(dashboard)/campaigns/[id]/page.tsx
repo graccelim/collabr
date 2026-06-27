@@ -123,7 +123,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     ? new Date(campaign.deadline).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' })
     : null
   const budgetLabel = campaign.budget_min
-    ? `${formatSGD(campaign.budget_min)}${campaign.budget_max ? `–${formatSGD(campaign.budget_max)}` : ''}`
+    ? `${formatSGD(campaign.budget_min)}${campaign.budget_max ? ` to ${formatSGD(campaign.budget_max)}` : ''}`
     : campaign.comp_type === 'barter' ? 'Barter' : '-'
 
   const deliverable = (campaign.deliverable_types && campaign.deliverable_types.length > 0)

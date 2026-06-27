@@ -4,7 +4,7 @@ import FilterSelect from './FilterSelect';
 
 /* One row in the list. The page renders `desktop`/`mobile` (preserving all of
    its own logic + action components); this component only filters, sorts and
-   shows them — it never changes behaviour. */
+   shows them, it never changes behaviour. */
 export interface LWItem {
   id: string;
   status: string; // maps to a LWStatus.key

@@ -15,9 +15,9 @@ const TEXTURE: React.CSSProperties = {
 const MONO = "var(--font-mono, ui-monospace, monospace)"
 const NUM = "var(--font-money, system-ui, sans-serif)"
 const REASONS = [
-  'Verified follower counts and engagement on every profile',
+  'See verified, synced performance on Connected creators, not screenshots',
   'Filter by niche, platform, location and rate',
-  'See who is available now and who replies fast',
+  'See who is available and who responds quickly',
   'Invite your closest matches directly',
 ]
 

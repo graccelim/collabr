@@ -18,7 +18,7 @@ export default function BrandCoachPanel({ collabs }: { collabs: CoachCollab[] })
       <EmptyState
         icon={Briefcase}
         title="Your collaborations show up here"
-        body="Once you have collaborations, tap Analyse on any of them for tailored advice — why it fits you, what to showcase, negotiation points and risks — all from your own history."
+        body="Once you have collaborations, tap Analyse on any of them for tailored advice, why it fits you, what to showcase, negotiation points and risks, all from your own history."
       />
     )
   }

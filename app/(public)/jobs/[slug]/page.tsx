@@ -231,7 +231,7 @@ export default async function JobDetailPage({
   const compValue = !isPaid
     ? 'Barter'
     : campaign.budget_min && campaign.budget_max
-      ? `${formatSGD(campaign.budget_min)}–${formatSGD(campaign.budget_max)}`
+      ? `${formatSGD(campaign.budget_min)} to ${formatSGD(campaign.budget_max)}`
       : campaign.budget_min
         ? formatSGD(campaign.budget_min)
         : campaign.budget_max

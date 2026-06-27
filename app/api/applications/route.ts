@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     .select('id, status').eq('campaign_id', body.campaign_id).eq('creator_id', creator.id).maybeSingle()
   if (existing && existing.status !== 'withdrawn') {
     return NextResponse.json(
-      { error: existing.status === 'rejected' ? 'You can’t reapply — this application was already decided.' : 'You have already applied to this campaign' },
+      { error: existing.status === 'rejected' ? 'You can’t reapply, this application was already decided.' : 'You have already applied to this campaign' },
       { status: 409 }
     )
   }

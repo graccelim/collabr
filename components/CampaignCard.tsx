@@ -24,7 +24,7 @@ function fmtDeadline(d: string | null): string {
   return new Date(d).toLocaleDateString('en-SG', { day: 'numeric', month: 'short' });
 }
 function budgetLabel(c: CampaignRow): string {
-  if (c.budget_min) return `${formatSGD(c.budget_min)}${c.budget_max ? `–${formatSGD(c.budget_max)}` : ''}`;
+  if (c.budget_min) return `${formatSGD(c.budget_min)}${c.budget_max ? ` to ${formatSGD(c.budget_max)}` : ''}`;
   return c.comp_type === 'barter' ? 'Barter' : '—';
 }
 function StatusPill({ status }: { status: string }) {

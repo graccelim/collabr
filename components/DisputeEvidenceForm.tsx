@@ -74,7 +74,7 @@ export default function DisputeEvidenceForm({ collabId }: { collabId: string }) 
         className="textarea"
         value={body}
         onChange={e => setBody(e.target.value)}
-        placeholder="Explain your side — what happened, the timeline, and what you'd like to see happen."
+        placeholder="Explain your side, what happened, the timeline, and what you'd like to see happen."
         style={{ minHeight: 90 }}
         maxLength={5000}
       />

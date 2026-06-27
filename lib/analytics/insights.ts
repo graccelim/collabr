@@ -75,15 +75,15 @@ const conf = (sample: number): Confidence => (sample >= 12 ? 'high' : sample >= 
 function lengthBucket(sec: number | null): string | null {
   if (sec == null) return null
   if (sec < 15) return 'under 15s'
-  if (sec < 30) return '15–30s'
-  if (sec < 60) return '30–60s'
+  if (sec < 30) return '15 to 30s'
+  if (sec < 60) return '30 to 60s'
   return '60s+'
 }
 function dayPart(h: number): string {
-  if (h < 6) return 'late night (12–6am)'
-  if (h < 12) return 'morning (6am–12pm)'
-  if (h < 18) return 'afternoon (12–6pm)'
-  return 'evening (6pm–12am)'
+  if (h < 6) return 'late night (12 to 6am)'
+  if (h < 12) return 'morning (6am to 12pm)'
+  if (h < 18) return 'afternoon (12 to 6pm)'
+  return 'evening (6pm to 12am)'
 }
 
 // Best value of a grouping key, by avg engagement rate, vs the overall baseline.
@@ -141,7 +141,7 @@ export function computePlatformInsights(
   if (win) insights.push({
     key: 'best_window',
     title: `Posting in the ${win.key} works best for you`,
-    why: 'This is based on how your posts actually performed — not just when followers are online.',
+    why: 'This is based on how your posts actually performed, not just when followers are online.',
     evidence: `${win.key}: ${pct(win.value)} avg engagement vs ${pct(baseline)} baseline (${win.sample} posts).`,
     recommendation: `Schedule more posts in the ${win.key}.`,
     confidence: conf(win.sample),
@@ -227,7 +227,7 @@ export function computePlatformInsights(
         title: `${over.length} of your posts consistently beat your average`,
         why: 'Your strongest posts share traits worth repeating.',
         evidence: `${over.length} posts ≥ 25% above your ${pct(baseline)} baseline${common ? `; most are ${common}` : ''}.`,
-        recommendation: common ? `Your winners skew ${common} — produce more like them.` : 'Study these posts and reuse what worked.',
+        recommendation: common ? `Your winners skew ${common}. Produce more like them.` : 'Study these posts and reuse what worked.',
         confidence: conf(over.length),
         you: pctNum(avg(over.map(rate).filter((x): x is number => x != null))), base: pctNum(baseline),
       })
@@ -265,9 +265,9 @@ export function computePlatformInsights(
       insights.push({
         key: 'trend',
         title: `Your views are ${dir}`,
-        why: 'Tracked from Collabr’s own long-term history — native dashboards only keep ~90 days.',
+        why: 'Tracked from Collabr’s own long-term history, native dashboards only keep ~90 days.',
         evidence: `Recent window is ${(change * 100).toFixed(0)}% vs your earlier window.`,
-        recommendation: dir === 'declining' ? 'Revisit what worked in your earlier, stronger period.' : 'Whatever you changed recently is working — keep going.',
+        recommendation: dir === 'declining' ? 'Revisit what worked in your earlier, stronger period.' : 'Whatever you changed recently is working, keep going.',
         confidence: trend.length >= 45 ? 'high' : 'medium',
       })
     }
