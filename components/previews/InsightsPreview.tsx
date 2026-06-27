@@ -16,8 +16,8 @@ const TEXTURE: React.CSSProperties = {
 
 const TREND = [10, 7, 12, 16, 9, 11, 7, 8, 12, 14, 15, 13, 12, 16, 14, 18]
 const WORKING = [
-  { t: 'Post in the evening', s: '6pm–12am', you: 18.9, base: 17.8, conf: 'High', col: '#157A55' },
-  { t: 'Keep videos under 15s', s: 'short formats', you: 20.1, base: 17.8, conf: 'Medium', col: '#5B53E0' },
+  { t: 'Post in the evening', s: '6pm to 12am', you: 18.9, base: 17.8, conf: 'High', col: '#157A55' },
+  { t: 'Keep videos short', s: 'under 15 seconds', you: 20.1, base: 17.8, conf: 'Medium', col: '#5B53E0' },
 ]
 
 function useCountUp(target: number, run: boolean, ms = 900, dp = 0): string {
@@ -82,7 +82,7 @@ export default function InsightsPreview() {
             </span>
             <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: '#6B70A6', border: '1px solid rgba(255,255,255,.16)', padding: '3px 8px', borderRadius: 999 }}>Sample</span>
           </div>
-          <div style={{ fontSize: 14.5, lineHeight: 1.5, color: '#fff' }}>Short street-food reviews, posted in the evening, are your strongest formula right now.</div>
+          <div style={{ fontSize: 14.5, lineHeight: 1.5, color: '#fff' }}>Short street food reviews posted in the evening are your strongest format right now.</div>
         </div>
       </div>
 

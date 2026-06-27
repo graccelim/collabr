@@ -30,7 +30,7 @@ function copy(text: string) {
   navigator.clipboard?.writeText(text).then(() => toast.success('Copied')).catch(() => toast.error('Could not copy'))
 }
 function catText(r: Result, cat: CatKey): string {
-  if (cat === 'videos') return r.videos.map((v) => `${v.title} — ${v.structure}`).join('\n')
+  if (cat === 'videos') return r.videos.map((v) => `${v.title}: ${v.structure}`).join('\n')
   if (cat === 'hashtags') return r.hashtags.join(' ')
   return (r[cat] as string[]).join('\n')
 }
@@ -53,7 +53,7 @@ export default function ContentLab() {
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.result) { setResult(data.result); setCat('hooks') }
-      else setErr(res.status === 503 ? 'Content Lab is being set up — check back soon.' : data.error || 'Could not generate ideas.')
+      else setErr(res.status === 503 ? 'Content Lab is being set up. Check back soon.' : data.error || 'Could not generate ideas.')
     } catch { setErr('Could not generate ideas.') }
     setLoading(false)
   }
@@ -88,7 +88,7 @@ export default function ContentLab() {
 
       {!result && !err && (
         <div style={{ ...CARD, padding: '28px 24px', textAlign: 'center' }}>
-          <p style={{ fontSize: 13.5, color: '#545A66', margin: 0 }}>Enter a topic and generate hooks, captions, CTAs, hashtags and video ideas — tuned to your own winning patterns.</p>
+          <p style={{ fontSize: 13.5, color: '#545A66', margin: 0 }}>Enter a topic and generate hooks, captions, CTAs, hashtags and video ideas based on your own winning patterns.</p>
         </div>
       )}
 

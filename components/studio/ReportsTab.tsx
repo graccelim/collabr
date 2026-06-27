@@ -29,7 +29,7 @@ type Report = { period_start: string; period_end: string; report: any }
 
 const cap = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 const fmtDate = (iso: string) => new Date(iso + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-const fmtRange = (a: string, b: string) => `${fmtDate(a)} – ${new Date(b + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+const fmtRange = (a: string, b: string) => `${fmtDate(a)} to ${new Date(b + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
 function pick(all: (Insight & { platform: string })[], key: string) {
   return all.filter((i) => i.key === key).sort((a, b) => (RANK[b.confidence] - RANK[a.confidence]) || ((b.you ?? 0) - (b.base ?? 0)) - ((a.you ?? 0) - (a.base ?? 0)))[0] || null
@@ -44,7 +44,7 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
   const hasData = all.length > 0
 
   if (!hasData && !reports.length) {
-    return <EmptyState icon={FileText} title="Weekly reports appear here" body="Once your accounts are syncing, Collabr builds a weekly digest — what changed, your strongest patterns, and your next moves." />
+    return <EmptyState icon={FileText} title="Weekly reports appear here" body="Once your accounts are syncing, Collabr builds a weekly digest of what changed, your strongest patterns, and your next moves." />
   }
 
   // ── derive the latest digest from deterministic insights ──
@@ -84,12 +84,12 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
 
   const takeaway = win && fmt
     ? `${winWord} posts and ${fmtVal.toLowerCase()} are doing the heavy lifting this week.`
-    : 'Your strongest patterns this week — measured only against your own history.'
+    : 'Your strongest patterns this week, measured only against your own history.'
 
   // period: last 7 days
   const today = new Date()
   const start = new Date(today.getTime() - 6 * 86_400_000)
-  const periodLabel = `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} – ${today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
+  const periodLabel = `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} to ${today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`
 
   const reportType = (r: Report) => {
     const days = Math.round((new Date(r.period_end).getTime() - new Date(r.period_start).getTime()) / 86_400_000)

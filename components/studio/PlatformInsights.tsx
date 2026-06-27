@@ -126,7 +126,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
         <div style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C', marginBottom: 8 }}>Still learning</div>
         <div style={{ fontSize: 15, fontWeight: 600, color: '#0E1016' }}>We're still learning your patterns here.</div>
         <p style={{ fontSize: 13, color: '#545A66', lineHeight: 1.5, margin: '6px 0 0', maxWidth: 460 }}>
-          Richer insights appear as more of your posts sync. Your history is kept forever — even after the native app deletes it.
+          Richer insights appear as more of your posts sync. Your history is kept forever, even after the native app deletes it.
         </p>
       </div>
     )
@@ -224,7 +224,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
       )}
 
       <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 18, textAlign: 'center' }}>
-        Based on {postCount} of your own posts. We never compare you to other creators — only to your own history.
+        Based on {postCount} of your own posts. We never compare you to other creators, only to your own history.
       </div>
     </div>
   )

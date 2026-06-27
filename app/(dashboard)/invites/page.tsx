@@ -36,7 +36,7 @@ export default async function InvitesPage() {
         <PlansShowcase
           beta={isBetaFreePro()}
           heading="Invite the creators you want"
-          sub="Reach out to your perfect-fit creators directly — Brand Plus unlocks Creator Discovery and direct invites."
+          sub="Reach out to the right creators directly. Brand Plus unlocks Creator Discovery and invitations."
           label="Unlock invites"
         />
       );

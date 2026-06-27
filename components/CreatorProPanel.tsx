@@ -17,9 +17,9 @@ const MONO = "var(--font-mono, ui-monospace, monospace)"
 const NUM = "var(--font-money, system-ui, sans-serif)"
 
 const OUTCOMES = [
-  { icon: Star, tint: '#ECEBFC', fg: '#5B53E0', title: 'Show brands verified performance', desc: 'Connect TikTok, Instagram and YouTube — real synced numbers, not screenshots.' },
-  { icon: FlaskConical, tint: '#F1F5FC', fg: '#0A0C22', title: 'Know what to make next', desc: 'Hooks, captions and ideas drawn from your own best-performing content.' },
-  { icon: RotateCcw, tint: '#F1F5FC', fg: '#0A0C22', title: 'Your history is always yours', desc: 'Cancel anytime — Studio goes read-only, and nothing is ever lost.' },
+  { icon: Star, tint: '#ECEBFC', fg: '#5B53E0', title: 'Show brands verified performance', desc: 'Connect TikTok, Instagram and YouTube for real, synced numbers instead of screenshots.' },
+  { icon: FlaskConical, tint: '#F1F5FC', fg: '#0A0C22', title: 'Know what to make next', desc: 'Hooks, captions and ideas drawn from your own best content.' },
+  { icon: RotateCcw, tint: '#F1F5FC', fg: '#0A0C22', title: 'Your history is always yours', desc: 'Cancel anytime. Studio becomes read only and nothing is ever lost.' },
 ]
 
 export default function CreatorProPanel({ returnTo = '/studio', onClose }: { returnTo?: string; onClose?: () => void }) {
@@ -29,8 +29,8 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
 
   const priceStr = plan === 'annual' ? `${CURRENCY}${creatorProAnnualPerMonth()}` : `${CURRENCY}${CREATOR_PRO_PRICING.monthly}`
   const sub = plan === 'annual'
-    ? `7-day free trial · ${CURRENCY}${CREATOR_PRO_PRICING.annual} billed yearly`
-    : '7-day free trial · billed monthly after'
+    ? `7 day free trial · ${CURRENCY}${CREATOR_PRO_PRICING.annual} billed yearly`
+    : '7 day free trial · billed monthly after'
 
   async function upgrade() {
     if (busy) return
@@ -74,7 +74,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>Keep more of every collaboration</div>
             <div style={{ fontSize: 13, color: '#5A6072', lineHeight: 1.45, marginTop: 2 }}>
-              Pay <span style={{ textDecoration: 'line-through', color: '#9AA0AE' }}>10%</span> commission — just <span style={{ color: '#0F5A3E', fontWeight: 600 }}>8%</span> on Pro.
+              Pay <span style={{ textDecoration: 'line-through', color: '#9AA0AE' }}>10%</span> commission, just <span style={{ color: '#0F5A3E', fontWeight: 600 }}>8%</span> on Pro.
             </div>
           </div>
         </div>
@@ -88,7 +88,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
             <span style={{ width: 34, height: 34, flex: 'none', borderRadius: 9, background: '#F1F5FC', color: '#0A0C22', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><BarChart3 size={17} /></span>
             <span style={{ flex: 1 }}>
               <span style={{ display: 'block', fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>Understand what actually works</span>
-              <span style={{ display: 'block', fontSize: 13, color: '#5A6072', lineHeight: 1.45, marginTop: 2 }}>Per-platform insights and history that never disappears — with AI to explain the why.</span>
+              <span style={{ display: 'block', fontSize: 13, color: '#5A6072', lineHeight: 1.45, marginTop: 2 }}>Insights for every platform, with history that never disappears and clear explanations.</span>
             </span>
             <ChevronDown size={17} color="#9AA0AE" style={{ flex: 'none', marginTop: 9, transition: 'transform .25s ease', transform: expanded ? 'rotate(180deg)' : 'none' }} />
           </button>
@@ -141,7 +141,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
             onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
             style={{ width: '100%', border: 'none', cursor: 'pointer', background: '#0A0C22', color: '#fff', fontSize: 15, fontWeight: 600, padding: 15, borderRadius: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, transition: 'transform .18s ease, box-shadow .18s ease', boxShadow: '0 14px 30px -14px rgba(10,12,34,.6)' }}>
             {busy && <span style={{ width: 17, height: 17, borderRadius: 999, border: '2px solid rgba(255,255,255,.35)', borderTopColor: '#fff', display: 'inline-block', animation: 'cp-spin .7s linear infinite' }} />}
-            {busy ? 'Starting your trial…' : 'Start 7-day free trial'}
+            {busy ? 'Starting your trial' : 'Start your 7 day free trial'}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7, marginTop: 13, fontSize: 12.5, color: '#8A909C' }}>
             <ShieldCheck size={14} color="#157A55" /> No charge today · secure checkout via Stripe

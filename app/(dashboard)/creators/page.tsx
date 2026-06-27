@@ -69,7 +69,7 @@ export default async function CreatorsPage({
       <PlansShowcase
         beta={isBetaFreePro()}
         heading="Discover the right creators for your campaigns"
-        sub="Search the full roster, filter to your perfect fit, and invite creators directly — instead of waiting to be found."
+        sub="Search the full roster, filter to the right fit, and reach out to creators for every campaign."
         label="Unlock Discovery"
       />
     );

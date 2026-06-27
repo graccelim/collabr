@@ -31,7 +31,7 @@ export default function BrandCoachPanel({ collabs }: { collabs: CoachCollab[] })
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.analysis) setResults((r) => ({ ...r, [collabId]: data.analysis }))
-      else setErr(res.status === 503 ? 'Collaboration analysis is being set up — check back soon.' : data.error || 'Could not analyse.')
+      else setErr(res.status === 503 ? 'Collaboration analysis is being set up. Check back soon.' : data.error || 'Could not analyse.')
     } catch { setErr('Could not analyse.') }
     setLoading(null)
   }

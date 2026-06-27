@@ -3,9 +3,10 @@ import { useState } from 'react'
 import { Sparkles, Check } from 'lucide-react'
 import PlansPanel from '@/components/PlansPanel'
 import RosterPreview from '@/components/previews/RosterPreview'
+import WhyList from '@/components/previews/WhyList'
 
-// Brand Plus (Discovery) gate: lead with a LIVE (sample) roster preview so it feels
-// like a locked product, not a feature list. CTA opens the plans modal.
+// Brand Plus (Discovery) gate: state why it is worth it (ticking reasons), then
+// show a live sample roster that mirrors the real product. CTA opens the modal.
 const TEXTURE: React.CSSProperties = {
   position: 'absolute', inset: 0,
   backgroundImage: 'linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px)',
@@ -13,13 +14,19 @@ const TEXTURE: React.CSSProperties = {
 }
 const MONO = "var(--font-mono, ui-monospace, monospace)"
 const NUM = "var(--font-money, system-ui, sans-serif)"
+const REASONS = [
+  'Verified follower counts and engagement on every profile',
+  'Filter by niche, platform, location and rate',
+  'See who is available now and who replies fast',
+  'Invite your closest matches directly',
+]
 
 export default function PlansShowcase({
   beta, heading, sub, label = 'Unlock Discovery',
 }: { beta: boolean; heading: string; sub: string; label?: string }) {
   const [open, setOpen] = useState(false)
   return (
-    <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div style={{ maxWidth: 760, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
       {/* hero */}
       <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 20, padding: '34px 32px 30px', background: 'linear-gradient(150deg,#05060E 0%,#10143A 58%,#05060E 100%)', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 30px 60px -34px rgba(20,30,80,.45)' }}>
         <div style={TEXTURE} />
@@ -36,14 +43,17 @@ export default function PlansShowcase({
             <Sparkles size={15} /> {label}
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 13, fontSize: 12.5, color: '#9CA2D6' }}>
-            <Check size={13} color="#6FCFB2" /> Everything in Brand Pro included · cancel anytime
+            <Check size={13} color="#6FCFB2" /> Everything in Brand Pro is included. Cancel anytime.
           </div>
         </div>
       </div>
 
-      {/* the product, live (sample roster) */}
+      {/* why it is worth it */}
+      <WhyList reasons={REASONS} />
+
+      {/* live sample roster (mirrors the real product) */}
       <div>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C' }}>Matched to your brand</span>
           <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: '#B4B9C4', border: '1px solid rgba(20,30,80,.12)', padding: '3px 8px', borderRadius: 999 }}>Sample</span>
         </div>
@@ -52,7 +62,6 @@ export default function PlansShowcase({
 
       {/* secondary CTA */}
       <div style={{ textAlign: 'center' }}>
-        <div style={{ fontSize: 13, color: '#5A6072', marginBottom: 14 }}>Search, filter, save and invite from the full roster — verified metrics and trust signals built in.</div>
         <button type="button" className="btn-sheen" onClick={() => setOpen(true)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', background: '#0A0C22', color: '#fff', fontSize: 14, fontWeight: 600, padding: '12px 22px', borderRadius: 12 }}>
           <Sparkles size={14} /> {label}

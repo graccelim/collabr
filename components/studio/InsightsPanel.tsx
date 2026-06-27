@@ -22,7 +22,7 @@ export default function InsightsPanel({ platformInsights }: { platformInsights: 
       <EmptyState
         icon={BarChart3}
         title="Your insights appear here once accounts sync"
-        body="Connect TikTok, Instagram or YouTube above. We analyse each platform separately and surface your winning patterns, best posting windows and long-term trends — kept forever, even after the native apps delete the data."
+        body="Connect TikTok, Instagram or YouTube above. We analyse each platform separately and surface your winning patterns, best posting windows and long term trends, kept forever, even after the native apps delete the data."
         steps={['Connect an account', 'We analyse each platform', 'See your winning patterns']}
       />
     )

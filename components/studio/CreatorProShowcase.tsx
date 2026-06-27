@@ -24,17 +24,17 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
         <div style={{ position: 'absolute', top: -70, right: -50, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle,rgba(123,115,240,.45),transparent 70%)', filter: 'blur(22px)' }} />
         <div style={{ position: 'relative', maxWidth: 560 }}>
           <span style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '.16em', textTransform: 'uppercase', color: '#9D96F7' }}>Creator Pro</span>
-          <h1 style={{ fontFamily: NUM, margin: '12px 0 9px', fontSize: 'clamp(25px,3.6vw,32px)', fontWeight: 700, letterSpacing: '-.03em', lineHeight: 1.08, color: '#fff' }}>See exactly what's working — and keep more of it.</h1>
-          <p style={{ margin: '0 0 22px', fontSize: 14.5, lineHeight: 1.55, color: '#9CA2D6' }}>Connect once and Studio turns your own history into clear next moves — best formats, best times, what to make next. Here's a live look:</p>
+          <h1 style={{ fontFamily: NUM, margin: '12px 0 9px', fontSize: 'clamp(25px,3.6vw,32px)', fontWeight: 700, letterSpacing: '-.03em', lineHeight: 1.08, color: '#fff' }}>See what is working, and keep more of what you earn.</h1>
+          <p style={{ margin: '0 0 22px', fontSize: 14.5, lineHeight: 1.55, color: '#9CA2D6' }}>Connect your accounts and Creator Studio turns your own history into clear next steps: your best formats, your best posting times, and what to make next.</p>
           <button type="button" className="btn-sheen" onClick={() => setOpen(true)}
             onMouseDown={(e) => { e.currentTarget.style.transform = 'scale(.985)' }}
             onMouseUp={(e) => { e.currentTarget.style.transform = '' }}
             onMouseLeave={(e) => { e.currentTarget.style.transform = '' }}
             style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', background: '#fff', color: '#0A0C22', fontSize: 14.5, fontWeight: 600, padding: '13px 22px', borderRadius: 12, transition: 'transform .18s ease' }}>
-            <Sparkles size={15} /> Start 7-day free trial
+            <Sparkles size={15} /> Start your 7 day free trial
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginTop: 13, fontSize: 12.5, color: '#9CA2D6' }}>
-            <Check size={13} color="#6FCFB2" /> No charge today · cancel anytime
+            <Check size={13} color="#6FCFB2" /> No charge today. Cancel anytime.
           </div>
         </div>
       </div>
@@ -45,7 +45,7 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
       {/* what else + secondary CTA */}
       <div style={{ textAlign: 'center' }}>
         <div style={{ fontSize: 13, color: '#5A6072', marginBottom: 14 }}>
-          Plus Content Lab, weekly reports, collaboration analysis — and a lower <strong style={{ color: '#157A55' }}>8%</strong> commission.
+          Also includes Content Lab, weekly reports, collaboration analysis, and a lower <strong style={{ color: '#157A55' }}>8%</strong> commission.
         </div>
         <button type="button" className="btn-sheen" onClick={() => setOpen(true)}
           style={{ display: 'inline-flex', alignItems: 'center', gap: 8, border: 'none', cursor: 'pointer', background: '#0A0C22', color: '#fff', fontSize: 14, fontWeight: 600, padding: '12px 22px', borderRadius: 12 }}>

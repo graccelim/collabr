@@ -46,8 +46,8 @@ export default function BrandConnectedAnalytics({
             <div style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink)' }}>Show brands verified performance</div>
           </div>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 12px', lineHeight: 1.5, maxWidth: 520 }}>
-            Connect your TikTok, Instagram or YouTube in Creator Studio — brands will then see your synced views,
-            engagement and reach right here. Only you can see this prompt.
+            Connect your TikTok, Instagram or YouTube in Creator Studio, and brands will then see your synced
+            views, engagement and reach right here. Only you can see this prompt.
           </p>
           <Link href="/studio" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 600, color: 'var(--accent-deep)', textDecoration: 'none' }}>
             Connect accounts <ArrowRight size={14} />

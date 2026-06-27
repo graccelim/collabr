@@ -74,7 +74,7 @@ export default function PlansPanel({
 
   const valueBenefits = [
     { icon: Search, title: 'Search the full creator roster', desc: 'Filter by niche, platform, location and rate.' },
-    { icon: Send, title: 'Invite creators directly', desc: 'Reach the exact people you want — no waiting.' },
+    { icon: Send, title: 'Invite creators directly', desc: 'Reach the exact people you want, with no waiting.' },
     { icon: Bookmark, title: 'Save & shortlist for later', desc: 'Build a shortlist for your next campaign.' },
     { icon: ShieldCheck, title: 'See trust signals as you browse', desc: 'Certified & Connected badges, inline.' },
   ]
@@ -161,7 +161,7 @@ export default function PlansPanel({
         {/* two tiers */}
         <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <TierCard name="Pro" tagline="Unlimited barter campaigns"
-            benefits={['Unlimited barter (product-for-content) campaigns', 'Everything on Free']}
+            benefits={['Unlimited barter campaigns (product for content)', 'Everything on Free']}
             price={beta
               ? <Price amount={0} free struck={`${CURRENCY}${PLAN_PRICING.pro[cycle]}`} note="during beta" />
               : <Price amount={PLAN_PRICING.pro[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? '2 months free' : undefined} />}
