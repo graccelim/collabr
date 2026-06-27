@@ -13,10 +13,10 @@ export default function CommissionDrop() {
       <span style={{ display: 'inline-flex', alignItems: 'center', gap: 9 }}>
         <span style={{ position: 'relative', fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: 17, color: '#9CA2D6' }}>
           90%
-          <span aria-hidden style={{ position: 'absolute', left: -1, right: -1, top: '52%', height: 2, borderRadius: 2, background: '#9AA1B0', transformOrigin: 'left', transform: 'scaleX(1)', animation: 'comm-strike 3.8s ease-in-out infinite' }} />
+          <span aria-hidden className="cd-strike" style={{ position: 'absolute', left: -1, right: -1, top: '52%', height: 2, borderRadius: 2, background: '#9AA1B0', transformOrigin: 'left', transform: 'scaleX(1)', animation: 'comm-strike 3.8s ease-in-out infinite' }} />
         </span>
-        <ArrowUp size={15} color="#6FCFB2" style={{ animation: 'comm-bounce 1.2s ease-in-out infinite' }} />
-        <span style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 21, color: '#6FCFB2', animation: 'comm-pop 3.8s ease-in-out infinite' }}>92%</span>
+        <ArrowUp size={15} color="#6FCFB2" className="cd-arrow" style={{ animation: 'comm-bounce 1.2s ease-in-out infinite' }} />
+        <span className="cd-num" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontWeight: 800, fontSize: 21, color: '#6FCFB2', animation: 'comm-pop 3.8s ease-in-out infinite' }}>92%</span>
       </span>
     </div>
   )

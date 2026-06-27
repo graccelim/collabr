@@ -111,7 +111,7 @@ export default function PlansPanel({
             <Sparkles size={15} color="#A9AEE8" />
             <span style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase', color: '#9CA2D6', fontWeight: 600 }}>Collabr Plus</span>
           </div>
-          <h2 style={{ fontWeight: 800, fontSize: 31, lineHeight: 1.06, letterSpacing: '-.03em', color: '#fff', margin: 0 }}>Reach the right creators first.</h2>
+          <h2 style={{ fontFamily: 'var(--font-serif)', fontWeight: 400, fontSize: 33, lineHeight: 1.08, letterSpacing: '-.01em', color: '#fff', margin: 0 }}>Reach the right creators first.</h2>
           <div className="plans-hide-mobile" style={{ display: 'flex', flexDirection: 'column', gap: 9, marginTop: 12 }}>
             <p style={{ fontSize: 13, lineHeight: 1.5, color: '#9CA2D6', margin: '0 0 2px' }}>Stop waiting to be found. Search the roster, filter to your perfect fit, and invite creators directly.</p>
             {valueBenefits.map((b, i) => {

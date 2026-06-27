@@ -17,7 +17,6 @@ const TEXTURE: React.CSSProperties = {
   maskImage: 'radial-gradient(120% 120% at 100% 0,#000,transparent 70%)',
 };
 const MONO = 'var(--font-mono, ui-monospace, monospace)';
-const NUM = 'var(--font-money, system-ui, sans-serif)';
 
 export default function CreatorProShowcase({
   returnTo = '/studio',
@@ -78,12 +77,12 @@ export default function CreatorProShowcase({
           </span>
           <h1
             style={{
-              fontFamily: NUM,
+              fontFamily: 'var(--font-serif)',
               margin: '12px 0 9px',
-              fontSize: 'clamp(25px,3.6vw,32px)',
-              fontWeight: 700,
-              letterSpacing: '-.03em',
-              lineHeight: 1.08,
+              fontSize: 'clamp(27px,3.9vw,35px)',
+              fontWeight: 400,
+              letterSpacing: '-.01em',
+              lineHeight: 1.1,
               color: '#fff',
             }}
           >

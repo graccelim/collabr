@@ -800,10 +800,44 @@ async function CreatorDashboard({
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
-      {/* Creator Pro upsell is the ONLY thing allowed above the greeting. */}
+      {/* Creator Studio entrance. DESKTOP keeps the upsell card (sidebar has the
+          Studio nav). MOBILE gets a single top entrance: not subscribed → a link
+          into the gated Studio page; subscribed → a slim, premium Studio button. */}
       {showUpgrade && (
-        <div style={{ marginTop: 8, marginBottom: 18 }}>
+        <div className="hidden md:block" style={{ marginTop: 8, marginBottom: 18 }}>
           <CreatorProCTA returnTo="/studio" />
+        </div>
+      )}
+      {flags.creatorStudio && (
+        <div className="md:hidden" style={{ marginTop: 8, marginBottom: 16 }}>
+          {showUpgrade ? (
+            <Link href="/studio" style={{
+              width: '100%', textAlign: 'left', textDecoration: 'none', borderRadius: 'var(--radius)',
+              padding: '13px 16px', color: '#fff', display: 'flex', alignItems: 'center', gap: 12,
+              background: 'linear-gradient(100deg, #232c57 0%, #0e1538 60%, #05081c 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
+            }}>
+              <span style={{ width: 32, height: 32, flex: 'none', borderRadius: 9, background: 'rgba(91,83,224,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BarChart3 size={16} color="#fff" />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: 'block', fontSize: 14, fontWeight: 700 }}>Unlock your analytics with Creator Pro</span>
+                <span style={{ display: 'block', fontSize: 12.5, color: 'rgba(255,255,255,.75)', marginTop: 1 }}>See what is working and win more brand deals.</span>
+              </span>
+              <ArrowRight size={18} style={{ flexShrink: 0, opacity: .85 }} />
+            </Link>
+          ) : (
+            <Link href="/studio" style={{
+              width: '100%', textDecoration: 'none', borderRadius: 12, padding: '12px 16px',
+              display: 'flex', alignItems: 'center', gap: 10, color: '#fff',
+              background: 'linear-gradient(100deg, #232c57 0%, #0e1538 60%, #05081c 100%)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
+            }}>
+              <BarChart3 size={16} color="#A9AEE8" />
+              <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>Creator Studio</span>
+              <ArrowRight size={16} style={{ opacity: .85 }} />
+            </Link>
+          )}
         </div>
       )}
 
@@ -951,20 +985,11 @@ async function CreatorDashboard({
         </Link>
       )}
 
-      {/* Mobile has no Creator Studio tab in the bottom nav, surface it here,
-          opposite "View my profile". */}
-      <div className="md:hidden" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14 }}>
-        <Link href={`/creators/${creator.id}`}
-          style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 12.5, color: 'var(--ink-faint-solid)', textDecoration: 'none' }}>
-          <UserRound size={13} /> View my profile
-        </Link>
-        {flags.creatorStudio && (
-          <Link href="/studio"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: '#0E1016', textDecoration: 'none', background: '#E9E7FE', border: 'none', borderRadius: 999, padding: '9px 15px' }}>
-            <BarChart3 size={14} color="#0E1016" /> Creator Studio <ArrowRight size={13} color="#0E1016" />
-          </Link>
-        )}
-      </div>
+      {/* Mobile "view my profile" (Creator Studio entrance now lives at the top). */}
+      <Link href={`/creators/${creator.id}`} className="md:hidden"
+        style={{ display: 'inline-flex', alignItems: 'center', gap: 5, marginBottom: 14, fontSize: 12.5, color: 'var(--ink-faint-solid)', textDecoration: 'none' }}>
+        <UserRound size={13} /> View my profile
+      </Link>
 
       {isEmpty ? (
         <EmptyState

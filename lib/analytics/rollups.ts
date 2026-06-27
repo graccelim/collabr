@@ -4,6 +4,10 @@
 // (cents-per-view may be fractional; the UI formats it).
 
 import type { Platform } from './adapters/types'
+// Engagement = (likes + comments + shares) / views — single source of truth.
+// Saves/reach are kept on the model for storage/display (Instagram) but are NOT
+// part of the rate (TikTok's API never returns them).
+import { interactions, engagementRate as rate, num as n } from './engagement'
 
 export interface RollupPost {
   platform: Platform
@@ -18,17 +22,6 @@ export interface RollupPost {
   url?: string | null
 }
 
-function n(v: number | null | undefined): number {
-  return v == null ? 0 : v
-}
-function interactions(p: RollupPost): number {
-  return n(p.likes) + n(p.comments) + n(p.shares) + n(p.saves)
-}
-function rate(p: RollupPost): number | null {
-  const denom = p.views ?? p.reach
-  if (denom == null || denom <= 0) return null
-  return interactions(p) / denom
-}
 function avg(nums: number[]): number | null {
   return nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : null
 }

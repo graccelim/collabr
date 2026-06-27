@@ -61,7 +61,7 @@ export default function CreatorProPanel({ returnTo = '/studio', onClose }: { ret
               </button>
             )}
           </div>
-          <h1 style={{ fontFamily: NUM, margin: '14px 0 9px', fontSize: 25, fontWeight: 700, letterSpacing: '-.03em', lineHeight: 1.1, color: '#fff' }}>Turn your content history into better decisions.</h1>
+          <h1 style={{ fontFamily: 'var(--font-serif)', margin: '14px 0 9px', fontSize: 27, fontWeight: 400, letterSpacing: '-.01em', lineHeight: 1.12, color: '#fff' }}>Turn your content history into better decisions.</h1>
           <p style={{ margin: 0, fontSize: 14, lineHeight: 1.55, color: '#9CA2D6' }}>See what actually works, prove it to brands, and keep more of what you earn.</p>
         </div>
       </div>

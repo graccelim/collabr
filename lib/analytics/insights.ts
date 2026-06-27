@@ -8,6 +8,7 @@
 // totals, so older posts aren't unfairly favoured by age.
 
 import type { Platform } from './adapters/types'
+import { engagementRate } from './engagement'
 
 export type Confidence = 'high' | 'medium' | 'low'
 
@@ -54,13 +55,10 @@ export interface PlatformInsights {
 }
 
 // ── helpers ─────────────────────────────────────────────────────────────────
-const n = (v: number | null | undefined): number => (v == null ? 0 : v)
-function interactions(p: InsightPost): number { return n(p.likes) + n(p.comments) + n(p.shares) + n(p.saves) }
-function rate(p: InsightPost): number | null {
-  const d = p.views ?? p.reach
-  if (d == null || d <= 0) return null
-  return interactions(p) / d
-}
+// Engagement = (likes + comments + shares) / views (see lib/analytics/engagement).
+// Saves and reach are intentionally NOT used: TikTok's public API never returns
+// them, so this keeps the metric consistent and always populated across platforms.
+const rate = engagementRate
 function avg(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null }
 function median(xs: number[]): number | null {
   if (!xs.length) return null

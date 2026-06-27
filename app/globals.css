@@ -914,6 +914,10 @@
   .why-list .why-text { font-size: 12.5px !important; padding-bottom: 12px !important; }
   .why-list .why-row { gap: 10px !important; }
 
+  /* Mobile: the commission highlight is static (no strike / bounce / pop). It
+     settles on its final state (90% struck, 92% shown). Desktop keeps the motion. */
+  .cd-strike, .cd-arrow, .cd-num { animation: none !important; }
+
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }
   .profile-stat-top { gap: 6px; justify-content: center; }

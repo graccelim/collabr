@@ -17,7 +17,6 @@ const TEXTURE: React.CSSProperties = {
   maskImage: 'radial-gradient(120% 120% at 100% 0,#000,transparent 70%)',
 };
 const MONO = 'var(--font-mono, ui-monospace, monospace)';
-const NUM = 'var(--font-money, system-ui, sans-serif)';
 const REASONS = [
   'View a live roster of creators matched to your brand',
   'Filter by niche, platform, location and rate',
@@ -90,12 +89,12 @@ export default function PlansShowcase({
           </span>
           <h1
             style={{
-              fontFamily: NUM,
+              fontFamily: 'var(--font-serif)',
               margin: '12px 0 9px',
-              fontSize: 'clamp(24px,3.4vw,31px)',
-              fontWeight: 700,
-              letterSpacing: '-.03em',
-              lineHeight: 1.1,
+              fontSize: 'clamp(26px,3.7vw,33px)',
+              fontWeight: 400,
+              letterSpacing: '-.01em',
+              lineHeight: 1.12,
               color: '#fff',
             }}
           >
