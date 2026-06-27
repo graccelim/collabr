@@ -685,6 +685,17 @@
 @keyframes demo-slide-in { from { transform: translateX(30px); } to { transform: none; } }
 @keyframes demo-blink { 50% { opacity: 0; } }
 @keyframes demo-tick { from { transform: scale(.3); } to { transform: scale(1); } }
+@keyframes prev-cursor {
+  0% { transform: translate(30px, 36px) scale(1); opacity: 0; }
+  14% { opacity: 1; }
+  42% { transform: translate(0,0) scale(1); }
+  50% { transform: translate(0,0) scale(.78); }
+  58% { transform: translate(0,0) scale(1); }
+  86% { transform: translate(0,0) scale(1); opacity: 1; }
+  100% { transform: translate(30px, 36px) scale(1); opacity: 0; }
+}
+@keyframes demo-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { [style*="prev-cursor"], [style*="demo-pop"] { animation: none !important; } }
 @media (prefers-reduced-motion: reduce) { [style*="demo-tick"] { animation: none !important; transform: none !important; } }
 @keyframes demo-progress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (prefers-reduced-motion: reduce) { [style*="demo-slide-in"], [style*="demo-progress"] { animation: none !important; transform: none !important; } }
@@ -891,6 +902,13 @@
   .pi-switch { display: flex !important; width: 100% !important; }
   .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }
   .ca-glyphs { display: none !important; }
+
+  /* Sample roster cards: less chunky on mobile (smaller avatar/padding, drop the
+     third badge). Desktop untouched. */
+  .roster-card { padding: 12px !important; }
+  .roster-av { width: 36px !important; height: 36px !important; font-size: 14px !important; }
+  .roster-hide-mobile { display: none !important; }
+  .roster-rate { display: none !important; }
 
   /* Profile stat band → single compact 4-up row on phones, centred; subs hidden. */
   .profile-stats > .profile-stat { padding: 22px 7px; text-align: center; }

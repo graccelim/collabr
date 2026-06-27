@@ -45,11 +45,6 @@ export default async function StudioPage({
     return (
       <div className="max-w-3xl mx-auto space-y-5">
         <BackButton />
-        <header>
-          <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>
-            Creator Studio
-          </h1>
-        </header>
         {flags.creatorPro ? (
           <CreatorProShowcase returnTo="/studio" />
         ) : (
