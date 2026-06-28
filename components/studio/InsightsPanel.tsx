@@ -2,15 +2,12 @@
 import { useState } from 'react'
 import EmptyState from '@/components/EmptyState'
 import PlatformInsights from '@/components/studio/PlatformInsights'
-import { socialIcon } from '@/components/SocialIcon'
+import PlatformSwitcher from '@/components/studio/PlatformSwitcher'
 import { BarChart3 } from 'lucide-react'
 
 // Flagship Insights: ONE platform at a time (content behaves differently per
-// platform — never merged). A segmented switcher (our brand glyphs) flips between
-// the connected platforms; each renders the full per-platform analytics panel.
-const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube' }
+// platform — never merged). A shared switcher flips between connected platforms.
 const ORDER = ['tiktok', 'instagram', 'youtube']
-
 type Row = { platform: string; data: any; ai_narrative: string | null }
 
 export default function InsightsPanel({ platformInsights }: { platformInsights: Row[] }) {
@@ -33,22 +30,8 @@ export default function InsightsPanel({ platformInsights }: { platformInsights: 
   return (
     <div>
       {rows.length > 1 && (
-        <div className="pi-switch" style={{ marginBottom: 18, display: 'inline-flex', background: '#F1F5FC', border: '1px solid rgba(20,30,80,.09)', borderRadius: 11, padding: 4 }}>
-          {rows.map((r) => {
-            const on = r.platform === row.platform
-            const Glyph = socialIcon(r.platform)
-            return (
-              <button key={r.platform} type="button" onClick={() => setActive(r.platform)}
-                style={{
-                  cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, border: 'none', borderRadius: 8,
-                  padding: '8px 15px', fontSize: 13.5, fontWeight: 600,
-                  background: on ? '#fff' : 'transparent', color: on ? '#0E1016' : '#8A909C',
-                  boxShadow: on ? '0 2px 6px -2px rgba(14,16,22,.18)' : 'none',
-                }}>
-                <Glyph size={15} /> {LABEL[r.platform] || r.platform}
-              </button>
-            )
-          })}
+        <div style={{ marginBottom: 18 }}>
+          <PlatformSwitcher platforms={rows.map((r) => r.platform)} active={row.platform} onSelect={setActive} />
         </div>
       )}
       <PlatformInsights key={row.platform} row={row} />

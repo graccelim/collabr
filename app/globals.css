@@ -895,6 +895,8 @@
   /* Tight heroes drop the long supporting paragraph on mobile (headline + CTA only). */
   .gate-hero-tight p { display: none !important; }
   .gate-hero-tight h1 { margin-bottom: 16px !important; }
+  .gate-procard { padding: 22px !important; border-radius: 18px !important; }
+  .gate-procard .resp-1col { gap: 18px !important; }
 
   /* Creator Studio Insights tab — declutter on mobile (desktop untouched).
      Hide the per-row "why" line and the inline bar, leaving the title, action,

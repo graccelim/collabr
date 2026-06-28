@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight } from 'lucide-react'
 
 // A LIVE-feeling preview of Creator Studio Insights with clearly-labelled SAMPLE
 // data (never the user's real numbers). Animated: trend wipes in, stat + delta
@@ -137,8 +136,8 @@ export default function InsightsPreview() {
             </div>
           )
         })}
-        <div style={{ marginTop: 14, fontSize: 12, fontWeight: 600, color: '#0E1016', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-          Schedule more evening posts <ArrowRight size={13} />
+        <div style={{ marginTop: 14, fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>
+          Schedule more evening posts
         </div>
       </div>
     </div>

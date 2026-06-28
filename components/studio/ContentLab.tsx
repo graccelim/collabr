@@ -2,11 +2,8 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import { Zap, AlignLeft, Send, Hash, Video, Copy } from 'lucide-react'
+import PlatformSwitcher from '@/components/studio/PlatformSwitcher'
 
-const PLATFORMS = [
-  ['tiktok', 'TikTok'], ['instagram', 'Instagram'], ['youtube', 'YouTube'],
-  ['lemon8', 'Lemon8'], ['xhs', 'Xiaohongshu'], ['x', 'X'],
-] as const
 
 type Result = {
   hooks: string[]; captions: string[]; ctas: string[]; hashtags: string[]
@@ -63,6 +60,9 @@ export default function ContentLab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* per-platform switcher (matches Insights / Reports) */}
+      <PlatformSwitcher platforms={['tiktok', 'instagram', 'youtube']} active={platform} onSelect={setPlatform} />
+
       {/* light form card */}
       <div style={{ ...CARD, padding: 18 }}>
         <div style={{ display: 'flex', gap: 14, alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -70,12 +70,6 @@ export default function ContentLab() {
             <span style={EYEBROW}>Topic</span>
             <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Western hawker food" style={FIELD}
               onKeyDown={(e) => { if (e.key === 'Enter') generate() }} />
-          </label>
-          <label style={{ width: 170, display: 'flex', flexDirection: 'column', gap: 7 }}>
-            <span style={EYEBROW}>Platform</span>
-            <select value={platform} onChange={(e) => setPlatform(e.target.value)} style={FIELD}>
-              {PLATFORMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-            </select>
           </label>
           <button type="button" onClick={generate} disabled={loading || !topic.trim()}
             style={{ cursor: topic.trim() ? 'pointer' : 'not-allowed', background: '#0A0C22', color: '#fff', border: 'none', borderRadius: 11, padding: '12px 24px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', opacity: topic.trim() ? 1 : 0.55 }}>
