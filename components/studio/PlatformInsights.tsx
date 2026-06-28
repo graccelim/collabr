@@ -1,6 +1,7 @@
 'use client'
-import { useEffect, useState } from 'react'
-import { ArrowUpRight, ArrowDownRight, ChevronDown, Clock } from 'lucide-react'
+import { useState } from 'react'
+import { ArrowUpRight, ArrowDownRight, ChevronDown, Clock, Eye, BarChart3, Activity } from 'lucide-react'
+import PostingLineChart from '@/components/studio/PostingLineChart'
 import type { Insight } from '@/lib/analytics/insights'
 
 // One platform's Insights, per the Creator Studio handoff: analyst-read hero +
@@ -63,69 +64,6 @@ function MetricBar({ you, base }: { you: number; base: number }) {
   )
 }
 
-// Premium "best time to post" chart: gridlines, idle violet-tint bars, a peak bar
-// with a violet gradient + glow + floating value, a dotted peak guide, animated draw.
-function BestTimeChart({ data, bestTime, posts }: { data: { label: string; avgViews: number; posts: number }[]; bestTime: string | null; posts: number }) {
-  const [run, setRun] = useState(false)
-  useEffect(() => { const t = setTimeout(() => setRun(true), 80); return () => clearTimeout(t) }, [])
-  const max = Math.max(1, ...data.map((b) => b.avgViews))
-  const peakIdx = data.reduce((bi, b, i) => (b.avgViews > data[bi].avgViews ? i : bi), 0)
-  const peakVal = fmtViews(data[peakIdx]?.avgViews)
-
-  return (
-    <div style={{ padding: '16px 22px 18px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
-        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
-        {bestTime && (
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '4px 11px' }}>
-            <Clock size={12} /> Peak {bestTime}
-          </span>
-        )}
-      </div>
-
-      {/* plot */}
-      <div className="bt-plot" style={{ position: 'relative', height: 128 }}>
-        {/* gridlines */}
-        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-          <div key={f} style={{ position: 'absolute', left: 0, right: 0, top: `${f * 100}%`, height: 1, background: f === 1 ? 'rgba(20,30,80,.1)' : 'rgba(20,30,80,.06)' }} />
-        ))}
-        {/* bars */}
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', gap: 4 }}>
-          {data.map((b, i) => {
-            const h = b.avgViews ? Math.max(6, (b.avgViews / max) * 100) : 2
-            const peak = i === peakIdx && b.avgViews > 0
-            return (
-              <div key={i} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', position: 'relative' }}>
-                {peak && (
-                  <span style={{ position: 'absolute', top: -4, fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 13, fontWeight: 700, color: '#0E1016', opacity: run ? 1 : 0, transition: 'opacity .4s ease .5s' }}>{peakVal}</span>
-                )}
-                {/* dotted peak guide */}
-                {peak && <span style={{ position: 'absolute', bottom: 0, width: 0, height: '100%', borderLeft: '1px dashed rgba(91,83,224,.35)' }} />}
-                <div style={{
-                  position: 'relative', width: '58%', maxWidth: 52, borderRadius: '6px 6px 0 0',
-                  height: run ? `${h}%` : '0%', transition: `height .7s cubic-bezier(.16,1,.3,1) ${(i * 0.05).toFixed(2)}s`,
-                  background: peak ? 'linear-gradient(180deg,#6B62EC 0%,#4B43C8 100%)' : '#E9E8FA',
-                  boxShadow: peak ? '0 10px 22px -10px rgba(75,67,200,.55)' : 'none',
-                }}>
-                  {peak && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(255,255,255,.3)', borderRadius: '6px 6px 0 0' }} />}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* x labels */}
-      <div style={{ display: 'flex', gap: 4, marginTop: 9 }}>
-        {data.map((b, i) => (
-          <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#5B53E0' : '#A2A8B6' }}>{b.label}</span>
-        ))}
-      </div>
-      <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 11, textAlign: 'center' }}>Average views by time of day, from {posts} of your posts.</div>
-    </div>
-  )
-}
-
 function Row({ m, idx }: { m: Insight; idx: number }) {
   const hasBar = typeof m.you === 'number' && typeof m.base === 'number'
   const delta = hasBar ? (m.you! - m.base!) : null
@@ -150,11 +88,21 @@ function Row({ m, idx }: { m: Insight; idx: number }) {
 
 type Data = {
   postCount?: number
-  overview?: { medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null }
+  overview?: { medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null; medianViewsDelta?: number | null; avgViewsDelta?: number | null; engDelta?: number | null }
   postingTimes?: { label: string; name: string; avgViews: number; posts: number }[]
   bestTime?: string | null
   insights?: Insight[]
   strongest?: string | null
+}
+
+function StatDelta({ d }: { d: number | null | undefined }) {
+  if (d == null) return null
+  const up = d >= 0
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2, fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12, fontWeight: 700, color: up ? '#0F7A4D' : '#B4332B', background: up ? '#EAF4EE' : '#FBEDEC', borderRadius: 999, padding: '3px 8px' }}>
+      {up ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}{Math.abs(d * 100).toFixed(0)}%
+    </span>
+  )
 }
 
 export default function PlatformInsights({ row }: { row: { platform: string; data: Data; ai_narrative: string | null } }) {
@@ -182,17 +130,19 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
   const vis = working.slice(0, 3), hid = working.slice(3)
 
   const read = row.ai_narrative || (working[0] ? `${working[0].title}.` : 'Your strongest patterns are still taking shape as more posts sync.')
+  const ov = d.overview
   const stats = [
-    { v: fmtViews(d.overview?.medianViews), label: 'Median views' },
-    { v: fmtViews(d.overview?.avgViews), label: 'Avg views' },
-    { v: fmtPct(d.overview?.avgEngagementRate), label: 'Avg engagement' },
+    { icon: Eye, v: fmtViews(ov?.medianViews), label: 'Median views', delta: ov?.medianViewsDelta },
+    { icon: BarChart3, v: fmtViews(ov?.avgViews), label: 'Avg views', delta: ov?.avgViewsDelta },
+    { icon: Activity, v: fmtPct(ov?.avgEngagementRate), label: 'Avg engagement', delta: ov?.engDelta },
   ]
   const postingTimes = d.postingTimes || []
+  const peakLabel = postingTimes.length ? fmtViews(Math.max(...postingTimes.map((b) => b.avgViews))) : undefined
 
   return (
     <div>
-      {/* hero: analyst read · stats · best-time chart */}
-      <div style={{ ...CARD, borderRadius: 18, overflow: 'hidden', marginBottom: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 22px 48px -30px rgba(20,30,80,.32)' }}>
+      {/* analyst read */}
+      <div style={{ ...CARD, borderRadius: 18, overflow: 'hidden', marginBottom: 14, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 22px 48px -30px rgba(20,30,80,.32)' }}>
         <div style={{ position: 'relative', padding: '20px 24px', background: GRID, overflow: 'hidden' }}>
           <div style={TEXTURE} />
           <div style={{ position: 'relative' }}>
@@ -203,16 +153,34 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff', maxWidth: 660 }}>{read}</div>
           </div>
         </div>
-        <div className="pi-stats" style={{ display: 'flex', padding: '18px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
-          {stats.map((s, i) => (
-            <div key={i} className="pi-stat" style={{ flex: 1, padding: '2px 22px', borderLeft: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
-              <div className="pi-statv" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 30, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
-              <div style={{ fontSize: 12, color: '#8A909C', marginTop: 3 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-        {postingTimes.some((b) => b.posts > 0) && <BestTimeChart data={postingTimes} bestTime={d.bestTime ?? null} posts={postCount} />}
       </div>
+
+      {/* stat cards */}
+      <div className="pi-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12, marginBottom: 14 }}>
+        {stats.map((s, i) => (
+          <div key={i} style={{ ...CARD, padding: '15px 17px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+              <span style={{ width: 32, height: 32, borderRadius: 9, background: '#F1F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={16} color="#5B53E0" /></span>
+              <StatDelta d={s.delta} />
+            </div>
+            <div className="pi-statv" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 26, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
+            <div style={{ fontSize: 12, color: '#8A909C', marginTop: 3 }}>{s.label}{s.delta != null && <span style={{ color: '#B4B9C4' }}> · vs last 30 days</span>}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* best time to post */}
+      {postingTimes.some((b) => b.posts > 0) && (
+        <div style={{ ...CARD, padding: '18px 22px 20px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
+            {d.bestTime && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '4px 11px' }}><Clock size={12} /> Peak {d.bestTime}</span>
+            )}
+          </div>
+          <PostingLineChart data={postingTimes} peakLabel={peakLabel} caption={`Average views by time of day, from ${postCount} of your posts.`} />
+        </div>
+      )}
 
       {/* what's working */}
       <div style={{ ...CARD, padding: '20px 22px', marginBottom: 16 }}>

@@ -1,5 +1,7 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { ArrowUpRight, Eye, BarChart3, Activity } from 'lucide-react'
+import PostingLineChart from '@/components/studio/PostingLineChart'
 
 // A LIVE-feeling preview of Creator Studio Insights with clearly-labelled SAMPLE
 // data (never the user's real numbers). Animated: trend wipes in, stat + delta
@@ -23,42 +25,12 @@ const WORKING = [
   { t: 'Carousels beat single images', s: 'best format', you: 20.1, base: 17.8, conf: 'Medium', col: '#5B53E0' },
 ]
 
-function useCountUp(target: number, run: boolean, ms = 900, dp = 0): string {
-  const [v, setV] = useState(0)
-  const raf = useRef(0)
-  useEffect(() => {
-    if (!run) return
-    const start = performance.now()
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / ms, 1)
-      const e = 1 - Math.pow(1 - p, 3)
-      setV(target * e)
-      if (p < 1) raf.current = requestAnimationFrame(tick)
-    }
-    raf.current = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf.current)
-  }, [target, run, ms])
-  return v.toFixed(dp)
-}
-
-function PostingBars({ run }: { run: boolean }) {
-  const max = Math.max(...TIMES.map((t) => t.v))
-  return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 64 }}>
-      {TIMES.map((t, i) => {
-        const best = t.v === max
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%' }}>
-            <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }}>
-              <div style={{ width: '100%', height: run ? `${Math.max(8, (t.v / max) * 100)}%` : '0%', background: best ? '#5B53E0' : '#D7DAEC', borderRadius: '4px 4px 0 0', transition: `height .6s cubic-bezier(.16,1,.3,1) ${(i * 0.06).toFixed(2)}s` }} />
-            </div>
-            <span style={{ fontSize: 10, fontWeight: best ? 700 : 500, color: best ? '#5B53E0' : '#9AA0AE', fontFamily: MONO }}>{t.label}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
+const STATS: { v: string; l: string; d: number; icon: typeof Eye }[] = [
+  { v: '15.5k', l: 'Median views', d: 18, icon: Eye },
+  { v: '16.4k', l: 'Avg views', d: 16, icon: BarChart3 },
+  { v: '17.8%', l: 'Avg engagement', d: 8, icon: Activity },
+]
+const LINE = TIMES.map((t) => ({ label: t.label, avgViews: t.v, posts: 1 }))
 
 export default function InsightsPreview() {
   const [run, setRun] = useState(false)
@@ -68,7 +40,6 @@ export default function InsightsPreview() {
     const id = setInterval(() => setActive((i) => (i + 1) % WORKING.length), 2000)
     return () => { clearTimeout(t); clearInterval(id) }
   }, [])
-  const eng = useCountUp(17.8, run, 1000, 1)
 
   return (
     <div style={{ position: 'relative', background: '#fff', border: '1px solid rgba(20,30,80,.09)', borderRadius: 18, overflow: 'hidden', boxShadow: '0 1px 3px rgba(14,16,22,.04),0 30px 60px -34px rgba(20,30,80,.4)', animation: 'clp-rise-safe .6s cubic-bezier(.16,1,.3,1) both' }}>
@@ -87,12 +58,16 @@ export default function InsightsPreview() {
         </div>
       </div>
 
-      {/* stats */}
-      <div style={{ display: 'flex', padding: '16px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
-        {[['15.5k', 'Median views'], ['16.4k', 'Avg views'], [`${eng}%`, 'Avg engagement']].map(([v, l], i) => (
-          <div key={i} style={{ flex: 1, padding: '0 20px' }}>
-            <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 24, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{v}</div>
-            <div style={{ fontSize: 11.5, color: '#8A909C', marginTop: 2 }}>{l}</div>
+      {/* stats with deltas */}
+      <div style={{ display: 'flex', padding: '16px 14px', gap: 10, borderBottom: '1px solid rgba(14,16,22,.06)' }}>
+        {STATS.map((s, i) => (
+          <div key={i} style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ width: 26, height: 26, borderRadius: 8, background: '#F1F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={13} color="#5B53E0" /></span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 1, fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 10.5, fontWeight: 700, color: '#0F7A4D', background: '#EAF4EE', borderRadius: 999, padding: '2px 6px' }}><ArrowUpRight size={10} />{s.d}%</span>
+            </div>
+            <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 21, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
+            <div style={{ fontSize: 10.5, color: '#8A909C', marginTop: 2 }}>{s.l}</div>
           </div>
         ))}
       </div>
@@ -101,9 +76,9 @@ export default function InsightsPreview() {
       <div style={{ padding: '14px 22px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
-          <span style={{ fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>8pm to 12am</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '3px 9px' }}>Peak 8pm to 12am</span>
         </div>
-        <PostingBars run={run} />
+        <PostingLineChart data={LINE} peakLabel="19.2k" height={120} />
       </div>
 
       {/* what's working */}

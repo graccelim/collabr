@@ -22,6 +22,19 @@ const INCLUDED: { icon: typeof Coins; label: string; keepMore?: boolean }[] = [
   { icon: FileText, label: 'Weekly performance reports' },
   { icon: LineChart, label: 'Collab performance analysis' },
 ]
+// Mobile shows fewer lines.
+const INCLUDED_MOBILE: { label: string; keepMore?: boolean }[] = [
+  { label: 'Keep more of every collab', keepMore: true },
+  { label: 'Verified cross-platform analytics' },
+  { label: 'Content Lab & weekly reports' },
+]
+const KeepMorePill = () => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 'none', fontFamily: MONO, fontSize: 11.5, background: 'rgba(63,185,132,.12)', border: '1px solid rgba(63,185,132,.3)', borderRadius: 999, padding: '4px 9px' }}>
+    <span style={{ color: '#7E83AE', textDecoration: 'line-through' }}>90%</span>
+    <ArrowUp size={11} color="#5CD6A0" />
+    <span style={{ color: '#5CD6A0', fontWeight: 700 }}>92%</span>
+  </span>
+)
 
 export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?: string }) {
   const [open, setOpen] = useState(false)
@@ -36,7 +49,7 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
   )
 
   return (
-    <div className="gate-wrap" style={{ maxWidth: 980, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
+    <div className="gate-wrap" style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 18 }}>
       {/* hero card */}
       <div className="gate-procard" style={{ position: 'relative', overflow: 'hidden', borderRadius: 24, padding: '44px 46px', background: 'linear-gradient(150deg,#10132E 0%,#191F4A 52%,#0A0C20 100%)', boxShadow: '0 40px 90px -40px rgba(10,14,45,.7)' }}>
         <div style={TEXTURE} />
@@ -49,28 +62,35 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
               <span style={{ width: 30, height: 30, borderRadius: 9, background: 'linear-gradient(150deg,#6B62EC,#4B43C8)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px -6px rgba(91,83,224,.8)' }}><Sparkles size={16} color="#fff" /></span>
               <span style={{ fontFamily: MONO, fontSize: 11, letterSpacing: '.18em', textTransform: 'uppercase', color: '#A49DF6', fontWeight: 500 }}>Creator Pro</span>
             </div>
-            <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px,4.2vw,40px)', fontWeight: 400, lineHeight: 1.08, letterSpacing: '-.01em', color: '#fff' }}>Everything you need to grow as a creator.</h1>
+            <h1 style={{ margin: '0 0 16px', fontFamily: 'var(--font-grotesk)', fontSize: 'clamp(27px,4.3vw,42px)', fontWeight: 700, lineHeight: 1.06, letterSpacing: '-.03em', color: '#fff' }}>Everything you need to grow as a creator.</h1>
             <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: '#AEB3DC', maxWidth: 430 }}>Connect your accounts and Creator Studio turns your own history into clear next steps: your best formats, your best posting times, and exactly what to make next.</p>
           </div>
 
           {/* what's included */}
-          <div style={{ background: 'rgba(255,255,255,.045)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 18, padding: '22px 22px 10px', backdropFilter: 'blur(4px)' }}>
-            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', color: '#9094C4', marginBottom: 14 }}>What&apos;s included</div>
-            {INCLUDED.map((it, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 0', borderBottom: i < INCLUDED.length - 1 ? '1px solid rgba(255,255,255,.07)' : 'none' }}>
-                <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: it.keepMore ? 'rgba(63,185,132,.18)' : 'rgba(123,115,240,.18)' }}>
-                  <it.icon size={16} color={it.keepMore ? '#5CD6A0' : '#A49DF6'} />
-                </span>
-                <span style={{ flex: 1, fontSize: 14.5, fontWeight: 500, color: '#EDEEF8' }}>{it.label}</span>
-                {it.keepMore && (
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontFamily: MONO, fontSize: 12, background: 'rgba(63,185,132,.12)', border: '1px solid rgba(63,185,132,.3)', borderRadius: 999, padding: '5px 11px' }}>
-                    <span style={{ color: '#7E83AE', textDecoration: 'line-through' }}>90%</span>
-                    <ArrowUp size={12} color="#5CD6A0" />
-                    <span style={{ color: '#5CD6A0', fontWeight: 700 }}>92%</span>
+          <div style={{ background: 'rgba(255,255,255,.045)', border: '1px solid rgba(255,255,255,.1)', borderRadius: 18, padding: '20px 22px 8px', backdropFilter: 'blur(4px)' }}>
+            <div style={{ fontFamily: MONO, fontSize: 10.5, letterSpacing: '.14em', textTransform: 'uppercase', color: '#9094C4', marginBottom: 12 }}>What&apos;s included</div>
+            {/* desktop: full list with icon tiles */}
+            <div className="hidden md:block">
+              {INCLUDED.map((it, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 0', borderBottom: i < INCLUDED.length - 1 ? '1px solid rgba(255,255,255,.07)' : 'none' }}>
+                  <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, display: 'flex', alignItems: 'center', justifyContent: 'center', background: it.keepMore ? 'rgba(63,185,132,.18)' : 'rgba(123,115,240,.18)' }}>
+                    <it.icon size={16} color={it.keepMore ? '#5CD6A0' : '#A49DF6'} />
                   </span>
-                )}
-              </div>
-            ))}
+                  <span style={{ flex: 1, fontSize: 14.5, fontWeight: 500, color: '#EDEEF8' }}>{it.label}</span>
+                  {it.keepMore && <KeepMorePill />}
+                </div>
+              ))}
+            </div>
+            {/* mobile: fewer lines, simple checks */}
+            <div className="md:hidden">
+              {INCLUDED_MOBILE.map((it, i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '11px 0', borderBottom: i < INCLUDED_MOBILE.length - 1 ? '1px solid rgba(255,255,255,.07)' : 'none' }}>
+                  <Check size={16} color={it.keepMore ? '#5CD6A0' : '#A49DF6'} style={{ flex: 'none' }} />
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 500, color: '#EDEEF8' }}>{it.label}</span>
+                  {it.keepMore && <KeepMorePill />}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

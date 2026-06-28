@@ -44,7 +44,11 @@ export interface Insight {
 export interface PlatformInsights {
   platform: Platform
   postCount: number
-  overview: { medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null }
+  overview: {
+    medianViews: number | null; avgViews: number | null; avgEngagementRate: number | null
+    // Fractional change of the last 30 days vs the prior 30 (null if too few posts).
+    medianViewsDelta: number | null; avgViewsDelta: number | null; engDelta: number | null
+  }
   trend: { date: string; views: number }[]
   /** Average views by time-of-day block (6 × 4h, 12am→12am) — drives the "best
    *  time to post" bar chart. `bestTime` names the highest-average block. */
@@ -64,6 +68,20 @@ export interface PlatformInsights {
 // them, so this keeps the metric consistent and always populated across platforms.
 const rate = engagementRate
 function avg(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null }
+// Fractional change of the last 30 days vs the prior 30, anchored to the latest
+// post date (deterministic). Returns null unless both windows have >= 2 posts.
+function windowDelta(posts: InsightPost[], valueOf: (ps: InsightPost[]) => number | null): number | null {
+  const dated = posts.filter((p) => p.postedAt).sort((a, b) => (b.postedAt as Date).getTime() - (a.postedAt as Date).getTime())
+  if (dated.length < 4) return null
+  const maxT = (dated[0].postedAt as Date).getTime()
+  const D = 30 * 86_400_000
+  const recent = dated.filter((p) => (p.postedAt as Date).getTime() > maxT - D)
+  const prior = dated.filter((p) => { const t = (p.postedAt as Date).getTime(); return t <= maxT - D && t > maxT - 2 * D })
+  if (recent.length < 2 || prior.length < 2) return null
+  const r = valueOf(recent), pr = valueOf(prior)
+  if (r == null || pr == null || pr === 0) return null
+  return (r - pr) / pr
+}
 function median(xs: number[]): number | null {
   if (!xs.length) return null
   const s = [...xs].sort((a, b) => a - b)
@@ -135,6 +153,9 @@ export function computePlatformInsights(
     medianViews: median(withViews.map((p) => p.views as number)),
     avgViews: avg(withViews.map((p) => p.views as number)),
     avgEngagementRate: baseline,
+    medianViewsDelta: windowDelta(posts, (ps) => median(ps.filter((p) => p.views != null).map((p) => p.views as number))),
+    avgViewsDelta: windowDelta(posts, (ps) => avg(ps.filter((p) => p.views != null).map((p) => p.views as number))),
+    engDelta: windowDelta(posts, (ps) => avg(ps.map(rate).filter((x): x is number => x != null))),
   }
   const insights: Insight[] = []
   let strongest: string | null = null

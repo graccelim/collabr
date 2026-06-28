@@ -38,7 +38,7 @@ export default async function StudioPage({
   // Locked — never been Pro: entice with the upgrade card.
   if (access === 'locked' || !creator) {
     return (
-      <div className="max-w-3xl mx-auto space-y-5">
+      <div className="max-w-6xl mx-auto space-y-5">
         <BackButton />
         {flags.creatorPro ? (
           <CreatorProShowcase returnTo="/studio" />

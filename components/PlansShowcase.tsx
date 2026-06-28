@@ -89,12 +89,12 @@ export default function PlansShowcase({
           </span>
           <h1
             style={{
-              fontFamily: 'var(--font-serif)',
+              fontFamily: 'var(--font-grotesk)',
               margin: '12px 0 9px',
-              fontSize: 'clamp(26px,3.7vw,33px)',
-              fontWeight: 400,
-              letterSpacing: '-.01em',
-              lineHeight: 1.12,
+              fontSize: 'clamp(26px,3.7vw,34px)',
+              fontWeight: 700,
+              letterSpacing: '-.03em',
+              lineHeight: 1.08,
               color: '#fff',
             }}
           >
