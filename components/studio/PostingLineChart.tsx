@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from 'react'
 // visible — so it animates on mount, platform switch, tab switch and in the demo.
 // Respects prefers-reduced-motion.
 const MONO = "var(--font-mono, ui-monospace, monospace)"
-const NUM = "var(--font-money, system-ui, sans-serif)"
 
 function smoothPath(pts: { x: number; y: number }[]): string {
   if (pts.length < 2) return pts.length ? `M ${pts[0].x},${pts[0].y}` : ''
@@ -20,9 +19,8 @@ function smoothPath(pts: { x: number; y: number }[]): string {
   return d
 }
 
-export default function PostingLineChart({ data, peakLabel, caption, height = 160 }: {
+export default function PostingLineChart({ data, caption, height = 160 }: {
   data: { label: string; avgViews: number; posts: number }[]
-  peakLabel?: string
   caption?: string
   height?: number
 }) {
@@ -51,28 +49,19 @@ export default function PostingLineChart({ data, peakLabel, caption, height = 16
       <div className="plc-area" style={{ position: 'relative', height }}>
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', position: 'absolute', inset: 0 }}>
           <defs>
-            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#5B53E0" stopOpacity="0.2" /><stop offset="1" stopColor="#5B53E0" stopOpacity="0" /></linearGradient>
-            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#6B62EC" /><stop offset="1" stopColor="#4B43C8" /></linearGradient>
+            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2A3157" stopOpacity="0.18" /><stop offset="1" stopColor="#2A3157" stopOpacity="0" /></linearGradient>
+            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2E3358" /><stop offset="1" stopColor="#161B33" /></linearGradient>
           </defs>
           {[0, 0.33, 0.66, 1].map((f) => { const y = padTop + (H - padTop - padBot) * f; return <line key={f} x1="0" x2={W} y1={y} y2={y} stroke={f === 1 ? 'rgba(20,30,80,.1)' : 'rgba(20,30,80,.06)'} strokeWidth={1} vectorEffect="non-scaling-stroke" /> })}
           <path d={area} fill="url(#plc-area-fill)" style={{ opacity: run ? 1 : 0, transition: 'opacity .8s ease .25s' }} />
-          <line x1={peak.x} x2={peak.x} y1={peak.y} y2={H - padBot} stroke="rgba(91,83,224,.32)" strokeDasharray="3 3" strokeWidth={1} vectorEffect="non-scaling-stroke" style={{ opacity: run ? 1 : 0, transition: 'opacity .4s ease .9s' }} />
+          <line x1={peak.x} x2={peak.x} y1={peak.y} y2={H - padBot} stroke="rgba(30,42,74,.32)" strokeDasharray="3 3" strokeWidth={1} vectorEffect="non-scaling-stroke" style={{ opacity: run ? 1 : 0, transition: 'opacity .4s ease .9s' }} />
           <path d={line} fill="none" stroke="url(#plc-line-grad)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: run ? 0 : 1, transition: 'stroke-dashoffset 1.1s cubic-bezier(.6,.05,.2,1)' }} />
         </svg>
         {/* peak dot (HTML overlay — avoids preserveAspectRatio distortion) */}
-        <span style={{ position: 'absolute', left: `${pX}%`, top: `${pY}%`, width: 9, height: 9, borderRadius: 999, background: '#fff', border: '2.5px solid #5B53E0', transform: 'translate(-50%,-50%)', boxShadow: '0 2px 8px -2px rgba(91,83,224,.7)', opacity: run ? 1 : 0, transition: 'opacity .3s ease 1s' }} />
-        {/* peak tooltip */}
-        {peakLabel && (
-          <div style={{ position: 'absolute', left: `${pX}%`, top: `${pY}%`, transform: 'translate(-50%,-145%)', opacity: run ? 1 : 0, transition: 'opacity .35s ease 1.05s', pointerEvents: 'none', whiteSpace: 'nowrap' }}>
-            <div style={{ background: '#0E1016', color: '#fff', borderRadius: 9, padding: '6px 11px', textAlign: 'center', boxShadow: '0 10px 24px -10px rgba(14,16,22,.6)' }}>
-              <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontWeight: 700, fontSize: 13 }}>{peakLabel}</div>
-              <div style={{ fontSize: 9.5, color: '#AEB3DC', marginTop: 1 }}>Avg views</div>
-            </div>
-          </div>
-        )}
+        <span style={{ position: 'absolute', left: `${pX}%`, top: `${pY}%`, width: 9, height: 9, borderRadius: 999, background: '#fff', border: '2.5px solid #1E2A4A', transform: 'translate(-50%,-50%)', boxShadow: '0 2px 8px -2px rgba(30,42,74,.6)', opacity: run ? 1 : 0, transition: 'opacity .3s ease 1s' }} />
       </div>
       <div style={{ display: 'flex', marginTop: 9 }}>
-        {data.map((d, i) => <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#5B53E0' : '#A2A8B6' }}>{d.label}</span>)}
+        {data.map((d, i) => <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#1E2A4A' : '#A2A8B6' }}>{d.label}</span>)}
       </div>
       {caption && <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 11, textAlign: 'center' }}>{caption}</div>}
     </div>

@@ -137,7 +137,6 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
     { icon: Activity, v: fmtPct(ov?.avgEngagementRate), label: 'Avg engagement', delta: ov?.engDelta },
   ]
   const postingTimes = d.postingTimes || []
-  const peakLabel = postingTimes.length ? fmtViews(Math.max(...postingTimes.map((b) => b.avgViews))) : undefined
 
   return (
     <div>
@@ -160,7 +159,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
           {stats.map((s, i) => (
             <div key={i} className="pi-stat" style={{ flex: 1, minWidth: 0, padding: '17px 22px', borderLeft: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 11 }}>
-                <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, background: '#F1F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={15} color="#5B53E0" /></span>
+                <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 9, background: '#EEF1F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={15} color="#1E2A4A" /></span>
                 <StatDelta d={s.delta} />
               </div>
               <div className="pi-statv" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 26, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
@@ -175,10 +174,10 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
               <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
               {d.bestTime && (
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '4px 11px' }}><Clock size={12} /> Peak {d.bestTime}</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#1E2A4A', background: '#EEF1F8', border: '1px solid rgba(30,42,74,.18)', borderRadius: 999, padding: '4px 11px' }}><Clock size={12} /> Peak {d.bestTime}</span>
               )}
             </div>
-            <PostingLineChart data={postingTimes} peakLabel={peakLabel} caption={`Average views by time of day, from ${postCount} of your posts.`} />
+            <PostingLineChart data={postingTimes} caption={`Average views by time of day, from ${postCount} of your posts.`} />
           </div>
         )}
       </div>

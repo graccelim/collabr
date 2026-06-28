@@ -63,7 +63,7 @@ export default function InsightsPreview() {
         {STATS.map((s, i) => (
           <div key={i} style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ width: 26, height: 26, borderRadius: 8, background: '#F1F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={13} color="#5B53E0" /></span>
+              <span style={{ width: 26, height: 26, borderRadius: 8, background: '#EEF1F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><s.icon size={13} color="#1E2A4A" /></span>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 1, fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 10.5, fontWeight: 700, color: '#0F7A4D', background: '#EAF4EE', borderRadius: 999, padding: '2px 6px' }}><ArrowUpRight size={10} />{s.d}%</span>
             </div>
             <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 21, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
@@ -76,9 +76,9 @@ export default function InsightsPreview() {
       <div style={{ padding: '14px 22px 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '3px 9px' }}>Peak 8pm to 12am</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#1E2A4A', background: '#EEF1F8', border: '1px solid rgba(30,42,74,.18)', borderRadius: 999, padding: '3px 9px' }}>Peak 8pm to 12am</span>
         </div>
-        <PostingLineChart data={LINE} peakLabel="19.2k" height={120} />
+        <PostingLineChart data={LINE} height={120} />
       </div>
 
       {/* what's working */}
