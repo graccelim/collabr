@@ -49,14 +49,14 @@ function DeltaPill({ delta }: { delta: number }) {
   )
 }
 
-function MetricBar({ you, base }: { you: number; base: number }) {
+function MetricBar({ you, base, color }: { you: number; base: number; color: string }) {
   const max = Math.max(you, base) * 1.18
   const yw = Math.max(4, (you / max) * 100)
   const bm = (base / max) * 100
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 10 }}>
       <span style={{ position: 'relative', display: 'block', flex: 1, maxWidth: 150, height: 6, background: '#EDEFF4', borderRadius: 999 }}>
-        <span style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${yw}%`, background: '#2A3157', borderRadius: 999 }} />
+        <span style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${yw}%`, background: color, borderRadius: 999 }} />
         <span style={{ position: 'absolute', left: `${bm}%`, top: -3, width: 1.5, height: 12, background: '#AEB4C2', borderRadius: 1 }} />
       </span>
       <span style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>{you}% <span style={{ color: '#B4B9C4' }}>· avg {base}%</span></span>
@@ -76,9 +76,9 @@ function Row({ m, idx }: { m: Insight; idx: number }) {
           {delta != null && <DeltaPill delta={delta} />}
         </div>
         <div style={{ fontSize: 12.5, color: '#9096A4', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
-        {hasBar && <MetricBar you={m.you!} base={m.base!} />}
+        {hasBar && <MetricBar you={m.you!} base={m.base!} color={(CONF[m.confidence] || CONF.low)[0]} />}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 11, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#5B53E0' }}>{m.recommendation}</span>
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#2A3157' }}>{m.recommendation}</span>
           <ConfChip c={m.confidence} />
         </div>
       </div>
@@ -209,7 +209,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
               </div>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>{watch.title}</div>
               <div style={{ fontSize: 13, color: '#545A66', lineHeight: 1.5, marginTop: 5 }}>{watch.evidence}</div>
-              <div style={{ marginTop: 11, fontSize: 13, fontWeight: 500, color: '#5B53E0' }}>{watch.recommendation}</div>
+              <div style={{ marginTop: 11, fontSize: 13, fontWeight: 500, color: '#2A3157' }}>{watch.recommendation}</div>
             </div>
           )}
           {experiment && (

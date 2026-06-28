@@ -49,8 +49,8 @@ export default function PostingLineChart({ data, caption, height = 160 }: {
       <div className="plc-area" style={{ position: 'relative', height }}>
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', position: 'absolute', inset: 0 }}>
           <defs>
-            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2A3157" stopOpacity="0.18" /><stop offset="1" stopColor="#2A3157" stopOpacity="0" /></linearGradient>
-            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2E3358" /><stop offset="1" stopColor="#161B33" /></linearGradient>
+            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2A3157" stopOpacity="0.16" /><stop offset="1" stopColor="#2A3157" stopOpacity="0" /></linearGradient>
+            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2A3157" /><stop offset="1" stopColor="#2A3157" /></linearGradient>
           </defs>
           {[0, 0.33, 0.66, 1].map((f) => { const y = padTop + (H - padTop - padBot) * f; return <line key={f} x1="0" x2={W} y1={y} y2={y} stroke={f === 1 ? 'rgba(20,30,80,.1)' : 'rgba(20,30,80,.06)'} strokeWidth={1} vectorEffect="non-scaling-stroke" /> })}
           <path d={area} fill="url(#plc-area-fill)" style={{ opacity: run ? 1 : 0, transition: 'opacity .8s ease .25s' }} />

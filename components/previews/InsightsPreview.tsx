@@ -111,7 +111,7 @@ export default function InsightsPreview() {
             </div>
           )
         })}
-        <div style={{ marginTop: 14, fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>
+        <div style={{ marginTop: 14, fontSize: 12, fontWeight: 600, color: '#2A3157' }}>
           Schedule more evening posts
         </div>
       </div>
