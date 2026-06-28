@@ -34,7 +34,7 @@ export default function PostingLineChart({ data, caption, height = 160 }: {
     return () => io.disconnect()
   }, [])
 
-  const W = 600, H = 160, padX = 10, padTop = 34, padBot = 6
+  const W = 600, H = 160, padX = 10, padTop = 22, padBot = 16
   const n = data.length
   const max = Math.max(1, ...data.map((d) => d.avgViews))
   const pts = data.map((d, i) => ({ x: padX + (n > 1 ? (i / (n - 1)) * (W - 2 * padX) : 0), y: H - padBot - (d.avgViews / max) * (H - padTop - padBot) }))
@@ -49,19 +49,19 @@ export default function PostingLineChart({ data, caption, height = 160 }: {
       <div className="plc-area" style={{ position: 'relative', height }}>
         <svg viewBox={`0 0 ${W} ${H}`} width="100%" height="100%" preserveAspectRatio="none" style={{ display: 'block', position: 'absolute', inset: 0 }}>
           <defs>
-            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#2A3157" stopOpacity="0.16" /><stop offset="1" stopColor="#2A3157" stopOpacity="0" /></linearGradient>
-            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#2A3157" /><stop offset="1" stopColor="#2A3157" /></linearGradient>
+            <linearGradient id="plc-area-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#3B4A82" stopOpacity="0.16" /><stop offset="1" stopColor="#3B4A82" stopOpacity="0" /></linearGradient>
+            <linearGradient id="plc-line-grad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#3F4F86" /><stop offset="1" stopColor="#33417A" /></linearGradient>
           </defs>
           {[0, 0.33, 0.66, 1].map((f) => { const y = padTop + (H - padTop - padBot) * f; return <line key={f} x1="0" x2={W} y1={y} y2={y} stroke={f === 1 ? 'rgba(20,30,80,.1)' : 'rgba(20,30,80,.06)'} strokeWidth={1} vectorEffect="non-scaling-stroke" /> })}
           <path d={area} fill="url(#plc-area-fill)" style={{ opacity: run ? 1 : 0, transition: 'opacity .8s ease .25s' }} />
-          <line x1={peak.x} x2={peak.x} y1={peak.y} y2={H - padBot} stroke="rgba(30,42,74,.32)" strokeDasharray="3 3" strokeWidth={1} vectorEffect="non-scaling-stroke" style={{ opacity: run ? 1 : 0, transition: 'opacity .4s ease .9s' }} />
+          <line x1={peak.x} x2={peak.x} y1={peak.y} y2={H - padBot} stroke="rgba(63,79,134,.35)" strokeDasharray="3 3" strokeWidth={1} vectorEffect="non-scaling-stroke" style={{ opacity: run ? 1 : 0, transition: 'opacity .4s ease .9s' }} />
           <path d={line} fill="none" stroke="url(#plc-line-grad)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: run ? 0 : 1, transition: 'stroke-dashoffset 1.1s cubic-bezier(.6,.05,.2,1)' }} />
         </svg>
         {/* peak dot (HTML overlay — avoids preserveAspectRatio distortion) */}
-        <span style={{ position: 'absolute', left: `${pX}%`, top: `${pY}%`, width: 9, height: 9, borderRadius: 999, background: '#fff', border: '2.5px solid #1E2A4A', transform: 'translate(-50%,-50%)', boxShadow: '0 2px 8px -2px rgba(30,42,74,.6)', opacity: run ? 1 : 0, transition: 'opacity .3s ease 1s' }} />
+        <span style={{ position: 'absolute', left: `${pX}%`, top: `${pY}%`, width: 9, height: 9, borderRadius: 999, background: '#fff', border: '2.5px solid #3F4F86', transform: 'translate(-50%,-50%)', boxShadow: '0 2px 8px -2px rgba(63,79,134,.6)', opacity: run ? 1 : 0, transition: 'opacity .3s ease 1s' }} />
       </div>
       <div style={{ display: 'flex', marginTop: 9 }}>
-        {data.map((d, i) => <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#1E2A4A' : '#A2A8B6' }}>{d.label}</span>)}
+        {data.map((d, i) => <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#33417A' : '#A2A8B6' }}>{d.label}</span>)}
       </div>
       {caption && <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 11, textAlign: 'center' }}>{caption}</div>}
     </div>
