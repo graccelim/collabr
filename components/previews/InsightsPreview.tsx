@@ -17,8 +17,8 @@ const TEXTURE: React.CSSProperties = {
 
 // Average views by time of day (the "best time to post" chart). Best block = evening.
 const TIMES = [
-  { label: '12a', v: 4 }, { label: '4a', v: 3 }, { label: '8a', v: 7 },
-  { label: '12p', v: 10 }, { label: '4p', v: 13 }, { label: '8p', v: 18 },
+  { label: '12am', v: 4 }, { label: '4am', v: 3 }, { label: '8am', v: 7 },
+  { label: '12pm', v: 10 }, { label: '4pm', v: 13 }, { label: '8pm', v: 18 },
 ]
 const WORKING = [
   { t: 'Reviews are your strongest style', s: 'best style', you: 21.2, base: 17.8, conf: 'High', col: '#157A55' },

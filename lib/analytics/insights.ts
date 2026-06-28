@@ -101,7 +101,7 @@ function lengthBucket(sec: number | null): string | null {
 }
 // Average views per 4-hour block across the day (12am → 12am). Reveals the best
 // time to post by OUTCOME (views), robust to sparse data (6 buckets, not 24 hours).
-const TIME_SHORT = ['12a', '4a', '8a', '12p', '4p', '8p']
+const TIME_SHORT = ['12am', '4am', '8am', '12pm', '4pm', '8pm']
 const TIME_NAME = ['12–4am', '4–8am', '8am–12pm', '12–4pm', '4–8pm', '8pm–12am']
 function postingTimesOf(posts: InsightPost[]): { label: string; name: string; avgViews: number; posts: number }[] {
   const acc: number[][] = TIME_SHORT.map(() => [])
