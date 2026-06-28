@@ -808,36 +808,25 @@ async function CreatorDashboard({
           <CreatorProCTA returnTo="/studio" />
         </div>
       )}
-      {flags.creatorStudio && (
+      {/* MOBILE not-subscribed: link into the gated Studio. Subscribed creators get
+          the Studio CTA in the top bar instead (no button here). */}
+      {flags.creatorStudio && showUpgrade && (
         <div className="md:hidden" style={{ marginTop: 8, marginBottom: 16 }}>
-          {showUpgrade ? (
-            <Link href="/studio" style={{
-              width: '100%', textAlign: 'left', textDecoration: 'none', borderRadius: 'var(--radius)',
-              padding: '13px 16px', color: '#fff', display: 'flex', alignItems: 'center', gap: 12,
-              background: 'linear-gradient(100deg, #232c57 0%, #0e1538 60%, #05081c 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-            }}>
-              <span style={{ width: 32, height: 32, flex: 'none', borderRadius: 9, background: 'rgba(91,83,224,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <BarChart3 size={16} color="#fff" />
-              </span>
-              <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: 'block', fontSize: 14, fontWeight: 700 }}>Unlock your analytics with Creator Pro</span>
-                <span style={{ display: 'block', fontSize: 12.5, color: 'rgba(255,255,255,.75)', marginTop: 1 }}>See what is working and win more brand deals.</span>
-              </span>
-              <ArrowRight size={18} style={{ flexShrink: 0, opacity: .85 }} />
-            </Link>
-          ) : (
-            <Link href="/studio" style={{
-              width: '100%', textDecoration: 'none', borderRadius: 12, padding: '12px 16px',
-              display: 'flex', alignItems: 'center', gap: 10, color: '#fff',
-              background: 'linear-gradient(100deg, #232c57 0%, #0e1538 60%, #05081c 100%)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
-            }}>
-              <BarChart3 size={16} color="#A9AEE8" />
-              <span style={{ flex: 1, fontSize: 14, fontWeight: 600 }}>Creator Studio</span>
-              <ArrowRight size={16} style={{ opacity: .85 }} />
-            </Link>
-          )}
+          <Link href="/studio" style={{
+            width: '100%', textAlign: 'left', textDecoration: 'none', borderRadius: 'var(--radius)',
+            padding: '13px 16px', color: '#fff', display: 'flex', alignItems: 'center', gap: 12,
+            background: 'linear-gradient(100deg, #232c57 0%, #0e1538 60%, #05081c 100%)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.1)',
+          }}>
+            <span style={{ width: 32, height: 32, flex: 'none', borderRadius: 9, background: 'rgba(91,83,224,.28)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BarChart3 size={16} color="#fff" />
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 14, fontWeight: 700 }}>Unlock your analytics with Creator Pro</span>
+              <span style={{ display: 'block', fontSize: 12.5, color: 'rgba(255,255,255,.75)', marginTop: 1 }}>See what is working and win more brand deals.</span>
+            </span>
+            <ArrowRight size={18} style={{ flexShrink: 0, opacity: .85 }} />
+          </Link>
         </div>
       )}
 

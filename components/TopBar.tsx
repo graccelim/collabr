@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, Plus, Compass, LogOut } from 'lucide-react'
+import { Bell, Plus, Compass, LogOut, BarChart3 } from 'lucide-react'
 
 interface Props {
   role: 'brand' | 'creator'
@@ -16,6 +16,8 @@ interface Props {
   avatarUrl?: string | null
   /** The user's own public profile (Profile link target). */
   profileHref?: string
+  /** MOBILE ONLY: subscribed creators get a Creator Studio CTA here instead of Discover. */
+  studioEntrance?: boolean
 }
 
 /**
@@ -24,7 +26,7 @@ interface Props {
  * workspace action on the right. Sticks under the scroll container with a
  * blurred canvas backdrop. Framer drives the icon-button + CTA micro-presses.
  */
-export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', avatarUrl = null, profileHref }: Props) {
+export default function TopBar({ role, notificationBadge = 0, displayName = '', email = '', initials = '', avatarUrl = null, profileHref, studioEntrance = false }: Props) {
   // Account avatar visual - profile photo when set, initials otherwise.
   const avatarInner = avatarUrl
     ? <img src={avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -46,6 +48,10 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
   const ctaHref = isBrand ? '/post-job' : '/jobs'
   const ctaLabel = isBrand ? 'Post a campaign' : 'Discover campaigns'
   const CtaIcon = isBrand ? Plus : Compass
+  // Mobile-only: a subscribed creator's mobile CTA becomes Creator Studio.
+  const mobileHref = studioEntrance ? '/studio' : ctaHref
+  const mobileLabel = studioEntrance ? 'Creator Studio' : ctaLabel
+  const MobileIcon = studioEntrance ? BarChart3 : CtaIcon
 
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -90,9 +96,9 @@ export default function TopBar({ role, notificationBadge = 0, displayName = '', 
             </Link>
           </div>
           <div className="md:hidden">
-            <Link href={ctaHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
-              <CtaIcon size={16} />
-              <span>{ctaLabel}</span>
+            <Link href={mobileHref} className="btn-secondary" style={{ height: 38, paddingInline: 16, background: 'var(--surface)', border: 'none', boxShadow: 'var(--shadow-sm)' }}>
+              <MobileIcon size={16} />
+              <span>{mobileLabel}</span>
             </Link>
           </div>
         </motion.div>

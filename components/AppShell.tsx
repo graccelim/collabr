@@ -7,6 +7,8 @@ import PageTransition from '@/components/PageTransition'
 import TrustBanners from '@/components/TrustBanners'
 import LiveRefresh from '@/components/LiveRefresh'
 import { resolvePlan, PLAN_COLUMNS } from '@/lib/plans'
+import { isProActive } from '@/lib/entitlements'
+import { flags } from '@/lib/flags'
 
 /**
  * The authenticated app chrome: sidebar + top bar + padded content. Shared by
@@ -46,29 +48,32 @@ export default async function AppShell({ children }: { children: React.ReactNode
                 .eq('creator_id', creator.id).eq('status', 'pending')
             : null
           if (inviteQuery && creator?.invites_seen_at) inviteQuery = inviteQuery.gt('created_at', creator.invites_seen_at)
-          const [{ count }, { data: socs }] = creator
+          const [{ count }, { data: socs }, sub] = creator
             ? await Promise.all([
                 inviteQuery!,
                 supabase.from('social_accounts')
                   .select('follower_count').eq('creator_id', creator.id),
+                admin.from('creator_subscriptions').select('status, pro_until').eq('creator_id', creator.id).maybeSingle(),
               ])
-            : [{ count: 0 }, { data: [] as { follower_count: number | null }[] }]
+            : [{ count: 0 }, { data: [] as { follower_count: number | null }[] }, { data: null }]
           const needsFollowers = (socs || []).length > 0 && (socs || []).some(s => s.follower_count == null)
-          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile', needsFollowers, avatarUrl: (profile.avatar_url as string | null) ?? null }
+          // Studio entrance in the top bar: creator, subscribed, flag on.
+          const studioEntrance = flags.creatorStudio && isProActive((sub as any)?.data ?? null)
+          return { onboardingComplete: Boolean(creator?.onboarding_completed_at), inviteBadge: count || 0, planLabel: '', profileHref: creator ? `/creators/${creator.id}` : '/profile', needsFollowers, avatarUrl: (profile.avatar_url as string | null) ?? null, studioEntrance }
         })()
       : (async () => {
           const admin = createAdminClient()
           const { data: brand } = await admin.from('brand_profiles')
             .select(`id, onboarding_completed_at, logo_url, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
           const plan = resolvePlan(brand)
-          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers: false, avatarUrl: (brand?.logo_url as string | null) ?? null }
+          return { onboardingComplete: Boolean(brand?.onboarding_completed_at), inviteBadge: 0, planLabel: plan.isPro ? plan.label : '', profileHref: brand ? `/brands/${brand.id}` : '/settings', needsFollowers: false, avatarUrl: (brand?.logo_url as string | null) ?? null, studioEntrance: false }
         })(),
     supabase.from('notifications')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id).eq('read', false),
   ])
 
-  const { onboardingComplete, planLabel, inviteBadge, profileHref, needsFollowers, avatarUrl } = roleState
+  const { onboardingComplete, planLabel, inviteBadge, profileHref, needsFollowers, avatarUrl, studioEntrance } = roleState
   const emailVerified = Boolean(user.email_confirmed_at)
   const displayName = profile.display_name || profile.email?.split('@')[0] || 'User'
   const initials = getInitials(displayName)
@@ -91,7 +96,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
         className="main-content"
         style={{ flex: 1, minWidth: 0, overflowY: 'auto', maxHeight: '100vh', display: 'flex', flexDirection: 'column' }}
       >
-        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} avatarUrl={avatarUrl} profileHref={profileHref} />
+        <TopBar role={role} notificationBadge={notificationBadge} displayName={displayName} email={profile.email || ''} initials={initials} avatarUrl={avatarUrl} profileHref={profileHref} studioEntrance={studioEntrance} />
         <div className="dash-pad" style={{ maxWidth: 1080, margin: '0 auto', width: '100%', padding: '24px 28px 64px' }}>
           {(role === 'brand' || role === 'creator') && (
             <TrustBanners

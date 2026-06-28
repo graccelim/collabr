@@ -260,6 +260,9 @@ function SignupForm() {
             I agree to collabr&rsquo;s{' '}
             <Link href="/terms" target="_blank" style={{ color: 'var(--accent)', fontWeight: 530, textDecoration: 'underline' }}>
               terms and conditions
+            </Link>{' '}and{' '}
+            <Link href="/privacy" target="_blank" style={{ color: 'var(--accent)', fontWeight: 530, textDecoration: 'underline' }}>
+              privacy policy
             </Link>.
           </span>
         </label>

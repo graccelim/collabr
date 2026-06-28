@@ -810,6 +810,15 @@ export default async function HomePage() {
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>
             © 2026 collabr. · Singapore
           </span>
+          <Link href="/privacy" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+            Privacy
+          </Link>
+          <Link href="/terms" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+            Terms
+          </Link>
+          <Link href="/data-deletion" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+            Data deletion
+          </Link>
           <a
             href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry"
             style={{
