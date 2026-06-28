@@ -26,6 +26,15 @@ function parseSignedRequest(signed: string, secret: string): { user_id?: string 
   }
 }
 
+// Meta (and humans) may GET this URL to check it exists. The real work is POST.
+export async function GET() {
+  return NextResponse.json({
+    status: 'ok',
+    endpoint: 'meta-data-deletion',
+    info: 'This endpoint accepts POST requests with a signed_request from Meta. To delete your data, see /data-deletion.',
+  })
+}
+
 export async function POST(req: Request) {
   const secret = process.env.META_APP_SECRET
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, '')
