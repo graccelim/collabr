@@ -1,35 +1,36 @@
 'use client'
-import { useState } from 'react'
-import { ArrowRight, ChevronDown } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { ArrowRight, ArrowUpRight, ArrowDownRight, ChevronDown, Clock } from 'lucide-react'
 import type { Insight } from '@/lib/analytics/insights'
 
-// One platform's analytics, rendered as the Collabr Studio design: a cohesive
-// hero (analyst read + 3 stats + trend chart), "What's working" (ranked, with a
-// your-value-vs-your-average bar + "+N pts" delta), and quiet Watch / Worth-trying
-// cards. Everything is vs the creator's OWN history — never other creators.
+// One platform's Insights, per the Creator Studio handoff: analyst-read hero +
+// 3 stats + a premium "best time to post" bar chart, then a ranked "What's
+// working" list (index tile · navy metric bar · small green delta pill ·
+// confidence), then watch/experiment cards. Green is used ONLY for positive
+// deltas and "High confidence"; metric bars are ink-navy.
 
 const GRID = 'linear-gradient(118deg,#0A0C22 0%,#181E45 58%,#0A0C22 100%)'
 const TEXTURE: React.CSSProperties = {
   position: 'absolute', inset: 0,
   backgroundImage: 'linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px)',
   backgroundSize: '26px 26px',
-  WebkitMaskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
-  maskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
+  WebkitMaskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)', maskImage: 'radial-gradient(130% 120% at 100% 0,#000,transparent 68%)',
 }
 const CARD: React.CSSProperties = { background: '#fff', border: '1px solid rgba(20,30,80,.09)', borderRadius: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 14px 34px -28px rgba(20,30,80,.28)' }
-const MONO = "var(--font-mono, 'Geist Mono', ui-monospace, monospace)"
-const NUM = "var(--font-money, 'Bricolage Grotesque', system-ui, sans-serif)"
+const MONO = "var(--font-mono, ui-monospace, monospace)"
+const NUM = "var(--font-money, system-ui, sans-serif)"
 const CONF: Record<string, [string, string]> = { high: ['#157A55', 'High confidence'], medium: ['#5B53E0', 'Medium confidence'], low: ['#8A909C', 'Early signal'] }
 const RANK: Record<string, number> = { high: 3, medium: 2, low: 1 }
+const CONTENT_KEYS = ['best_category', 'best_subcategory', 'best_format', 'best_length', 'best_style', 'emerging_category']
 
 function fmtViews(v: number | null | undefined): string {
   if (v == null) return '—'
   if (v >= 1000) { const k = v / 1000; return `${k % 1 === 0 ? k : k.toFixed(1)}k` }
   return String(Math.round(v))
 }
-const fmtPct = (frac: number | null | undefined) => (frac == null ? '—' : `${(frac * 100).toFixed(1)}%`)
+const fmtPct = (f: number | null | undefined) => (f == null ? '—' : `${(f * 100).toFixed(1)}%`)
 
-function Conf({ c }: { c: string }) {
+function ConfChip({ c }: { c: string }) {
   const [col, label] = CONF[c] || CONF.low
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#8A909C' }}>
@@ -38,68 +39,110 @@ function Conf({ c }: { c: string }) {
   )
 }
 
-function Bar({ you, base }: { you: number; base: number }) {
-  const max = Math.max(you, base) * 1.18
-  const yw = Math.max(3, (you / max) * 100)
-  const bm = (base / max) * 100
+function DeltaPill({ delta }: { delta: number }) {
+  const up = delta >= 0
   return (
-    <span style={{ position: 'relative', display: 'block', flex: 1, maxWidth: 150, height: 6, background: '#EAEDF3', borderRadius: 999 }}>
-      <span style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${yw}%`, background: '#157A55', borderRadius: 999 }} />
-      <span style={{ position: 'absolute', left: `${bm}%`, top: -3, width: 1.5, height: 12, background: '#9AA1B0', borderRadius: 1 }} />
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, flex: 'none', fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12.5, fontWeight: 700, padding: '5px 10px', borderRadius: 999, color: up ? '#0F7A4D' : '#B4332B', background: up ? '#EAF4EE' : '#FBEDEC' }}>
+      {up ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}{up ? '+' : '−'}{Math.abs(delta).toFixed(1)} pts
     </span>
   )
 }
 
-// Average-views-by-time-of-day bar chart (the "best time to post" view). The
-// highest-average block is highlighted in violet.
-function PostingBars({ data }: { data: { label: string; avgViews: number; posts: number }[] }) {
-  const max = Math.max(1, ...data.map((b) => b.avgViews))
+function MetricBar({ you, base }: { you: number; base: number }) {
+  const max = Math.max(you, base) * 1.18
+  const yw = Math.max(4, (you / max) * 100)
+  const bm = (base / max) * 100
   return (
-    <div style={{ display: 'flex', alignItems: 'flex-end', gap: 7, height: 92 }}>
-      {data.map((b, i) => {
-        const best = b.avgViews > 0 && b.avgViews === max
-        return (
-          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, height: '100%' }}>
-            <div style={{ flex: 1, width: '100%', display: 'flex', alignItems: 'flex-end' }} title={`${b.posts} post${b.posts === 1 ? '' : 's'}`}>
-              <div style={{ width: '100%', height: b.avgViews ? `${Math.max(6, (b.avgViews / max) * 100)}%` : 3, background: best ? '#5B53E0' : '#D7DAEC', borderRadius: '4px 4px 0 0', animation: 'ci-wipe .7s ease both' }} />
-            </div>
-            <span style={{ fontSize: 10, fontWeight: best ? 700 : 500, color: best ? '#5B53E0' : '#9AA0AE', fontFamily: MONO }}>{b.label}</span>
-          </div>
-        )
-      })}
+    <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginTop: 10 }}>
+      <span style={{ position: 'relative', display: 'block', flex: 1, maxWidth: 150, height: 6, background: '#EDEFF4', borderRadius: 999 }}>
+        <span style={{ position: 'absolute', left: 0, top: 0, height: '100%', width: `${yw}%`, background: '#2A3157', borderRadius: 999 }} />
+        <span style={{ position: 'absolute', left: `${bm}%`, top: -3, width: 1.5, height: 12, background: '#AEB4C2', borderRadius: 1 }} />
+      </span>
+      <span style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#6B7280', whiteSpace: 'nowrap' }}>{you}% <span style={{ color: '#B4B9C4' }}>· avg {base}%</span></span>
     </div>
   )
 }
 
-const Action = ({ text }: { text: string }) => (
-  <div style={{ marginTop: 11, fontSize: 13, fontWeight: 600, color: '#0E1016', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-    {text}<ArrowRight size={13} />
-  </div>
-)
+// Premium "best time to post" chart: gridlines, idle violet-tint bars, a peak bar
+// with a violet gradient + glow + floating value, a dotted peak guide, animated draw.
+function BestTimeChart({ data, bestTime, posts }: { data: { label: string; avgViews: number; posts: number }[]; bestTime: string | null; posts: number }) {
+  const [run, setRun] = useState(false)
+  useEffect(() => { const t = setTimeout(() => setRun(true), 80); return () => clearTimeout(t) }, [])
+  const max = Math.max(1, ...data.map((b) => b.avgViews))
+  const peakIdx = data.reduce((bi, b, i) => (b.avgViews > data[bi].avgViews ? i : bi), 0)
+  const peakVal = fmtViews(data[peakIdx]?.avgViews)
 
-function Row({ m, top }: { m: Insight; top: boolean }) {
+  return (
+    <div style={{ padding: '16px 22px 18px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+        <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.14em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
+        {bestTime && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#5B53E0', background: '#F1F0FE', border: '1px solid rgba(91,83,224,.2)', borderRadius: 999, padding: '4px 11px' }}>
+            <Clock size={12} /> Peak {bestTime}
+          </span>
+        )}
+      </div>
+
+      {/* plot */}
+      <div className="bt-plot" style={{ position: 'relative', height: 128 }}>
+        {/* gridlines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((f) => (
+          <div key={f} style={{ position: 'absolute', left: 0, right: 0, top: `${f * 100}%`, height: 1, background: f === 1 ? 'rgba(20,30,80,.1)' : 'rgba(20,30,80,.06)' }} />
+        ))}
+        {/* bars */}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'flex-end', gap: 4 }}>
+          {data.map((b, i) => {
+            const h = b.avgViews ? Math.max(6, (b.avgViews / max) * 100) : 2
+            const peak = i === peakIdx && b.avgViews > 0
+            return (
+              <div key={i} style={{ flex: 1, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', position: 'relative' }}>
+                {peak && (
+                  <span style={{ position: 'absolute', top: -4, fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 13, fontWeight: 700, color: '#0E1016', opacity: run ? 1 : 0, transition: 'opacity .4s ease .5s' }}>{peakVal}</span>
+                )}
+                {/* dotted peak guide */}
+                {peak && <span style={{ position: 'absolute', bottom: 0, width: 0, height: '100%', borderLeft: '1px dashed rgba(91,83,224,.35)' }} />}
+                <div style={{
+                  position: 'relative', width: '58%', maxWidth: 52, borderRadius: '6px 6px 0 0',
+                  height: run ? `${h}%` : '0%', transition: `height .7s cubic-bezier(.16,1,.3,1) ${(i * 0.05).toFixed(2)}s`,
+                  background: peak ? 'linear-gradient(180deg,#6B62EC 0%,#4B43C8 100%)' : '#E9E8FA',
+                  boxShadow: peak ? '0 10px 22px -10px rgba(75,67,200,.55)' : 'none',
+                }}>
+                  {peak && <span style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: 'rgba(255,255,255,.3)', borderRadius: '6px 6px 0 0' }} />}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* x labels */}
+      <div style={{ display: 'flex', gap: 4, marginTop: 9 }}>
+        {data.map((b, i) => (
+          <span key={i} style={{ flex: 1, textAlign: 'center', fontFamily: MONO, fontSize: 11, fontWeight: i === peakIdx ? 600 : 500, color: i === peakIdx ? '#5B53E0' : '#A2A8B6' }}>{b.label}</span>
+        ))}
+      </div>
+      <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 11, textAlign: 'center' }}>Average views by time of day, from {posts} of your posts.</div>
+    </div>
+  )
+}
+
+function Row({ m, idx }: { m: Insight; idx: number }) {
   const hasBar = typeof m.you === 'number' && typeof m.base === 'number'
   const delta = hasBar ? (m.you! - m.base!) : null
   return (
-    <div className="pi-row" style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: 20, alignItems: 'center', padding: top ? '2px 0 18px' : '18px 0', borderTop: top ? 'none' : '1px solid rgba(14,16,22,.07)' }}>
-      <div style={{ minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#0E1016' }}>{m.title}</div>
-        <div className="pi-why" style={{ fontSize: 12.5, color: '#8A909C', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
-        {hasBar && (
-          <div className="pi-bar" style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 11 }}>
-            <Bar you={m.you!} base={m.base!} />
-            <span style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 12, color: '#8A909C' }}>{m.you}% <span style={{ color: '#B4B9C4' }}>vs {m.base}% avg</span></span>
-          </div>
-        )}
-        <Action text={m.recommendation} />
-      </div>
-      <div style={{ textAlign: 'right', flex: 'none' }}>
-        {delta != null && (
-          <div style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 24, fontWeight: 700, letterSpacing: '-.02em', color: delta >= 0 ? '#157A55' : '#B26B00' }}>
-            {delta >= 0 ? '+' : '−'}{Math.abs(delta).toFixed(1)}<span style={{ fontSize: 12, fontWeight: 600, color: '#8A909C', marginLeft: 2 }}>pts</span>
-          </div>
-        )}
-        <div style={{ marginTop: delta != null ? 7 : 0 }}><Conf c={m.confidence} /></div>
+    <div style={{ display: 'flex', gap: 12, padding: idx === 1 ? '2px 0 16px' : '16px 0', borderTop: idx === 1 ? 'none' : '1px solid rgba(14,16,22,.06)' }}>
+      <span style={{ width: 32, height: 32, flex: 'none', borderRadius: 9, background: '#F3F5FB', border: '1px solid rgba(20,30,80,.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 11.5, color: '#5C6191' }}>{String(idx).padStart(2, '0')}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 600, color: '#0E1016' }}>{m.title}</span>
+          {delta != null && <DeltaPill delta={delta} />}
+        </div>
+        <div style={{ fontSize: 12.5, color: '#9096A4', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
+        {hasBar && <MetricBar you={m.you!} base={m.base!} />}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 11, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, fontWeight: 500, color: '#5B53E0', display: 'inline-flex', alignItems: 'center', gap: 5 }}>{m.recommendation}<ArrowRight size={13} /></span>
+          <ConfChip c={m.confidence} />
+        </div>
       </div>
     </div>
   )
@@ -114,17 +157,12 @@ type Data = {
   strongest?: string | null
 }
 
-// "What's working" focuses on CONTENT levers only (topic, format, length, style).
-// Posting time has its own chart; cadence/views-trend/outperformers are excluded.
-const CONTENT_KEYS = ['best_category', 'best_subcategory', 'best_format', 'best_length', 'best_style', 'emerging_category']
-
 export default function PlatformInsights({ row }: { row: { platform: string; data: Data; ai_narrative: string | null } }) {
   const [open, setOpen] = useState(false)
   const d = row.data || {}
   const insights = Array.isArray(d.insights) ? d.insights : []
   const postCount = d.postCount ?? 0
 
-  // Learning state — connected but not enough analysed yet.
   if (!insights.length) {
     return (
       <div style={{ ...CARD, padding: '22px 24px' }}>
@@ -153,7 +191,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
 
   return (
     <div>
-      {/* hero: analyst read + metrics + trend */}
+      {/* hero: analyst read · stats · best-time chart */}
       <div style={{ ...CARD, borderRadius: 18, overflow: 'hidden', marginBottom: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 22px 48px -30px rgba(20,30,80,.32)' }}>
         <div style={{ position: 'relative', padding: '20px 24px', background: GRID, overflow: 'hidden' }}>
           <div style={TEXTURE} />
@@ -165,36 +203,27 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff', maxWidth: 660 }}>{read}</div>
           </div>
         </div>
-        <div className="pi-stats" style={{ display: 'flex', padding: '20px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
+        <div className="pi-stats" style={{ display: 'flex', padding: '18px 0', borderBottom: '1px solid rgba(14,16,22,.06)' }}>
           {stats.map((s, i) => (
-            <div key={i} className="pi-stat" style={{ flex: 1, padding: '2px 22px' }}>
+            <div key={i} className="pi-stat" style={{ flex: 1, padding: '2px 22px', borderLeft: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
               <div className="pi-statv" style={{ fontFamily: NUM, fontVariantNumeric: 'tabular-nums', fontSize: 30, fontWeight: 700, letterSpacing: '-.03em', color: '#0E1016' }}>{s.v}</div>
               <div style={{ fontSize: 12, color: '#8A909C', marginTop: 3 }}>{s.label}</div>
             </div>
           ))}
         </div>
-        {postingTimes.some((b) => b.posts > 0) && (
-          <div style={{ padding: '16px 22px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-              <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
-              {d.bestTime && <span style={{ fontSize: 12, fontWeight: 600, color: '#5B53E0' }}>{d.bestTime}</span>}
-            </div>
-            <PostingBars data={postingTimes} />
-            <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 8 }}>Average views by time of day, from {postCount} of your posts.</div>
-          </div>
-        )}
+        {postingTimes.some((b) => b.posts > 0) && <BestTimeChart data={postingTimes} bestTime={d.bestTime ?? null} posts={postCount} />}
       </div>
 
       {/* what's working */}
       <div style={{ ...CARD, padding: '20px 22px', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-          <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: '-.01em', color: '#0E1016' }}>What's working</span>
-          <span style={{ fontSize: 12, color: '#8A909C' }}>vs your own average</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: '#0E1016' }}>What's working</span>
+          <span style={{ fontSize: 12, color: '#8A909C' }}>ranked vs your own average</span>
         </div>
-        {vis.map((m, i) => <Row key={i} m={m} top={i === 0} />)}
-        {hid.length > 0 && open && hid.map((m, i) => <Row key={`h${i}`} m={m} top={false} />)}
+        {vis.map((m, i) => <Row key={i} m={m} idx={i + 1} />)}
+        {hid.length > 0 && open && hid.map((m, i) => <Row key={`h${i}`} m={m} idx={vis.length + i + 1} />)}
         {hid.length > 0 && (
-          <button type="button" onClick={() => setOpen((o) => !o)} style={{ width: '100%', cursor: 'pointer', marginTop: 4, padding: '13px 0 2px', border: 'none', borderTop: '1px solid rgba(14,16,22,.07)', background: 'transparent', color: '#545A66', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
+          <button type="button" onClick={() => setOpen((o) => !o)} style={{ width: '100%', cursor: 'pointer', marginTop: 4, padding: '13px 0 2px', border: 'none', borderTop: '1px solid rgba(14,16,22,.06)', background: 'transparent', color: '#545A66', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}>
             {open ? 'Show less' : `Show ${hid.length} more`}
             <ChevronDown size={14} style={{ transition: 'transform .2s ease', transform: open ? 'rotate(180deg)' : 'none' }} />
           </button>
@@ -212,7 +241,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
               </div>
               <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>{watch.title}</div>
               <div style={{ fontSize: 13, color: '#545A66', lineHeight: 1.5, marginTop: 5 }}>{watch.evidence}</div>
-              <Action text={watch.recommendation} />
+              <div style={{ marginTop: 11, fontSize: 13, fontWeight: 500, color: '#5B53E0', display: 'inline-flex', alignItems: 'center', gap: 6 }}>{watch.recommendation}<ArrowRight size={13} /></div>
             </div>
           )}
           {experiment && (

@@ -902,7 +902,8 @@
      drop the cramped platform glyphs in the connected-accounts one-liner. */
   .pi-why, .pi-bar { display: none !important; }
   .pi-stats .pi-stat { padding: 2px 12px !important; }
-  .pi-statv { font-size: 22px !important; }
+  .pi-statv { font-size: 24px !important; }
+  .bt-plot { height: 96px !important; }
   .pi-switch { display: flex !important; width: 100% !important; }
   .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }
   .ca-glyphs { display: none !important; }
