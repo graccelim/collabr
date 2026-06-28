@@ -902,7 +902,7 @@
      Hide the per-row "why" line and the inline bar, leaving the title, action,
      delta and confidence; shrink the 3-up stats; full-width platform switcher;
      drop the cramped platform glyphs in the connected-accounts one-liner. */
-  .pi-stats { gap: 8px !important; }
+  .pi-stats .pi-stat { padding: 13px 11px !important; }
   .pi-statv { font-size: 19px !important; }
   .plc-area { height: 120px !important; }
   .pi-switch { display: flex !important; width: 100% !important; }
