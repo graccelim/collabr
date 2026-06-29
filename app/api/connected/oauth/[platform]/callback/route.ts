@@ -18,7 +18,8 @@ const OAUTH_PLATFORMS = ['instagram', 'tiktok', 'youtube'] as const
 async function resolveAccount(platform: OAuthPlatform, token: string, tokenExternalId: string | null) {
   try {
     if (platform === 'tiktok') {
-      return { externalId: tokenExternalId, handle: null } // open_id came from the token response
+      // open_id came from the token response; it is also the provider user id.
+      return { externalId: tokenExternalId, handle: null, providerUserId: tokenExternalId }
     }
     if (platform === 'youtube') {
       const res = await fetch('https://www.googleapis.com/youtube/v3/channels?part=snippet&mine=true', {
@@ -26,17 +27,20 @@ async function resolveAccount(platform: OAuthPlatform, token: string, tokenExter
       })
       const d: any = await res.json()
       const it = d?.items?.[0]
-      return { externalId: it?.id ?? null, handle: it?.snippet?.title ?? null }
+      return { externalId: it?.id ?? null, handle: it?.snippet?.title ?? null, providerUserId: it?.id ?? null }
     }
-    // instagram: page → linked IG business account.
+    // instagram: the Facebook app-scoped user id (for Meta's deauthorize/deletion
+    // callbacks) plus the page → linked IG business account (what we sync).
+    const meRes = await fetch('https://graph.facebook.com/v21.0/me?' + new URLSearchParams({ fields: 'id', access_token: token }))
+    const me: any = await meRes.json()
     const res = await fetch('https://graph.facebook.com/v21.0/me/accounts?' + new URLSearchParams({
       fields: 'instagram_business_account{id,username}', access_token: token,
     }))
     const d: any = await res.json()
     const ig = d?.data?.find((p: any) => p?.instagram_business_account)?.instagram_business_account
-    return { externalId: ig?.id ?? null, handle: ig?.username ?? null }
+    return { externalId: ig?.id ?? null, handle: ig?.username ?? null, providerUserId: me?.id ?? null }
   } catch {
-    return { externalId: tokenExternalId, handle: null }
+    return { externalId: tokenExternalId, handle: null, providerUserId: tokenExternalId }
   }
 }
 
@@ -65,13 +69,13 @@ export async function GET(req: NextRequest, { params }: { params: { platform: st
   const tokens = await exchangeCode(platform, code)
   if (!tokens) return studio('connect=token_failed')
 
-  const { externalId, handle } = await resolveAccount(platform, tokens.accessToken, tokens.externalId)
+  const { externalId, handle, providerUserId } = await resolveAccount(platform, tokens.accessToken, tokens.externalId)
   if (!externalId) return studio('connect=no_account')
 
   const { data: acct, error } = await admin.from('connected_accounts').upsert(
     {
       creator_id: creator.id, platform, source: 'native',
-      external_account_id: externalId, handle, status: 'connected',
+      external_account_id: externalId, provider_user_id: providerUserId, handle, status: 'connected',
       sync_frozen: false, consent_at: new Date().toISOString(),
     },
     { onConflict: 'creator_id,platform' },
