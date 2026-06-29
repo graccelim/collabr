@@ -1,9 +1,9 @@
-// Instagram adapter — Graph API (Business/Creator accounts). externalId = the IG
-// user id. ⚠️ Field paths follow the documented Graph API; verify at integration.
-// Null-safe: missing fields → null, never fabricated.
+// Instagram adapter — Instagram API with Instagram Login (graph.instagram.com).
+// externalId = the IG user id (from the token response). ⚠️ Field paths follow
+// the documented API; verify at integration. Null-safe: missing → null.
 import type { AdapterAuth, NormalizedAccount, NormalizedPost, PlatformAdapter } from './types'
 
-const API = 'https://graph.facebook.com/v21.0'
+const API = 'https://graph.instagram.com'
 const num = (v: unknown): number | null => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v))
 
 async function get(path: string, params: Record<string, string>, token: string): Promise<any> {
@@ -43,12 +43,12 @@ export class InstagramAdapter implements PlatformAdapter {
       let reach: number | null = null, saved: number | null = null, plays: number | null = null
       const isVideo = m?.media_type === 'VIDEO' || m?.media_product_type === 'REELS'
       try {
-        const ins = await get(`${m.id}/insights`, { metric: isVideo ? 'reach,saved,plays' : 'reach,saved' }, token)
+        const ins = await get(`${m.id}/insights`, { metric: isVideo ? 'reach,saved,views' : 'reach,saved' }, token)
         for (const row of ins?.data ?? []) {
           const val = num(row?.values?.[0]?.value)
           if (row?.name === 'reach') reach = val
           else if (row?.name === 'saved') saved = val
-          else if (row?.name === 'plays') plays = val
+          else if (row?.name === 'views' || row?.name === 'plays') plays = val
         }
       } catch { /* insights not available for this media type, leave null */ }
       out.push({

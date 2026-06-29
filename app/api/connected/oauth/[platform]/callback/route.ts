@@ -29,16 +29,15 @@ async function resolveAccount(platform: OAuthPlatform, token: string, tokenExter
       const it = d?.items?.[0]
       return { externalId: it?.id ?? null, handle: it?.snippet?.title ?? null, providerUserId: it?.id ?? null }
     }
-    // instagram: the Facebook app-scoped user id (for Meta's deauthorize/deletion
-    // callbacks) plus the page → linked IG business account (what we sync).
-    const meRes = await fetch('https://graph.facebook.com/v21.0/me?' + new URLSearchParams({ fields: 'id', access_token: token }))
-    const me: any = await meRes.json()
-    const res = await fetch('https://graph.facebook.com/v21.0/me/accounts?' + new URLSearchParams({
-      fields: 'instagram_business_account{id,username}', access_token: token,
-    }))
-    const d: any = await res.json()
-    const ig = d?.data?.find((p: any) => p?.instagram_business_account)?.instagram_business_account
-    return { externalId: ig?.id ?? null, handle: ig?.username ?? null, providerUserId: me?.id ?? null }
+    // instagram (Instagram Login): the IG user id came from the token response.
+    // Fetch the username for display; the id is also the provider user id used by
+    // Meta's deauthorize/deletion callbacks.
+    let handle: string | null = null
+    try {
+      const me = await fetch('https://graph.instagram.com/me?' + new URLSearchParams({ fields: 'username', access_token: token })).then((r) => r.json())
+      handle = me?.username ?? null
+    } catch { /* username is best effort */ }
+    return { externalId: tokenExternalId, handle, providerUserId: tokenExternalId }
   } catch {
     return { externalId: tokenExternalId, handle: null, providerUserId: tokenExternalId }
   }

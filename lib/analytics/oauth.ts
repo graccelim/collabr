@@ -27,8 +27,17 @@ export function redirectUri(platform: OAuthPlatform): string {
 }
 
 // ── Credential presence (each platform independent) ─────────────────────────
-export function metaConfigured(): boolean {
-  return Boolean(process.env.META_APP_ID && process.env.META_APP_SECRET)
+export function instagramConfigured(): boolean {
+  // Instagram API with Instagram Login uses the Instagram app credentials,
+  // separate from any Meta/Facebook app id+secret. Falls back to META_* so an
+  // older Facebook-Login config keeps working until the Instagram creds are set.
+  return Boolean((process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID) && (process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET))
+}
+export function igAppId(): string | undefined {
+  return process.env.INSTAGRAM_APP_ID || process.env.META_APP_ID
+}
+export function igAppSecret(): string | undefined {
+  return process.env.INSTAGRAM_APP_SECRET || process.env.META_APP_SECRET
 }
 export function tiktokConfigured(): boolean {
   return Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET)
@@ -40,7 +49,7 @@ export function youtubeApiKey(): string | null {
   return process.env.YOUTUBE_API_KEY || null
 }
 export function oauthConfigured(platform: OAuthPlatform): boolean {
-  if (platform === 'instagram') return metaConfigured()
+  if (platform === 'instagram') return instagramConfigured()
   if (platform === 'tiktok') return tiktokConfigured()
   if (platform === 'youtube') return googleOauthConfigured()
   return false
@@ -48,7 +57,7 @@ export function oauthConfigured(platform: OAuthPlatform): boolean {
 /** A platform is connectable if it has OAuth creds, or (YouTube) a public API key. */
 export function platformConnectable(platform: Platform): boolean {
   if (platform === 'youtube') return Boolean(youtubeApiKey()) || googleOauthConfigured()
-  if (platform === 'instagram') return metaConfigured()
+  if (platform === 'instagram') return instagramConfigured()
   if (platform === 'tiktok') return tiktokConfigured()
   return false
 }
@@ -58,8 +67,9 @@ export function authorizeUrl(platform: OAuthPlatform, state: string): string | n
   if (!oauthConfigured(platform)) return null
   const ru = encodeURIComponent(redirectUri(platform))
   if (platform === 'instagram') {
-    const scope = 'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management'
-    return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${process.env.META_APP_ID}` +
+    // Instagram API with Instagram Login (direct IG login, no Facebook Page).
+    const scope = encodeURIComponent('instagram_business_basic,instagram_business_manage_insights')
+    return `https://www.instagram.com/oauth/authorize?client_id=${igAppId()}` +
       `&redirect_uri=${ru}&state=${state}&response_type=code&scope=${scope}`
   }
   if (platform === 'tiktok') {
@@ -105,20 +115,25 @@ export async function exchangeCode(platform: OAuthPlatform, code: string): Promi
       if (!res.ok || !d?.access_token) return null
       return { accessToken: d.access_token, refreshToken: d.refresh_token ?? null, expiresAt: expiry(d.expires_in), scope: d.scope ?? null, externalId: null }
     }
-    // instagram (Meta): code → short-lived → long-lived (~60d).
-    const shortRes = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?' + new URLSearchParams({
-      client_id: process.env.META_APP_ID!, client_secret: process.env.META_APP_SECRET!,
-      redirect_uri: redirectUri('instagram'), code,
-    }))
+    // instagram (Instagram Login): code → short-lived (api.instagram.com, carries
+    // the IG user_id) → long-lived (graph.instagram.com, ~60d).
+    const shortRes = await fetch('https://api.instagram.com/oauth/access_token', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: igAppId()!, client_secret: igAppSecret()!,
+        grant_type: 'authorization_code', redirect_uri: redirectUri('instagram'), code,
+      }),
+    })
     const short: any = await shortRes.json()
     if (!shortRes.ok || !short?.access_token) return null
-    const longRes = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?' + new URLSearchParams({
-      grant_type: 'fb_exchange_token', client_id: process.env.META_APP_ID!,
-      client_secret: process.env.META_APP_SECRET!, fb_exchange_token: short.access_token,
+    const userId = short?.user_id != null ? String(short.user_id) : null
+    const longRes = await fetch('https://graph.instagram.com/access_token?' + new URLSearchParams({
+      grant_type: 'ig_exchange_token', client_secret: igAppSecret()!, access_token: short.access_token,
     }))
     const long: any = await longRes.json()
     const token = long?.access_token || short.access_token
-    return { accessToken: token, refreshToken: null, expiresAt: expiry(long?.expires_in ?? short?.expires_in), scope: null, externalId: null }
+    // refreshToken = the long-lived token itself (refreshed via ig_refresh_token).
+    return { accessToken: token, refreshToken: token, expiresAt: expiry(long?.expires_in ?? 3600), scope: null, externalId: userId }
   } catch (e: any) {
     console.error(`[oauth ${platform}] exchange failed:`, e?.message)
     return null
@@ -153,10 +168,9 @@ export async function refreshAccessToken(platform: OAuthPlatform, refreshToken: 
       if (!res.ok || !d?.access_token) return null
       return { accessToken: d.access_token, refreshToken, expiresAt: expiry(d.expires_in), scope: d.scope ?? null, externalId: null }
     }
-    // instagram (Meta): refresh a long-lived token by re-exchanging it.
-    const res = await fetch('https://graph.facebook.com/v21.0/oauth/access_token?' + new URLSearchParams({
-      grant_type: 'fb_exchange_token', client_id: process.env.META_APP_ID!,
-      client_secret: process.env.META_APP_SECRET!, fb_exchange_token: refreshToken,
+    // instagram (Instagram Login): extend the long-lived token (must be >24h old).
+    const res = await fetch('https://graph.instagram.com/refresh_access_token?' + new URLSearchParams({
+      grant_type: 'ig_refresh_token', access_token: refreshToken,
     }))
     const d: any = await res.json()
     if (!res.ok || !d?.access_token) return null

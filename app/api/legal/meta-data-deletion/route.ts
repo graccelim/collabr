@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
 import { parseSignedRequest, purgeMetaUser } from '@/lib/analytics/metaDeletion'
+import { igAppSecret } from '@/lib/analytics/oauth'
 
 // Meta "Data Deletion Request Callback". When a user asks Meta to delete their
 // data, Meta POSTs a `signed_request` here. We verify it with META_APP_SECRET,
@@ -21,7 +22,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const secret = process.env.META_APP_SECRET
+  const secret = igAppSecret()
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || '').replace(/\/+$/, '')
   if (!secret) return NextResponse.json({ error: 'not_configured' }, { status: 503 })
 

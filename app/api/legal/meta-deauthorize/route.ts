@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { parseSignedRequest, purgeMetaUser } from '@/lib/analytics/metaDeletion'
+import { igAppSecret } from '@/lib/analytics/oauth'
 
 // Meta "Deauthorize Callback". When a user removes Collabr from their Facebook /
 // Instagram settings, Meta POSTs a `signed_request` here. We verify it with
@@ -19,7 +20,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const secret = process.env.META_APP_SECRET
+  const secret = igAppSecret()
   if (!secret) return NextResponse.json({ error: 'not_configured' }, { status: 503 })
 
   const form = await req.formData().catch(() => null)
