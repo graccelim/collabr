@@ -3,6 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { flags } from '@/lib/flags'
 import { exchangeCode, oauthConfigured, type OAuthPlatform } from '@/lib/analytics/oauth'
 import { isCreatorProActive } from '@/lib/creator-pro'
+import { getAdapter } from '@/lib/analytics/adapters'
+import { getAccountAuth } from '@/lib/analytics/tokens'
+import { syncAccountData, classifyCreatorPosts, recomputeCreatorInsights } from '@/lib/analytics/sync'
+import type { Platform } from '@/lib/analytics/adapters/types'
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 const OAUTH_PLATFORMS = ['instagram', 'tiktok', 'youtube'] as const
 
@@ -75,9 +82,26 @@ export async function GET(req: NextRequest, { params }: { params: { platform: st
     account_id: acct.id, access_token: tokens.accessToken, refresh_token: tokens.refreshToken,
     expires_at: tokens.expiresAt, scope: tokens.scope, updated_at: new Date().toISOString(),
   }, { onConflict: 'account_id' })
-  await admin.from('sync_jobs').insert({ account_id: acct.id, kind: 'account', status: 'queued' })
 
-  const res = studio(`connected=${platform}`)
+  // Auto-sync on connect: pull posts, classify, and compute insights now, so data
+  // is ready the moment they land in Studio. Best effort — a sync failure must NOT
+  // break the connect (the nightly cron will retry the queued job).
+  let synced = false
+  try {
+    const adapter = getAdapter(platform as Platform)
+    const auth = adapter ? await getAccountAuth(admin, acct.id as string, platform as Platform) : null
+    if (adapter && auth) {
+      await syncAccountData(admin, { id: acct.id as string, creator_id: creator.id as string, platform, external_account_id: externalId }, adapter, auth)
+      await classifyCreatorPosts(admin, creator.id as string)
+      await recomputeCreatorInsights(admin, creator.id as string)
+      synced = true
+    }
+  } catch (e: any) {
+    console.error('[CONNECT auto-sync]', e?.message)
+  }
+  if (!synced) await admin.from('sync_jobs').insert({ account_id: acct.id, kind: 'account', status: 'queued' })
+
+  const res = studio(`connected=${platform}${synced ? '&synced=1' : ''}`)
   res.cookies.delete(`cl_oauth_${platform}`)
   return res
 }
