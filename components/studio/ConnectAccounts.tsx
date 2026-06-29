@@ -31,8 +31,6 @@ export default function ConnectAccounts({
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
-  const [ytOpen, setYtOpen] = useState(false)
-  const [channel, setChannel] = useState('')
   const [syncing, setSyncing] = useState<string | null>(null) // platform label being synced
   const [step, setStep] = useState(0)
 
@@ -50,20 +48,6 @@ export default function ConnectAccounts({
   const canConnect = connectable.filter((p) => !connectedPlatforms.has(p))
   const anyFrozen = connected.some((a) => a.sync_frozen)
 
-  async function connectYouTube() {
-    if (!channel.trim()) return
-    setBusy('youtube'); setErr(null)
-    try {
-      const res = await fetch('/api/connected/youtube', {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ channel: channel.trim() }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok) { setYtOpen(false); setChannel(''); router.refresh() }
-      else setErr(data.error || 'Could not connect that channel.')
-    } catch { setErr('Could not connect that channel.') }
-    setBusy(null)
-  }
 
   async function disconnect(id: string) {
     setBusy(id); setErr(null)
@@ -178,28 +162,12 @@ export default function ConnectAccounts({
                 </p>
               ) : (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {canConnect.includes('youtube') && (
-                    <button type="button" className="btn-secondary btn-sm" onClick={() => setYtOpen((v) => !v)}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      <Plus size={13} /> Connect YouTube
-                    </button>
-                  )}
-                  {canConnect.filter((p) => p !== 'youtube').map((p) => (
+                  {canConnect.map((p) => (
                     <a key={p} href={`/api/connected/oauth/${p}/start`} className="btn-secondary btn-sm"
                       style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
                       <Plus size={13} /> Connect {LABEL[p] || p}
                     </a>
                   ))}
-                </div>
-              )}
-
-              {ytOpen && !readOnly && (
-                <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                  <input className="input" value={channel} onChange={(e) => setChannel(e.target.value)}
-                    placeholder="Your channel @handle or ID" style={{ flex: 1, fontSize: 14 }} />
-                  <button type="button" className="btn-primary btn-sm" onClick={connectYouTube} disabled={busy === 'youtube'}>
-                    {busy === 'youtube' ? 'Adding…' : 'Add'}
-                  </button>
                 </div>
               )}
               </>

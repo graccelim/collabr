@@ -1,9 +1,10 @@
 // Resolves the auth an adapter needs for one connected account, refreshing OAuth
-// tokens when near expiry. YouTube uses the public API key (no per-account token).
+// tokens when near expiry. Every platform (including YouTube now) uses the
+// creator's own OAuth token, so we only show data for accounts they own.
 // Tokens live in the private connected_account_tokens table (service-role only).
 import type { createAdminClient } from '@/lib/supabase/server'
 import type { AdapterAuth, Platform } from './adapters/types'
-import { refreshAccessToken, youtubeApiKey, type OAuthPlatform } from './oauth'
+import { refreshAccessToken, type OAuthPlatform } from './oauth'
 
 const EXPIRY_BUFFER_MS = 5 * 60 * 1000
 
@@ -12,10 +13,6 @@ export async function getAccountAuth(
   accountId: string,
   platform: Platform,
 ): Promise<AdapterAuth | null> {
-  if (platform === 'youtube') {
-    const key = youtubeApiKey()
-    return key ? { accessToken: null, apiKey: key } : null
-  }
 
   const { data: tok } = await admin.from('connected_account_tokens')
     .select('access_token, refresh_token, expires_at').eq('account_id', accountId).maybeSingle()

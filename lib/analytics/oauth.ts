@@ -56,7 +56,7 @@ export function oauthConfigured(platform: OAuthPlatform): boolean {
 }
 /** A platform is connectable if it has OAuth creds, or (YouTube) a public API key. */
 export function platformConnectable(platform: Platform): boolean {
-  if (platform === 'youtube') return Boolean(youtubeApiKey()) || googleOauthConfigured()
+  if (platform === 'youtube') return googleOauthConfigured()
   if (platform === 'instagram') return instagramConfigured()
   if (platform === 'tiktok') return tiktokConfigured()
   return false
@@ -77,8 +77,9 @@ export function authorizeUrl(platform: OAuthPlatform, state: string): string | n
     return `https://www.tiktok.com/v2/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}` +
       `&scope=${scope}&response_type=code&redirect_uri=${ru}&state=${state}`
   }
-  // youtube (Google) — offline access for a refresh token, analytics read-only.
-  const scope = encodeURIComponent('https://www.googleapis.com/auth/yt-analytics.readonly')
+  // youtube (Google) — read-only access to the creator's OWN channel + videos
+  // (proves ownership via channels?mine=true). Offline access for a refresh token.
+  const scope = encodeURIComponent('https://www.googleapis.com/auth/youtube.readonly')
   return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_OAUTH_CLIENT_ID}` +
     `&redirect_uri=${ru}&response_type=code&access_type=offline&prompt=consent&scope=${scope}&state=${state}`
 }

@@ -1,7 +1,7 @@
-// YouTube adapter — public stats via the Data API v3 (API key, no creator OAuth,
-// no app review). externalId = the channel id. ⚠️ Field paths follow the documented
-// Data API v3 responses; verify against a live response at integration. Null-safe:
-// a missing field becomes null, never a fabricated number.
+// YouTube adapter — Data API v3 read with the creator's OWN OAuth token (proves
+// ownership; channel resolved via channels?mine=true at connect). externalId = the
+// channel id. ⚠️ Field paths follow the documented Data API v3 responses; verify
+// against a live response at integration. Null-safe: missing → null.
 import type { AdapterAuth, NormalizedAccount, NormalizedPost, PlatformAdapter } from './types'
 
 const API = 'https://www.googleapis.com/youtube/v3'
@@ -15,8 +15,10 @@ function isoDuration(s: string | null | undefined): number | null {
   return (+(m[1] || 0)) * 3600 + (+(m[2] || 0)) * 60 + (+(m[3] || 0))
 }
 
-async function get(path: string, params: Record<string, string>, key: string): Promise<any> {
-  const res = await fetch(`${API}/${path}?` + new URLSearchParams({ ...params, key }))
+async function get(path: string, params: Record<string, string>, token: string): Promise<any> {
+  const res = await fetch(`${API}/${path}?` + new URLSearchParams(params), {
+    headers: { authorization: `Bearer ${token}` },
+  })
   if (!res.ok) throw new Error(`YouTube ${path} ${res.status}`)
   return res.json()
 }
@@ -25,8 +27,8 @@ export class YouTubeAdapter implements PlatformAdapter {
   platform = 'youtube' as const
 
   async fetchAccount(auth: AdapterAuth, channelId: string | null): Promise<NormalizedAccount> {
-    const key = auth.apiKey
-    if (!key || !channelId) throw new Error('YouTube API key + channel id required')
+    const key = auth.accessToken
+    if (!key || !channelId) throw new Error('YouTube access token + channel id required')
     const d = await get('channels', { part: 'statistics,snippet', id: channelId }, key)
     const it = d?.items?.[0]
     const st = it?.statistics ?? {}
@@ -39,7 +41,7 @@ export class YouTubeAdapter implements PlatformAdapter {
   }
 
   async fetchPosts(auth: AdapterAuth, channelId: string | null, _since: Date): Promise<NormalizedPost[]> {
-    const key = auth.apiKey
+    const key = auth.accessToken
     if (!key || !channelId) return []
     // channel → uploads playlist → recent video ids → video stats.
     const ch = await get('channels', { part: 'contentDetails', id: channelId }, key)
