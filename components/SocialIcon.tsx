@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
-import { siInstagram, siTiktok, siYoutube, siX, siXiaohongshu } from 'simple-icons'
+import { siInstagram, siTiktok, siYoutube, siX, siXiaohongshu, siFacebook } from 'simple-icons'
 import type { SocialPlatform } from '@/lib/onboarding'
 
 export type SocialIconProps = { size?: number } & SVGProps<SVGSVGElement>
@@ -41,6 +41,7 @@ const GLYPHS: Record<SocialPlatform, ComponentType<SocialIconProps>> = {
   instagram: simpleGlyph(siInstagram.path, siInstagram.hex),
   tiktok: simpleGlyph(siTiktok.path, siTiktok.hex),
   youtube: simpleGlyph(siYoutube.path, siYoutube.hex),
+  facebook: simpleGlyph(siFacebook.path, siFacebook.hex),
   x: simpleGlyph(siX.path, siX.hex),
   lemon8: Lemon8Glyph,
   xiaohongshu: simpleGlyph(siXiaohongshu.path, siXiaohongshu.hex),

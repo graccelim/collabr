@@ -77,15 +77,6 @@ export default function StrategistPanel({ strategy, onDraft }: { strategy: Strat
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {/* header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(150deg,#6B62EC,#4B43C8)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px -8px rgba(91,83,224,.8)' }}><Wand2 size={15} color="#fff" /></span>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: '#0E1016' }}>Your game plan</div>
-          <div style={{ fontSize: 12, color: '#8A909C', marginTop: 1 }}>If I were managing your account this week</div>
-        </div>
-      </div>
-
       {/* hero: this week's idea */}
       {hero && (
         <div style={{ background: NAVY, borderRadius: 16, padding: '20px 22px', boxShadow: '0 1px 3px rgba(14,16,22,.06),0 30px 60px -34px rgba(20,30,80,.5)' }}>

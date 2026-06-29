@@ -157,7 +157,7 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
               <span style={{ width: 6, height: 6, borderRadius: 999, background: '#7B73F0', boxShadow: '0 0 0 3px rgba(123,115,240,.22)' }} />
               <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9AA0D6' }}>Analyst read</span>
             </div>
-            <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff', maxWidth: 660 }}>{read}</div>
+            <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff' }}>{read}</div>
             {ticks.length > 0 && (
               <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {ticks.map((t, i) => (

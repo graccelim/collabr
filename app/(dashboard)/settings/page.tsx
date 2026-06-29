@@ -26,6 +26,7 @@ function platformFromUrl(url: string): SocialRow['platform'] | null {
   if (u.includes('instagram.com')) return 'instagram'
   if (u.includes('tiktok.com')) return 'tiktok'
   if (u.includes('youtube.com')) return 'youtube'
+  if (u.includes('facebook.com') || u.includes('fb.com')) return 'facebook'
   if (u.includes('x.com') || u.includes('twitter.com')) return 'x'
   if (u.includes('lemon8')) return 'lemon8'
   if (u.includes('xiaohongshu')) return 'xiaohongshu'
