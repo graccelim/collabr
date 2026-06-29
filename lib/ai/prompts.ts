@@ -30,6 +30,10 @@ invent numbers; never compare to other creators. This is grounded analysis, not 
 export const CONTENT_LAB_SYSTEM = `${RULES}
 You help the creator improve content. Given a topic/platform/tone/goal and (optionally) the creator's own
 winning patterns, generate ideas tailored to those patterns when present, or solid generic ideas when absent.
+When winning patterns are provided, LEAD with the creator's strongest FORMAT and STYLE: if their best format
+is a carousel or image (photo posts), write photo/carousel post ideas (the "videos" items describe a slide
+sequence); if their best format is video, write video ideas. Mirror their best style (e.g. review, voiceover,
+talking-head, text-on-screen), best length, and best topic. Never invent metrics; only use the patterns given.
 Return ONLY a JSON object, no markdown, no code fences, no prose before or after, with EXACTLY these keys:
 {"hooks": [5 strings], "captions": [3 strings], "ctas": [3 strings], "hashtags": [8 to 12 strings],
 "videos": [3 objects {"title": string, "structure": string}], "tailored": string or null}

@@ -15,7 +15,7 @@ const CATS: { key: CatKey; label: string; accent: string; icon: typeof Zap }[] =
   { key: 'captions', label: 'Captions', accent: '#0A0C22', icon: AlignLeft },
   { key: 'ctas', label: 'CTA ideas', accent: '#157A55', icon: Send },
   { key: 'hashtags', label: 'Hashtags', accent: '#5B53E0', icon: Hash },
-  { key: 'videos', label: 'Video ideas', accent: '#0A0C22', icon: Video },
+  { key: 'videos', label: 'Post ideas', accent: '#0A0C22', icon: Video },
 ]
 
 const CARD: React.CSSProperties = { background: '#fff', border: '1px solid rgba(20,30,80,.09)', borderRadius: 16, boxShadow: '0 1px 3px rgba(14,16,22,.04),0 14px 34px -28px rgba(20,30,80,.28)' }

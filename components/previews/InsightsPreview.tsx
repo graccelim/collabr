@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { ArrowUpRight, Eye, BarChart3, Activity } from 'lucide-react'
-import PostingLineChart from '@/components/studio/PostingLineChart'
+import PostingBars from '@/components/studio/PostingBars'
 
 // A LIVE-feeling preview of Creator Studio Insights with clearly-labelled SAMPLE
 // data (never the user's real numbers). Animated: trend wipes in, stat + delta
@@ -78,7 +78,7 @@ export default function InsightsPreview() {
           <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#8A909C' }}>Best time to post</span>
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, fontWeight: 600, color: '#2A3A8F', background: '#EEF1F8', border: '1px solid rgba(42,58,143,.2)', borderRadius: 999, padding: '3px 9px' }}>Peak 8pm to 12am</span>
         </div>
-        <PostingLineChart data={LINE} height={120} />
+        <PostingBars data={LINE} height={120} />
       </div>
 
       {/* what's working */}

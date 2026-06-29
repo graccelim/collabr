@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
-import { ArrowUpRight, ArrowDownRight, ChevronDown, Clock, Eye, BarChart3, Activity } from 'lucide-react'
-import PostingLineChart from '@/components/studio/PostingLineChart'
+import { ArrowUpRight, ArrowDownRight, ChevronDown, Clock, Eye, BarChart3, Activity, Check } from 'lucide-react'
+import PostingBars from '@/components/studio/PostingBars'
 import type { Insight } from '@/lib/analytics/insights'
 
 // One platform's Insights, per the Creator Studio handoff: analyst-read hero +
@@ -137,6 +137,17 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
     { icon: Activity, v: fmtPct(ov?.avgEngagementRate), label: 'Avg engagement', delta: ov?.engDelta },
   ]
   const postingTimes = d.postingTimes || []
+  // Digestible tick summary under the analyst read: the top content wins + peak window.
+  const ticks: string[] = working.slice(0, 2).map((i) => i.title)
+  if (d.bestTime) ticks.push(`Your peak posting window is ${d.bestTime}`)
+
+  // Actionable "next moves" — the point of insights. Recommendations from the top
+  // wins + the experiment ("worth trying") + the watch caution, surfaced up front.
+  const MOVE_TONE: Record<string, string> = { do: '#2A3157', try: '#5B53E0', watch: '#B26B00' }
+  const nextMoves: { text: string; kind: 'do' | 'try' | 'watch'; chip?: string }[] = []
+  working.slice(0, 3).forEach((i) => { if (i.recommendation) nextMoves.push({ text: i.recommendation, kind: 'do' }) })
+  if (experiment) nextMoves.push({ text: experiment.title, kind: 'try', chip: 'Try' })
+  if (watch?.recommendation) nextMoves.push({ text: watch.recommendation, kind: 'watch', chip: 'Watch' })
 
   return (
     <div>
@@ -151,6 +162,15 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
               <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.18em', textTransform: 'uppercase', color: '#9AA0D6' }}>Analyst read</span>
             </div>
             <div style={{ fontSize: 15.5, lineHeight: 1.5, color: '#fff', maxWidth: 660 }}>{read}</div>
+            {ticks.length > 0 && (
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {ticks.map((t, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: '#CFD3EE' }}>
+                    <Check size={14} color="#8E86F0" style={{ flexShrink: 0 }} /><span>{t}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -177,10 +197,29 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontSize: 11.5, fontWeight: 600, color: '#2A3A8F', background: '#EEF1F8', border: '1px solid rgba(42,58,143,.2)', borderRadius: 999, padding: '4px 11px' }}><Clock size={12} /> Peak {d.bestTime}</span>
               )}
             </div>
-            <PostingLineChart data={postingTimes} caption={`Average views by time of day, from ${postCount} of your posts.`} />
+            <PostingBars data={postingTimes} caption={`Average views by time of day, from ${postCount} of your posts.`} />
           </div>
         )}
       </div>
+
+      {/* your next moves — the actionable payoff, surfaced up front */}
+      {nextMoves.length > 0 && (
+        <div style={{ ...CARD, padding: '18px 22px', marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: '-.01em', color: '#0E1016' }}>Your next moves</span>
+            <span style={{ fontSize: 12, color: '#8A909C' }}>what to do next</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9 }}>
+            {nextMoves.slice(0, 4).map((m, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '12px 14px', background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11 }}>
+                <span style={{ width: 7, height: 7, borderRadius: 999, background: MOVE_TONE[m.kind], flex: 'none' }} />
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 500, color: '#0E1016' }}>{m.text}</span>
+                {m.chip && <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.1em', textTransform: 'uppercase', color: MOVE_TONE[m.kind], background: `${MOVE_TONE[m.kind]}14`, borderRadius: 999, padding: '3px 8px', flex: 'none' }}>{m.chip}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* what's working */}
       <div style={{ ...CARD, padding: '20px 22px', marginBottom: 16 }}>
@@ -197,33 +236,6 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
           </button>
         )}
       </div>
-
-      {/* watch + experiment */}
-      {(watch || experiment) && (
-        <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: watch && experiment ? '1fr 1fr' : '1fr', gap: 14 }}>
-          {watch && (
-            <div style={{ ...CARD, borderRadius: 14, padding: 18 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
-                <span style={{ width: 7, height: 7, borderRadius: 999, background: '#B26B00' }} />
-                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#B26B00' }}>Keep an eye on</span>
-              </div>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>{watch.title}</div>
-              <div style={{ fontSize: 13, color: '#545A66', lineHeight: 1.5, marginTop: 5 }}>{watch.evidence}</div>
-              <div style={{ marginTop: 11, fontSize: 13, fontWeight: 500, color: '#2A3157' }}>{watch.recommendation}</div>
-            </div>
-          )}
-          {experiment && (
-            <div style={{ ...CARD, borderRadius: 14, padding: 18 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 9 }}>
-                <span style={{ width: 7, height: 7, borderRadius: 999, background: '#5B53E0' }} />
-                <span style={{ fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#5B53E0' }}>Worth trying</span>
-              </div>
-              <div style={{ fontSize: 14.5, fontWeight: 600, color: '#0E1016' }}>{experiment.title}</div>
-              <div style={{ fontSize: 13, color: '#545A66', lineHeight: 1.5, marginTop: 5 }}>{experiment.why}</div>
-            </div>
-          )}
-        </div>
-      )}
 
       <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 18, textAlign: 'center' }}>
         Based on {postCount} of your own posts. We never compare you to other creators, only to your own history.
