@@ -69,7 +69,9 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
   }
   if (watch && !seen.has(watch.recommendation)) moves.unshift({ text: watch.recommendation, color: AMBER })
 
-  const takeaway = row?.ai_narrative || (engIns ? `${engIns.title}.` : 'Your weekly read appears here as more posts sync.')
+  const rawTakeaway = row?.ai_narrative || (engIns ? `${engIns.title}.` : 'Your weekly read appears here as more posts sync.')
+  // Keep the header tight: first two sentences only (older narratives ran long).
+  const takeaway = (rawTakeaway.match(/[^.!?]+[.!?]+/g) || [rawTakeaway]).slice(0, 2).join(' ').trim()
   const today = new Date()
   const start = new Date(today.getTime() - 6 * 86_400_000)
   const periodLabel = `${start.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })} to ${today.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}`

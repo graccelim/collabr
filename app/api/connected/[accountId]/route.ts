@@ -4,7 +4,7 @@ import { flags } from '@/lib/flags'
 import { isProActive } from '@/lib/entitlements'
 import { getAdapter } from '@/lib/analytics/adapters'
 import { getAccountAuth } from '@/lib/analytics/tokens'
-import { syncAccountData, recomputeCreatorInsights } from '@/lib/analytics/sync'
+import { syncAccountData, classifyCreatorPosts, recomputeCreatorInsights } from '@/lib/analytics/sync'
 import type { Platform } from '@/lib/analytics/adapters/types'
 
 export const runtime = 'nodejs'
@@ -73,6 +73,9 @@ export async function POST(_req: NextRequest, { params }: { params: { accountId:
       id: acct.id as string, creator_id: acct.creator_id as string,
       platform: acct.platform as string, external_account_id: (acct.external_account_id as string | null) ?? null,
     }, adapter, auth)
+    // Label the freshly-synced posts (topic/style) so "What's working" can rank them,
+    // then recompute. Order matters: sync → classify → rollups.
+    await classifyCreatorPosts(admin, creator.id as string)
     await recomputeCreatorInsights(admin, creator.id as string)
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Sync failed' }, { status: 502 })

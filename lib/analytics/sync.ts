@@ -6,6 +6,8 @@ import { computeCreatorRollup, type RollupPost } from '@/lib/analytics/rollups'
 import { computePlatformInsights, type InsightPost } from '@/lib/analytics/insights'
 import { aiConfigured } from '@/lib/ai/client'
 import { narratePlatformInsights } from '@/lib/ai/service'
+import { classifyContent } from '@/lib/ai/classify'
+import { classHash, validateLabels } from '@/lib/analytics/classify'
 import type { Platform, PlatformAdapter, AdapterAuth } from '@/lib/analytics/adapters/types'
 
 // Single source of truth for the Connected sync pipeline, shared by the nightly
@@ -68,6 +70,49 @@ export async function syncAccountData(admin: Admin, a: AccountRow, adapter: Plat
     await admin.from('connected_accounts').update({ status: 'error' }).eq('id', a.id)
     throw e
   }
+}
+
+// Classify one creator's unlabeled posts into the taxonomy (category / subcategory /
+// style) so "What's working" has content levers to rank. Mirrors the nightly classify
+// cron, scoped to a single creator. No-op if AI isn't configured. Run before rollups.
+export async function classifyCreatorPosts(admin: Admin, creatorId: string): Promise<number> {
+  if (!aiConfigured()) return 0
+  const { data: posts } = await admin.from('content_posts')
+    .select('id, title, caption, hashtags, duration_sec, class_hash, class_source')
+    .eq('creator_id', creatorId).limit(2000)
+  const hashOf = (p: any) => classHash({ title: p.title, caption: p.caption, hashtags: p.hashtags, durationSec: p.duration_sec })
+  const stale = (posts ?? []).filter((p) => p.class_source !== 'manual' && hashOf(p) !== p.class_hash).slice(0, 400)
+  const withText = stale.filter((p) => p.title || p.caption || (p.hashtags?.length))
+  const noText = stale.filter((p) => !(p.title || p.caption || (p.hashtags?.length)))
+
+  // No usable text → stamp metadata-only so we don't retry forever (format set at sync).
+  for (const p of noText) {
+    await admin.from('content_posts').update({ class_source: 'metadata', class_confidence: 0, class_hash: hashOf(p) }).eq('id', p.id)
+  }
+
+  let classified = 0
+  const CHUNK = 25
+  for (let i = 0; i < withText.length; i += CHUNK) {
+    const chunk = withText.slice(i, i + CHUNK)
+    let out: Awaited<ReturnType<typeof classifyContent>> = []
+    try {
+      out = await classifyContent(chunk.map((p) => ({ externalId: p.id, title: p.title, caption: p.caption, hashtags: p.hashtags })))
+    } catch (e: any) {
+      console.error('[CLASSIFY] batch failed:', e?.message)
+      continue
+    }
+    const byId = new Map(out.map((o) => [o.externalId, o]))
+    for (const p of chunk) {
+      const raw = byId.get(p.id) ?? null
+      const labels = validateLabels(raw)
+      await admin.from('content_posts').update({
+        category: labels.category, subcategory: labels.subcategory, style: labels.style,
+        class_confidence: labels.confidence, class_source: raw ? 'ai' : 'metadata', class_hash: hashOf(p),
+      }).eq('id', p.id)
+      classified++
+    }
+  }
+  return classified
 }
 
 // Recompute one creator's deterministic rollups + per-platform insights from stored

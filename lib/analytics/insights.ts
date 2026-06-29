@@ -103,11 +103,17 @@ function lengthBucket(sec: number | null): string | null {
 // time to post by OUTCOME (views), robust to sparse data (6 buckets, not 24 hours).
 const TIME_SHORT = ['12am', '4am', '8am', '12pm', '4pm', '8pm']
 const TIME_NAME = ['12–4am', '4–8am', '8am–12pm', '12–4pm', '4–8pm', '8pm–12am']
+// Posting times use Asia/Singapore local time (the product's market) so "best time
+// to post" reflects the audience clock, not the UTC server clock. Deterministic via
+// getUTCHours so it doesn't depend on where the server runs. (Per-creator timezone
+// can replace the fixed offset later.)
+const TZ_OFFSET = 8
+const localHour = (d: Date) => (d.getUTCHours() + TZ_OFFSET + 24) % 24
 function postingTimesOf(posts: InsightPost[]): { label: string; name: string; avgViews: number; posts: number }[] {
   const acc: number[][] = TIME_SHORT.map(() => [])
   for (const p of posts) {
     if (!p.postedAt || p.views == null) continue
-    const idx = Math.min(5, Math.floor(p.postedAt.getHours() / 4))
+    const idx = Math.min(5, Math.floor(localHour(p.postedAt) / 4))
     acc[idx].push(p.views)
   }
   return acc.map((v, i) => ({ label: TIME_SHORT[i], name: TIME_NAME[i], avgViews: v.length ? Math.round(avg(v)!) : 0, posts: v.length }))
@@ -173,7 +179,7 @@ export function computePlatformInsights(
   })
 
   // 2. Best posting window (by OUTCOME, not follower presence)
-  const win = bestBy(posts, (p) => (p.postedAt ? dayPart(p.postedAt.getHours()) : null), baseline)
+  const win = bestBy(posts, (p) => (p.postedAt ? dayPart(localHour(p.postedAt)) : null), baseline)
   if (win) insights.push({
     key: 'best_window',
     title: `Posting in the ${win.key} works best for you`,
