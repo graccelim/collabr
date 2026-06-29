@@ -79,17 +79,17 @@ export default function StrategistPanel({ strategy, onDraft }: { strategy: Strat
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {/* hero: this week's idea */}
       {hero && (
-        <div style={{ background: NAVY, borderRadius: 16, padding: '20px 22px', boxShadow: '0 1px 3px rgba(14,16,22,.06),0 30px 60px -34px rgba(20,30,80,.5)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+        <div style={{ background: NAVY, borderRadius: 16, padding: '22px 24px', boxShadow: '0 1px 3px rgba(14,16,22,.06),0 30px 60px -34px rgba(20,30,80,.5)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, marginBottom: 14 }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9AA0D6' }}>
               <Clapperboard size={13} color="#8E86F0" /> This week&apos;s idea
             </span>
             {hero.effort && <EffortChip effort={hero.effort} onDark />}
           </div>
-          <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.01em', color: '#fff', lineHeight: 1.3, margin: '11px 0 0' }}>{hero.title}</div>
-          {hero.why && <p style={{ fontSize: 13.5, lineHeight: 1.6, color: '#CFD3EE', margin: '9px 0 0', maxWidth: 640 }}>{hero.why}</p>}
+          <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-.015em', color: '#fff', lineHeight: 1.32 }}>{hero.title}</div>
+          {hero.why && <p style={{ fontSize: 13.5, lineHeight: 1.6, color: '#B7BCE0', margin: '12px 0 0' }}>{hero.why}</p>}
           {onDraft && (
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 18 }}>
               <DraftButton light label="Draft it in Content Lab" onClick={() => onDraft(hero.title)} />
             </div>
           )}
