@@ -58,7 +58,7 @@ export function authorizeUrl(platform: OAuthPlatform, state: string): string | n
   if (!oauthConfigured(platform)) return null
   const ru = encodeURIComponent(redirectUri(platform))
   if (platform === 'instagram') {
-    const scope = 'instagram_basic,instagram_manage_insights,pages_show_list,business_management'
+    const scope = 'instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement,business_management'
     return `https://www.facebook.com/v21.0/dialog/oauth?client_id=${process.env.META_APP_ID}` +
       `&redirect_uri=${ru}&state=${state}&response_type=code&scope=${scope}`
   }

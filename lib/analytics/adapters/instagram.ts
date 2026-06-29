@@ -31,15 +31,19 @@ export class InstagramAdapter implements PlatformAdapter {
     const token = auth.accessToken
     if (!token || !igUserId) return []
     const d = await get(`${igUserId}/media`, {
-      fields: 'id,permalink,timestamp,media_type,like_count,comments_count,caption',
+      fields: 'id,permalink,timestamp,media_type,media_product_type,like_count,comments_count,caption',
       limit: '50',
     }, token)
     const out: NormalizedPost[] = []
     for (const m of d?.data ?? []) {
       // Per-media insights (reach/saved/plays) — best effort; null if unavailable.
+      // Photos/carousels don't support the `plays` metric, and requesting it 400s
+      // the WHOLE insights call (losing reach + saved too), so only ask for plays
+      // on video/reels.
       let reach: number | null = null, saved: number | null = null, plays: number | null = null
+      const isVideo = m?.media_type === 'VIDEO' || m?.media_product_type === 'REELS'
       try {
-        const ins = await get(`${m.id}/insights`, { metric: 'reach,saved,plays' }, token)
+        const ins = await get(`${m.id}/insights`, { metric: isVideo ? 'reach,saved,plays' : 'reach,saved' }, token)
         for (const row of ins?.data ?? []) {
           const val = num(row?.values?.[0]?.value)
           if (row?.name === 'reach') reach = val
