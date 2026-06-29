@@ -34,10 +34,7 @@ function StratCard({ card, defaultOpen }: { card: StrategyCard; defaultOpen: boo
           <div style={{ padding: '0 17px 16px 62px' }}>
             <p style={{ fontSize: 13.5, lineHeight: 1.6, color: '#3A3F4B', margin: 0 }}>{card.body}</p>
             {card.confidence && (
-              <p style={{ fontSize: 12.5, lineHeight: 1.55, color: '#8A909C', margin: '10px 0 0', display: 'flex', gap: 7 }}>
-                <span style={{ fontFamily: MONO, fontSize: 9.5, letterSpacing: '.08em', textTransform: 'uppercase', color: '#A2A8B6', flex: 'none', marginTop: 1 }}>Confidence</span>
-                <span>{card.confidence}</span>
-              </p>
+              <p style={{ fontSize: 12.5, lineHeight: 1.55, color: '#8A909C', margin: '10px 0 0', fontStyle: 'italic' }}>{card.confidence}</p>
             )}
           </div>
         </div>
@@ -82,9 +79,9 @@ export default function StrategistPanel({ strategy }: { strategy: StrategyOutput
             {strategy.experiments.map((e, i) => (
               <div key={i} style={{ background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11, padding: '14px 15px' }}>
                 <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0E1016', lineHeight: 1.35, marginBottom: 9 }}>{e.title}</div>
-                {e.hypothesis && <Field label="Hypothesis" value={e.hypothesis} />}
+                {e.hypothesis && <Field label="Why" value={e.hypothesis} />}
                 {e.expected && <Field label="Expected" value={e.expected} />}
-                {e.confidence && <div style={{ fontSize: 11.5, color: '#8A909C', marginTop: 8 }}><span style={{ fontWeight: 600, color: '#5B53E0' }}>Confidence:</span> {e.confidence}</div>}
+                {e.confidence && <div style={{ fontSize: 11.5, color: '#8A909C', marginTop: 8, fontStyle: 'italic' }}>{e.confidence}</div>}
               </div>
             ))}
           </div>

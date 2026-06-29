@@ -77,8 +77,8 @@ function Row({ m, idx }: { m: Insight; idx: number }) {
         </div>
         <div style={{ fontSize: 12.5, color: '#9096A4', marginTop: 2, lineHeight: 1.45 }}>{m.why}</div>
         {hasBar && <MetricBar you={m.you!} base={m.base!} color={(CONF[m.confidence] || CONF.low)[0]} />}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 11, flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, fontWeight: 500, color: '#2A3157' }}>{m.recommendation}</span>
+        {/* findings only — the action lives in "Your next moves", not here */}
+        <div style={{ marginTop: 10 }}>
           <ConfChip c={m.confidence} />
         </div>
       </div>
