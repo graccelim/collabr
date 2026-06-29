@@ -878,6 +878,13 @@
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
   .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
+
+  /* Content Lab category menu: the desktop sidebar becomes a compact wrapping
+     chip row on mobile, so the actual results aren't pushed way down. */
+  .cl-catmenu { flex-direction: row !important; flex-wrap: wrap !important; gap: 8px !important; padding: 0 !important; background: transparent !important; border: none !important; box-shadow: none !important; }
+  .cl-catbtn { width: auto !important; padding: 8px 13px !important; gap: 7px !important; border: 1px solid rgba(20,30,80,.12) !important; border-radius: 999px !important; }
+  .cl-caticon { display: none !important; }
+  .cl-catlabel { flex: 0 0 auto !important; }
   /* Pricing modal: hide the navy value/benefit panel on mobile so pricing is
      immediately visible (no scrolling past a tall benefits list). */
   .plans-hide-mobile { display: none !important; }

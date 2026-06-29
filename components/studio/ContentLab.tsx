@@ -124,19 +124,19 @@ export default function ContentLab({ platforms = [], seed }: { platforms?: strin
       {result && (
         <>
           <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '212px 1fr', gap: 16, alignItems: 'start' }}>
-            {/* category menu */}
-            <div style={{ ...CARD, padding: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {/* category menu — vertical sidebar on desktop, wrapping chips on mobile */}
+            <div className="cl-catmenu" style={{ ...CARD, padding: 8, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {CATS.map((c) => {
                 const on = c.key === cat
                 const Icon = c.icon
                 return (
-                  <button key={c.key} type="button" onClick={() => setCat(c.key)}
+                  <button key={c.key} type="button" onClick={() => setCat(c.key)} className="cl-catbtn"
                     style={{ cursor: 'pointer', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 11, padding: '11px 12px', border: 'none', borderRadius: 11, background: on ? `${c.accent}12` : 'transparent', width: '100%' }}>
-                    <span style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, background: on ? c.accent : '#EEF1F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span className="cl-caticon" style={{ width: 30, height: 30, flex: 'none', borderRadius: 8, background: on ? c.accent : '#EEF1F8', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Icon size={16} color={on ? '#fff' : '#8A909C'} />
                     </span>
-                    <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: on ? '#0E1016' : '#545A66' }}>{c.label}</span>
-                    <span style={{ fontSize: 12, color: '#B4B9C4' }}>{count(c.key)}</span>
+                    <span className="cl-catlabel" style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: on ? '#0E1016' : '#545A66' }}>{c.label}</span>
+                    <span style={{ fontSize: 12, color: on ? '#5C6191' : '#B4B9C4' }}>{count(c.key)}</span>
                   </button>
                 )
               })}
