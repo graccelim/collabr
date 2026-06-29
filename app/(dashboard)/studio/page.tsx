@@ -112,7 +112,7 @@ export default async function StudioPage({
     .sort((a, b) => PLATFORM_ORDER.indexOf(a) - PLATFORM_ORDER.indexOf(b));
 
   return (
-    <div className="max-w-4xl mx-auto space-y-5">
+    <div className="max-w-6xl mx-auto space-y-5">
       <BackButton />
       <header>
         <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>
