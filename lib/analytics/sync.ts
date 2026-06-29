@@ -124,7 +124,7 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
   if (!usable.length) return false
 
   const { data: posts } = await admin.from('content_posts')
-    .select('id, platform, url, posted_at, category, subcategory, style, format, duration_sec')
+    .select('id, platform, url, title, posted_at, category, subcategory, style, format, duration_sec')
     .eq('creator_id', creatorId)
   if (!posts?.length) return false
 
@@ -181,6 +181,7 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
       const s = latest.get(p.id)
       return {
         postedAt: p.posted_at ? new Date(p.posted_at) : null, durationSec: p.duration_sec ?? null,
+        title: p.title ?? null,
         category: p.category ?? null, subcategory: p.subcategory ?? null, style: p.style ?? null, format: p.format ?? null,
         views: s?.views ?? null, likes: s?.likes ?? null, comments: s?.comments ?? null,
         shares: s?.shares ?? null, saves: s?.saves ?? null, reach: s?.reach ?? null,

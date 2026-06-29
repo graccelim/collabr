@@ -60,8 +60,8 @@ export default function ContentLab({ platforms = [] }: { platforms?: string[] })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* per-platform switcher — only the creator's OWN platforms (not hardcoded) */}
-      {platforms.length > 0 && <PlatformSwitcher platforms={platforms} active={platform} onSelect={setPlatform} />}
+      {/* per-platform switcher — only when there's more than one to choose between */}
+      {platforms.length > 1 && <PlatformSwitcher platforms={platforms} active={platform} onSelect={setPlatform} />}
 
       {/* light form card */}
       <div style={{ ...CARD, padding: 18 }}>

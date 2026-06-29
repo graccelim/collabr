@@ -8,13 +8,14 @@
 // totals, so older posts aren't unfairly favoured by age.
 
 import type { Platform } from './adapters/types'
-import { engagementRate } from './engagement'
+import { engagementRate, num } from './engagement'
 
 export type Confidence = 'high' | 'medium' | 'low'
 
 export interface InsightPost {
   postedAt: Date | null
   durationSec: number | null
+  title?: string | null
   category: string | null
   subcategory: string | null
   style: string | null
@@ -54,6 +55,8 @@ export interface PlatformInsights {
    *  time to post" bar chart. `bestTime` names the highest-average block. */
   postingTimes: { label: string; name: string; avgViews: number; posts: number }[]
   bestTime: string | null
+  /** Weekly digest for the Reports tab (last 7 days vs the prior 7). */
+  report: WeeklyReport
   insights: Insight[]
   /** One-line "strongest at …" for the cross-platform summary (null if unknown). */
   strongest: string | null
@@ -118,6 +121,76 @@ function postingTimesOf(posts: InsightPost[]): { label: string; name: string; av
   }
   return acc.map((v, i) => ({ label: TIME_SHORT[i], name: TIME_NAME[i], avgViews: v.length ? Math.round(avg(v)!) : 0, posts: v.length }))
 }
+
+// ── Weekly report (Reports tab) ─────────────────────────────────────────────
+export interface WeeklyReport {
+  weekly: {
+    views: number | null; engagement: number | null; posts: number; saves: number | null; shares: number | null
+    viewsDelta: number | null   // fractional (last 7d vs prior 7d)
+    engDelta: number | null     // points difference (rate)
+    postsDelta: number          // absolute count difference
+    savesDelta: number | null   // fractional
+    sharesDelta: number | null  // fractional
+  }
+  dailyRhythm: { label: string; avgViews: number; posts: number }[] // Mon..Sun
+  bestDay: string | null
+  topPost: { title: string | null; views: number | null; engagement: number | null; saves: number | null; shares: number | null; durationSec: number | null } | null
+  categoryMovement: { label: string; delta: number }[]
+}
+const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }
+const cap1 = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
+function sum(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) : null }
+function buildReport(posts: InsightPost[]): WeeklyReport {
+  const dated = posts.filter((p): p is InsightPost & { postedAt: Date } => !!p.postedAt)
+  const maxT = dated.length ? Math.max(...dated.map((p) => p.postedAt.getTime())) : 0
+  const W = 7 * 86_400_000
+  const recent = dated.filter((p) => p.postedAt.getTime() > maxT - W)
+  const prior = dated.filter((p) => { const t = p.postedAt.getTime(); return t <= maxT - W && t > maxT - 2 * W })
+  const viewsSum = (ps: InsightPost[]) => sum(ps.filter((p) => p.views != null).map((p) => p.views as number))
+  const savesSum = (ps: InsightPost[]) => sum(ps.filter((p) => p.saves != null).map((p) => p.saves as number))
+  const engAvg = (ps: InsightPost[]) => avg(ps.map(rate).filter((x): x is number => x != null))
+  const pct = (r: number | null, p: number | null) => (r != null && p != null && p !== 0 ? (r - p) / p : null)
+  const sharesSum = (ps: InsightPost[]) => sum(ps.filter((p) => p.shares != null).map((p) => p.shares as number))
+  const rv = viewsSum(recent), pv = viewsSum(prior)
+  const re = engAvg(recent), pe = engAvg(prior)
+  const rs = savesSum(recent), ps2 = savesSum(prior)
+  const rsh = sharesSum(recent), psh = sharesSum(prior)
+  const weekly = {
+    views: rv, engagement: re, posts: recent.length, saves: rs, shares: rsh,
+    viewsDelta: pct(rv, pv),
+    engDelta: re != null && pe != null ? re - pe : null,
+    postsDelta: recent.length - prior.length,
+    savesDelta: pct(rs, ps2),
+    sharesDelta: pct(rsh, psh),
+  }
+  // daily rhythm (Asia/Singapore day-of-week, by average views)
+  const dayAcc: number[][] = DAY_SHORT.map(() => [])
+  for (const p of dated) {
+    if (p.views == null) continue
+    const dow = new Date(p.postedAt.getTime() + TZ_OFFSET * 3600_000).getUTCDay() // 0=Sun..6=Sat
+    dayAcc[(dow + 6) % 7].push(p.views)
+  }
+  const dailyRhythm = DAY_SHORT.map((label, i) => ({ label, avgViews: dayAcc[i].length ? Math.round(avg(dayAcc[i])!) : 0, posts: dayAcc[i].length }))
+  const dayWith = dailyRhythm.filter((d) => d.posts > 0)
+  const bestDay = dayWith.length ? DAY_FULL[dayWith.reduce((a, b) => (b.avgViews > a.avgViews ? b : a)).label] : null
+  // top post (this week if any, else best overall) by views
+  const pool = recent.length ? recent : dated
+  const withV = pool.filter((p) => p.views != null)
+  const top = withV.length ? withV.reduce((a, b) => (num(b.views) > num(a.views) ? b : a)) : null
+  const topPost = top ? { title: top.title ?? null, views: top.views, engagement: rate(top), saves: top.saves, shares: top.shares, durationSec: top.durationSec } : null
+  // category movement: recent vs prior average views per category
+  const cats = Array.from(new Set(dated.map((p) => p.category).filter((c): c is string => !!c)))
+  const movement: { label: string; delta: number }[] = []
+  for (const c of cats) {
+    const r = avg(recent.filter((p) => p.category === c && p.views != null).map((p) => p.views as number))
+    const p = avg(prior.filter((x) => x.category === c && x.views != null).map((x) => x.views as number))
+    if (r != null && p != null && p !== 0) movement.push({ label: cap1(c), delta: (r - p) / p })
+  }
+  movement.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
+  return { weekly, dailyRhythm, bestDay, topPost, categoryMovement: movement.slice(0, 4) }
+}
+
 function dayPart(h: number): string {
   if (h < 6) return 'late night (12 to 6am)'
   if (h < 12) return 'morning (6am to 12pm)'
@@ -332,7 +405,8 @@ export function computePlatformInsights(
   const postingTimes = postingTimesOf(posts)
   const withPosts = postingTimes.filter((b) => b.posts > 0)
   const bestTime = withPosts.length ? withPosts.reduce((a, b) => (b.avgViews > a.avgViews ? b : a)).name : null
-  return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, insights, strongest, dataConfidence }
+  const report = buildReport(posts)
+  return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, report, insights, strongest, dataConfidence }
 }
 
 // Per-category momentum: compare each category's recent vs earlier engagement

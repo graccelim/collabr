@@ -50,9 +50,9 @@ describe('taxonomy is generic (food is just one branch)', () => {
 
 describe('formatFromMetadata — deterministic, no AI', () => {
   it('maps media + duration to a container', () => {
-    expect(formatFromMetadata('CAROUSEL_ALBUM', null)).toBe('carousel')
-    expect(formatFromMetadata('IMAGE', null)).toBe('image')
-    expect(formatFromMetadata('VIDEO', 20)).toBe('short-form video')
-    expect(formatFromMetadata('VIDEO', 600)).toBe('long-form video')
+    expect(formatFromMetadata('CAROUSEL_ALBUM', null)).toBe('photo carousel')
+    expect(formatFromMetadata('IMAGE', null)).toBe('photo')
+    expect(formatFromMetadata('VIDEO', 20)).toBe('short video')
+    expect(formatFromMetadata('VIDEO', 600)).toBe('long video')
   })
 })

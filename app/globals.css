@@ -905,6 +905,7 @@
   .pi-stats .pi-stat { padding: 13px 11px !important; }
   .pi-statv { font-size: 19px !important; }
   .plc-area { height: 120px !important; }
+  .rep-stats { grid-template-columns: 1fr 1fr !important; }
   .pi-switch { display: flex !important; width: 100% !important; }
   .pi-switch button { flex: 1 !important; }
   .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }

@@ -18,14 +18,15 @@ export const TAXONOMY: Record<string, string[]> = {
 }
 
 // Content STYLE = how it's made/delivered (treatment).
+// Plain-English style names (no industry jargon) so insights read clearly.
 export const STYLES = [
-  'talking-head', 'voiceover', 'vlog', 'tutorial', 'review', 'skit', 'interview',
-  'b-roll montage', 'text-on-screen', 'green-screen', 'demo', 'listicle',
+  'talking to camera', 'voiceover', 'vlog', 'tutorial', 'review', 'skit', 'interview',
+  'scenic clips', 'text on screen', 'green screen', 'product demo', 'list video',
 ] as const
 
 // Content FORMAT = the container. Usually derivable deterministically from media.
 export const FORMATS = [
-  'short-form video', 'long-form video', 'carousel', 'image', 'story', 'livestream',
+  'short video', 'long video', 'photo carousel', 'photo', 'story', 'livestream',
 ] as const
 
 export const CATEGORIES = Object.keys(TAXONOMY)
@@ -41,12 +42,12 @@ export function isFormat(v: unknown): boolean { return typeof v === 'string' && 
 /** Deterministic format from media metadata — no AI needed. */
 export function formatFromMetadata(mediaType: string | null, durationSec: number | null): Format | null {
   const t = (mediaType || '').toLowerCase()
-  if (t.includes('carousel') || t.includes('album')) return 'carousel'
+  if (t.includes('carousel') || t.includes('album')) return 'photo carousel'
   if (t.includes('story')) return 'story'
   if (t.includes('live')) return 'livestream'
-  if (t === 'image' || t.includes('photo')) return 'image'
-  if (durationSec != null) return durationSec <= 90 ? 'short-form video' : 'long-form video'
-  if (t.includes('video') || t.includes('reel')) return 'short-form video'
+  if (t === 'image' || t.includes('photo')) return 'photo'
+  if (durationSec != null) return durationSec <= 90 ? 'short video' : 'long video'
+  if (t.includes('video') || t.includes('reel')) return 'short video'
   return null
 }
 

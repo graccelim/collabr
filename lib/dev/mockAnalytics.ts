@@ -29,14 +29,14 @@ const PLAN: Record<Platform, Niche[]> = {
     { cat: 'Fitness', sub: 'Workouts', style: 'demo', baseRate: 0.08, lenPref: 'short', count: 5, captions: ['10-min ab burner', 'Beginner gym mistakes', 'Mobility you actually need'], tags: ['#fitness', '#workout', '#gymtok'] },
   ],
   instagram: [
-    { cat: 'Fashion', sub: 'Outfits & OOTD', style: 'b-roll montage', baseRate: 0.10, fmt: 'carousel', count: 6, captions: ['5 ways to style one blazer', 'Autumn capsule wardrobe', 'OOTD: smart casual'], tags: ['#ootd', '#fashion', '#style', '#outfitinspo'] },
-    { cat: 'Beauty', sub: 'Skincare', style: 'talking-head', baseRate: 0.07, count: 4, captions: ['My non-negotiable PM routine', 'Barrier repair that worked', 'SPF myths debunked'], tags: ['#skincare', '#beauty', '#skintok'] },
+    { cat: 'Fashion', sub: 'Outfits & OOTD', style: 'scenic clips', baseRate: 0.10, fmt: 'carousel', count: 6, captions: ['5 ways to style one blazer', 'Autumn capsule wardrobe', 'OOTD: smart casual'], tags: ['#ootd', '#fashion', '#style', '#outfitinspo'] },
+    { cat: 'Beauty', sub: 'Skincare', style: 'talking to camera', baseRate: 0.07, count: 4, captions: ['My non-negotiable PM routine', 'Barrier repair that worked', 'SPF myths debunked'], tags: ['#skincare', '#beauty', '#skintok'] },
     { cat: 'Travel', sub: 'City guides', style: 'vlog', baseRate: 0.06, trend: 'up', count: 6, captions: ['48 hours in Bangkok', 'Hidden cafés in Seoul', 'Budget Tokyo itinerary'], tags: ['#travel', '#cityguide', '#wanderlust'] },
   ],
   youtube: [
     { cat: 'Tech', sub: 'Reviews', style: 'review', baseRate: 0.09, lenPref: 'long', count: 6, captions: ['Honest 6-month laptop review', 'Best budget phone 2026', 'Is this gadget worth it?'], tags: ['#tech', '#review', '#gadgets'] },
     { cat: 'Travel', sub: 'Itineraries', style: 'vlog', baseRate: 0.07, lenPref: 'long', trend: 'up', count: 4, captions: ['7 days in Vietnam, full guide', 'How I travel for cheap', 'Japan rail pass explained'], tags: ['#travel', '#itinerary', '#travelvlog'] },
-    { cat: 'Lifestyle', sub: 'Productivity', style: 'talking-head', baseRate: 0.05, lenPref: 'long', count: 4, captions: ['My realistic 5am routine', 'Notion setup for 2026', 'How I plan my week'], tags: ['#productivity', '#lifestyle', '#notion'] },
+    { cat: 'Lifestyle', sub: 'Productivity', style: 'talking to camera', baseRate: 0.05, lenPref: 'long', count: 4, captions: ['My realistic 5am routine', 'Notion setup for 2026', 'How I plan my week'], tags: ['#productivity', '#lifestyle', '#notion'] },
   ],
 }
 
@@ -77,12 +77,12 @@ export function generateMockPosts(seedStr: string, density: 'rich' | 'thin'): Mo
         const inter = Math.round(views * rate)
         const postedAt = new Date(Date.now() - daysAgo * 86_400_000)
         postedAt.setHours(hour, 0, 0, 0)
-        const format = niche.fmt === 'carousel' ? 'carousel' : dur >= 90 ? 'long-form video' : 'short-form video'
+        const format = niche.fmt === 'carousel' ? 'photo carousel' : dur >= 90 ? 'long video' : 'short video'
         const cap = niche.captions[i % niche.captions.length]
         out.push({
           platform, externalId: `mock-${platform}-${out.length}`,
           url: `https://${platform}.com/mock/${platform}-${out.length}`,
-          postedAt, durationSec: format === 'carousel' ? 0 : dur,
+          postedAt, durationSec: format === 'photo carousel' ? 0 : dur,
           title: cap, caption: `${cap} ${niche.tags.join(' ')}`, hashtags: niche.tags,
           category: niche.cat, subcategory: niche.sub, style: niche.style, format,
           views, likes: Math.round(inter * 0.7), comments: Math.round(inter * 0.1),

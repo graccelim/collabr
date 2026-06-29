@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { ArrowUpRight, Eye, BarChart3, Activity } from 'lucide-react'
+import { ArrowUpRight, Eye, BarChart3, Activity, Check } from 'lucide-react'
 import PostingBars from '@/components/studio/PostingBars'
 
 // A LIVE-feeling preview of Creator Studio Insights with clearly-labelled SAMPLE
@@ -55,6 +55,13 @@ export default function InsightsPreview() {
             <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.12em', textTransform: 'uppercase', color: '#6B70A6', border: '1px solid rgba(255,255,255,.16)', padding: '3px 8px', borderRadius: 999 }}>Sample</span>
           </div>
           <div style={{ fontSize: 14.5, lineHeight: 1.5, color: '#fff' }}>Short street food reviews posted in the evening are your strongest format right now.</div>
+          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 7 }}>
+            {['Reviews are your strongest style', 'Your peak posting window is 8pm to 12am', '2 posts beat your average this week'].map((t, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: '#CFD3EE' }}>
+                <Check size={13} color="#8E86F0" style={{ flexShrink: 0 }} />{t}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
