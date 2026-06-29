@@ -21,17 +21,17 @@ function lastSynced(iso: string | null): string {
   return `Last synced ${d} day${d === 1 ? '' : 's'} ago`
 }
 
-// First-party connect (no Phyllo). Instagram/TikTok use our OAuth redirect; YouTube
-// connects via a public channel handle (no OAuth). Disconnect drops tokens; history stays.
-// Rendered as a compact one-liner that opens a manage/disconnect popup.
+// First-party connect (no Phyllo). All platforms use our OAuth redirect. Connect is
+// instant; the first sync runs on the Studio page. Disconnect deletes the account's
+// data with a loading state. Rendered as a compact one-liner that opens a popup.
 export default function ConnectAccounts({
   accounts, readOnly = false, connectable = [],
 }: { accounts: ConnectedAccountView[]; readOnly?: boolean; connectable?: string[] }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const [busy, setBusy] = useState<string | null>(null)
   const [err, setErr] = useState<string | null>(null)
   const [syncing, setSyncing] = useState<string | null>(null) // platform label being synced
+  const [disconnecting, setDisconnecting] = useState<string | null>(null) // platform label being removed
   const [step, setStep] = useState(0)
 
   const SYNC_STEPS = ['Pulling your latest posts', 'Analysing your content', 'Building your insights']
@@ -49,13 +49,15 @@ export default function ConnectAccounts({
   const anyFrozen = connected.some((a) => a.sync_frozen)
 
 
-  async function disconnect(id: string) {
-    setBusy(id); setErr(null)
+  async function disconnect(id: string, label: string) {
+    setDisconnecting(label); setErr(null)
     try {
-      await fetch(`/api/connected/${id}`, { method: 'DELETE' })
-      router.refresh()
-    } catch { setErr('Could not disconnect.') }
-    setBusy(null)
+      const res = await fetch(`/api/connected/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('disconnect failed')
+      setDisconnecting(null); setOpen(false); router.refresh()
+    } catch {
+      setDisconnecting(null); setErr('Could not disconnect.')
+    }
   }
 
   async function syncNow(id: string, label: string) {
@@ -112,12 +114,18 @@ export default function ConnectAccounts({
                 Sync performance from TikTok, Instagram and YouTube. No passwords are shared with Collabr.
               </p>
 
-              {syncing ? (
+              {syncing || disconnecting ? (
                 <div style={{ padding: '28px 8px 36px', textAlign: 'center' }}>
                   <div style={{ width: 42, height: 42, margin: '0 auto 16px', borderRadius: 999, border: '3px solid var(--hairline, rgba(20,30,80,.12))', borderTopColor: 'var(--accent, #000435)', animation: 'cp-spin .8s linear infinite' }} />
-                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Syncing your {syncing}</div>
-                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, minHeight: 18 }}>{SYNC_STEPS[step]}…</div>
-                  <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 14 }}>This usually takes a few seconds.</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>
+                    {disconnecting ? `Disconnecting ${disconnecting}` : `Syncing your ${syncing}`}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, minHeight: 18 }}>
+                    {disconnecting ? 'Removing your posts and insights' : SYNC_STEPS[step]}…
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
+                    {disconnecting ? 'This only takes a moment.' : 'This usually takes a few seconds.'}
+                  </div>
                 </div>
               ) : (
               <>
@@ -136,11 +144,11 @@ export default function ConnectAccounts({
                       </div>
                       {!readOnly && a.status === 'connected' && (
                         <div className="ca-acct-actions" style={{ display: 'flex', gap: 6, flex: 'none' }}>
-                          <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id, LABEL[a.platform] || a.platform)} disabled={busy === a.id}
+                          <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id, LABEL[a.platform] || a.platform)} disabled={!!syncing || !!disconnecting}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                             <RefreshCw size={13} /> Sync now
                           </button>
-                          <button type="button" className="btn-ghost btn-sm" onClick={() => disconnect(a.id)} disabled={busy === a.id}
+                          <button type="button" className="btn-ghost btn-sm" onClick={() => disconnect(a.id, LABEL[a.platform] || a.platform)} disabled={!!syncing || !!disconnecting}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                             <Unplug size={13} /> Disconnect
                           </button>
