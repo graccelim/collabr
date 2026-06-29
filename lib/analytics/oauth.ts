@@ -42,8 +42,16 @@ export function igAppSecret(): string | undefined {
 export function tiktokConfigured(): boolean {
   return Boolean(process.env.TIKTOK_CLIENT_KEY && process.env.TIKTOK_CLIENT_SECRET)
 }
+// Accept either GOOGLE_OAUTH_* (canonical, in .env.example) or the shorter
+// GOOGLE_CLIENT_* names, so a common naming slip doesn't silently hide YouTube.
+export function googleClientId(): string | undefined {
+  return process.env.GOOGLE_OAUTH_CLIENT_ID || process.env.GOOGLE_CLIENT_ID
+}
+export function googleClientSecret(): string | undefined {
+  return process.env.GOOGLE_OAUTH_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET
+}
 export function googleOauthConfigured(): boolean {
-  return Boolean(process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET)
+  return Boolean(googleClientId() && googleClientSecret())
 }
 export function youtubeApiKey(): string | null {
   return process.env.YOUTUBE_API_KEY || null
@@ -80,7 +88,7 @@ export function authorizeUrl(platform: OAuthPlatform, state: string): string | n
   // youtube (Google) — read-only access to the creator's OWN channel + videos
   // (proves ownership via channels?mine=true). Offline access for a refresh token.
   const scope = encodeURIComponent('https://www.googleapis.com/auth/youtube.readonly')
-  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_OAUTH_CLIENT_ID}` +
+  return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${googleClientId()}` +
     `&redirect_uri=${ru}&response_type=code&access_type=offline&prompt=consent&scope=${scope}&state=${state}`
 }
 
@@ -108,7 +116,7 @@ export async function exchangeCode(platform: OAuthPlatform, code: string): Promi
       const res = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          code, client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!, client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+          code, client_id: googleClientId()!, client_secret: googleClientSecret()!,
           redirect_uri: redirectUri('youtube'), grant_type: 'authorization_code',
         }),
       })
@@ -161,7 +169,7 @@ export async function refreshAccessToken(platform: OAuthPlatform, refreshToken: 
       const res = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
         body: new URLSearchParams({
-          client_id: process.env.GOOGLE_OAUTH_CLIENT_ID!, client_secret: process.env.GOOGLE_OAUTH_CLIENT_SECRET!,
+          client_id: googleClientId()!, client_secret: googleClientSecret()!,
           grant_type: 'refresh_token', refresh_token: refreshToken,
         }),
       })
