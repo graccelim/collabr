@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Unplug, RefreshCw, CheckCircle2, AlertCircle, Settings2, X, ChevronRight } from 'lucide-react'
 import { socialIcon } from '@/components/SocialIcon'
@@ -33,6 +33,18 @@ export default function ConnectAccounts({
   const [syncing, setSyncing] = useState<string | null>(null) // platform label being synced
   const [disconnecting, setDisconnecting] = useState<string | null>(null) // platform label being removed
   const [step, setStep] = useState(0)
+  const [pending, startTransition] = useTransition()
+  // Set right before router.refresh() so we keep the loading panel up until the
+  // server re-render actually COMMITS (otherwise the modal closes onto stale
+  // content for a beat). Cleared once the refresh transition finishes.
+  const finishing = useRef(false)
+
+  useEffect(() => {
+    if (finishing.current && !pending) {
+      finishing.current = false
+      setSyncing(null); setDisconnecting(null); setOpen(false)
+    }
+  }, [pending])
 
   const SYNC_STEPS = ['Pulling your latest posts', 'Analysing your content', 'Building your insights']
   useEffect(() => {
@@ -54,7 +66,9 @@ export default function ConnectAccounts({
     try {
       const res = await fetch(`/api/connected/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error('disconnect failed')
-      setDisconnecting(null); setOpen(false); router.refresh()
+      // Keep the loading panel up until the refreshed (account-removed) page commits.
+      finishing.current = true
+      startTransition(() => router.refresh())
     } catch {
       setDisconnecting(null); setErr('Could not disconnect.')
     }
@@ -66,8 +80,10 @@ export default function ConnectAccounts({
       const res = await fetch(`/api/connected/${id}`, { method: 'POST' })
       const data = await res.json().catch(() => ({}))
       if (res.ok) {
-        // Done → close the popup so the freshly-synced insights board is visible.
-        setSyncing(null); setOpen(false); router.refresh()
+        // Keep the loading panel up until the freshly-synced board commits, then
+        // close (otherwise the popup shuts onto stale content for a beat).
+        finishing.current = true
+        startTransition(() => router.refresh())
       } else {
         setSyncing(null); setErr(data.error || 'Could not sync right now.')
       }
