@@ -77,15 +77,8 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
       : { label: 'Saves', value: fmtViews(w.saves), delta: w.savesDelta, kind: 'pct' as const },
   ] : []
 
-  // next moves — top recommendations + experiment
-  const experiment = ins.find((i) => i.key === 'experiment')
-  const seen = new Set<string>()
-  const moves: string[] = []
-  for (const i of ins.filter((x) => x.you != null && x.key !== 'declining_category').sort((a, b) => RANK[b.confidence] - RANK[a.confidence])) {
-    if (!seen.has(i.recommendation)) { seen.add(i.recommendation); moves.push(i.recommendation) }
-    if (moves.length >= 3) break
-  }
-  if (experiment && moves.length < 3) moves.push(experiment.title)
+  // Forward-looking next moves (from the engine), not a repeat of "what's working".
+  const moves: string[] = rep?.nextMoves ?? []
 
   const topPost = rep?.topPost
   const reportType = (r: Report) => (Math.round((new Date(r.period_end).getTime() - new Date(r.period_start).getTime()) / 86_400_000) > 12 ? 'Monthly' : 'Weekly')

@@ -136,12 +136,14 @@ export interface WeeklyReport {
   bestDay: string | null
   topPost: { title: string | null; views: number | null; engagement: number | null; saves: number | null; shares: number | null; durationSec: number | null } | null
   categoryMovement: { label: string; delta: number }[]
+  /** Forward-looking experiments to try next (NOT a restatement of strengths). */
+  nextMoves: string[]
 }
 const DAY_SHORT = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const DAY_FULL: Record<string, string> = { Mon: 'Monday', Tue: 'Tuesday', Wed: 'Wednesday', Thu: 'Thursday', Fri: 'Friday', Sat: 'Saturday', Sun: 'Sunday' }
 const cap1 = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 function sum(xs: number[]): number | null { return xs.length ? xs.reduce((a, b) => a + b, 0) : null }
-function buildReport(posts: InsightPost[]): WeeklyReport {
+function buildReport(posts: InsightPost[]): Omit<WeeklyReport, 'nextMoves'> {
   const dated = posts.filter((p): p is InsightPost & { postedAt: Date } => !!p.postedAt)
   const maxT = dated.length ? Math.max(...dated.map((p) => p.postedAt.getTime())) : 0
   const W = 7 * 86_400_000
@@ -405,7 +407,22 @@ export function computePlatformInsights(
   const postingTimes = postingTimesOf(posts)
   const withPosts = postingTimes.filter((b) => b.posts > 0)
   const bestTime = withPosts.length ? withPosts.reduce((a, b) => (b.avgViews > a.avgViews ? b : a)).name : null
-  const report = buildReport(posts)
+
+  // Forward-looking "next moves" — experiments that combine the levers above,
+  // deliberately different from the "double down on X" strengths in What's working.
+  const moves: string[] = []
+  const focusTopic = sub?.key || cat?.key
+  if (bestTime && focusTopic) moves.push(`Schedule your next ${focusTopic} post for ${bestTime}.`)
+  if (mom.emerging[0]) moves.push(`Put more into ${cap1(mom.emerging[0].key)}, it is picking up.`)
+  else if (sub?.key && cat?.key && sub.key !== cat.key) moves.push(`Explore more ${sub.key} within ${cat.key}.`)
+  else if (cat?.key) moves.push(`Try a fresh angle on ${cat.key} you have not done yet.`)
+  if (len?.key && len.key !== 'under 15s') moves.push('Test a short under-15s cut and compare it to your average.')
+  else if (fmt2?.key) moves.push(`Try a different format from ${fmt2.key} and see if it lifts.`)
+  if (mom.declining[0]) moves.push(`Refresh your ${cap1(mom.declining[0].key)} angle, it is cooling off.`)
+  else if (style?.key && fmt2?.key) moves.push(`Try your ${style.key} style as a ${fmt2.key}.`)
+  const nextMoves = Array.from(new Set(moves)).slice(0, 4)
+
+  const report: WeeklyReport = { ...buildReport(posts), nextMoves }
   return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, report, insights, strongest, dataConfidence }
 }
 
