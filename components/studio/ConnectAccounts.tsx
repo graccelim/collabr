@@ -129,7 +129,7 @@ export default function ConnectAccounts({
               </p>
 
               {syncing ? (
-                <div style={{ padding: '26px 8px 22px', textAlign: 'center' }}>
+                <div style={{ padding: '28px 8px 36px', textAlign: 'center' }}>
                   <div style={{ width: 42, height: 42, margin: '0 auto 16px', borderRadius: 999, border: '3px solid var(--hairline, rgba(20,30,80,.12))', borderTopColor: 'var(--accent, #000435)', animation: 'cp-spin .8s linear infinite' }} />
                   <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Syncing your {syncing}</div>
                   <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, minHeight: 18 }}>{SYNC_STEPS[step]}…</div>
