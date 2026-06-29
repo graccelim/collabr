@@ -39,6 +39,16 @@ export default function ContentLab({ platforms = [], seed }: { platforms?: strin
   const [cat, setCat] = useState<CatKey>('hooks')
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  const [step, setStep] = useState(0)
+
+  const STEPS = ['Studying your winning patterns', 'Drafting hooks and captions', 'Gathering hashtags and ideas']
+  useEffect(() => {
+    if (!loading) return
+    setStep(0)
+    const id = setInterval(() => setStep((s) => (s + 1) % STEPS.length), 1800)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading])
 
   async function generate(tArg?: string, pArg?: string) {
     const t = (tArg ?? topic).trim()
@@ -92,7 +102,20 @@ export default function ContentLab({ platforms = [], seed }: { platforms?: strin
 
       {err && <div style={{ ...CARD, padding: 14, fontSize: 13, color: '#B23A33' }}>{err}</div>}
 
-      {!result && !err && (
+      {loading && (
+        <div style={{ ...CARD, padding: '30px 24px', textAlign: 'center' }}>
+          <div style={{ width: 40, height: 40, margin: '0 auto 16px', borderRadius: 999, border: '3px solid rgba(20,30,80,.12)', borderTopColor: '#0A0C22', animation: 'cp-spin .8s linear infinite' }} />
+          <div style={{ fontSize: 14.5, fontWeight: 700, color: '#0E1016' }}>Generating your ideas</div>
+          <div style={{ fontSize: 13, color: '#8A909C', marginTop: 6, minHeight: 18 }}>{STEPS[step]}…</div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 9, maxWidth: 420, margin: '20px auto 0' }}>
+            {[100, 82, 91, 70].map((w, i) => (
+              <div key={i} style={{ height: 11, width: `${w}%`, borderRadius: 6, background: 'linear-gradient(90deg,#EEF1F8,#F6F7FB,#EEF1F8)', backgroundSize: '200% 100%', animation: 'cl-shimmer 1.3s ease-in-out infinite' }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!loading && !result && !err && (
         <div style={{ ...CARD, padding: '28px 24px', textAlign: 'center' }}>
           <p style={{ fontSize: 13.5, color: '#545A66', margin: 0 }}>Enter a topic and generate hooks, captions, CTAs, hashtags and video ideas based on your own winning patterns.</p>
         </div>

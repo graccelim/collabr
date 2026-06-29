@@ -140,7 +140,7 @@ export default function ConnectAccounts({
               {accounts.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
                   {accounts.map((a) => (
-                    <div key={a.id} className="card" style={{ padding: '11px 13px', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div key={a.id} className="card ca-acct-row" style={{ padding: '11px 13px', display: 'flex', alignItems: 'center', gap: 10 }}>
                       {a.status === 'connected' && !a.sync_frozen
                         ? <CheckCircle2 size={16} color="var(--money-deep)" />
                         : <AlertCircle size={16} color="var(--warn, #B26A1E)" />}
@@ -151,7 +151,7 @@ export default function ConnectAccounts({
                         </div>
                       </div>
                       {!readOnly && a.status === 'connected' && (
-                        <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
+                        <div className="ca-acct-actions" style={{ display: 'flex', gap: 6, flex: 'none' }}>
                           <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id, LABEL[a.platform] || a.platform)} disabled={busy === a.id}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
                             <RefreshCw size={13} /> Sync now

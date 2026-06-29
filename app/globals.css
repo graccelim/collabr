@@ -727,6 +727,11 @@
     box-shadow: 0 -12px 28px -12px rgba(8,10,30,.22);
   }
   .cp-cta-inner { border-top: none !important; padding-top: 6px !important; }
+  /* Connected-account row: on narrow screens drop the actions to a full-width
+     second line so the name + buttons don't squeeze together. Desktop unchanged. */
+  .ca-acct-row { flex-wrap: wrap; }
+  .ca-acct-actions { width: 100%; flex: 1 0 100% !important; margin-top: 4px; }
+  .ca-acct-actions > * { flex: 1; justify-content: center; }
 }
 .cl-pulse { animation: cl-pulse 2.8s ease-in-out infinite; }
 /* desktop table row hover */
