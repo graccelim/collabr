@@ -41,7 +41,7 @@ const stripJson = (s: string): string => s.replace(/^```(?:json)?\s*/i, '').repl
 export type StrategyKind = 'pattern' | 'opportunity' | 'watch' | 'strategy'
 export interface StrategyCard { kind: StrategyKind; title: string; body: string; confidence: string }
 export interface StrategyExperiment { title: string; hypothesis: string; expected: string; confidence: string }
-export interface StrategyOutput { analystRead: string; cards: StrategyCard[]; experiments: StrategyExperiment[] }
+export interface StrategyOutput { analystRead: string; cards: StrategyCard[]; experiments: StrategyExperiment[]; questions: string[] }
 
 export async function strategistRead(platform: string, payload: unknown): Promise<StrategyOutput | null> {
   const raw = await runRaw(
@@ -62,9 +62,12 @@ export async function strategistRead(platform: string, payload: unknown): Promis
     ? j.experiments.filter((e: any) => e && str(e.title) && str(e.hypothesis))
         .slice(0, 3).map((e: any) => ({ title: str(e.title), hypothesis: str(e.hypothesis), expected: str(e.expected), confidence: str(e.confidence) }))
     : []
+  const questions: string[] = Array.isArray(j?.questions)
+    ? j.questions.filter((q: any) => str(q)).slice(0, 3).map((q: any) => str(q))
+    : []
   const analystRead = str(j?.analystRead)
   if (!analystRead && !cards.length) return null
-  return { analystRead, cards, experiments }
+  return { analystRead, cards, experiments, questions }
 }
 
 // AI NARRATOR (not a tool): explains the deterministic per-platform insights.

@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Sparkles, TrendingUp, AlertTriangle, Compass, ChevronDown, FlaskConical, Wand2 } from 'lucide-react'
+import { Sparkles, TrendingUp, AlertTriangle, Compass, ChevronDown, FlaskConical, Wand2, HelpCircle } from 'lucide-react'
 import type { StrategyOutput, StrategyCard } from '@/lib/ai/service'
 
 // The AI strategist layer — reasoning the charts don't give you. Premium,
@@ -44,7 +44,7 @@ function StratCard({ card, defaultOpen }: { card: StrategyCard; defaultOpen: boo
 }
 
 export default function StrategistPanel({ strategy }: { strategy: StrategyOutput | null }) {
-  if (!strategy || (!strategy.cards.length && !strategy.experiments.length)) {
+  if (!strategy || (!strategy.cards.length && !strategy.experiments.length && !strategy.questions?.length)) {
     return (
       <div style={{ ...CARD, padding: '22px 22px', display: 'flex', alignItems: 'center', gap: 14 }}>
         <span style={{ width: 38, height: 38, flex: 'none', borderRadius: 11, background: '#F1F0FE', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Wand2 size={18} color="#5B53E0" /></span>
@@ -85,6 +85,24 @@ export default function StrategistPanel({ strategy }: { strategy: StrategyOutput
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {strategy.questions && strategy.questions.length > 0 && (
+        <div style={{ ...CARD, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 12 }}>
+            <HelpCircle size={16} color="#5B53E0" />
+            <span style={{ fontSize: 15, fontWeight: 700, color: '#0E1016' }}>Questions worth answering</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {strategy.questions.map((q, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '11px 0', borderTop: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
+                <span style={{ fontFamily: MONO, fontSize: 12, color: '#A2A8B6', flex: 'none', marginTop: 1 }}>{String(i + 1).padStart(2, '0')}</span>
+                <span style={{ fontSize: 13.5, color: '#0E1016', lineHeight: 1.45 }}>{q}</span>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 11.5, color: '#A2A8B6', marginTop: 11 }}>Run one experiment at a time and your data will start to answer these.</div>
         </div>
       )}
     </div>

@@ -208,7 +208,8 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
         try {
           aiStrategy = await strategistRead(platform, {
             knownFacts: data.insights.map((i) => ({ title: i.title, recommendation: i.recommendation })),
-            overview: data.overview, report: data.report, bestTime: data.bestTime,
+            levers: data.levers, signals: data.signals,
+            overview: data.overview, bestTime: data.bestTime,
             dataConfidence: data.dataConfidence, postCount: data.postCount,
           })
           aiNarrative = aiStrategy?.analystRead ?? null

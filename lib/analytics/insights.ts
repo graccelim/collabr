@@ -57,6 +57,10 @@ export interface PlatformInsights {
   bestTime: string | null
   /** Weekly digest for the Reports tab (last 7 days vs the prior 7). */
   report: WeeklyReport
+  /** Raw winning levers (names), so the strategy layer can reason without parsing titles. */
+  levers: { topic: string | null; subtopic: string | null; style: string | null; format: string | null; bestTime: string | null; emerging: string | null; declining: string | null }
+  /** Deterministic cross-signal FACTS the AI reasons from (it must not invent others). */
+  signals: PlatformSignals
   insights: Insight[]
   /** One-line "strongest at …" for the cross-platform summary (null if unknown). */
   strongest: string | null
@@ -191,6 +195,53 @@ function buildReport(posts: InsightPost[]): Omit<WeeklyReport, 'nextMoves'> {
   }
   movement.sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta))
   return { weekly, dailyRhythm, bestDay, topPost, categoryMovement: movement.slice(0, 4) }
+}
+
+// Deterministic cross-signal facts. The engine decides these; the AI only reasons
+// from them. Nothing here is advice, just measured truths and notable combinations.
+export interface PlatformSignals {
+  engagementTrend: 'up' | 'down' | 'flat' | null
+  viewsTrend: 'up' | 'down' | 'flat' | null
+  loyaltyBeforeReach: boolean              // engagement up while views flat or down
+  topicCount: number                       // distinct classified categories
+  topicConcentration: number | null        // share of posts in the top category (0..1)
+  singleTopic: boolean                     // one category dominates
+  outlierRatio: number | null              // top post views / median views
+  cadence: 'consistent' | 'uneven' | null
+  daysActive: number                       // distinct days-of-week with posts (under-testing)
+  styleKnown: boolean                      // whether we could classify a presentation style
+  sampleSize: number
+  confidence: Confidence
+}
+function trendOf(delta: number | null | undefined, up: number, down: number): 'up' | 'down' | 'flat' | null {
+  if (delta == null) return null
+  if (delta > up) return 'up'
+  if (delta < down) return 'down'
+  return 'flat'
+}
+function buildSignals(posts: InsightPost[], overview: PlatformInsights['overview'], report: Omit<WeeklyReport, 'nextMoves'>, levers: PlatformInsights['levers'], confidence: Confidence): PlatformSignals {
+  const engagementTrend = trendOf(overview.engDelta, 0.003, -0.003)
+  const viewsTrend = trendOf(overview.avgViewsDelta, 0.05, -0.05)
+  const cats = posts.map((p) => p.category).filter((c): c is string => !!c)
+  const topicCount = new Set(cats).size
+  const topShare = levers.topic && cats.length ? cats.filter((c) => c === levers.topic).length / cats.length : null
+  const med = overview.medianViews, top = report.topPost?.views
+  const times = posts.map((p) => p.postedAt?.getTime()).filter((t): t is number => t != null).sort((a, b) => a - b)
+  let cadence: 'consistent' | 'uneven' | null = null
+  if (times.length >= 6) {
+    const gaps = times.slice(1).map((t, i) => t - times[i])
+    const m = gaps.reduce((a, b) => a + b, 0) / gaps.length
+    const sd = Math.sqrt(gaps.reduce((a, b) => a + (b - m) ** 2, 0) / gaps.length)
+    cadence = m > 0 && sd / m > 0.9 ? 'uneven' : 'consistent'
+  }
+  return {
+    engagementTrend, viewsTrend,
+    loyaltyBeforeReach: engagementTrend === 'up' && (viewsTrend === 'down' || viewsTrend === 'flat'),
+    topicCount, topicConcentration: topShare, singleTopic: topicCount <= 1 && !!levers.topic,
+    outlierRatio: med && med > 0 && top != null ? top / med : null,
+    cadence, daysActive: report.dailyRhythm.filter((d) => d.posts > 0).length,
+    styleKnown: !!levers.style, sampleSize: posts.length, confidence,
+  }
 }
 
 function dayPart(h: number): string {
@@ -424,8 +475,14 @@ export function computePlatformInsights(
   else if (style?.key && fmt2?.key) moves.push(`Try your ${style.key} style as a ${fmt2.key}.`)
   const nextMoves = Array.from(new Set(moves)).slice(0, 4)
 
-  const report: WeeklyReport = { ...buildReport(posts), nextMoves }
-  return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, report, insights, strongest, dataConfidence }
+  const baseReport = buildReport(posts)
+  const report: WeeklyReport = { ...baseReport, nextMoves }
+  const levers = {
+    topic: cat?.key ?? null, subtopic: sub?.key ?? null, style: style?.key ?? null,
+    format: fmt2?.key ?? null, bestTime, emerging: mom.emerging[0]?.key ?? null, declining: mom.declining[0]?.key ?? null,
+  }
+  const signals = buildSignals(posts, overview, baseReport, levers, dataConfidence)
+  return { platform, postCount: posts.length, overview, trend, postingTimes, bestTime, report, levers, signals, insights, strongest, dataConfidence }
 }
 
 // Per-category momentum: compare each category's recent vs earlier engagement
