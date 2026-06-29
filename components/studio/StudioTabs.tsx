@@ -68,7 +68,7 @@ export default function StudioTabs({
 
       {flags.analyticsAi && (
         <div style={{ display: tab === 'strategy' ? 'block' : 'none' }}>
-          <StrategyTab platformInsights={platformInsights} onDraft={draftInLab} />
+          <StrategyTab platformInsights={platformInsights} onDraft={draftInLab} active={tab === 'strategy'} />
         </div>
       )}
 

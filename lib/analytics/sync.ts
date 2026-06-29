@@ -234,3 +234,25 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string, 
 
   return true
 }
+
+// Compute ONLY the AI strategist for one platform from its already-computed
+// deterministic insights. Fast (no sync/classify), so the Strategy tab can
+// generate the game plan on demand without risking a timeout. Cached by hash.
+export async function generateStrategistForPlatform(admin: Admin, creatorId: string, platform: string): Promise<StrategyOutput | null> {
+  if (!aiConfigured()) return null
+  const { data: row } = await admin.from('creator_platform_insights')
+    .select('data, ai_hash, ai_strategy').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
+  const data: any = row?.data
+  if (!data?.insights) return null
+  const hash = crypto.createHash('sha256').update(JSON.stringify(data.insights)).digest('hex')
+  if (row?.ai_hash === hash && row.ai_strategy) return row.ai_strategy as StrategyOutput // already fresh
+  const strategy = await strategistRead(platform, {
+    knownFacts: (data.insights as any[]).map((i) => ({ title: i.title, recommendation: i.recommendation })),
+    levers: data.levers, signals: data.signals, overview: data.overview,
+    bestTime: data.bestTime, dataConfidence: data.dataConfidence, postCount: data.postCount,
+  })
+  await admin.from('creator_platform_insights').update({
+    ai_strategy: strategy, ai_narrative: strategy?.analystRead ?? null, ai_hash: hash, ai_strategy_hash: hash,
+  }).eq('creator_id', creatorId).eq('platform', platform)
+  return strategy
+}
