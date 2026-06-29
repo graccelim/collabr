@@ -28,11 +28,18 @@ export default function StudioTabs({
   initial?: string
 }) {
   const [tab, setTab] = useState(initial)
+  const [labSeed, setLabSeed] = useState<{ topic: string; platform: string; nonce: number } | null>(null)
 
   function select(key: string) {
     setTab(key)
     // Keep the URL in sync for refresh/deep-link, without a Next navigation.
     if (typeof window !== 'undefined') window.history.replaceState(null, '', `/studio?tab=${key}`)
+  }
+
+  // Strategy → Content Lab hand-off: seed the topic/platform and jump to the tab.
+  function draftInLab(topic: string, platform: string) {
+    setLabSeed((s) => ({ topic, platform, nonce: (s?.nonce ?? 0) + 1 }))
+    select('content-lab')
   }
 
   return (
@@ -61,12 +68,12 @@ export default function StudioTabs({
 
       {flags.analyticsAi && (
         <div style={{ display: tab === 'strategy' ? 'block' : 'none' }}>
-          <StrategyTab platformInsights={platformInsights} />
+          <StrategyTab platformInsights={platformInsights} onDraft={draftInLab} />
         </div>
       )}
 
       <div style={{ display: tab === 'content-lab' ? 'block' : 'none' }}>
-        {flags.analyticsAi ? <ContentLab platforms={contentPlatforms} /> : (
+        {flags.analyticsAi ? <ContentLab platforms={contentPlatforms} seed={labSeed} /> : (
           <div className="card" style={{ padding: 18 }}>
             <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>Content Lab is coming soon to your Studio.</p>
           </div>

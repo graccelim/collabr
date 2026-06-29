@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import { Zap, AlignLeft, Send, Hash, Video, Copy } from 'lucide-react'
 import PlatformSwitcher from '@/components/studio/PlatformSwitcher'
@@ -32,7 +32,7 @@ function catText(r: Result, cat: CatKey): string {
   return (r[cat] as string[]).join('\n')
 }
 
-export default function ContentLab({ platforms = [] }: { platforms?: string[] }) {
+export default function ContentLab({ platforms = [], seed }: { platforms?: string[]; seed?: { topic: string; platform: string; nonce: number } | null }) {
   const [topic, setTopic] = useState('')
   const [platform, setPlatform] = useState(platforms[0] ?? 'tiktok')
   const [result, setResult] = useState<Result | null>(null)
@@ -40,13 +40,15 @@ export default function ContentLab({ platforms = [] }: { platforms?: string[] })
   const [loading, setLoading] = useState(false)
   const [err, setErr] = useState<string | null>(null)
 
-  async function generate() {
-    if (!topic.trim() || loading) return
+  async function generate(tArg?: string, pArg?: string) {
+    const t = (tArg ?? topic).trim()
+    const p = pArg ?? platform
+    if (!t || loading) return
     setLoading(true); setErr(null)
     try {
       const res = await fetch('/api/insights/content-lab', {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ topic: topic.trim(), platform }),
+        body: JSON.stringify({ topic: t, platform: p }),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok && data.result) { setResult(data.result); setCat('hooks') }
@@ -54,6 +56,16 @@ export default function ContentLab({ platforms = [] }: { platforms?: string[] })
     } catch { setErr('Could not generate ideas.') }
     setLoading(false)
   }
+
+  // Hand-off from the Strategy tab's "Draft it in Content Lab": prefill the topic
+  // (and platform) and generate straight away.
+  useEffect(() => {
+    if (!seed?.topic) return
+    setTopic(seed.topic)
+    if (seed.platform && platforms.includes(seed.platform)) setPlatform(seed.platform)
+    generate(seed.topic, seed.platform)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seed?.nonce])
 
   const active = CATS.find((c) => c.key === cat)!
   const count = (k: CatKey) => (result ? (result[k] as unknown[]).length : 0)
@@ -71,7 +83,7 @@ export default function ContentLab({ platforms = [] }: { platforms?: string[] })
             <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Western hawker food" style={FIELD}
               onKeyDown={(e) => { if (e.key === 'Enter') generate() }} />
           </label>
-          <button type="button" onClick={generate} disabled={loading || !topic.trim()}
+          <button type="button" onClick={() => generate()} disabled={loading || !topic.trim()}
             style={{ cursor: topic.trim() ? 'pointer' : 'not-allowed', background: '#0A0C22', color: '#fff', border: 'none', borderRadius: 11, padding: '12px 24px', fontSize: 14, fontWeight: 600, whiteSpace: 'nowrap', opacity: topic.trim() ? 1 : 0.55 }}>
             {loading ? 'Generating…' : 'Generate'}
           </button>

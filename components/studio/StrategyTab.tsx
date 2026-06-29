@@ -11,7 +11,7 @@ import type { StrategyOutput } from '@/lib/ai/service'
 const ORDER = ['tiktok', 'instagram', 'youtube']
 type Row = { platform: string; data: any; ai_narrative: string | null; ai_strategy?: StrategyOutput | null }
 
-export default function StrategyTab({ platformInsights }: { platformInsights: Row[] }) {
+export default function StrategyTab({ platformInsights, onDraft }: { platformInsights: Row[]; onDraft?: (topic: string, platform: string) => void }) {
   const rows = [...platformInsights].sort((a, b) => ORDER.indexOf(a.platform) - ORDER.indexOf(b.platform))
   const [active, setActive] = useState(rows[0]?.platform ?? '')
 
@@ -35,7 +35,11 @@ export default function StrategyTab({ platformInsights }: { platformInsights: Ro
           <PlatformSwitcher platforms={rows.map((r) => r.platform)} active={row.platform} onSelect={setActive} />
         </div>
       )}
-      <StrategistPanel key={row.platform} strategy={row.ai_strategy ?? null} />
+      <StrategistPanel
+        key={row.platform}
+        strategy={row.ai_strategy ?? null}
+        onDraft={onDraft ? (topic) => onDraft(topic, row.platform) : undefined}
+      />
     </div>
   )
 }
