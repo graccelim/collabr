@@ -63,6 +63,17 @@ export default function ConnectAccounts({
     setBusy(null)
   }
 
+  async function syncNow(id: string) {
+    setBusy(id); setErr(null)
+    try {
+      const res = await fetch(`/api/connected/${id}`, { method: 'POST' })
+      const data = await res.json().catch(() => ({}))
+      if (res.ok) router.refresh()
+      else setErr(data.error || 'Could not sync right now.')
+    } catch { setErr('Could not sync right now.') }
+    setBusy(null)
+  }
+
   const summary = connected.length === 0
     ? 'No accounts connected yet'
     : `${connected.length} account${connected.length === 1 ? '' : 's'} connected${anyFrozen ? ' · syncing paused' : ' · synced'}`
@@ -115,10 +126,16 @@ export default function ConnectAccounts({
                         </div>
                       </div>
                       {!readOnly && a.status === 'connected' && (
-                        <button type="button" className="btn-ghost btn-sm" onClick={() => disconnect(a.id)} disabled={busy === a.id}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                          <Unplug size={13} /> Disconnect
-                        </button>
+                        <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
+                          <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id)} disabled={busy === a.id}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <RefreshCw size={13} /> {busy === a.id ? 'Syncing…' : 'Sync now'}
+                          </button>
+                          <button type="button" className="btn-ghost btn-sm" onClick={() => disconnect(a.id)} disabled={busy === a.id}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
+                            <Unplug size={13} /> Disconnect
+                          </button>
+                        </div>
                       )}
                     </div>
                   ))}

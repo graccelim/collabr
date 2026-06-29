@@ -1,6 +1,13 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { flags } from '@/lib/flags'
+import { isProActive } from '@/lib/entitlements'
+import { getAdapter } from '@/lib/analytics/adapters'
+import { getAccountAuth } from '@/lib/analytics/tokens'
+import { syncAccountData, recomputeCreatorInsights } from '@/lib/analytics/sync'
+import type { Platform } from '@/lib/analytics/adapters/types'
+
+export const runtime = 'nodejs'
 
 // Creator disconnects a connected account: delete the stored OAuth tokens (stop
 // any future API access) and mark the row revoked + frozen. Historical analytics
@@ -27,6 +34,49 @@ export async function DELETE(req: NextRequest, { params }: { params: { accountId
   await admin.from('connected_accounts')
     .update({ status: 'revoked', sync_frozen: true })
     .eq('id', acct.id)
+
+  return NextResponse.json({ ok: true })
+}
+
+// On-demand "Sync now": pull this account's latest data and recompute the
+// creator's insights immediately, instead of waiting for the nightly cron.
+// Same pipeline as the cron; Pro-active creators only; owner-scoped.
+export async function POST(_req: NextRequest, { params }: { params: { accountId: string } }) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!flags.analyticsSuite) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+  const admin = createAdminClient()
+  const { data: creator } = await supabase.from('creator_profiles').select('id').eq('user_id', user.id).single()
+  if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
+
+  const { data: sub } = await admin.from('creator_subscriptions').select('status, pro_until').eq('creator_id', creator.id).maybeSingle()
+  if (!isProActive(sub ?? null)) return NextResponse.json({ error: 'Creator Pro required' }, { status: 403 })
+
+  const { data: acct } = await admin.from('connected_accounts')
+    .select('id, creator_id, platform, external_account_id, status, sync_frozen')
+    .eq('id', params.accountId).maybeSingle()
+  if (!acct || acct.creator_id !== creator.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (acct.status !== 'connected') return NextResponse.json({ error: 'Account is not connected' }, { status: 400 })
+
+  // Pro is active, so the account should sync; clear any stale freeze.
+  if (acct.sync_frozen) await admin.from('connected_accounts').update({ sync_frozen: false }).eq('id', acct.id)
+
+  const platform = acct.platform as Platform
+  const adapter = getAdapter(platform)
+  const auth = adapter ? await getAccountAuth(admin, acct.id as string, platform) : null
+  if (!adapter || !auth) return NextResponse.json({ error: 'Sync is not available for this account' }, { status: 400 })
+
+  try {
+    await syncAccountData(admin, {
+      id: acct.id as string, creator_id: acct.creator_id as string,
+      platform: acct.platform as string, external_account_id: (acct.external_account_id as string | null) ?? null,
+    }, adapter, auth)
+    await recomputeCreatorInsights(admin, creator.id as string)
+  } catch (e: any) {
+    return NextResponse.json({ error: e?.message || 'Sync failed' }, { status: 502 })
+  }
 
   return NextResponse.json({ ok: true })
 }
