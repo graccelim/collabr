@@ -46,7 +46,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { accountId
   await admin.from('connected_accounts').delete().eq('id', acct.id)
 
   // Recompute from whatever remains; if nothing's connected, clear the aggregate.
-  const stillConnected = await recomputeCreatorInsights(admin, creator.id as string)
+  const stillConnected = await recomputeCreatorInsights(admin, creator.id as string, { skipAi: true })
   if (!stillConnected) {
     await admin.from('creator_rollups').delete().eq('creator_id', creator.id)
     await admin.from('creator_profiles').update({ connected: false, connected_platforms: [] }).eq('id', creator.id)
@@ -91,9 +91,10 @@ export async function POST(_req: NextRequest, { params }: { params: { accountId:
       platform: acct.platform as string, external_account_id: (acct.external_account_id as string | null) ?? null,
     }, adapter, auth)
     // Label the freshly-synced posts (topic/style) so "What's working" can rank them,
-    // then recompute. Order matters: sync → classify → rollups.
+    // then recompute. Order matters: sync → classify → rollups. skipAi keeps this
+    // fast (no slow strategist call); the cron rollup fills the game plan in.
     await classifyCreatorPosts(admin, creator.id as string)
-    await recomputeCreatorInsights(admin, creator.id as string)
+    await recomputeCreatorInsights(admin, creator.id as string, { skipAi: true })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Sync failed' }, { status: 502 })
   }

@@ -1,43 +1,45 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 // After an account connects, the OAuth callback redirects here instantly (no
 // inline sync). This runs the first sync on-page with a proper loading UI, then
 // refreshes so the insights appear. Reads ?connected=<platform> from the URL.
 const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube' }
-const STEPS = ['Pulling your latest posts', 'Analysing your content', 'Building your insights', 'Writing your game plan']
+const STEPS = ['Pulling your latest posts', 'Analysing your content', 'Building your insights']
 
 type Acct = { id: string; platform: string; status: string }
 
 export default function PostConnectSync({ accounts }: { accounts: Acct[] }) {
   const router = useRouter()
   const [phase, setPhase] = useState<'idle' | 'syncing' | 'error'>('idle')
+  const [acct, setAcct] = useState<Acct | null>(null)
   const [label, setLabel] = useState('your account')
   const [step, setStep] = useState(0)
   const started = useRef(false)
+
+  const runSync = useCallback(async (a: Acct, lbl: string) => {
+    setAcct(a); setLabel(lbl); setPhase('syncing')
+    try {
+      const res = await fetch(`/api/connected/${a.id}`, { method: 'POST' })
+      if (!res.ok) throw new Error('sync failed')
+      window.history.replaceState(null, '', '/studio?tab=insights')
+      setPhase('idle')
+      router.refresh()
+    } catch {
+      setPhase('error')
+    }
+  }, [router])
 
   useEffect(() => {
     if (started.current) return
     const connected = new URLSearchParams(window.location.search).get('connected')
     if (!connected) return
-    const acct = accounts.find((a) => a.platform === connected && a.status === 'connected')
-    if (!acct) return
+    const a = accounts.find((x) => x.platform === connected && x.status === 'connected')
+    if (!a) return
     started.current = true
-    setLabel(LABEL[connected] || connected)
-    setPhase('syncing')
-    ;(async () => {
-      try {
-        const res = await fetch(`/api/connected/${acct.id}`, { method: 'POST' })
-        if (!res.ok) throw new Error('sync failed')
-        window.history.replaceState(null, '', '/studio?tab=insights')
-        setPhase('idle')
-        router.refresh()
-      } catch {
-        setPhase('error')
-      }
-    })()
-  }, [accounts, router])
+    runSync(a, LABEL[connected] || connected)
+  }, [accounts, runSync])
 
   useEffect(() => {
     if (phase !== 'syncing') return
@@ -67,8 +69,11 @@ export default function PostConnectSync({ accounts }: { accounts: Acct[] }) {
         ) : (
           <>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Your {label} is connected</div>
-            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 8, lineHeight: 1.5 }}>We couldn&apos;t finish syncing just now. Open <strong>Manage</strong> and hit <strong>Sync now</strong> in a moment, or it will sync automatically soon.</div>
-            <button type="button" onClick={dismiss} className="btn-primary btn-sm" style={{ marginTop: 18 }}>Go to Studio</button>
+            <div style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 8, lineHeight: 1.5 }}>That took longer than expected. Give it another go, or head in and your data will finish loading shortly.</div>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 18 }}>
+              <button type="button" onClick={() => acct && runSync(acct, label)} className="btn-primary btn-sm">Try again</button>
+              <button type="button" onClick={dismiss} className="btn-secondary btn-sm">Go to Studio</button>
+            </div>
           </>
         )}
       </div>

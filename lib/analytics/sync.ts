@@ -117,7 +117,7 @@ export async function classifyCreatorPosts(admin: Admin, creatorId: string): Pro
 
 // Recompute one creator's deterministic rollups + per-platform insights from stored
 // snapshots. Returns true if anything was rolled up. AI narration is an optional overlay.
-export async function recomputeCreatorInsights(admin: Admin, creatorId: string): Promise<boolean> {
+export async function recomputeCreatorInsights(admin: Admin, creatorId: string, opts?: { skipAi?: boolean }): Promise<boolean> {
   const { data: accounts } = await admin.from('connected_accounts')
     .select('id, platform, status, sync_frozen').eq('creator_id', creatorId)
   const usable = (accounts ?? []).filter((a) => a.status === 'connected' && !a.sync_frozen)
@@ -197,7 +197,10 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
     let aiNarrative: string | null = null
     let aiStrategy: StrategyOutput | null = null
     let aiHash: string | null = null
-    if (aiConfigured()) {
+    // skipAi keeps the request fast (used on connect / Sync now) by writing
+    // deterministic insights only; the slow AI strategist is computed by the cron
+    // rollup, so a big account never times out the user-facing sync.
+    if (aiConfigured() && !opts?.skipAi) {
       aiHash = crypto.createHash('sha256').update(JSON.stringify(data.insights)).digest('hex')
       const { data: prev } = await admin.from('creator_platform_insights')
         .select('ai_hash, ai_narrative, ai_strategy').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
@@ -215,6 +218,12 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
           aiNarrative = aiStrategy?.analystRead ?? null
         } catch { aiStrategy = null }
       }
+    } else if (aiConfigured() && opts?.skipAi) {
+      // Keep any previously-computed AI so a fast re-sync doesn't blank the game
+      // plan; the cron rollup refreshes it when the deterministic insights change.
+      const { data: prev } = await admin.from('creator_platform_insights')
+        .select('ai_hash, ai_narrative, ai_strategy').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
+      if (prev) { aiHash = prev.ai_hash; aiNarrative = prev.ai_narrative; aiStrategy = (prev.ai_strategy as StrategyOutput) ?? null }
     }
     await admin.from('creator_platform_insights').upsert({
       creator_id: creatorId, platform, data, ai_narrative: aiNarrative, ai_strategy: aiStrategy,
