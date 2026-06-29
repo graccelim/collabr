@@ -8,6 +8,9 @@ import { syncAccountData, classifyCreatorPosts, recomputeCreatorInsights } from 
 import type { Platform } from '@/lib/analytics/adapters/types'
 
 export const runtime = 'nodejs'
+// Sync now does the full pull + classify + AI strategist; give it room so it
+// finishes on a large account instead of timing out.
+export const maxDuration = 300
 
 // Creator disconnects a connected account: delete the stored OAuth tokens (stop
 // any future API access) and mark the row revoked + frozen. Historical analytics

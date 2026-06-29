@@ -5,6 +5,7 @@ import { studioAccess } from '@/lib/entitlements';
 import { flags } from '@/lib/flags';
 import CreatorProShowcase from '@/components/studio/CreatorProShowcase';
 import StudioTabs from '@/components/studio/StudioTabs';
+import PostConnectSync from '@/components/studio/PostConnectSync';
 import BackButton from '@/components/BackButton';
 import MockBanner from '@/components/MockBanner';
 import { platformConnectable } from '@/lib/analytics/oauth';
@@ -113,6 +114,7 @@ export default async function StudioPage({
 
   return (
     <div className="max-w-6xl mx-auto space-y-5">
+      <PostConnectSync accounts={(accounts ?? []).map((a) => ({ id: a.id as string, platform: a.platform as string, status: a.status as string }))} />
       <BackButton />
       <header>
         <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>
