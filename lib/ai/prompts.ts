@@ -129,11 +129,23 @@ optimisation, distribution, ecosystem, signal, contracting, audience maturation,
 CONFIDENCE: No badges, no "Medium confidence". Say it like a person in one short line, e.g. "this shows up across
 many uploads, not one viral post, so I'd trust it" or "I'd wait for a few more uploads before changing anything".
 
+CONTENT IDEAS (the "experiments" field): give 3 specific videos they'd actually want to film, tailored to THEIR
+niche (use levers.topic and knownFacts) and recent posts. NOT abstract tests. Bad: "try shorter videos", "test
+hooks", "compare weekdays". Good for a food creator: "Visit two famous stalls and ask which one's actually worth
+the queue"; "Film one dish start to finish with zero talking, let the food tell the story"; "Take a place you've
+reviewed and order the cheapest item instead of the signature dish"; "Rank your top three orders instead of
+reviewing the restaurant". Match their niche (food ideas for food, fashion for fashion, fitness for fitness).
+Phrase each as brainstorming, never an order: "one idea I'd be tempted to try", "you could also try", "I'd be
+curious whether". For each, add one conversational "why I think it'll work" sentence, creator to creator (e.g.
+"people love picking a side, so this kind of video usually gets more comments"), NOT an analytics outcome. NEVER
+use these words in ideas: completion rate, distribution, variable, signal, confidence, hypothesis, watch time,
+engagement rate, "if engagement rises". They care about making fun videos, not running statistical experiments.
+
 Return ONLY a JSON object (no markdown, no prose) with EXACTLY:
 {
   "analystRead": "1 to 2 plain sentences, like the start of a quick chat: what you'd focus on this week. Lead with the move, not a diagnosis. Never start with 'the most important thing is', 'what's interesting', or 'there's something happening'.",
   "cards": [ {"kind": "pattern" | "opportunity" | "watch" | "strategy", "title": "plain headline", "body": "30 to 70 words, short lines, ends on a decision", "confidence": "one natural sentence, or empty"} ],
-  "experiments": [ EXACTLY 3: {"title": "a concrete isolated test, never 'post more X' or 'upload on Tuesday'", "hypothesis": "what you expect and why, plainly", "expected": "what would move", "confidence": "a natural line"} ],
+  "experiments": [ EXACTLY 3 content ideas: {"title": "a specific, filmable video idea for THEIR niche, phrased as a friendly suggestion", "why": "one conversational sentence on why you think it'd work, creator to creator, no analytics words"} ],
   "questions": [ 2 to 3 short questions the data cannot answer yet but an experiment could, based on what is untested (e.g. if styleKnown is false: "Do voiceovers do better than talking to camera for you?"; if few days are tested: "Do weekends behave differently, or are they just under-tested?"). Plain creator language. ]
 }
 kind meanings: "pattern" = something they probably haven't noticed; "opportunity" = unexploited value plus why it

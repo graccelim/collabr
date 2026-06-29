@@ -40,7 +40,7 @@ const stripJson = (s: string): string => s.replace(/^```(?:json)?\s*/i, '').repl
 // restated) to produce an analyst read, 4-6 personalised cards, and 3 experiments.
 export type StrategyKind = 'pattern' | 'opportunity' | 'watch' | 'strategy'
 export interface StrategyCard { kind: StrategyKind; title: string; body: string; confidence: string }
-export interface StrategyExperiment { title: string; hypothesis: string; expected: string; confidence: string }
+export interface StrategyExperiment { title: string; why: string }
 export interface StrategyOutput { analystRead: string; cards: StrategyCard[]; experiments: StrategyExperiment[]; questions: string[] }
 
 export async function strategistRead(platform: string, payload: unknown): Promise<StrategyOutput | null> {
@@ -59,8 +59,8 @@ export async function strategistRead(platform: string, payload: unknown): Promis
         .slice(0, 6).map((c: any) => ({ kind: c.kind, title: str(c.title), body: str(c.body), confidence: str(c.confidence) }))
     : []
   const experiments: StrategyExperiment[] = Array.isArray(j?.experiments)
-    ? j.experiments.filter((e: any) => e && str(e.title) && str(e.hypothesis))
-        .slice(0, 3).map((e: any) => ({ title: str(e.title), hypothesis: str(e.hypothesis), expected: str(e.expected), confidence: str(e.confidence) }))
+    ? j.experiments.filter((e: any) => e && str(e.title) && str(e.why))
+        .slice(0, 3).map((e: any) => ({ title: str(e.title), why: str(e.why) }))
     : []
   const questions: string[] = Array.isArray(j?.questions)
     ? j.questions.filter((q: any) => str(q)).slice(0, 3).map((q: any) => str(q))
