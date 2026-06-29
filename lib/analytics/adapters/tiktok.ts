@@ -5,6 +5,16 @@ import type { AdapterAuth, NormalizedAccount, NormalizedPost, PlatformAdapter } 
 const API = 'https://open.tiktokapis.com/v2'
 const num = (v: unknown): number | null => (v == null || v === '' || isNaN(Number(v)) ? null : Number(v))
 
+// GET — for /user/info/ (Display API user info is a GET request).
+async function get(path: string, fields: string[], token: string): Promise<any> {
+  const res = await fetch(`${API}/${path}?fields=${encodeURIComponent(fields.join(','))}`, {
+    headers: { authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) throw new Error(`TikTok ${path} ${res.status}`)
+  return res.json()
+}
+
+// POST — for /video/list/ (paged, body carries max_count/cursor).
 async function post(path: string, fields: string[], token: string, body: Record<string, unknown> = {}): Promise<any> {
   const res = await fetch(`${API}/${path}?fields=${encodeURIComponent(fields.join(','))}`, {
     method: 'POST',
@@ -21,7 +31,8 @@ export class TikTokAdapter implements PlatformAdapter {
   async fetchAccount(auth: AdapterAuth, _openId: string | null): Promise<NormalizedAccount> {
     const token = auth.accessToken
     if (!token) throw new Error('TikTok access token required')
-    const d = await post('user/info/', ['open_id', 'display_name', 'follower_count'], token)
+    // user/info/ is a GET. follower_count requires the user.info.stats scope.
+    const d = await get('user/info/', ['open_id', 'display_name', 'avatar_url', 'follower_count'], token)
     const u = d?.data?.user ?? {}
     return {
       platform: 'tiktok', handle: u?.display_name ?? null,

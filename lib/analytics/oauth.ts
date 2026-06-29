@@ -63,7 +63,7 @@ export function authorizeUrl(platform: OAuthPlatform, state: string): string | n
       `&redirect_uri=${ru}&state=${state}&response_type=code&scope=${scope}`
   }
   if (platform === 'tiktok') {
-    const scope = encodeURIComponent('user.info.basic,video.list')
+    const scope = encodeURIComponent('user.info.basic,user.info.stats,video.list')
     return `https://www.tiktok.com/v2/auth/authorize/?client_key=${process.env.TIKTOK_CLIENT_KEY}` +
       `&scope=${scope}&response_type=code&redirect_uri=${ru}&state=${state}`
   }
