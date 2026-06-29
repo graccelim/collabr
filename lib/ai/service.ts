@@ -40,7 +40,7 @@ const stripJson = (s: string): string => s.replace(/^```(?:json)?\s*/i, '').repl
 // restated) to produce an analyst read, 4-6 personalised cards, and 3 experiments.
 export type StrategyKind = 'pattern' | 'opportunity' | 'watch' | 'strategy'
 export interface StrategyCard { kind: StrategyKind; title: string; body: string; confidence: string }
-export interface StrategyExperiment { title: string; why: string }
+export interface StrategyExperiment { title: string; why: string; effort: 'low' | 'medium' | 'high' | '' }
 export interface StrategyOutput { analystRead: string; cards: StrategyCard[]; experiments: StrategyExperiment[]; questions: string[] }
 
 export async function strategistRead(platform: string, payload: unknown): Promise<StrategyOutput | null> {
@@ -58,9 +58,10 @@ export async function strategistRead(platform: string, payload: unknown): Promis
     ? j.cards.filter((c: any) => c && KINDS.has(c.kind) && str(c.title) && str(c.body))
         .slice(0, 6).map((c: any) => ({ kind: c.kind, title: str(c.title), body: str(c.body), confidence: str(c.confidence) }))
     : []
+  const EFFORT = new Set(['low', 'medium', 'high'])
   const experiments: StrategyExperiment[] = Array.isArray(j?.experiments)
     ? j.experiments.filter((e: any) => e && str(e.title) && str(e.why))
-        .slice(0, 3).map((e: any) => ({ title: str(e.title), why: str(e.why) }))
+        .slice(0, 3).map((e: any) => ({ title: str(e.title), why: str(e.why), effort: EFFORT.has(e?.effort) ? e.effort : '' }))
     : []
   const questions: string[] = Array.isArray(j?.questions)
     ? j.questions.filter((q: any) => str(q)).slice(0, 3).map((q: any) => str(q))

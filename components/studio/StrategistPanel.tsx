@@ -16,6 +16,20 @@ const META: Record<string, { label: string; color: string; bg: string; Icon: typ
   strategy: { label: 'Strategy', color: '#2A3157', bg: '#EEF1F8', Icon: Compass },
 }
 
+// Honest "how much work to film this" tag (the AI rates the idea, not the data).
+const EFFORT: Record<string, { label: string; color: string; bg: string }> = {
+  low: { label: 'Quick to film', color: '#0F7A4D', bg: '#EAF4EE' },
+  medium: { label: 'Some setup', color: '#5B53E0', bg: '#F1F0FE' },
+  high: { label: 'Bigger project', color: '#B26B00', bg: '#FBF3E6' },
+}
+function EffortChip({ effort, onDark }: { effort: string; onDark?: boolean }) {
+  const e = EFFORT[effort]
+  if (!e) return null
+  return (
+    <span style={{ fontFamily: MONO, fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', fontWeight: 600, flex: 'none', color: onDark ? '#CFD3EE' : e.color, background: onDark ? 'rgba(255,255,255,.1)' : e.bg, border: onDark ? '1px solid rgba(255,255,255,.16)' : 'none', borderRadius: 999, padding: '4px 9px' }}>{e.label}</span>
+  )
+}
+
 function DraftButton({ label, onClick, light }: { label: string; onClick: () => void; light?: boolean }) {
   return (
     <button type="button" onClick={onClick}
@@ -75,9 +89,12 @@ export default function StrategistPanel({ strategy, onDraft }: { strategy: Strat
       {/* hero: this week's idea */}
       {hero && (
         <div style={{ background: NAVY, borderRadius: 16, padding: '20px 22px', boxShadow: '0 1px 3px rgba(14,16,22,.06),0 30px 60px -34px rgba(20,30,80,.5)' }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9AA0D6' }}>
-            <Clapperboard size={13} color="#8E86F0" /> This week&apos;s idea
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7, fontFamily: MONO, fontSize: 10, letterSpacing: '.12em', textTransform: 'uppercase', color: '#9AA0D6' }}>
+              <Clapperboard size={13} color="#8E86F0" /> This week&apos;s idea
+            </span>
+            {hero.effort && <EffortChip effort={hero.effort} onDark />}
+          </div>
           <div style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.01em', color: '#fff', lineHeight: 1.3, margin: '11px 0 0' }}>{hero.title}</div>
           {hero.why && <p style={{ fontSize: 13.5, lineHeight: 1.6, color: '#CFD3EE', margin: '9px 0 0', maxWidth: 640 }}>{hero.why}</p>}
           {onDraft && (
@@ -106,6 +123,7 @@ export default function StrategistPanel({ strategy, onDraft }: { strategy: Strat
             {moreIdeas.map((e, i) => (
               <div key={i} style={{ background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11, padding: '14px 15px', display: 'flex', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
                 <div style={{ flex: 1, minWidth: 200 }}>
+                  {e.effort && <div style={{ marginBottom: 7 }}><EffortChip effort={e.effort} /></div>}
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0E1016', lineHeight: 1.35 }}>{e.title}</div>
                   {e.why && (
                     <div style={{ marginTop: 6 }}>
