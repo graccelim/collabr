@@ -23,17 +23,31 @@ export async function DELETE(req: NextRequest, { params }: { params: { accountId
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
 
   const { data: acct } = await admin.from('connected_accounts')
-    .select('id, creator_id')
+    .select('id, creator_id, platform')
     .eq('id', params.accountId).maybeSingle()
   if (!acct || acct.creator_id !== creator.id) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  // Revoke locally: drop tokens (no more API calls possible) + flip status.
+  // Full removal: revoke the token AND delete everything we derived from this
+  // account (posts, snapshots, this platform's insights), so disconnecting truly
+  // removes the data. Other connected platforms are untouched.
+  const { data: postIds } = await admin.from('content_posts').select('id').eq('account_id', acct.id)
+  const ids = (postIds ?? []).map((p) => p.id as string)
+  if (ids.length) await admin.from('post_snapshots').delete().in('post_id', ids)
+  await admin.from('content_posts').delete().eq('account_id', acct.id)
+  await admin.from('account_snapshots').delete().eq('account_id', acct.id)
+  await admin.from('creator_platform_insights').delete().eq('creator_id', creator.id).eq('platform', acct.platform as string)
   await admin.from('connected_account_tokens').delete().eq('account_id', acct.id)
-  await admin.from('connected_accounts')
-    .update({ status: 'revoked', sync_frozen: true })
-    .eq('id', acct.id)
+  await admin.from('sync_jobs').delete().eq('account_id', acct.id)
+  await admin.from('connected_accounts').delete().eq('id', acct.id)
+
+  // Recompute from whatever remains; if nothing's connected, clear the aggregate.
+  const stillConnected = await recomputeCreatorInsights(admin, creator.id as string)
+  if (!stillConnected) {
+    await admin.from('creator_rollups').delete().eq('creator_id', creator.id)
+    await admin.from('creator_profiles').update({ connected: false, connected_platforms: [] }).eq('id', creator.id)
+  }
 
   return NextResponse.json({ ok: true })
 }
