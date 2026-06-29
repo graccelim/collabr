@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { flags } from '@/lib/flags'
 import ConnectAccounts, { type ConnectedAccountView } from '@/components/studio/ConnectAccounts'
 import InsightsPanel from '@/components/studio/InsightsPanel'
+import StrategyTab from '@/components/studio/StrategyTab'
 import BrandCoachPanel from '@/components/studio/BrandCoachPanel'
 import ContentLab from '@/components/studio/ContentLab'
 import ReportsTab from '@/components/studio/ReportsTab'
@@ -12,7 +13,7 @@ import ReportsTab from '@/components/studio/ReportsTab'
 // Panes stay mounted and toggle via `display`, preserving each tab's state.
 type Row = { platform: string; data: any; ai_narrative: string | null; ai_strategy?: any }
 type Report = { period_start: string; period_end: string; report: any }
-const TABS = [['insights', 'Insights'], ['content-lab', 'Content Lab'], ['reports', 'Reports']] as const
+const TABS: [string, string][] = [['insights', 'Insights'], ...(flags.analyticsAi ? [['strategy', 'Strategy'] as [string, string]] : []), ['content-lab', 'Content Lab'], ['reports', 'Reports']]
 
 export default function StudioTabs({
   accounts, connectable, readOnly, platformInsights, reports, collabs, contentPlatforms = [], initial = 'insights',
@@ -57,6 +58,12 @@ export default function StudioTabs({
         <InsightsPanel platformInsights={platformInsights} />
         {flags.analyticsAi && <BrandCoachPanel collabs={collabs} />}
       </div>
+
+      {flags.analyticsAi && (
+        <div style={{ display: tab === 'strategy' ? 'block' : 'none' }}>
+          <StrategyTab platformInsights={platformInsights} />
+        </div>
+      )}
 
       <div style={{ display: tab === 'content-lab' ? 'block' : 'none' }}>
         {flags.analyticsAi ? <ContentLab platforms={contentPlatforms} /> : (
