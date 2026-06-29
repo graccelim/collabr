@@ -241,8 +241,10 @@ export function computePlatformInsights(
   const insights: Insight[] = []
   let strongest: string | null = null
 
-  // 1. Best video length
-  const len = bestBy(posts, (p) => lengthBucket(p.durationSec), baseline)
+  // 1. Best video length — SKIP for TikTok: its API can't distinguish photo
+  // slideshows from videos, so a post's "duration" may be a slideshow length, not
+  // a video length. Asserting "under 15s video" for photo posts would be wrong.
+  const len = platform === 'tiktok' ? null : bestBy(posts, (p) => lengthBucket(p.durationSec), baseline)
   if (len) insights.push({
     key: 'best_length',
     title: `Your ${len.key} posts outperform your others`,
@@ -390,9 +392,9 @@ export function computePlatformInsights(
     }
   }
 
-  // 7. Suggested experiment (gap-based)
+  // 7. Suggested experiment (gap-based) — also duration-based, so skip for TikTok.
   const shortShare = posts.filter((p) => (p.durationSec ?? 999) < 15).length / Math.max(1, posts.length)
-  if (posts.length >= 8 && shortShare < 0.15) {
+  if (platform !== 'tiktok' && posts.length >= 8 && shortShare < 0.15) {
     insights.push({
       key: 'experiment',
       title: 'Experiment: try more very short posts',

@@ -152,36 +152,23 @@ export default function ReportsTab({ platformInsights, reports }: { platformInsi
             )}
           </div>
 
-          {/* category movement + next moves */}
-          <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            {rep?.categoryMovement && rep.categoryMovement.length > 0 && (
-              <div style={{ ...CARD, padding: '16px 18px' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0E1016', marginBottom: 12 }}>Category movement</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {rep.categoryMovement.map((c, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', borderTop: i ? '1px solid rgba(14,16,22,.06)' : 'none' }}>
-                      <span style={{ fontSize: 13.5, color: '#0E1016' }}>{c.label}</span>
-                      <Delta value={c.delta} kind="pct" />
-                    </div>
-                  ))}
-                </div>
+          {/* next moves — full width, the actionable payoff */}
+          {moves.length > 0 && (
+            <div style={{ ...CARD, padding: '18px 20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+                <span style={{ fontSize: 15, fontWeight: 700, color: '#0E1016' }}>Your next moves</span>
+                <span style={{ fontSize: 12, color: MUTED }}>experiments to try this week</span>
               </div>
-            )}
-
-            {moves.length > 0 && (
-              <div style={{ ...CARD, padding: '16px 18px' }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: '#0E1016', marginBottom: 12 }}>Next moves</div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 11 }}>
-                  {moves.map((m, i) => (
-                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
-                      <span style={{ width: 22, height: 22, flex: 'none', borderRadius: 7, background: '#F3F5FB', border: '1px solid rgba(20,30,80,.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 11, color: '#5C6191' }}>{i + 1}</span>
-                      <span style={{ fontSize: 13.5, fontWeight: 500, color: '#0E1016' }}>{m}</span>
-                    </div>
-                  ))}
-                </div>
+              <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                {moves.map((m, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 11, padding: '13px 14px', background: '#F7F8FC', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11 }}>
+                    <span style={{ width: 24, height: 24, flex: 'none', borderRadius: 7, background: '#fff', border: '1px solid rgba(20,30,80,.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: MONO, fontSize: 11, color: '#5C6191' }}>{i + 1}</span>
+                    <span style={{ fontSize: 13.5, fontWeight: 500, color: '#0E1016', lineHeight: 1.4 }}>{m}</span>
+                  </div>
+                ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
 

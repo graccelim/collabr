@@ -12,8 +12,12 @@ export interface RawClassifyOutput { externalId: string; category: string | null
 const SYSTEM = `You classify short social posts into a FIXED taxonomy for a creator marketplace. You are given each
 post's creator-authored metadata ONLY (title, caption, hashtags), never any performance numbers, and you must
 not infer or request them. For each post choose the single best category and a subcategory that BELONGS to that
-category, plus the dominant style. If a post is ambiguous, pick the closest match and lower the confidence; if you
-genuinely cannot tell, use null with confidence 0. Use ONLY values from the taxonomy below, never invent new ones.
+category. For STYLE, only assign a value when the text CLEARLY signals how the content is presented (e.g. an
+explicit "voiceover", "tutorial", "review", "vlog", "skit", "interview"). The caption usually does NOT reveal the
+presentation, so when it is not clearly indicated, set style to null. Never guess a style; in particular do NOT
+assume "talking to camera" or any video style just because a post exists. If the category is ambiguous, pick the
+closest match and lower the confidence; if you genuinely cannot tell, use null with confidence 0. Use ONLY values
+from the taxonomy below, never invent new ones.
 Output ONLY a JSON array (no prose, no markdown), one object per input:
 {"externalId": string, "category": string|null, "subcategory": string|null, "style": string|null, "confidence": number}
 

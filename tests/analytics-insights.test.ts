@@ -17,7 +17,8 @@ describe('computePlatformInsights', () => {
   it('surfaces a best-video-length pattern vs the creator’s own baseline', () => {
     const shorts = Array.from({ length: 8 }, () => post({ durationSec: 10, views: 1000, likes: 200 })) // 20% rate
     const longs = Array.from({ length: 8 }, () => post({ durationSec: 90, views: 1000, likes: 20 }))    // 2% rate
-    const r = computePlatformInsights('tiktok', [...shorts, ...longs])
+    // YouTube/Instagram have real video durations; TikTok's are gated (photo-mode ambiguity).
+    const r = computePlatformInsights('youtube', [...shorts, ...longs])
     const len = r.insights.find((i) => i.key === 'best_length')
     expect(len).toBeTruthy()
     expect(len!.title).toMatch(/under 15s/i)
