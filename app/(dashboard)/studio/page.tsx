@@ -74,6 +74,7 @@ export default async function StudioPage({
     { data: collabsRaw },
     { data: platformInsights },
     { data: reports },
+    { data: socials },
   ] = await Promise.all([
     supabase
       .from('connected_accounts')
@@ -95,11 +96,20 @@ export default async function StudioPage({
       .eq('creator_id', creator.id)
       .order('period_end', { ascending: false })
       .limit(12),
+    supabase
+      .from('social_accounts')
+      .select('platform')
+      .eq('creator_id', creator.id),
   ]);
   const collabs = (collabsRaw ?? []).map((c) => ({
     id: c.id as string,
     title: ((c.campaigns as any)?.title as string) || 'Collaboration',
   }));
+  // Content Lab tabs reflect the creator's OWN platforms (their social accounts),
+  // not a hardcoded list. Ordered by the canonical platform order.
+  const PLATFORM_ORDER = ['tiktok', 'instagram', 'youtube', 'lemon8', 'xiaohongshu', 'x'];
+  const contentPlatforms = Array.from(new Set((socials ?? []).map((s) => s.platform as string)))
+    .sort((a, b) => PLATFORM_ORDER.indexOf(a) - PLATFORM_ORDER.indexOf(b));
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
@@ -153,6 +163,7 @@ export default async function StudioPage({
         platformInsights={platformInsights ?? []}
         reports={reports ?? []}
         collabs={collabs}
+        contentPlatforms={contentPlatforms}
         initial={tab}
       />
     </div>

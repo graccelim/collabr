@@ -32,9 +32,9 @@ function catText(r: Result, cat: CatKey): string {
   return (r[cat] as string[]).join('\n')
 }
 
-export default function ContentLab() {
+export default function ContentLab({ platforms = [] }: { platforms?: string[] }) {
   const [topic, setTopic] = useState('')
-  const [platform, setPlatform] = useState('tiktok')
+  const [platform, setPlatform] = useState(platforms[0] ?? 'tiktok')
   const [result, setResult] = useState<Result | null>(null)
   const [cat, setCat] = useState<CatKey>('hooks')
   const [loading, setLoading] = useState(false)
@@ -60,8 +60,8 @@ export default function ContentLab() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      {/* per-platform switcher (matches Insights / Reports) */}
-      <PlatformSwitcher platforms={['tiktok', 'instagram', 'youtube']} active={platform} onSelect={setPlatform} />
+      {/* per-platform switcher — only the creator's OWN platforms (not hardcoded) */}
+      {platforms.length > 0 && <PlatformSwitcher platforms={platforms} active={platform} onSelect={setPlatform} />}
 
       {/* light form card */}
       <div style={{ ...CARD, padding: 18 }}>

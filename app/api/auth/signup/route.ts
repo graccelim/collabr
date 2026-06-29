@@ -161,8 +161,10 @@ export async function POST(req: NextRequest) {
     if (parsed.data.socials && parsed.data.socials.length > 0) {
       await admin.from('brand_profiles').update({ socials: parsed.data.socials }).eq('user_id', data.user.id)
     }
-    // Fire-and-forget - don't block the response on email delivery
-    emails.welcomeBrand(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
+    // Welcome only once the account is real. If email confirmation is required,
+    // the welcome is sent from /auth/confirm after they click the link; otherwise
+    // (auto-confirm) send it now. Fire-and-forget - don't block the response.
+    if (!requiresEmailVerification) emails.welcomeBrand(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
   } else {
     const { data: creator, error: creatorErr } = await admin.from('creator_profiles').insert({
       user_id: data.user.id,
@@ -201,7 +203,7 @@ export async function POST(req: NextRequest) {
     // Generate the public, shareable slug from the display name (best-effort).
     await ensureCreatorSlug(admin, creator.id, name)
 
-    emails.welcomeCreator(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
+    if (!requiresEmailVerification) emails.welcomeCreator(name, email).catch(e => console.error('[SIGNUP EMAIL]', e))
   }
 
   return NextResponse.json({ success: true, requiresEmailVerification })

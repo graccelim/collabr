@@ -15,7 +15,7 @@ type Report = { period_start: string; period_end: string; report: any }
 const TABS = [['insights', 'Insights'], ['content-lab', 'Content Lab'], ['reports', 'Reports']] as const
 
 export default function StudioTabs({
-  accounts, connectable, readOnly, platformInsights, reports, collabs, initial = 'insights',
+  accounts, connectable, readOnly, platformInsights, reports, collabs, contentPlatforms = [], initial = 'insights',
 }: {
   accounts: ConnectedAccountView[]
   connectable: string[]
@@ -23,6 +23,7 @@ export default function StudioTabs({
   platformInsights: Row[]
   reports: Report[]
   collabs: { id: string; title: string }[]
+  contentPlatforms?: string[]
   initial?: string
 }) {
   const [tab, setTab] = useState(initial)
@@ -58,7 +59,7 @@ export default function StudioTabs({
       </div>
 
       <div style={{ display: tab === 'content-lab' ? 'block' : 'none' }}>
-        {flags.analyticsAi ? <ContentLab /> : (
+        {flags.analyticsAi ? <ContentLab platforms={contentPlatforms} /> : (
           <div className="card" style={{ padding: 18 }}>
             <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', margin: 0 }}>Content Lab is coming soon to your Studio.</p>
           </div>

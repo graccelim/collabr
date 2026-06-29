@@ -3,6 +3,22 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { safeNextPath } from '@/lib/nav'
+import { createAdminClient } from '@/lib/supabase/server'
+import { emails } from '@/lib/email'
+
+// Send the welcome email once, the first time a signup link is confirmed.
+async function sendWelcomeOnConfirm(userId: string) {
+  try {
+    const admin = createAdminClient()
+    const { data: u } = await admin.from('users').select('role, display_name, email').eq('id', userId).single()
+    if (!u?.email) return
+    const name = u.display_name || u.email.split('@')[0] || 'there'
+    if (u.role === 'brand') await emails.welcomeBrand(name, u.email)
+    else await emails.welcomeCreator(name, u.email)
+  } catch (e) {
+    console.error('[CONFIRM WELCOME]', e)
+  }
+}
 
 /**
  * Server-side email link handler (Supabase SSR token_hash flow).
@@ -41,7 +57,14 @@ export async function GET(req: NextRequest) {
       }
     )
     const { error } = await supabase.auth.verifyOtp({ type, token_hash })
-    if (!error) return res
+    if (!error) {
+      // Email is now confirmed → the account is real → send the welcome email.
+      if (type === 'signup') {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) await sendWelcomeOnConfirm(user.id)
+      }
+      return res
+    }
   }
 
   // Bad/expired/missing token → send to a clear recovery entry point.

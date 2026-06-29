@@ -3,7 +3,7 @@ import { socialIcon } from '@/components/SocialIcon'
 
 // Shared per-platform segmented switcher (our brand glyphs). Drives Insights,
 // Reports and Content Lab. Active = white chip; full-width on mobile via .pi-switch.
-const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube' }
+const LABEL: Record<string, string> = { tiktok: 'TikTok', instagram: 'Instagram', youtube: 'YouTube', lemon8: 'Lemon8', xiaohongshu: 'Xiaohongshu', x: 'X' }
 
 export default function PlatformSwitcher({ platforms, active, onSelect }: { platforms: string[]; active: string; onSelect: (p: string) => void }) {
   return (
