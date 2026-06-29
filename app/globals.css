@@ -739,6 +739,8 @@
 .cl-trow:hover { background: var(--surface-2); }
 /* mobile collab card is an <a> — force block so the card fills its width */
 .cl-mcard { display: block; }
+/* platform switcher scrolls horizontally past ~5 platforms, scrollbar hidden */
+.pi-switch::-webkit-scrollbar { display: none; }
 @media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
 
 @media (max-width: 768px) {
@@ -919,8 +921,9 @@
   .plc-area { height: 120px !important; }
   .rep-stats { grid-template-columns: 1fr 1fr !important; }
   .pi-switch { display: flex !important; width: 100% !important; }
-  .pi-switch button { flex: 1 !important; }
-  .pi-switch button { flex: 1 1 0 !important; justify-content: center !important; padding: 9px 6px !important; }
+  /* Few platforms fill the width evenly; many overflow into a horizontal scroll
+     (min-width keeps each chip readable instead of squishing). */
+  .pi-switch button { flex: 1 1 auto !important; min-width: max-content !important; justify-content: center !important; padding: 9px 12px !important; }
   .ca-glyphs { display: none !important; }
 
   /* Why-list (Discover / Invites reasons): smaller and tighter on mobile so it
