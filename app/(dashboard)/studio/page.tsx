@@ -88,7 +88,7 @@ export default async function StudioPage({
       .limit(20),
     supabase
       .from('creator_platform_insights')
-      .select('platform, data, ai_narrative')
+      .select('platform, data, ai_narrative, ai_strategy')
       .eq('creator_id', creator.id),
     admin
       .from('ai_reports')

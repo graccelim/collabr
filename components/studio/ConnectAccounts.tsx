@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus, Unplug, RefreshCw, CheckCircle2, AlertCircle, Settings2, X, ChevronRight } from 'lucide-react'
 import { socialIcon } from '@/components/SocialIcon'
@@ -33,6 +33,17 @@ export default function ConnectAccounts({
   const [err, setErr] = useState<string | null>(null)
   const [ytOpen, setYtOpen] = useState(false)
   const [channel, setChannel] = useState('')
+  const [syncing, setSyncing] = useState<string | null>(null) // platform label being synced
+  const [step, setStep] = useState(0)
+
+  const SYNC_STEPS = ['Pulling your latest posts', 'Analysing your content', 'Building your insights']
+  useEffect(() => {
+    if (!syncing) return
+    setStep(0)
+    const id = setInterval(() => setStep((s) => (s + 1) % SYNC_STEPS.length), 2200)
+    return () => clearInterval(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [syncing])
 
   const connected = accounts.filter((a) => a.status === 'connected')
   const connectedPlatforms = new Set(connected.map((a) => a.platform))
@@ -63,15 +74,20 @@ export default function ConnectAccounts({
     setBusy(null)
   }
 
-  async function syncNow(id: string) {
-    setBusy(id); setErr(null)
+  async function syncNow(id: string, label: string) {
+    setSyncing(label); setErr(null)
     try {
       const res = await fetch(`/api/connected/${id}`, { method: 'POST' })
       const data = await res.json().catch(() => ({}))
-      if (res.ok) router.refresh()
-      else setErr(data.error || 'Could not sync right now.')
-    } catch { setErr('Could not sync right now.') }
-    setBusy(null)
+      if (res.ok) {
+        // Done → close the popup so the freshly-synced insights board is visible.
+        setSyncing(null); setOpen(false); router.refresh()
+      } else {
+        setSyncing(null); setErr(data.error || 'Could not sync right now.')
+      }
+    } catch {
+      setSyncing(null); setErr('Could not sync right now.')
+    }
   }
 
   const summary = connected.length === 0
@@ -112,6 +128,15 @@ export default function ConnectAccounts({
                 Sync performance from TikTok, Instagram and YouTube. No passwords are shared with Collabr.
               </p>
 
+              {syncing ? (
+                <div style={{ padding: '26px 8px 22px', textAlign: 'center' }}>
+                  <div style={{ width: 42, height: 42, margin: '0 auto 16px', borderRadius: 999, border: '3px solid var(--hairline, rgba(20,30,80,.12))', borderTopColor: 'var(--accent, #000435)', animation: 'cp-spin .8s linear infinite' }} />
+                  <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>Syncing your {syncing}</div>
+                  <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6, minHeight: 18 }}>{SYNC_STEPS[step]}…</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 14 }}>This usually takes a few seconds.</div>
+                </div>
+              ) : (
+              <>
               {accounts.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 14 }}>
                   {accounts.map((a) => (
@@ -127,9 +152,9 @@ export default function ConnectAccounts({
                       </div>
                       {!readOnly && a.status === 'connected' && (
                         <div style={{ display: 'flex', gap: 6, flex: 'none' }}>
-                          <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id)} disabled={busy === a.id}
+                          <button type="button" className="btn-secondary btn-sm" onClick={() => syncNow(a.id, LABEL[a.platform] || a.platform)} disabled={busy === a.id}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                            <RefreshCw size={13} /> {busy === a.id ? 'Syncing…' : 'Sync now'}
+                            <RefreshCw size={13} /> Sync now
                           </button>
                           <button type="button" className="btn-ghost btn-sm" onClick={() => disconnect(a.id)} disabled={busy === a.id}
                             style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
@@ -176,6 +201,8 @@ export default function ConnectAccounts({
                     {busy === 'youtube' ? 'Adding…' : 'Add'}
                   </button>
                 </div>
+              )}
+              </>
               )}
 
               {err && <div style={{ fontSize: 12.5, color: 'var(--danger, #B23A33)', marginTop: 10 }}>{err}</div>}

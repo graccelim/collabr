@@ -10,7 +10,7 @@ import ReportsTab from '@/components/studio/ReportsTab'
 // Client-side Studio tabs. All data is fetched ONCE on the server and passed in;
 // switching tabs is pure local state (no navigation, no re-query), so it's instant.
 // Panes stay mounted and toggle via `display`, preserving each tab's state.
-type Row = { platform: string; data: any; ai_narrative: string | null }
+type Row = { platform: string; data: any; ai_narrative: string | null; ai_strategy?: any }
 type Report = { period_start: string; period_end: string; report: any }
 const TABS = [['insights', 'Insights'], ['content-lab', 'Content Lab'], ['reports', 'Reports']] as const
 

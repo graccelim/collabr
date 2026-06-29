@@ -2,7 +2,9 @@
 import { useState } from 'react'
 import { ArrowUpRight, ArrowDownRight, ChevronDown, Clock, Eye, BarChart3, Activity, Check } from 'lucide-react'
 import PostingBars from '@/components/studio/PostingBars'
+import StrategistPanel from '@/components/studio/StrategistPanel'
 import type { Insight } from '@/lib/analytics/insights'
+import type { StrategyOutput } from '@/lib/ai/service'
 
 // One platform's Insights, per the Creator Studio handoff: analyst-read hero +
 // 3 stats + a premium "best time to post" bar chart, then a ranked "What's
@@ -105,7 +107,7 @@ function StatDelta({ d }: { d: number | null | undefined }) {
   )
 }
 
-export default function PlatformInsights({ row }: { row: { platform: string; data: Data; ai_narrative: string | null } }) {
+export default function PlatformInsights({ row }: { row: { platform: string; data: Data; ai_narrative: string | null; ai_strategy?: StrategyOutput | null } }) {
   const [open, setOpen] = useState(false)
   const d = row.data || {}
   const insights = Array.isArray(d.insights) ? d.insights : []
@@ -230,6 +232,11 @@ export default function PlatformInsights({ row }: { row: { platform: string; dat
             <ChevronDown size={14} style={{ transition: 'transform .2s ease', transform: open ? 'rotate(180deg)' : 'none' }} />
           </button>
         )}
+      </div>
+
+      {/* AI strategist — the reasoning layer beyond the deterministic facts */}
+      <div style={{ marginTop: 18 }}>
+        <StrategistPanel strategy={row.ai_strategy ?? null} />
       </div>
 
       <div style={{ fontSize: 11.5, color: '#B4B9C4', marginTop: 18, textAlign: 'center' }}>

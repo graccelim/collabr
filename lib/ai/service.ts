@@ -1,6 +1,6 @@
 import { getAnthropic, AI_MODELS } from './client'
 import { enforceAiText } from './guard'
-import { PLATFORM_INSIGHTS_SYSTEM, REPORT_SYSTEM, COLLAB_ANALYSIS_SYSTEM, CONTENT_LAB_SYSTEM } from './prompts'
+import { PLATFORM_INSIGHTS_SYSTEM, REPORT_SYSTEM, COLLAB_ANALYSIS_SYSTEM, CONTENT_LAB_SYSTEM, STRATEGIST_SYSTEM } from './prompts'
 import type Anthropic from '@anthropic-ai/sdk'
 
 // All functions: deterministic data in → Claude explains → guard enforces. They
@@ -35,6 +35,37 @@ async function runRaw(system: string, userContent: string, model: string, maxTok
   return textOf(msg)
 }
 const stripJson = (s: string): string => s.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+
+// AI STRATEGIST: reasons BEYOND the deterministic facts (given as knownFacts, never
+// restated) to produce an analyst read, 4-6 personalised cards, and 3 experiments.
+export type StrategyKind = 'pattern' | 'opportunity' | 'watch' | 'strategy'
+export interface StrategyCard { kind: StrategyKind; title: string; body: string; confidence: string }
+export interface StrategyExperiment { title: string; hypothesis: string; expected: string; confidence: string }
+export interface StrategyOutput { analystRead: string; cards: StrategyCard[]; experiments: StrategyExperiment[] }
+
+export async function strategistRead(platform: string, payload: unknown): Promise<StrategyOutput | null> {
+  const raw = await runRaw(
+    STRATEGIST_SYSTEM,
+    `Platform: ${platform}. The "knownFacts" below are ALREADY shown to the creator; never restate them. Study the account and return ONLY the JSON object:\n${JSON.stringify(payload)}`,
+    AI_MODELS.interactive,
+    2400,
+  )
+  let j: any
+  try { j = JSON.parse(stripJson(raw)) } catch { return null }
+  const str = (x: unknown) => (typeof x === 'string' ? x.trim() : '')
+  const KINDS = new Set<StrategyKind>(['pattern', 'opportunity', 'watch', 'strategy'])
+  const cards: StrategyCard[] = Array.isArray(j?.cards)
+    ? j.cards.filter((c: any) => c && KINDS.has(c.kind) && str(c.title) && str(c.body))
+        .slice(0, 6).map((c: any) => ({ kind: c.kind, title: str(c.title), body: str(c.body), confidence: str(c.confidence) }))
+    : []
+  const experiments: StrategyExperiment[] = Array.isArray(j?.experiments)
+    ? j.experiments.filter((e: any) => e && str(e.title) && str(e.hypothesis))
+        .slice(0, 3).map((e: any) => ({ title: str(e.title), hypothesis: str(e.hypothesis), expected: str(e.expected), confidence: str(e.confidence) }))
+    : []
+  const analystRead = str(j?.analystRead)
+  if (!analystRead && !cards.length) return null
+  return { analystRead, cards, experiments }
+}
 
 // AI NARRATOR (not a tool): explains the deterministic per-platform insights.
 // Input is the structured engine output; output is a short "analyst's read".

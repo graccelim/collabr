@@ -5,7 +5,7 @@ import { formatFromMetadata } from '@/lib/analytics/taxonomy'
 import { computeCreatorRollup, type RollupPost } from '@/lib/analytics/rollups'
 import { computePlatformInsights, type InsightPost } from '@/lib/analytics/insights'
 import { aiConfigured } from '@/lib/ai/client'
-import { narratePlatformInsights } from '@/lib/ai/service'
+import { strategistRead, type StrategyOutput } from '@/lib/ai/service'
 import { classifyContent } from '@/lib/ai/classify'
 import { classHash, validateLabels } from '@/lib/analytics/classify'
 import type { Platform, PlatformAdapter, AdapterAuth } from '@/lib/analytics/adapters/types'
@@ -191,20 +191,33 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string):
       .sort().map(([date, views]) => ({ date, views: views as number }))
     const data = computePlatformInsights(platform as Platform, pPosts, trend)
 
+    // AI strategist (reasons beyond the facts). analystRead doubles as the short
+    // "analyst read" line; cards + experiments are the coaching layer. Cached by
+    // a hash of the deterministic insights so it only regenerates when they change.
     let aiNarrative: string | null = null
+    let aiStrategy: StrategyOutput | null = null
     let aiHash: string | null = null
     if (aiConfigured()) {
       aiHash = crypto.createHash('sha256').update(JSON.stringify(data.insights)).digest('hex')
       const { data: prev } = await admin.from('creator_platform_insights')
-        .select('ai_hash, ai_narrative').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
-      if (prev?.ai_hash === aiHash && prev.ai_narrative) aiNarrative = prev.ai_narrative
-      else {
-        try { aiNarrative = await narratePlatformInsights(platform, { overview: data.overview, insights: data.insights, dataConfidence: data.dataConfidence }) }
-        catch { aiNarrative = null }
+        .select('ai_hash, ai_narrative, ai_strategy').eq('creator_id', creatorId).eq('platform', platform).maybeSingle()
+      if (prev?.ai_hash === aiHash && prev.ai_strategy) {
+        aiStrategy = prev.ai_strategy as StrategyOutput
+        aiNarrative = prev.ai_narrative
+      } else {
+        try {
+          aiStrategy = await strategistRead(platform, {
+            knownFacts: data.insights.map((i) => ({ title: i.title, recommendation: i.recommendation })),
+            overview: data.overview, report: data.report, bestTime: data.bestTime,
+            dataConfidence: data.dataConfidence, postCount: data.postCount,
+          })
+          aiNarrative = aiStrategy?.analystRead ?? null
+        } catch { aiStrategy = null }
       }
     }
     await admin.from('creator_platform_insights').upsert({
-      creator_id: creatorId, platform, data, ai_narrative: aiNarrative, ai_hash: aiHash,
+      creator_id: creatorId, platform, data, ai_narrative: aiNarrative, ai_strategy: aiStrategy,
+      ai_hash: aiHash, ai_strategy_hash: aiHash,
       computed_at: new Date().toISOString(),
     }, { onConflict: 'creator_id,platform' })
   }

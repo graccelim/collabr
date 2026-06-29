@@ -8,7 +8,7 @@ import { BarChart3 } from 'lucide-react'
 // Flagship Insights: ONE platform at a time (content behaves differently per
 // platform — never merged). A shared switcher flips between connected platforms.
 const ORDER = ['tiktok', 'instagram', 'youtube']
-type Row = { platform: string; data: any; ai_narrative: string | null }
+type Row = { platform: string; data: any; ai_narrative: string | null; ai_strategy?: any }
 
 export default function InsightsPanel({ platformInsights }: { platformInsights: Row[] }) {
   const rows = [...platformInsights].sort((a, b) => ORDER.indexOf(a.platform) - ORDER.indexOf(b.platform))
