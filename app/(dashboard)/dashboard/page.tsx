@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel } from '@/lib/workflow';
 import { brandCompletion } from '@/lib/profile-completion';
+import { isBetaFreePro } from '@/lib/plans';
+import BrandBetaWelcome from '@/components/BrandBetaWelcome';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
@@ -430,6 +432,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
+      {isBetaFreePro() && <BrandBetaWelcome />}
       {!isEmpty && (
         <div style={{ marginTop: 8 }}>
           <BrandActivation {...activation} />

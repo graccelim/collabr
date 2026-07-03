@@ -486,7 +486,7 @@ export const emails = {
       subject: 'Your first campaign is waiting, post it in 5 minutes',
       html: renderEmail({
         title: `Welcome to Collabr, ${name}`,
-        body: 'Post your first campaign brief and start receiving creator applications within 48 hours. During beta, posting campaigns is free.',
+        body: 'Post your first campaign brief and start receiving creator applications within 48 hours. You’re on Pro, free while we’re in beta, so run unlimited barter campaigns with no card needed. We’ll give you plenty of notice before anything is ever paid.',
         ctaLabel: 'Post a campaign',
         ctaUrl: link('/post-job'),
       }),
