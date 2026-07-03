@@ -26,7 +26,7 @@ export default function PostConnectSync({ accounts }: { accounts: Acct[] }) {
   const runSync = useCallback(async (a: Acct, lbl: string) => {
     setAcct(a); setLabel(lbl); setPhase('syncing')
     try {
-      const res = await fetch(`/api/connected/${a.id}`, { method: 'POST' })
+      const res = await fetch(`/api/connected/${a.id}?quick=1`, { method: 'POST' })
       if (!res.ok) throw new Error('sync failed')
       window.history.replaceState(null, '', '/studio?tab=insights')
       finishing.current = true

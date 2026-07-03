@@ -58,7 +58,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { accountId
 // On-demand "Sync now": pull this account's latest data and recompute the
 // creator's insights immediately, instead of waiting for the nightly cron.
 // Same pipeline as the cron; Pro-active creators only; owner-scoped.
-export async function POST(_req: NextRequest, { params }: { params: { accountId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { accountId: string } }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -85,15 +85,19 @@ export async function POST(_req: NextRequest, { params }: { params: { accountId:
   const auth = adapter ? await getAccountAuth(admin, acct.id as string, platform) : null
   if (!adapter || !auth) return NextResponse.json({ error: 'Sync is not available for this account' }, { status: 400 })
 
+  // quick=1 (used by the on-page first sync right after connect): fetch posts and
+  // compute deterministic insights ONLY, skipping the slow AI classify so it never
+  // times out. The cron then classifies (categories) and writes the game plan.
+  const quick = req.nextUrl.searchParams.get('quick') === '1'
   try {
     await syncAccountData(admin, {
       id: acct.id as string, creator_id: acct.creator_id as string,
       platform: acct.platform as string, external_account_id: (acct.external_account_id as string | null) ?? null,
     }, adapter, auth)
-    // Label the freshly-synced posts (topic/style) so "What's working" can rank them,
-    // then recompute. Order matters: sync → classify → rollups. skipAi keeps this
-    // fast (no slow strategist call); the cron rollup fills the game plan in.
-    await classifyCreatorPosts(admin, creator.id as string)
+    // Label the freshly-synced posts (topic/style) so "What's working" can rank
+    // them (skipped in quick mode). Then recompute deterministic insights (skipAi
+    // keeps it fast; the cron rollup fills the game plan in).
+    if (!quick) await classifyCreatorPosts(admin, creator.id as string)
     await recomputeCreatorInsights(admin, creator.id as string, { skipAi: true })
   } catch (e: any) {
     return NextResponse.json({ error: e?.message || 'Sync failed' }, { status: 502 })
