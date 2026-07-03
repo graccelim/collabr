@@ -5,7 +5,7 @@ import { resolvePlan, isBetaFreePro, PRO_FEATURES, PLUS_DISCOVERY_FEATURES, PLAN
 import { getBrandStripeCustomerId } from '@/lib/brand-billing'
 import BillingActions from '@/components/BillingActions'
 import PlansCTA from '@/components/PlansCTA'
-import { CURRENCY, PLAN_PRICING } from '@/lib/pricing'
+import { CURRENCY, PLAN_PRICING, betaPlusPrice } from '@/lib/pricing'
 import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import { Check, Receipt } from 'lucide-react'
@@ -157,16 +157,31 @@ export default async function BillingPage() {
         )}
       </div>
 
-      {/* Upgrade, shown until the brand is on Plus */}
+      {/* Upgrade to Plus, shown until the brand is on Plus */}
       {!plan.isPlus && (
         <div className="card" style={{ padding: 18 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Do more with Collabr</h3>
-          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
-            {beta
-              ? 'Plus is 50% off during beta, unlock Creator Discovery, direct invites and analytics.'
-              : 'Upgrade for unlimited barter campaigns (Pro), or Creator Discovery + analytics (Plus).'}
-          </p>
-          <PlansCTA beta={beta} label="View plans" />
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div style={{ flex: '1 1 260px', minWidth: 0 }}>
+              <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Do more with Plus</h3>
+              <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
+                Unlock Creator Discovery, advanced filters, direct invites and saved creators, so you can find and reach the right creators faster.
+              </p>
+            </div>
+            {beta && (
+              <div style={{ textAlign: 'right', flex: 'none' }}>
+                <div style={{ fontFamily: 'var(--font-mono, ui-monospace, monospace)', fontSize: 9.5, letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--ink-faint-solid)' }}>Plus · beta price</div>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, justifyContent: 'flex-end', marginTop: 2 }}>
+                  <span style={{ textDecoration: 'line-through', color: 'var(--ink-faint-solid)', fontSize: 14 }}>{CURRENCY}{PLAN_PRICING.plus.monthly}</span>
+                  <span className="mono-num" style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', letterSpacing: '-.02em' }}>{CURRENCY}{betaPlusPrice('monthly')}</span>
+                  <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>/mo</span>
+                </div>
+                <div style={{ fontSize: 11.5, color: 'var(--money-deep)', fontWeight: 600, marginTop: 2 }}>50% off during beta</div>
+              </div>
+            )}
+          </div>
+          <div style={{ marginTop: 14 }}>
+            <PlansCTA beta={beta} label={beta ? 'Upgrade to Plus' : 'View plans'} />
+          </div>
         </div>
       )}
 
