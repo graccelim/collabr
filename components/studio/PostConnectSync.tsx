@@ -1,5 +1,5 @@
 'use client'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 
 // After an account connects, the OAuth callback redirects here instantly (no
@@ -17,6 +17,11 @@ export default function PostConnectSync({ accounts }: { accounts: Acct[] }) {
   const [label, setLabel] = useState('your account')
   const [step, setStep] = useState(0)
   const started = useRef(false)
+  const [pending, startTransition] = useTransition()
+  // Set right before router.refresh() so the loading overlay stays up until the
+  // refreshed (data-populated) page COMMITS — otherwise it closes onto the old
+  // empty Studio and looks like the sync didn't work.
+  const finishing = useRef(false)
 
   const runSync = useCallback(async (a: Acct, lbl: string) => {
     setAcct(a); setLabel(lbl); setPhase('syncing')
@@ -24,12 +29,19 @@ export default function PostConnectSync({ accounts }: { accounts: Acct[] }) {
       const res = await fetch(`/api/connected/${a.id}`, { method: 'POST' })
       if (!res.ok) throw new Error('sync failed')
       window.history.replaceState(null, '', '/studio?tab=insights')
-      setPhase('idle')
-      router.refresh()
+      finishing.current = true
+      startTransition(() => router.refresh())
     } catch {
       setPhase('error')
     }
   }, [router])
+
+  useEffect(() => {
+    if (finishing.current && !pending) {
+      finishing.current = false
+      setPhase('idle')
+    }
+  }, [pending])
 
   useEffect(() => {
     if (started.current) return
