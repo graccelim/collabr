@@ -32,6 +32,7 @@ export default function ConnectAccounts({
   const [err, setErr] = useState<string | null>(null)
   const [syncing, setSyncing] = useState<string | null>(null) // platform label being synced
   const [disconnecting, setDisconnecting] = useState<string | null>(null) // platform label being removed
+  const [connecting, setConnecting] = useState<string | null>(null) // platform whose OAuth is opening
   const [step, setStep] = useState(0)
   const [pending, startTransition] = useTransition()
   // Set right before router.refresh() so we keep the loading panel up until the
@@ -186,12 +187,19 @@ export default function ConnectAccounts({
                 </p>
               ) : (
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                  {canConnect.map((p) => (
-                    <a key={p} href={`/api/connected/oauth/${p}/start`} className="btn-secondary btn-sm"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}>
-                      <Plus size={13} /> Connect {LABEL[p] || p}
-                    </a>
-                  ))}
+                  {canConnect.map((p) => {
+                    const opening = connecting === p
+                    return (
+                      <a key={p} href={`/api/connected/oauth/${p}/start`} className="btn-secondary btn-sm"
+                        onClick={() => setConnecting(p)}
+                        aria-disabled={!!connecting}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 6, textDecoration: 'none', pointerEvents: connecting ? 'none' : 'auto', opacity: connecting && !opening ? 0.5 : 1 }}>
+                        {opening
+                          ? <><RefreshCw size={13} style={{ animation: 'cp-spin .8s linear infinite' }} /> Opening {LABEL[p] || p}…</>
+                          : <><Plus size={13} /> Connect {LABEL[p] || p}</>}
+                      </a>
+                    )
+                  })}
                 </div>
               )}
               </>
