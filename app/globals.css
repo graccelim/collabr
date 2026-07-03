@@ -744,6 +744,9 @@
 /* brand beta-welcome banner: gloss sweep that pauses between passes */
 @keyframes clb-shine { 0% { transform: translateX(-140%) skewX(-20deg); } 55%, 100% { transform: translateX(360%) skewX(-20deg); } }
 @media (prefers-reduced-motion: reduce) { [style*="clb-shine"] { animation: none !important; opacity: 0 !important; } }
+/* billing "Do more with Plus" card: gentle lift on hover, like Discover cards */
+.bill-plus-card { transition: transform .25s ease, box-shadow .25s ease; }
+.bill-plus-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -16px rgba(30,70,170,.42); }
 @media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
 
 @media (max-width: 768px) {

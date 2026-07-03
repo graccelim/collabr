@@ -60,12 +60,12 @@ export default async function BillingPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Billing</h1>
 
-      {/* Current plan */}
-      <div className="card">
+      {/* Current plan — navy card */}
+      <div className="card" style={{ background: 'linear-gradient(122deg,#0A0C22 0%,#1A2150 60%,#0A0C22 100%)', border: 'none', color: '#E7E9F5' }}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Current plan</p>
-            <p className="text-lg font-semibold text-gray-900">{plan.label}</p>
+            <p className="text-xs mb-1" style={{ color: '#9AA0D6' }}>Current plan</p>
+            <p className="text-lg font-semibold" style={{ color: '#fff' }}>{plan.label}</p>
           </div>
           <span className={`badge ${statusBadge}`}>{statusLabel}</span>
         </div>
@@ -73,7 +73,7 @@ export default async function BillingPage() {
         {/* Beta: show Pro's normal price struck through + a Free badge. */}
         {beta && plan.isPro && !plan.isPlus && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
-            <span style={{ textDecoration: 'line-through', color: 'var(--ink-faint-solid)', fontSize: 15 }}>
+            <span style={{ textDecoration: 'line-through', color: '#8E96C8', fontSize: 15 }}>
               {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
             </span>
             <span className="badge badge-safe">Free during beta</span>
@@ -86,8 +86,8 @@ export default async function BillingPage() {
             {[...PRO_FEATURES,
               ...(plan.isPlus ? PLUS_DISCOVERY_FEATURES : []),
             ].map(f => (
-              <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                <Check size={14} style={{ color: 'var(--safe)' }} />
+              <li key={f} className="flex items-center gap-2 text-sm" style={{ color: '#C4C9E6' }}>
+                <Check size={14} style={{ color: '#6EE7A8' }} />
                 {f}
               </li>
             ))}
@@ -96,9 +96,10 @@ export default async function BillingPage() {
 
         {/* Beta explanation - the one place this is spelled out */}
         {beta && (
-          <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-border leading-relaxed">
-            Pro (normally {CURRENCY}{PLAN_PRICING.pro.monthly}/mo) is on us while collabr is in beta, so enjoy it.
-            We might add paid plans down the line, and if we do, we&rsquo;ll give you plenty of notice first.
+          <p className="text-xs mt-4 pt-4 leading-relaxed" style={{ color: '#9AA0C8', borderTop: '1px solid rgba(255,255,255,.12)' }}>
+            Post as many barter campaigns as you like and get creators making content about you, all on us
+            (normally {CURRENCY}{PLAN_PRICING.pro.monthly}/mo) while collabr is in beta. If we ever add paid plans,
+            you&rsquo;ll get plenty of notice first, no surprises.
           </p>
         )}
 
@@ -159,12 +160,13 @@ export default async function BillingPage() {
 
       {/* Upgrade to Plus, shown until the brand is on Plus */}
       {!plan.isPlus && (
-        <div className="card" style={{ padding: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
+        <div className="card bill-plus-card" style={{ position: 'relative', overflow: 'hidden', padding: 18, background: 'linear-gradient(118deg,#E9F1FE 0%,#F5F9FF 55%,#E7EFFC 100%)', border: '1px solid rgba(40,90,190,.14)' }}>
+          <span aria-hidden style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '34%', transform: 'skewX(-20deg)', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,.85),transparent)', animation: 'clb-shine 5s ease-in-out infinite', pointerEvents: 'none' }} />
+          <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div style={{ flex: '1 1 260px', minWidth: 0 }}>
-              <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px' }}>Do more with Plus</h3>
-              <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: 0, lineHeight: 1.5 }}>
-                Unlock Creator Discovery, advanced filters, direct invites and saved creators, so you can find and reach the right creators faster.
+              <h3 style={{ fontSize: 15, fontWeight: 700, margin: '0 0 4px', color: '#0E1016' }}>Do more with Plus</h3>
+              <p style={{ fontSize: 13, color: '#3E4A63', margin: 0, lineHeight: 1.5 }}>
+                Stop waiting for creators to find you. Search thousands of creators by niche and audience, invite the ones you love directly, and save your shortlists, so the right partnerships are always a few clicks away.
               </p>
             </div>
             {beta && (
@@ -179,7 +181,7 @@ export default async function BillingPage() {
               </div>
             )}
           </div>
-          <div style={{ marginTop: 14 }}>
+          <div style={{ position: 'relative', marginTop: 14 }}>
             <PlansCTA beta={beta} label={beta ? 'Upgrade to Plus' : 'View plans'} />
           </div>
         </div>
