@@ -741,6 +741,9 @@
 .cl-mcard { display: block; }
 /* platform switcher scrolls horizontally past ~5 platforms, scrollbar hidden */
 .pi-switch::-webkit-scrollbar { display: none; }
+/* brand beta-welcome banner: gloss sweep that pauses between passes */
+@keyframes clb-shine { 0% { transform: translateX(-140%) skewX(-20deg); } 55%, 100% { transform: translateX(360%) skewX(-20deg); } }
+@media (prefers-reduced-motion: reduce) { [style*="clb-shine"] { animation: none !important; opacity: 0 !important; } }
 @media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
 
 @media (max-width: 768px) {
