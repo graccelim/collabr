@@ -23,6 +23,7 @@ import { responseStanding } from '@/lib/recommend'
 import { boostEnabled } from '@/lib/stripe'
 import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
+import { reportingRate, sharesResults } from '@/lib/results/report'
 import Link from 'next/link'
 import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
 
@@ -66,6 +67,8 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     { data: brandReviews },
     { data: scoreRow },
     viewer,
+    { data: doneForRate },
+    { data: reportedRows },
   ] = await Promise.all([
     supabase.from('social_accounts')
       .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
@@ -83,7 +86,18 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     admin.from('creator_scores')
       .select('invites_concluded, response_rate_shrunk, completed_count, completion_rate, response_time_median_hours, disputes_lost').eq('creator_id', creatorId).maybeSingle(),
     getUserRow(),
+    admin.from('collabs').select('id, completed_at').eq('creator_id', creatorId).eq('status', 'completed'),
+    admin.from('collab_results').select('collab_id').eq('creator_id', creatorId),
   ])
+
+  // Reporting rate: of collabs completed past the grace window, how many the
+  // creator reported results for. Drives a "shares results" trust tile.
+  const reportedSet = new Set((reportedRows ?? []).map((r: any) => r.collab_id))
+  const reportRate = reportingRate((doneForRate ?? []).map((c: any) => ({
+    completedAt: c.completed_at ? new Date(c.completed_at) : null,
+    reportedAt: reportedSet.has(c.id) ? new Date() : null,
+  })), new Date())
+  const reportsResults = sharesResults(reportRate)
 
   // Owner viewing their own profile (Profile nav lands here) → show Edit, not
   // brand actions. "This is how brands see you."
@@ -290,6 +304,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             ratingAvg={creator.rating_avg ?? 0}
             ratingCount={creator.rating_count ?? 0}
             repeatBrands={repeatBrands}
+            reportsResults={reportsResults}
           />
 
           {/* Connected analytics, verified snapshot when connected; hidden for

@@ -8,6 +8,8 @@ import DraftSubmitForm from '@/components/DraftSubmitForm'
 import ReviewForm from '@/components/ReviewForm'
 import BrandReviewActions from '@/components/BrandReviewActions'
 import CreatorLivePostForm from '@/components/CreatorLivePostForm'
+import CollabResultsForm from '@/components/CollabResultsForm'
+import CollabResultsView from '@/components/CollabResultsView'
 import WorkflowTimeline from '@/components/WorkflowTimeline'
 import EscrowTimeline from '@/components/EscrowTimeline'
 import CollabChat from '@/components/CollabChat'
@@ -86,6 +88,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
     { data: livePost },
     { data: existingReview },
     { data: counterpartyReview },
+    { data: collabResult },
   ] = await Promise.all([
     supabase.from('creator_profiles').select('user_id').eq('id', collab.creator_id).single(),
     admin.from('creator_profiles').select('stripe_connect_id').eq('id', collab.creator_id).single(),
@@ -98,6 +101,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       .eq('collab_id', params.id)
       .eq('reviewer_type', profile?.role === 'brand' ? 'creator' : 'brand')
       .maybeSingle(),
+    admin.from('collab_results').select('views, likes, comments, shares, saves, reach, post_url, reported_at').eq('collab_id', params.id).maybeSingle(),
   ])
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
     return (
@@ -371,6 +375,12 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
               )}
             </div>
           )}
+
+          {/* Reported results — creator adds/edits; brand sees read-only */}
+          {!isBrand && ['live_submitted', 'live_confirmed', 'completed'].includes(collab.status) && (
+            <CollabResultsForm collabId={params.id} existing={(collabResult as any) ?? null} />
+          )}
+          {isBrand && collabResult && <CollabResultsView result={collabResult as any} />}
 
           {/* Counterparty reputation + their revealed feedback (double-blind) */}
           {collab.status === 'completed' && (() => {

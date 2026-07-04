@@ -1,4 +1,4 @@
-import { ShieldCheck, CheckCircle2, Repeat, Clock, Scale, Star } from 'lucide-react'
+import { ShieldCheck, CheckCircle2, Repeat, Clock, Scale, Star, BarChart3 } from 'lucide-react'
 
 interface Props {
   completedCount: number
@@ -8,6 +8,8 @@ interface Props {
   ratingAvg: number
   ratingCount: number
   repeatBrands: number
+  /** True when the creator reliably reports their post results. */
+  reportsResults?: boolean
 }
 
 function responseLabel(h: number): string {
@@ -40,6 +42,9 @@ export default function CreatorTrust(p: Props) {
   }
   if (p.repeatBrands > 0) {
     tiles.push({ icon: Repeat, label: `${p.repeatBrands} repeat brand${p.repeatBrands === 1 ? '' : 's'}`, sub: 'came back for more' })
+  }
+  if (p.reportsResults) {
+    tiles.push({ icon: BarChart3, label: 'Shares results', sub: 'reports how their posts perform' })
   }
   if (hasHistory) {
     tiles.push({ icon: Scale, label: `${p.disputesCount} dispute${p.disputesCount === 1 ? '' : 's'}`, sub: p.disputesCount === 0 ? 'clean record' : 'resolved' })

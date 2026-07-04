@@ -3,6 +3,8 @@ import { requireBrand } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import ApplicantList from '@/components/ApplicantList'
+import ResultsSummary from '@/components/ResultsSummary'
+import { aggregateResults } from '@/lib/results/report'
 import EmptyState from '@/components/EmptyState'
 import { PLAN_COLUMNS } from '@/lib/plans'
 import { computeMatch, creatorIndicators } from '@/lib/recommend'
@@ -39,7 +41,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // collabs are party-scoped for session clients. Campaign ownership was
   // verified above; emails excluded. Used for the applicant list and the
   // "spots filled" count respectively.
-  const [{ data: applications }, { data: collabs }] = await Promise.all([
+  const [{ data: applications }, { data: collabs }, { data: campaignResults }] = await Promise.all([
     createAdminClient().from('applications')
       .select('*, creator_profiles(id, user_id, bio, niche, niche_tags, niches, platforms, base_rate, average_rate_sgd, availability_status, is_verified, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url))')
       .eq('campaign_id', params.id)
@@ -50,10 +52,13 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
       .order('created_at', { ascending: true }),
     createAdminClient().from('collabs')
       .select('id, application_id, status, payment_status, agreed_rate').eq('campaign_id', params.id),
+    createAdminClient().from('collab_results')
+      .select('views, likes, comments, shares, saves, reach').eq('campaign_id', params.id),
   ])
   // A spot is only consumed once escrow is secured (funded), not at mere
   // selection. Selected-but-unfunded collabs don't count toward "filled".
   const spotsFilled = (collabs || []).filter(consumesSpot).length
+  const resultsAgg = aggregateResults((campaignResults as any) ?? [])
   // Map each selected application to its collab so the card can deep-link the
   // brand straight to funding (Accept → Fund is one continuous motion).
   // Map each application to its LIVE collab. Skip cancelled ones: after an
@@ -199,6 +204,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
 
         {/* RAIL - brief + how accepting works */}
         <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <ResultsSummary agg={resultsAgg} title="Campaign results" reportedOf={`${resultsAgg.reportedCount} creator${resultsAgg.reportedCount === 1 ? '' : 's'} reported`} />
           <div className="card" style={{ padding: 20 }}>
             <div className="eyebrow" style={{ marginBottom: 12 }}>The brief</div>
             <p style={{ color: 'var(--ink)', margin: 0, fontSize: 14, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>{campaign.brief}</p>

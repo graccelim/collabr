@@ -169,6 +169,28 @@ export const productEmails = {
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
 
+  // Brand: a creator just reported their post's results.
+  resultsReported: (d: { creatorName: string; campaignTitle: string; collabId: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:results-reported:${new Date().toISOString().slice(0, 10)}`,
+    subject: `${d.creatorName} shared their results`,
+    preheader: `See how "${d.campaignTitle}" performed.`,
+    title: `${d.creatorName} shared their results`,
+    body: `${d.creatorName} added the numbers for "${d.campaignTitle}", views, likes and more. Open the collab to see how it performed.`,
+    ctaLabel: 'See the results',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
+  // Creator: nudge to report results a couple of weeks after posting.
+  resultsReminder: (d: { brandName: string; collabId: string; key: string }): ProductEmail => ({
+    type: TYPE,
+    dedupeKey: `email:collab:${d.collabId}:results-reminder:${d.key}`,
+    subject: 'Add your results so brands can see how you did',
+    preheader: 'A quick update helps you get booked again.',
+    title: 'How did your post do?',
+    body: `Your collab with ${d.brandName} has been live for a couple of weeks. Add your views, likes and comments so they can see the results, it takes a minute and makes you far more likely to get booked again.`,
+    ctaLabel: 'Add your results',
+    ctaUrl: link(`/collabs/${d.collabId}`),
+  }),
   liveSubmitted: (d: { creatorName: string; collabId: string }): ProductEmail => ({
     type: TYPE,
     dedupeKey: `email:collab:${d.collabId}:live-submitted`,
