@@ -263,13 +263,13 @@ function WhySection() {
           </div>
           <div style={{ minWidth: 0 }}>
             <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', margin: '0 0 8px' }}>
-              Never chase creators for results
+              Proven Results
             </h3>
             <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>
-              Creators report how each post performed, and we send the reminders so you don&apos;t have to.
+              Creators report how each post performed to build their track record, and brands see the numbers without chasing for them.
             </p>
             <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', lineHeight: 1.45, margin: '12px 0 0', paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-              No more asking for screenshots or chasing performance updates.
+              No more asking for screenshots, or guessing which creators actually deliver.
             </p>
           </div>
         </Reveal>
