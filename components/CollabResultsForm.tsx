@@ -6,15 +6,14 @@ import { BarChart3 } from 'lucide-react'
 
 // Creator self-reports their post's real metrics for a completed/live collab.
 // Free feature; numbers are shown to the brand labelled "self-reported".
-type Existing = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; reach: number | null; post_url: string | null } | null
+type Existing = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; post_url: string | null } | null
 
-const FIELDS: { key: 'views' | 'likes' | 'comments' | 'shares' | 'saves' | 'reach'; label: string }[] = [
+const FIELDS: { key: 'views' | 'likes' | 'comments' | 'shares' | 'saves'; label: string }[] = [
   { key: 'views', label: 'Views' },
   { key: 'likes', label: 'Likes' },
   { key: 'comments', label: 'Comments' },
   { key: 'shares', label: 'Shares' },
   { key: 'saves', label: 'Saves' },
-  { key: 'reach', label: 'Reach' },
 ]
 
 export default function CollabResultsForm({ collabId, existing }: { collabId: string; existing?: Existing }) {

@@ -15,10 +15,9 @@ export const collabResultSchema = z
     comments: metric,
     shares: metric,
     saves: metric,
-    reach: metric,
     post_url: z.string().trim().url().max(500),
   })
-  .refine((v) => [v.views, v.likes, v.comments, v.shares, v.saves, v.reach].some((x) => x != null), {
+  .refine((v) => [v.views, v.likes, v.comments, v.shares, v.saves].some((x) => x != null), {
     message: 'Add at least one number (views, likes or comments).',
   })
 export type CollabResultInput = z.infer<typeof collabResultSchema>
@@ -30,7 +29,6 @@ export interface ResultRow {
   comments: number | null
   shares: number | null
   saves: number | null
-  reach: number | null
 }
 
 export interface AggregateResults {
@@ -40,7 +38,6 @@ export interface AggregateResults {
   comments: number | null
   shares: number | null
   saves: number | null
-  reach: number | null
   /** likes + comments + shares + saves (only the metrics that were reported). */
   engagement: number | null
   /** engagement / views, 0..1, null when views are missing/zero. */
@@ -62,11 +59,10 @@ export function aggregateResults(rows: ResultRow[]): AggregateResults {
   const comments = sum('comments')
   const shares = sum('shares')
   const saves = sum('saves')
-  const reach = sum('reach')
   const engParts = [likes, comments, shares, saves].filter((n): n is number => n != null)
   const engagement = engParts.length ? engParts.reduce((a, b) => a + b, 0) : null
   const engagementRate = engagement != null && views != null && views > 0 ? engagement / views : null
-  return { reportedCount: rows.length, views, likes, comments, shares, saves, reach, engagement, engagementRate }
+  return { reportedCount: rows.length, views, likes, comments, shares, saves, engagement, engagementRate }
 }
 
 // ── Reporting rate + badge ──────────────────────────────────────────────────

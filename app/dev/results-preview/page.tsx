@@ -11,11 +11,11 @@ import { aggregateResults } from '@/lib/results/report'
 export default function ResultsPreviewPage() {
   if (process.env.VERCEL_ENV === 'production') notFound()
 
-  const sample = { views: 24500, likes: 1820, comments: 96, shares: 210, saves: 340, reach: 31000, post_url: 'https://www.tiktok.com/@sample/video/123', reported_at: new Date().toISOString() }
+  const sample = { views: 24500, likes: 1820, comments: 96, shares: 210, saves: 340, post_url: 'https://www.tiktok.com/@sample/video/123', reported_at: new Date().toISOString() }
   const agg = aggregateResults([
-    { views: 24500, likes: 1820, comments: 96, shares: 210, saves: 340, reach: 31000 },
-    { views: 12800, likes: 940, comments: 41, shares: 88, saves: 120, reach: 16500 },
-    { views: 6100, likes: 510, comments: 22, shares: 30, saves: 60, reach: 9000 },
+    { views: 24500, likes: 1820, comments: 96, shares: 210, saves: 340 },
+    { views: 12800, likes: 940, comments: 41, shares: 88, saves: 120 },
+    { views: 6100, likes: 510, comments: 22, shares: 30, saves: 60 },
   ])
 
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (

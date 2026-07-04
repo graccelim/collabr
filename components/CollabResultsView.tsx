@@ -2,11 +2,10 @@ import { BarChart3, ExternalLink } from 'lucide-react'
 
 // Read-only display of a creator's self-reported results for one collab. Shown to
 // the brand (and to the creator alongside the edit form). Clearly labelled.
-type Result = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; reach: number | null; post_url: string | null; reported_at?: string | null }
+type Result = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; post_url: string | null; reported_at?: string | null }
 
 const FIELDS: { key: keyof Result; label: string }[] = [
   { key: 'views', label: 'Views' },
-  { key: 'reach', label: 'Reach' },
   { key: 'likes', label: 'Likes' },
   { key: 'comments', label: 'Comments' },
   { key: 'shares', label: 'Shares' },
@@ -29,7 +28,7 @@ export default function CollabResultsView({ result }: { result: Result }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(3, tiles.length)}, 1fr)`, gap: 10 }} className="resp-stats">
         {tiles.map((f) => (
-          <div key={String(f.key)} style={{ background: 'var(--surface-2, #F7F8FC)', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11, padding: '11px 13px' }}>
+          <div key={String(f.key)} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 13px' }}>
             <div className="mono-num" style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)' }}>{fmt(result[f.key] as number | null)}</div>
             <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>{f.label}</div>
           </div>

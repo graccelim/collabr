@@ -1,14 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { aggregateResults, reportingRate, sharesResults, collabResultSchema, type ResultRow } from '@/lib/results/report'
 
-const row = (p: Partial<ResultRow>): ResultRow => ({ views: null, likes: null, comments: null, shares: null, saves: null, reach: null, ...p })
+const row = (p: Partial<ResultRow>): ResultRow => ({ views: null, likes: null, comments: null, shares: null, saves: null, ...p })
 const day = 86_400_000
 
 describe('aggregateResults', () => {
   it('sums present metrics and computes engagement + rate', () => {
     const r = aggregateResults([
-      row({ views: 1000, likes: 100, comments: 10, shares: 5, saves: 5, reach: 800 }),
-      row({ views: 2000, likes: 200, comments: 20, shares: 5, saves: 5, reach: 1500 }),
+      row({ views: 1000, likes: 100, comments: 10, shares: 5, saves: 5 }),
+      row({ views: 2000, likes: 200, comments: 20, shares: 5, saves: 5 }),
     ])
     expect(r.reportedCount).toBe(2)
     expect(r.views).toBe(3000)
@@ -20,7 +20,6 @@ describe('aggregateResults', () => {
     const r = aggregateResults([row({ views: 500 }), row({ views: 700 })])
     expect(r.views).toBe(1200)
     expect(r.likes).toBeNull()
-    expect(r.reach).toBeNull()
     expect(r.engagement).toBeNull()
     expect(r.engagementRate).toBeNull()
   })

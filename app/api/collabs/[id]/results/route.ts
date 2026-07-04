@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     brand_id: collab.brand_id,
     campaign_id: collab.campaign_id,
     views: v.views ?? null, likes: v.likes ?? null, comments: v.comments ?? null,
-    shares: v.shares ?? null, saves: v.saves ?? null, reach: v.reach ?? null,
+    shares: v.shares ?? null, saves: v.saves ?? null,
     post_url: v.post_url,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'collab_id' })

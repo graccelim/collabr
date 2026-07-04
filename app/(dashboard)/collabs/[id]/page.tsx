@@ -101,7 +101,7 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       .eq('collab_id', params.id)
       .eq('reviewer_type', profile?.role === 'brand' ? 'creator' : 'brand')
       .maybeSingle(),
-    admin.from('collab_results').select('views, likes, comments, shares, saves, reach, post_url, reported_at').eq('collab_id', params.id).maybeSingle(),
+    admin.from('collab_results').select('views, likes, comments, shares, saves, post_url, reported_at').eq('collab_id', params.id).maybeSingle(),
   ])
   if (brandUserId !== user.id && creatorProfile?.user_id !== user.id) {
     return (

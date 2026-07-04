@@ -53,7 +53,7 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
     createAdminClient().from('collabs')
       .select('id, application_id, status, payment_status, agreed_rate').eq('campaign_id', params.id),
     createAdminClient().from('collab_results')
-      .select('views, likes, comments, shares, saves, reach').eq('campaign_id', params.id),
+      .select('views, likes, comments, shares, saves').eq('campaign_id', params.id),
   ])
   // A spot is only consumed once escrow is secured (funded), not at mere
   // selection. Selected-but-unfunded collabs don't count toward "filled".

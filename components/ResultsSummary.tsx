@@ -9,7 +9,7 @@ const pct = (n: number | null) => (n == null ? '–' : `${(n * 100).toFixed(1)}%
 export default function ResultsSummary({ agg, reportedOf, title = 'Reported results' }: { agg: AggregateResults; reportedOf?: string; title?: string }) {
   const tiles: { label: string; value: string }[] = [
     { label: 'Views', value: fmt(agg.views) },
-    { label: 'Reach', value: fmt(agg.reach) },
+    { label: 'Likes', value: fmt(agg.likes) },
     { label: 'Engagement', value: fmt(agg.engagement) },
     { label: 'Eng. rate', value: pct(agg.engagementRate) },
   ]
@@ -32,7 +32,7 @@ export default function ResultsSummary({ agg, reportedOf, title = 'Reported resu
         <>
           <div className="cl-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
             {tiles.map((t) => (
-              <div key={t.label} style={{ background: 'var(--surface-2, #F7F8FC)', border: '1px solid rgba(20,30,80,.07)', borderRadius: 11, padding: '11px 13px' }}>
+              <div key={t.label} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 13px' }}>
                 <div className="mono-num" style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)' }}>{t.value}</div>
                 <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>{t.label}</div>
               </div>

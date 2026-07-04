@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Self-reported campaign results. After a collab completes, the creator reports
--- their post's real metrics (views/likes/comments/shares/saves/reach + link).
+-- their post's real metrics (views/likes/comments/shares/saves + link).
 -- Compliant (no scraping/OAuth), works for every platform. Brands see per-collab
 -- numbers plus per-campaign / brand-wide totals. Free for everyone.
 --
@@ -43,7 +43,6 @@ create table if not exists public.collab_results (
   comments    integer,
   shares      integer,
   saves       integer,
-  reach       integer,
   post_url    text,
   reported_at timestamptz not null default now(),
   updated_at  timestamptz not null default now()
