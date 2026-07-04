@@ -66,30 +66,42 @@ const Results = () => (
 
 /* Benefit-led USPs: title → benefit → a quiet "No more…" reinforcement.
    Desktop-only (mobile carries the same USPs through the split-hero bullets). */
-const WHY: { icon: () => JSX.Element; title: string; benefit: string; noMore: string }[] = [
+const WHY: {
+  icon: () => JSX.Element;
+  title: string;
+  benefit: string;
+  noMore: string;
+}[] = [
   {
     icon: Shield,
     title: 'Protected Payments',
-    benefit: 'Funds stay protected until collaboration requirements are completed.',
-    noMore: 'No more chasing payments or wondering whether work will be delivered.',
+    benefit:
+      'Funds stay protected until collaboration requirements are completed.',
+    noMore:
+      'No more chasing payments or wondering whether work will be delivered.',
   },
   {
     icon: Approve,
     title: 'Structured Approvals',
-    benefit: 'Drafts, feedback, revisions, and approvals managed in one workflow.',
-    noMore: 'No more endless revision threads in DMs or content going live before approval.',
+    benefit:
+      'Drafts, feedback, revisions, and approvals managed in one workflow.',
+    noMore:
+      'No more endless revision threads in DMs or content going live before approval.',
   },
   {
     icon: Reputation,
     title: 'Earned Reputation',
-    benefit: 'Trust is built through completed collaborations and genuine reviews.',
+    benefit:
+      'Trust is built through completed collaborations and genuine reviews.',
     noMore: 'No more guessing who is reliable based on follower counts alone.',
   },
   {
     icon: Scale,
     title: 'Fair Resolution',
-    benefit: 'A structured dispute process helps both sides resolve issues fairly.',
-    noMore: 'No more being left on your own when a collaboration does not go as planned.',
+    benefit:
+      'A structured dispute process helps both sides resolve issues fairly.',
+    noMore:
+      'No more being left on your own when a collaboration does not go as planned.',
   },
 ];
 
@@ -161,13 +173,18 @@ function WhySection() {
   return (
     <section className="lp-section">
       <div className="lp-narrow">
-        <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}>
+        <Reveal
+          style={{ textAlign: 'center', marginBottom: 'clamp(32px,4vw,48px)' }}
+        >
           <div className="eyebrow" style={{ marginBottom: 10 }}>
             Why Collabr
           </div>
           <h2
             className="display-face"
-            style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}
+            style={{
+              fontSize: 'clamp(26px,3.4vw,38px)',
+              letterSpacing: '-0.02em',
+            }}
           >
             Better collaborations, not just more connections.
           </h2>
@@ -180,8 +197,8 @@ function WhySection() {
               marginInline: 'auto',
             }}
           >
-            Built to help brands and creators work together with confidence
-            from start to finish.
+            Built to help brands and creators work together with confidence from
+            start to finish.
           </p>
         </Reveal>
         <div
@@ -245,7 +262,16 @@ function WhySection() {
           ))}
         </div>
         {/* Flagship: self-reported results + reminders (full-width feature row). */}
-        <Reveal className="card" style={{ padding: 26, marginTop: 18, display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+        <Reveal
+          className="card"
+          style={{
+            padding: 26,
+            marginTop: 18,
+            display: 'flex',
+            gap: 18,
+            alignItems: 'flex-start',
+          }}
+        >
           <div
             style={{
               width: 38,
@@ -262,14 +288,40 @@ function WhySection() {
             <Results />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', margin: '0 0 8px' }}>
+            <h3
+              style={{
+                fontSize: 19,
+                fontWeight: 700,
+                color: 'var(--ink)',
+                letterSpacing: '-0.01em',
+                margin: '0 0 8px',
+              }}
+            >
               Proven Results
             </h3>
-            <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>
-              Creators report how each post performed to build their track record, and brands see the numbers without chasing for them.
+            <p
+              style={{
+                fontSize: 14.5,
+                color: 'var(--ink-soft)',
+                lineHeight: 1.5,
+                margin: 0,
+              }}
+            >
+              Creators report how each post performed to build their track
+              record, and brands see the numbers without chasing for them.
             </p>
-            <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', lineHeight: 1.45, margin: '12px 0 0', paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-              No more chasing screenshots or forgotten updates, the reminders are automatic.
+            <p
+              style={{
+                fontSize: 13,
+                color: 'var(--ink-faint-solid)',
+                lineHeight: 1.45,
+                margin: '12px 0 0',
+                paddingTop: 12,
+                borderTop: '1px solid var(--line)',
+              }}
+            >
+              No more chasing screenshots or forgotten updates, the reminders
+              are automatic.
             </p>
           </div>
         </Reveal>
@@ -353,13 +405,33 @@ export default async function HomePage() {
           >
             Collaborations you can trust.
           </h1>
-          <p style={{ fontSize: 'clamp(16px,2.2vw,19px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 680, margin: '0 auto 24px' }}>
-            Protected payments, structured approvals, and real reputation. Better collaborations
-            for brands and creators, not just more of them.
+          <p
+            style={{
+              fontSize: 'clamp(16px,2.2vw,19px)',
+              color: 'var(--ink-soft)',
+              lineHeight: 1.5,
+              maxWidth: 680,
+              margin: '0 auto 24px',
+            }}
+          >
+            Protected payments, structured approvals, and real reputation.
+            Better collaborations for brands and creators, not just more of
+            them.
           </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup?role=brand" className="btn-primary btn-lg">I&rsquo;m a brand</Link>
-            <Link href="/signup?role=creator" className="btn-secondary btn-lg">I&rsquo;m a creator</Link>
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+            }}
+          >
+            <Link href="/signup?role=brand" className="btn-primary btn-lg">
+              I&rsquo;m a brand
+            </Link>
+            <Link href="/signup?role=creator" className="btn-secondary btn-lg">
+              I&rsquo;m a creator
+            </Link>
           </div>
         </Reveal>
       </header>
@@ -418,7 +490,7 @@ export default async function HomePage() {
                 'Matched to your niche and budget',
                 'See real creator reputation, not just follower counts',
                 'Funds protected until content is delivered and approved',
-                'Post results reported back to you automatically, no chasing',
+                'Post analytics reported back to you automatically, no chasing',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
@@ -526,7 +598,7 @@ export default async function HomePage() {
                 'Discover campaigns matched to your niche and rates',
                 'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
-                'Reminders to report results and get booked again',
+                'Auto reminders to update post analytics and improve your chances of future collaborations.',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
@@ -555,7 +627,6 @@ export default async function HomePage() {
           </Reveal>
         </Link>
       </div>
-
 
       {/* ══ WHY COLLABR ══ benefit-led USP grid. Value before mechanism on every
           viewport, the stronger conversion order. ══ */}
@@ -639,35 +710,94 @@ export default async function HomePage() {
 
       {/* ══ CONNECTED CREATOR / proven performance USP, analytics suite only ══ */}
       {flags.analyticsSuite && (
-      <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
-        <div style={{ maxWidth: 1040, margin: '0 auto', padding: '0 20px' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,44px)' }}>
-            <span className="eyebrow" style={{ color: 'var(--ink-faint-solid)' }}>Proven performance</span>
-            <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.2vw,38px)', fontWeight: 700, letterSpacing: '-0.025em', marginTop: 10 }}>
-              Hire on real results, not follower counts
-            </h2>
-            <p style={{ fontSize: 'clamp(15px,1.5vw,17px)', color: 'var(--ink-soft)', lineHeight: 1.6, maxWidth: 560, margin: '12px auto 0' }}>
-              ⭐ Connected Creators sync their TikTok, Instagram and YouTube performance automatically, so brands
-              see average views, engagement and reach. 🛡️ Collabr Certified shows who's reliable. No rankings, no
-              vanity metrics, just a creator's own track record.
-            </p>
-          </Reveal>
-          <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-            {[
-              ['🛡️ Collabr Certified', 'Earned from completed collaborations, strong ratings and reliability, kept current, suspendable.'],
-              ['⭐ Connected Creator', 'Auto-synced performance metrics from connected social accounts. A Creator Pro benefit.'],
-              ['💎 Creator Pro', 'Creator Studio, AI Growth & Brand Coach, Content Lab, weekly reports, and a lower platform fee.'],
-            ].map(([title, body]) => (
-              <Reveal key={title} className="card" style={{ padding: 24 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}>{title}</h3>
-                <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.55, margin: 0 }}>{body}</p>
-              </Reveal>
-            ))}
+        <section
+          className="lp-section"
+          style={{ background: 'var(--surface-2)' }}
+        >
+          <div style={{ maxWidth: 1040, margin: '0 auto', padding: '0 20px' }}>
+            <Reveal
+              style={{
+                textAlign: 'center',
+                marginBottom: 'clamp(28px,3.5vw,44px)',
+              }}
+            >
+              <span
+                className="eyebrow"
+                style={{ color: 'var(--ink-faint-solid)' }}
+              >
+                Proven performance
+              </span>
+              <h2
+                className="display-face"
+                style={{
+                  fontSize: 'clamp(26px,3.2vw,38px)',
+                  fontWeight: 700,
+                  letterSpacing: '-0.025em',
+                  marginTop: 10,
+                }}
+              >
+                Hire on real results, not follower counts
+              </h2>
+              <p
+                style={{
+                  fontSize: 'clamp(15px,1.5vw,17px)',
+                  color: 'var(--ink-soft)',
+                  lineHeight: 1.6,
+                  maxWidth: 560,
+                  margin: '12px auto 0',
+                }}
+              >
+                ⭐ Connected Creators sync their TikTok, Instagram and YouTube
+                performance automatically, so brands see average views,
+                engagement and reach. 🛡️ Collabr Certified shows who's reliable.
+                No rankings, no vanity metrics, just a creator's own track
+                record.
+              </p>
+            </Reveal>
+            <div
+              className="resp-2col"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 16,
+              }}
+            >
+              {[
+                [
+                  '🛡️ Collabr Certified',
+                  'Earned from completed collaborations, strong ratings and reliability, kept current, suspendable.',
+                ],
+                [
+                  '⭐ Connected Creator',
+                  'Auto-synced performance metrics from connected social accounts. A Creator Pro benefit.',
+                ],
+                [
+                  '💎 Creator Pro',
+                  'Creator Studio, AI Growth & Brand Coach, Content Lab, weekly reports, and a lower platform fee.',
+                ],
+              ].map(([title, body]) => (
+                <Reveal key={title} className="card" style={{ padding: 24 }}>
+                  <h3
+                    style={{ fontSize: 17, fontWeight: 700, marginBottom: 8 }}
+                  >
+                    {title}
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 14.5,
+                      color: 'var(--ink-soft)',
+                      lineHeight: 1.55,
+                      margin: 0,
+                    }}
+                  >
+                    {body}
+                  </p>
+                </Reveal>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       )}
-
 
       {/* ══ TRUST NUMBERS ══ single minimal stat strip, count-up ══ */}
       <section
@@ -844,17 +974,45 @@ export default async function HomePage() {
         >
           collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
         </span>
-        <div style={{ display: 'flex', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: 22,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
           <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>
             © 2026 collabr. · Singapore
           </span>
-          <Link href="/privacy" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+          <Link
+            href="/privacy"
+            style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,.45)',
+              fontWeight: 500,
+            }}
+          >
             Privacy
           </Link>
-          <Link href="/terms" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+          <Link
+            href="/terms"
+            style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,.45)',
+              fontWeight: 500,
+            }}
+          >
             Terms
           </Link>
-          <Link href="/data-deletion" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>
+          <Link
+            href="/data-deletion"
+            style={{
+              fontSize: 13,
+              color: 'rgba(255,255,255,.45)',
+              fontWeight: 500,
+            }}
+          >
             Data deletion
           </Link>
           <a
