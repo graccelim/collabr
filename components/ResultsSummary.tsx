@@ -1,4 +1,4 @@
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, Eye, Heart, Activity, Percent } from 'lucide-react'
 import type { AggregateResults } from '@/lib/results/report'
 
 // Brand-facing aggregate of self-reported results (per campaign or brand-wide).
@@ -7,11 +7,11 @@ const fmt = (n: number | null) => (n == null ? '–' : n >= 1000 ? `${(n / 1000)
 const pct = (n: number | null) => (n == null ? '–' : `${(n * 100).toFixed(1)}%`)
 
 export default function ResultsSummary({ agg, reportedOf, title = 'Reported results' }: { agg: AggregateResults; reportedOf?: string; title?: string }) {
-  const tiles: { label: string; value: string }[] = [
-    { label: 'Views', value: fmt(agg.views) },
-    { label: 'Likes', value: fmt(agg.likes) },
-    { label: 'Engagement', value: fmt(agg.engagement) },
-    { label: 'Eng. rate', value: pct(agg.engagementRate) },
+  const tiles: { label: string; value: string; Icon: typeof Eye }[] = [
+    { label: 'Views', value: fmt(agg.views), Icon: Eye },
+    { label: 'Likes', value: fmt(agg.likes), Icon: Heart },
+    { label: 'Engagement', value: fmt(agg.engagement), Icon: Activity },
+    { label: 'Eng. rate', value: pct(agg.engagementRate), Icon: Percent },
   ]
 
   return (
@@ -30,11 +30,14 @@ export default function ResultsSummary({ agg, reportedOf, title = 'Reported resu
         </p>
       ) : (
         <>
-          <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 10 }}>
             {tiles.map((t) => (
-              <div key={t.label} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 13px' }}>
+              <div key={t.label} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 12px' }}>
                 <div className="mono-num" style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)' }}>{t.value}</div>
-                <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', marginTop: 2 }}>{t.label}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 3 }}>
+                  <t.Icon size={12} style={{ color: 'var(--accent-deep, #5B6191)', flex: 'none' }} />
+                  <span style={{ fontSize: 11.5, color: 'var(--ink-soft)' }}>{t.label}</span>
+                </div>
               </div>
             ))}
           </div>

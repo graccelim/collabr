@@ -67,7 +67,7 @@ export default function CreatorTrust(p: Props) {
           </div>
         </div>
       ) : (
-        <div className="resp-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
           {tiles.map((t, i) => (
             <div key={i} className="card" style={{ padding: '13px 15px', display: 'flex', gap: 11, alignItems: 'center' }}>
               <t.icon size={18} color="var(--money-deep)" style={{ flexShrink: 0 }} />

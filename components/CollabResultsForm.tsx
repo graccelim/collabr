@@ -2,18 +2,18 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { BarChart3 } from 'lucide-react'
+import { BarChart3, Eye, Heart, MessageCircle, Share2, Bookmark } from 'lucide-react'
 
 // Creator self-reports their post's real metrics for a completed/live collab.
 // Free feature; numbers are shown to the brand labelled "self-reported".
 type Existing = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null } | null
 
-const FIELDS: { key: 'views' | 'likes' | 'comments' | 'shares' | 'saves'; label: string }[] = [
-  { key: 'views', label: 'Views' },
-  { key: 'likes', label: 'Likes' },
-  { key: 'comments', label: 'Comments' },
-  { key: 'shares', label: 'Shares' },
-  { key: 'saves', label: 'Saves' },
+const FIELDS: { key: 'views' | 'likes' | 'comments' | 'shares' | 'saves'; label: string; Icon: typeof Eye }[] = [
+  { key: 'views', label: 'Views', Icon: Eye },
+  { key: 'likes', label: 'Likes', Icon: Heart },
+  { key: 'comments', label: 'Comments', Icon: MessageCircle },
+  { key: 'shares', label: 'Shares', Icon: Share2 },
+  { key: 'saves', label: 'Saves', Icon: Bookmark },
 ]
 
 export default function CollabResultsForm({ collabId, existing }: { collabId: string; existing?: Existing }) {
@@ -64,7 +64,9 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }} className="resp-stats">
         {FIELDS.map((f) => (
           <label key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-            <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{f.label}</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>
+              <f.Icon size={12} style={{ color: 'var(--accent-deep, #5B6191)', flex: 'none' }} /> {f.label}
+            </span>
             <input className="input" inputMode="numeric" placeholder="0" value={vals[f.key]}
               onChange={(e) => setVals((s) => ({ ...s, [f.key]: e.target.value }))}
               style={{ fontSize: 14 }} />
