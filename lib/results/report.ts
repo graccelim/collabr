@@ -15,7 +15,6 @@ export const collabResultSchema = z
     comments: metric,
     shares: metric,
     saves: metric,
-    post_url: z.string().trim().url().max(500),
   })
   .refine((v) => [v.views, v.likes, v.comments, v.shares, v.saves].some((x) => x != null), {
     message: 'Add at least one number (views, likes or comments).',

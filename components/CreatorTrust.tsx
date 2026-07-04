@@ -1,4 +1,4 @@
-import { ShieldCheck, CheckCircle2, Repeat, Clock, Scale, Star, BarChart3 } from 'lucide-react'
+import { ShieldCheck, CheckCircle2, Repeat, Clock, Scale, BarChart3 } from 'lucide-react'
 
 interface Props {
   completedCount: number
@@ -34,9 +34,8 @@ export default function CreatorTrust(p: Props) {
   if (p.completedCount > 0 && p.completionRate != null) {
     tiles.push({ icon: ShieldCheck, label: `${Math.round(Number(p.completionRate) * 100)}% completion rate`, sub: 'finished what they started' })
   }
-  if (p.ratingCount >= 1) {
-    tiles.push({ icon: Star, label: `${Number(p.ratingAvg).toFixed(1)} average rating`, sub: `${p.ratingCount} review${p.ratingCount === 1 ? '' : 's'}` })
-  }
+  // Average rating is intentionally NOT a tile here — it's already shown in the
+  // profile header and under Brand reviews, so we don't duplicate it.
   if (p.responseTimeMedianHours != null) {
     tiles.push({ icon: Clock, label: responseLabel(Number(p.responseTimeMedianHours)), sub: 'typical reply time' })
   }

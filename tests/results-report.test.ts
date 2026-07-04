@@ -80,20 +80,15 @@ describe('sharesResults badge', () => {
 })
 
 describe('collabResultSchema', () => {
-  it('accepts valid input with at least one metric + a url', () => {
-    const r = collabResultSchema.safeParse({ views: 1000, post_url: 'https://tiktok.com/@x/video/1' })
-    expect(r.success).toBe(true)
+  it('accepts valid input with at least one metric', () => {
+    expect(collabResultSchema.safeParse({ views: 1000 }).success).toBe(true)
+    expect(collabResultSchema.safeParse({ likes: 5, comments: 2 }).success).toBe(true)
   })
   it('rejects when no metric is provided', () => {
-    const r = collabResultSchema.safeParse({ post_url: 'https://x.com/p/1' })
-    expect(r.success).toBe(false)
-  })
-  it('rejects a bad url', () => {
-    const r = collabResultSchema.safeParse({ views: 10, post_url: 'not-a-url' })
-    expect(r.success).toBe(false)
+    expect(collabResultSchema.safeParse({}).success).toBe(false)
   })
   it('rejects negative or non-integer metrics', () => {
-    expect(collabResultSchema.safeParse({ views: -5, post_url: 'https://a.com' }).success).toBe(false)
-    expect(collabResultSchema.safeParse({ views: 1.5, post_url: 'https://a.com' }).success).toBe(false)
+    expect(collabResultSchema.safeParse({ views: -5 }).success).toBe(false)
+    expect(collabResultSchema.safeParse({ views: 1.5 }).success).toBe(false)
   })
 })

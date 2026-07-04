@@ -6,7 +6,7 @@ import { BarChart3 } from 'lucide-react'
 
 // Creator self-reports their post's real metrics for a completed/live collab.
 // Free feature; numbers are shown to the brand labelled "self-reported".
-type Existing = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null; post_url: string | null } | null
+type Existing = { views: number | null; likes: number | null; comments: number | null; shares: number | null; saves: number | null } | null
 
 const FIELDS: { key: 'views' | 'likes' | 'comments' | 'shares' | 'saves'; label: string }[] = [
   { key: 'views', label: 'Views' },
@@ -25,7 +25,6 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
   const [vals, setVals] = useState<Record<string, string>>(() =>
     Object.fromEntries(FIELDS.map((f) => [f.key, init(f.key)])),
   )
-  const [url, setUrl] = useState(existing?.post_url ?? '')
   const [busy, setBusy] = useState(false)
 
   const num = (s: string): number | null => {
@@ -38,16 +37,12 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
 
   async function submit() {
     if (busy) return
-    if (!url.trim()) return toast.error('Add the link to your post.')
     if (!hasAny) return toast.error('Add at least one number.')
     setBusy(true)
     try {
       const res = await fetch(`/api/collabs/${collabId}/results`, {
         method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          post_url: url.trim(),
-          ...Object.fromEntries(FIELDS.map((f) => [f.key, num(vals[f.key])])),
-        }),
+        body: JSON.stringify(Object.fromEntries(FIELDS.map((f) => [f.key, num(vals[f.key])]))),
       })
       const data = await res.json().catch(() => ({}))
       if (res.ok) { toast.success(existing ? 'Results updated' : 'Results added'); router.refresh() }
@@ -66,7 +61,7 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
         Share how your post did so {`the brand`} can see the results. It only takes a minute and makes you far more likely to get booked again.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }} className="resp-stats">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }} className="resp-stats">
         {FIELDS.map((f) => (
           <label key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>{f.label}</span>
@@ -76,11 +71,6 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
           </label>
         ))}
       </div>
-
-      <label style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 12 }}>
-        <span style={{ fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>Link to your post</span>
-        <input className="input" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://..." style={{ fontSize: 14 }} />
-      </label>
 
       <button type="button" onClick={submit} disabled={busy} className="btn-primary" style={{ marginTop: 14 }}>
         {busy ? 'Saving…' : existing ? 'Update results' : 'Add results'}

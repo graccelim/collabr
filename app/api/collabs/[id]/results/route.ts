@@ -26,11 +26,14 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   const body = await req.json().catch(() => ({}))
   const parsed = collabResultSchema.safeParse(body)
   if (!parsed.success) {
-    return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Check your numbers and link.' }, { status: 400 })
+    return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Check your numbers.' }, { status: 400 })
   }
   const v = parsed.data
 
   const admin = createAdminClient()
+  // The post link was already captured at the live-post step; reuse it so we never
+  // ask the creator for it twice.
+  const { data: livePost } = await admin.from('live_posts').select('post_url').eq('collab_id', params.id).maybeSingle()
   const { error } = await admin.from('collab_results').upsert({
     collab_id: params.id,
     creator_id: collab.creator_id,
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     campaign_id: collab.campaign_id,
     views: v.views ?? null, likes: v.likes ?? null, comments: v.comments ?? null,
     shares: v.shares ?? null, saves: v.saves ?? null,
-    post_url: v.post_url,
+    post_url: livePost?.post_url ?? null,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'collab_id' })
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

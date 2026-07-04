@@ -30,7 +30,7 @@ export default function ResultsSummary({ agg, reportedOf, title = 'Reported resu
         </p>
       ) : (
         <>
-          <div className="cl-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
+          <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
             {tiles.map((t) => (
               <div key={t.label} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 13px' }}>
                 <div className="mono-num" style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)' }}>{t.value}</div>
