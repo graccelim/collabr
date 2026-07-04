@@ -21,7 +21,7 @@ export interface StubConfig {
 
 export interface StubCalls {
   rpc: { name: string; args: unknown }[]
-  writes: { table: string; op: 'insert' | 'update' | 'delete'; payload?: unknown }[]
+  writes: { table: string; op: 'insert' | 'update' | 'delete' | 'upsert'; payload?: unknown }[]
 }
 
 const CHAIN_METHODS = [
@@ -51,6 +51,10 @@ export function makeSupabaseStub(config: StubConfig) {
       },
       update(payload: unknown) {
         calls.writes.push({ table, op: 'update', payload })
+        return chain
+      },
+      upsert(payload: unknown) {
+        calls.writes.push({ table, op: 'upsert', payload })
         return chain
       },
       delete() {
