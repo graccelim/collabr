@@ -1,15 +1,17 @@
 'use client'
 import { useEffect, useState } from 'react'
 import InsightsPreview from '@/components/previews/InsightsPreview'
+import StrategyPreview from '@/components/previews/StrategyPreview'
 import ContentLabPreview from '@/components/previews/ContentLabPreview'
 import CollabAnalysisPreview from '@/components/previews/CollabAnalysisPreview'
 
 // Auto-advancing demo carousel for the locked Creator Studio — cycles through the
-// real product surfaces (Insights → Content Lab → Collaboration analysis) with a
-// slide transition. Tabs let you jump; hovering pauses. Each slide re-mounts on
-// activation (key) so its own entrance/animation replays.
+// real product surfaces (Insights → Strategy → Content Lab → Collaboration
+// analysis) with a slide transition. Tabs let you jump; hovering pauses. Each
+// slide re-mounts on activation (key) so its own entrance/animation replays.
 const SLIDES = [
   { key: 'insights', label: 'Insights', node: InsightsPreview },
+  { key: 'strategy', label: 'Strategy', node: StrategyPreview },
   { key: 'lab', label: 'Content Lab', node: ContentLabPreview },
   { key: 'collab', label: 'Collab analysis', node: CollabAnalysisPreview },
 ]
