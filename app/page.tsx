@@ -475,7 +475,9 @@ export default async function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Find the right<br />creators.
+              Find the right
+              <br />
+              creators.
             </h2>
             <div
               className="split-bullets"
@@ -583,7 +585,9 @@ export default async function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Find the right<br />campaigns.
+              Find the right
+              <br />
+              campaigns.
             </h2>
             <div
               className="split-bullets"
@@ -598,7 +602,7 @@ export default async function HomePage() {
                 'Discover campaigns matched to your niche and rates',
                 'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
-                'Auto reminders to update post analytics and improve your chances of future collaborations.',
+                'Regular analytics updates to help u stand out to brands',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
