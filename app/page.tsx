@@ -56,6 +56,13 @@ const Scale = () => (
     <path d="M8 21h8" />
   </svg>
 );
+const Results = () => (
+  <svg {...ico}>
+    <line x1="6" y1="20" x2="6" y2="14" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="18" y1="20" x2="18" y2="10" />
+  </svg>
+);
 
 /* Benefit-led USPs: title → benefit → a quiet "No more…" reinforcement.
    Desktop-only (mobile carries the same USPs through the split-hero bullets). */
@@ -237,6 +244,35 @@ function WhySection() {
             </Reveal>
           ))}
         </div>
+        {/* Flagship: self-reported results + reminders (full-width feature row). */}
+        <Reveal className="card" style={{ padding: 26, marginTop: 18, display: 'flex', gap: 18, alignItems: 'flex-start' }}>
+          <div
+            style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: 'var(--brand-tint)',
+              color: 'var(--brand)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}
+          >
+            <Results />
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h3 style={{ fontSize: 19, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', margin: '0 0 8px' }}>
+              Never chase creators for results
+            </h3>
+            <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: 0 }}>
+              Creators report how each post performed, and we send the reminders so you don&apos;t have to.
+            </p>
+            <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', lineHeight: 1.45, margin: '12px 0 0', paddingTop: 12, borderTop: '1px solid var(--line)' }}>
+              No more asking for screenshots or chasing performance updates.
+            </p>
+          </div>
+        </Reveal>
       </div>
     </section>
   );
