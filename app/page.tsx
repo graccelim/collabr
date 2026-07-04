@@ -475,7 +475,7 @@ export default async function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Find the right creators.
+              Find the right<br />creators.
             </h2>
             <div
               className="split-bullets"
@@ -583,7 +583,7 @@ export default async function HomePage() {
                 letterSpacing: '-0.02em',
               }}
             >
-              Find the right campaigns.
+              Find the right<br />campaigns.
             </h2>
             <div
               className="split-bullets"
