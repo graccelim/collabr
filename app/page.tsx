@@ -269,7 +269,7 @@ function WhySection() {
               Creators report how each post performed to build their track record, and brands see the numbers without chasing for them.
             </p>
             <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', lineHeight: 1.45, margin: '12px 0 0', paddingTop: 12, borderTop: '1px solid var(--line)' }}>
-              No more asking for screenshots, or guessing which creators actually deliver.
+              No more chasing screenshots or forgotten updates, the reminders are automatic.
             </p>
           </div>
         </Reveal>
@@ -418,6 +418,7 @@ export default async function HomePage() {
                 'Matched to your niche and budget',
                 'See real creator reputation, not just follower counts',
                 'Funds protected until content is delivered and approved',
+                'Post results reported back to you automatically, no chasing',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
@@ -525,6 +526,7 @@ export default async function HomePage() {
                 'Discover campaigns matched to your niche and rates',
                 'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
+                'Reminders to report results and get booked again',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
