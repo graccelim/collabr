@@ -26,7 +26,7 @@ export default function CollabResultsView({ result }: { result: Result }) {
         <span className="badge badge-neutral" style={{ fontSize: 11 }}>Self-reported</span>
       </div>
 
-      <div className="resp-stats" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(5, tiles.length)}, 1fr)`, gap: 10 }}>
+      <div className="result-tiles" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.min(5, tiles.length)}, 1fr)`, gap: 10 }}>
         {tiles.map((f) => (
           <div key={String(f.key)} style={{ background: 'linear-gradient(140deg,#EEF3FD,#F6F9FF)', border: '1px solid rgba(40,90,190,.12)', borderRadius: 11, padding: '11px 12px' }}>
             <div className="mono-num" style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-.02em', color: 'var(--ink)' }}>{fmt(result[f.key] as number | null)}</div>

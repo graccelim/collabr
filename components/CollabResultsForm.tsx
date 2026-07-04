@@ -61,7 +61,7 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
         Share how your post did so {`the brand`} can see the results. It only takes a minute and makes you far more likely to get booked again.
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }} className="resp-stats">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }} className="result-tiles">
         {FIELDS.map((f) => (
           <label key={f.key} style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 12, color: 'var(--ink-soft)', fontWeight: 600 }}>

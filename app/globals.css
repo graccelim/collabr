@@ -885,6 +885,10 @@
      trailing card (odd count) spans the full width so there's no dead space. */
   .resp-stats { grid-template-columns: repeat(2, 1fr) !important; gap: 12px !important; }
   .resp-stats > *:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  /* Results metric tiles: primary metric (Views) spans the full first row, the
+     rest share two columns. */
+  .result-tiles { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .result-tiles > *:first-child { grid-column: 1 / -1; }
   .resp-1col  { grid-template-columns: 1fr !important; }
 
   /* Content Lab category menu: the desktop sidebar becomes a compact wrapping
