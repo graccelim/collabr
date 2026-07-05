@@ -47,10 +47,21 @@ The only true "sandbox → live" flip. Toggle Stripe to **Live mode** (top-left 
   SEPARATE endpoint `…/api/webhooks/stripe-creator-pro` (events: `checkout.session.completed`,
   `customer.subscription.created/updated/deleted`) → its own secret `STRIPE_CREATOR_PRO_WEBHOOK_SECRET`.
 
-**Connect & final**
-- [ ] Stripe **Connect** is in live mode (this is how creators get paid).
-- [ ] Do one real live-mode payment + payout with a small amount, ideally with a second person.
+**Connect (creator payouts = Stripe Connect Express + transfers)**
+- [ ] **Activate Connect in Live mode** — Stripe → Connect → Settings: complete the platform/business
+  profile, set the payout **statement descriptor** + branding. Express onboarding fails in live until this is done.
+- [ ] Confirm the live secret key has Connect enabled (Express account creation + `account_onboarding` links).
 - [ ] ⚪ Skip `STRIPE_CREATOR_PRO_PRICE_*` and `STRIPE_CREATOR_PRO_WEBHOOK_SECRET` — analytics tier, off in Phase 1.
+
+**End-to-end live payout test (do this before launch — the #1 flow to validate)**
+- [ ] As a real creator: complete Stripe **Express onboarding** in live (real bank/debit).
+- [ ] As a brand: fund a small real collab (e.g. S$1–5) with a live card.
+- [ ] Approve the live post (or wait for 72h auto-release).
+- [ ] Verify: brand funds **captured**, **transfer** created to the creator's Express account,
+  collab → `paid`/completed, creator gets the "X transferred" notification, and the balance shows in
+  the creator's Stripe Express dashboard → pays out to their bank on schedule.
+- [ ] (Optional) Test the not-connected path: approve before the creator connects → confirm `transfer_failed`
+  + the "Connect your payout account" nudge, then connect → confirm the retry pays them.
 
 ---
 
