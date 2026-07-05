@@ -34,10 +34,18 @@ The only true "sandbox → live" flip. Toggle Stripe to **Live mode** (top-left 
 > These must match the **display** prices in `lib/pricing.ts` (§6). Display ≠ charge — the charge is whatever the Stripe price is set to.
 
 **Webhook** (the go-live checklist flagged this — you only have a test endpoint)
-- [ ] Create a **live** webhook: `https://www.joincollabr.com/api/webhooks/stripe`
-- [ ] Events: `payment_intent.amount_capturable_updated`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`, `checkout.session.completed`, `customer.subscription.created/updated/deleted`
+- [ ] Create a **live** webhook endpoint: `https://www.joincollabr.com/api/webhooks/stripe`
+- [ ] Subscribe to these 12 events (exactly what the handler processes):
+  `payment_intent.amount_capturable_updated`, `payment_intent.succeeded`,
+  `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`,
+  `refund.updated`, `transfer.reversed`, `checkout.session.completed`,
+  `customer.subscription.created`, `customer.subscription.updated`,
+  `customer.subscription.deleted`, `account.updated`
 - [ ] Copy its signing secret → `STRIPE_WEBHOOK_SECRET`
 - [ ] Code already handles duplicate / delayed / out-of-order deliveries (idempotent) — no code change needed.
+- [ ] ⚪ Do NOT create the Creator Pro webhook in Phase 1. When analytics launches, add a
+  SEPARATE endpoint `…/api/webhooks/stripe-creator-pro` (events: `checkout.session.completed`,
+  `customer.subscription.created/updated/deleted`) → its own secret `STRIPE_CREATOR_PRO_WEBHOOK_SECRET`.
 
 **Connect & final**
 - [ ] Stripe **Connect** is in live mode (this is how creators get paid).
