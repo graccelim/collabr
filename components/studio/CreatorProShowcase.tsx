@@ -99,7 +99,7 @@ export default function CreatorProShowcase({ returnTo = '/studio' }: { returnTo?
           {cta('Start your 7 day free trial', true)}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginTop: 16, fontSize: 13.5, color: '#AEB3DC', flexWrap: 'wrap' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}><Check size={15} color="#3FB984" /> No charge today, cancel anytime</span>
-            <span style={{ color: '#6E72A0' }}>Then S$150/year</span>
+            <span style={{ color: '#6E72A0' }}>Then S$149/year</span>
           </div>
         </div>
       </div>

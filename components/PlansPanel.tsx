@@ -172,7 +172,7 @@ export default function PlansPanel({
           <TierCard featured name="Plus" tagline="Discover & invite creators"
             benefits={['Creator Discovery + invites', 'Save & shortlist creators', 'Everything in Pro']}
             price={beta
-              ? <Price amount={betaPlusPrice(cycle)} struck={`${CURRENCY}${PLAN_PRICING.plus[cycle]}`} period={cycle === 'annual' ? '/yr' : '/mo'} note="50% off during beta" />
+              ? <Price amount={betaPlusPrice(cycle)} struck={`${CURRENCY}${PLAN_PRICING.plus[cycle]}`} period={cycle === 'annual' ? '/yr' : '/mo'} note="Beta launch price" />
               : <Price amount={PLAN_PRICING.plus[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? `≈ ${CURRENCY}${annualPerMonth('plus')}/mo · 2 months free` : undefined} />}
             cta={
               <button className="btn-primary btn-block btn-sheen" onClick={() => checkout('plus')} disabled={busy === 'plus'}
