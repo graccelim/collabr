@@ -177,7 +177,7 @@ export default async function BillingPage() {
                   <span className="mono-num" style={{ fontSize: 20, fontWeight: 800, color: 'var(--ink)', letterSpacing: '-.02em' }}>{CURRENCY}{betaPlusPrice('monthly')}</span>
                   <span style={{ fontSize: 12, color: 'var(--ink-soft)' }}>/mo</span>
                 </div>
-                <div style={{ fontSize: 11.5, color: 'var(--money-deep)', fontWeight: 600, marginTop: 2 }}>50% off during beta</div>
+                <div style={{ fontSize: 11.5, color: 'var(--money-deep)', fontWeight: 600, marginTop: 2 }}>Beta launch price</div>
               </div>
             )}
           </div>

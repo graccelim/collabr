@@ -1,22 +1,23 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Sparkles } from 'lucide-react'
 import PlansPanel from '@/components/PlansPanel'
 
 // Button that opens the shared two-tier pricing panel (Pro + Plus) in a modal.
+//
+// The modal is PORTALED to <body>. Rendered inline it was a descendant of the
+// billing "Do more with Plus" card, whose overflow:hidden + hover `transform`
+// makes the card a containing block for position:fixed — so the fixed overlay was
+// positioned AND clipped inside that card (and jittered as the hover toggled).
+// A portal detaches it from that ancestor, so it covers the real viewport.
 export default function PlansCTA({
   beta, label = 'View plans', variant = 'primary',
 }: { beta: boolean; label?: string; variant?: 'primary' | 'secondary' }) {
   const [open, setOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
-  // While the modal is open, lock scroll and PAUSE the page's infinite background
-  // animations (the plus-card shine). Compositing the translucent overlay over a
-  // continuously-animating layer every frame is what made the modal stutter.
-  useEffect(() => {
-    if (!open) return
-    document.body.classList.add('modal-lock')
-    return () => document.body.classList.remove('modal-lock')
-  }, [open])
   return (
     <>
       <button type="button" className={variant === 'primary' ? 'btn-primary' : 'btn-secondary'} onClick={() => setOpen(true)}
@@ -24,19 +25,17 @@ export default function PlansCTA({
         <Sparkles size={15} /> {label}
       </button>
 
-      {open && (
+      {open && mounted && createPortal(
         <div onClick={() => setOpen(false)} style={{
-          // No backdrop-filter: blurring the whole page over the billing plus-card's
-          // infinite shine animation forced a per-frame re-rasterize → severe jank.
-          // A solid dim overlay reads the same and is GPU-cheap.
-          position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(8,10,30,.62)', overflowY: 'auto',
+          position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(8,10,30,.62)', overflowY: 'auto',
         }}>
           <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
               <PlansPanel beta={beta} onClose={() => setOpen(false)} />
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   )

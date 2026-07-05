@@ -749,13 +749,6 @@
 .bill-plus-card:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -16px rgba(30,70,170,.42); }
 @media (prefers-reduced-motion: reduce) { .cl-pulse { animation: none; } }
 
-/* When a modal is open: lock scroll and freeze the page's infinite background
-   animations so the translucent overlay isn't re-composited every frame. */
-body.modal-lock { overflow: hidden; }
-body.modal-lock [style*="clb-shine"],
-body.modal-lock .cl-pulse,
-body.modal-lock .btn-sheen::after { animation-play-state: paused !important; }
-
 @media (max-width: 768px) {
   .cl-stats { grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 18px; }
   .cl-stat-hero { grid-column: 1 / -1; }     /* funds hero spans full width */
