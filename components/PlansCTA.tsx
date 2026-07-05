@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sparkles } from 'lucide-react'
 import PlansPanel from '@/components/PlansPanel'
 
@@ -8,6 +8,15 @@ export default function PlansCTA({
   beta, label = 'View plans', variant = 'primary',
 }: { beta: boolean; label?: string; variant?: 'primary' | 'secondary' }) {
   const [open, setOpen] = useState(false)
+
+  // While the modal is open, lock scroll and PAUSE the page's infinite background
+  // animations (the plus-card shine). Compositing the translucent overlay over a
+  // continuously-animating layer every frame is what made the modal stutter.
+  useEffect(() => {
+    if (!open) return
+    document.body.classList.add('modal-lock')
+    return () => document.body.classList.remove('modal-lock')
+  }, [open])
   return (
     <>
       <button type="button" className={variant === 'primary' ? 'btn-primary' : 'btn-secondary'} onClick={() => setOpen(true)}

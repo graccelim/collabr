@@ -105,7 +105,7 @@ export default function PlansPanel({
     }}>
       {/* LEFT, navy value panel */}
       <div className="plans-navy" style={{ position: 'relative', padding: '42px 38px', background: 'linear-gradient(165deg,#0A0C22 0%,#14183C 55%,#0A0C22 100%)', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -90, right: -70, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle,rgba(91,83,224,.4),transparent 70%)', filter: 'blur(20px)' }} />
+        <div style={{ position: 'absolute', top: -90, right: -70, width: 280, height: 280, borderRadius: '50%', background: 'radial-gradient(circle,rgba(91,83,224,.34),transparent 70%)' }} />
         <div style={{ position: 'relative' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <Sparkles size={15} color="#A9AEE8" />
