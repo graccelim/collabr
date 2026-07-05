@@ -17,7 +17,10 @@ export default function PlansCTA({
 
       {open && (
         <div onClick={() => setOpen(false)} style={{
-          position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(8,10,30,.55)', backdropFilter: 'blur(3px)', overflowY: 'auto',
+          // No backdrop-filter: blurring the whole page over the billing plus-card's
+          // infinite shine animation forced a per-frame re-rasterize → severe jank.
+          // A solid dim overlay reads the same and is GPU-cheap.
+          position: 'fixed', inset: 0, zIndex: 60, background: 'rgba(8,10,30,.62)', overflowY: 'auto',
         }}>
           <div style={{ minHeight: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px 16px' }}>
             <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
