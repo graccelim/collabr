@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { socialAccountInputSchema, socialUrl } from '@/lib/onboarding'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 
 async function getOwnCreator(supabase: ReturnType<typeof createClient>) {
   const { data: { user } } = await supabase.auth.getUser()
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!creator) return NextResponse.json({ error: 'Creator profile not found' }, { status: 404 })
 
   // Anti-spam: cap how fast accounts can be added.
-  if (!checkRateLimit(`socials:${user.id}`, 10, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`socials:${user.id}`, 10, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many changes. Try again later.' }, { status: 429 })
   }
 

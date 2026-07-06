@@ -129,7 +129,8 @@ export default function JobsList({
       if (niche && !c.niche_tags?.includes(niche)) return false
       if (comp === 'paid' && c.comp_type === 'barter') return false
       if (comp === 'barter' && c.comp_type === 'paid') return false
-      if (minPay && !(c.comp_type !== 'barter' && top(c) >= Number(minPay))) return false
+      // budgets are stored in cents; PAY_OPTS values are dollars
+      if (minPay && !(c.comp_type !== 'barter' && top(c) >= Number(minPay) * 100)) return false
       if (deliverable && !c.deliverable_types?.includes(deliverable)) return false
       if (savedOnly && !c.saved) return false
       return true

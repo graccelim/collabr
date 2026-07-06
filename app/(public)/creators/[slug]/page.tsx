@@ -69,6 +69,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     viewer,
     { data: doneForRate },
     { data: reportedRows },
+    { data: connectedRollup },
   ] = await Promise.all([
     supabase.from('social_accounts')
       .select('id, creator_id, platform, handle, url, follower_count, is_primary, created_at, updated_at')
@@ -86,8 +87,9 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     admin.from('creator_scores')
       .select('invites_concluded, response_rate_shrunk, completed_count, completion_rate, response_time_median_hours, disputes_lost').eq('creator_id', creatorId).maybeSingle(),
     getUserRow(),
-    admin.from('collabs').select('id, completed_at').eq('creator_id', creatorId).eq('status', 'completed'),
+    admin.from('collabs').select('id, completed_at, brand_id').eq('creator_id', creatorId).eq('status', 'completed'),
     admin.from('collab_results').select('collab_id').eq('creator_id', creatorId),
+    admin.from('creator_rollups').select('averages').eq('creator_id', creatorId).maybeSingle(),
   ])
 
   // Reporting rate: of collabs completed past the grace window, how many the
@@ -156,14 +158,12 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const isNewCreator = completedCollabs === 0
   const showRating = (creator.rating_count || 0) >= 1
 
-  // Repeat-brand count: brands who completed >1 collab with this creator. Cheap
-  // live count (profile views are low-frequency); the rest comes from scores.
+  // Repeat-brand count: brands who completed >1 collab with this creator.
+  // Reuses the completed-collabs rows already fetched above (no extra query).
   let repeatBrands = 0
   if (completedCollabs > 0) {
-    const { data: doneCollabs } = await admin.from('collabs')
-      .select('brand_id').eq('creator_id', creatorId).eq('status', 'completed')
     const byBrand = new Map<string, number>()
-    for (const c of doneCollabs || []) byBrand.set(c.brand_id as string, (byBrand.get(c.brand_id as string) || 0) + 1)
+    for (const c of doneForRate || []) byBrand.set((c as any).brand_id as string, (byBrand.get((c as any).brand_id as string) || 0) + 1)
     repeatBrands = Array.from(byBrand.values()).filter(n => n >= 2).length
   }
 
@@ -277,7 +277,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             )}
             {isBrandViewer && !viewerIsPro && (
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', marginTop: 10, maxWidth: 320 }}>
-                Inviting and saving creators comes with collabr Pro.{' '}
+                Inviting and saving creators comes with collabr Plus.{' '}
                 <Link href="/billing" style={{ fontWeight: 600, color: 'var(--accent-deep)' }}>Manage plan</Link>
               </p>
             )}
@@ -289,9 +289,6 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
             <ProfileStats stats={stats} />
           </div>
   )
-
-  const { data: connectedRollup } = await admin.from('creator_rollups')
-    .select('averages').eq('creator_id', creatorId).maybeSingle()
 
   const mainContent = (
         <>
@@ -523,7 +520,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         {([
           [ShieldCheck, 'Payment protected', 'Payment is held safely before work starts'],
           [Clock, '48h review window', 'Time to review and approve the content'],
-          [CheckCircle2, 'Guaranteed payment', 'Deliver the work and you get paid, every time'],
+          [CheckCircle2, 'Protected payment', 'Approved work releases payment automatically'],
         ] as [typeof Clock, string, string][]).map(([Icon, t, sub]) => (
           <div key={t} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
             <Icon size={16} style={{ color: 'var(--money)', flexShrink: 0, marginTop: 1 }} />

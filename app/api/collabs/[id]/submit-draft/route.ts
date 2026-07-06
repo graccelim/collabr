@@ -62,7 +62,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await sendNotification({ userId: brandUserId, type: 'draft_submitted',
       title: `Draft submitted by ${creatorName}`, body: 'Review it within 48 hours',
       payload: { collab_id: params.id },
-      dedupeKey: `collab:${params.id}:draft:${(result as any)?.submission_version}:submitted` })
+      dedupeKey: `collab:${params.id}:draft:${(result as any)?.submission_version}:submitted`, email: false })
   }
   if (brandEmail && created) await sendProductEmail({ to: brandEmail, ...productEmails.draftSubmitted({ creatorName, collabId: params.id, key: String((result as any)?.submission_version ?? 'v') }) })
 

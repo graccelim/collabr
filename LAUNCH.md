@@ -79,7 +79,12 @@ The only true "sandbox → live" flip. Toggle Stripe to **Live mode** (top-left 
 
 ## 3. Supabase (production project) 🟢
 - [ ] `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` point to the **prod** project.
-- [ ] **Run ALL migrations, including `049_collab_results.sql`** (the self-reported results feature won't work without it).
+- [ ] **Run ALL migrations, now up to and including:**
+  - `049_collab_results.sql` (self-reported results won't work without it)
+  - `050_campaign_platforms.sql` — **required before this deploy**: campaign create/edit now
+    persists the Platforms field and will error inserting without the column.
+  - `051_durable_rate_limits.sql` — DB-backed rate limiting (signup/invites/boost/AI).
+    Code fails open to the in-memory limiter until applied, but apply it.
 - [ ] Confirm RLS is on (migrations set this).
 
 ---

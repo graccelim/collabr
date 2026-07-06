@@ -9,8 +9,11 @@ export default function NotFound() {
         <p className="text-sm text-gray-500">
           The page you're looking for doesn't exist or has been moved.
         </p>
-        <Link href="/dashboard" className="btn-primary inline-flex mt-2">
-          Back to dashboard
+        {/* "/" works for everyone: middleware sends signed-in users straight
+            to their dashboard, guests get the landing page (a logged-out
+            visitor sent to /dashboard would bounce through the login gate). */}
+        <Link href="/" className="btn-primary inline-flex mt-2">
+          Back to collabr
         </Link>
       </div>
     </div>

@@ -50,10 +50,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
 
   if (otherUserId && created) await sendNotification({ userId: otherUserId, type: 'dispute_raised',
     title: 'A dispute has been raised on your collab', payload: { collab_id: params.id },
-    dedupeKey: `dispute:${disputeId}:raised` })
+    dedupeKey: `dispute:${disputeId}:raised`, email: false })
   if (user.id && created) await sendNotification({ userId: user.id, type: 'dispute_raised',
     title: 'Dispute submitted, we will review within 3 business days', payload: { collab_id: params.id },
-    dedupeKey: `dispute:${disputeId}:raised` })
+    dedupeKey: `dispute:${disputeId}:raised`, email: false })
 
   const isBarter = ((collab as any).agreed_rate ?? 0) === 0
   if (created) {

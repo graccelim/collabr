@@ -138,18 +138,18 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
 
   const canDispute = ['draft_submitted', 'in_revision', 'draft_approved', 'live_submitted'].includes(collab.status)
 
-  // Barter shipping details (structured address; replaces pasting it in chat).
-  const { data: shipping } = isBarter
-    ? await adminForRead.from('collab_shipping')
-        .select('recipient_name, phone, address_line1, address_line2, postal_code, country, delivery_notes, submitted_at, updated_at, shipped_at')
-        .eq('collab_id', params.id).maybeSingle()
-    : { data: null }
-
-  // Open/resolved dispute + its evidence thread (surfaces the dispute instead of
-  // the page going dark once a dispute is raised).
-  const { data: dispute } = await adminForRead.from('disputes')
-    .select('id, raised_by, reason, created_at, outcome, resolved_at, split_percentage')
-    .eq('collab_id', params.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
+  // Barter shipping details (structured address; replaces pasting it in chat)
+  // + open/resolved dispute — independent reads, fetched concurrently.
+  const [{ data: shipping }, { data: dispute }] = await Promise.all([
+    isBarter
+      ? adminForRead.from('collab_shipping')
+          .select('recipient_name, phone, address_line1, address_line2, postal_code, country, delivery_notes, submitted_at, updated_at, shipped_at')
+          .eq('collab_id', params.id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    adminForRead.from('disputes')
+      .select('id, raised_by, reason, created_at, outcome, resolved_at, split_percentage')
+      .eq('collab_id', params.id).order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  ])
   let disputeEvidence: { author_type: 'brand' | 'creator'; body: string | null; attachment_urls: string[]; created_at: string }[] = []
   if (dispute) {
     const { data: ev } = await adminForRead.from('dispute_evidence')

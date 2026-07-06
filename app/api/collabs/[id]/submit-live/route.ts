@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     title: `${creatorName} submitted live content for review`,
     body: 'Please review within 72 hours. If no action is taken, payment will automatically be released when the review window expires.',
     payload: { collab_id: params.id },
-    dedupeKey: `collab:${params.id}:live-submitted` })
+    dedupeKey: `collab:${params.id}:live-submitted`, email: false })
   if (brandEmail && created) await sendProductEmail({ to: brandEmail, ...productEmails.liveSubmitted({ creatorName, collabId: params.id }) })
 
   return NextResponse.json({

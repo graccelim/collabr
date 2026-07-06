@@ -32,7 +32,9 @@ export async function GET(req: NextRequest) {
         type: 'draft_expiring',
         title: `Review pending: "${(c.campaigns as any)?.title}" auto-approves within 24h`,
         payload: { collab_id: c.id },
-        dedupeKey: `collab:${c.id}:draft-expiring`,
+        // Keyed per review window (deadline changes after each resubmission),
+        // so a second draft after revisions still gets its reminder.
+        dedupeKey: `collab:${c.id}:draft-expiring:${c.draft_auto_approve_at}`,
       })
       notifiedDrafts++
     }
@@ -64,6 +66,7 @@ export async function GET(req: NextRequest) {
       body: 'Confirm the post or raise an issue. Otherwise payment releases automatically when the window expires.',
       payload: { collab_id: c.id },
       dedupeKey: `collab:${c.id}:live-remind:${threshold}h`,
+      email: false,
     })
     if (brandEmail) {
       await sendProductEmail({ to: brandEmail, ...productEmails.liveReviewReminder({ creatorName, collabId: c.id, hoursLeft: threshold }) })

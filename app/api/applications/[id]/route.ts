@@ -84,7 +84,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         try { await notifyCollabFunded(admin, collabId) } catch (e) { console.error('[BARTER NOTIFY]', e) }
       }
     } else {
-      // Commission is the CREATOR's rate (10% Pro / 12% Free) — not the brand's.
+      // Commission is the CREATOR's rate (10% Free / 8% Pro, per computeFee) — not the brand's.
       const creatorPro = await isCreatorProActive(admin, creatorId)
       const { fee, payout } = computeFee(agreedRate, creatorPro)
       const { data: selection, error: collabErr } = await admin.rpc('select_application_atomic', {
@@ -129,6 +129,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       body: 'The brand went in another direction. New campaigns are posted regularly, keep applying.',
       payload: { application_id: params.id },
       dedupeKey: `application:${params.id}:rejected`,
+      email: false,
     })
     await sendProductEmail({ to: creatorEmail, ...productEmails.applicationRejected({ campaignTitle, applicationId: params.id }) })
   }

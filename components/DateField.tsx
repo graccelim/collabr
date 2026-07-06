@@ -97,7 +97,7 @@ export default function DateField({ value, onChange }: Props) {
           <div style={{
             position: 'absolute', top: 52, left: 0, zIndex: 40, width: 290, padding: 14,
             borderRadius: 'var(--radius)', background: 'var(--surface)', border: '1px solid var(--line)',
-            boxShadow: '0 10px 34px -10px rgba(16,17,22,0.28)',
+            boxShadow: 'var(--shadow-lg)',
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, padding: '0 2px' }}>
               <button type="button" onClick={() => setView(v => { const d = new Date(v.y, v.m - 1, 1); return { y: d.getFullYear(), m: d.getMonth() } })}

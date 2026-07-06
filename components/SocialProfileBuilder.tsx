@@ -71,7 +71,7 @@ export default function SocialProfileBuilder({
                 </select>
                 <input className="input" style={{ flex: 1, minWidth: 0 }}
                   inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
-                  placeholder="@username"
+                  placeholder="@handle"
                   value={row.username} onChange={e => update(i, { username: e.target.value })} />
                 {i === 0 && (
                   <span className="badge badge-accent" style={{ fontSize: 10.5, flexShrink: 0 }}>Primary</span>

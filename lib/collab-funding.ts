@@ -46,6 +46,7 @@ export async function retryCreatorPayout(admin: Admin, collab: StuckCollab): Pro
       title: `${amount} transferred`,
       body: 'Your payout account is connected, your held payment was released.',
       payload: { collab_id: collab.id }, dedupeKey: `collab:${collab.id}:payment-released`,
+      email: false,
     })
     await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: collab.id }) })
   }
@@ -162,6 +163,7 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
         : 'The brand secured the payment. You can start the collab now.',
       payload: { application_id: appId, campaign_id: collab.campaign_id, collab_id: collab.id },
       dedupeKey: `application:${appId}:selected`,
+      email: false,
     })
     if (cp.users?.email) {
       const selectedEmail = isBarter ? productEmails.applicationSelectedBarter : productEmails.applicationSelected
@@ -180,9 +182,19 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
     .in('status', ['pending', 'shortlisted'])
   if (!leftover || leftover.length === 0) return
 
-  await admin.from('applications').update({ status: 'rejected' })
+  // Notify only rows the update actually rejected — a failed write or a racing
+  // selection must not send "application closed" to a still-live applicant.
+  const { data: rejectedRows, error: rejectErr } = await admin.from('applications')
+    .update({ status: 'rejected' })
     .in('id', leftover.map(l => l.id)).in('status', ['pending', 'shortlisted'])
+    .select('id')
+  if (rejectErr) {
+    console.error('[COLLAB FUNDING] leftover reject failed:', rejectErr.message)
+    return
+  }
+  const rejectedIds = new Set((rejectedRows || []).map(r => r.id))
   for (const l of leftover) {
+    if (!rejectedIds.has(l.id)) continue
     const uid = (l.creator_profiles as any)?.user_id
     const email = (l.creator_profiles as any)?.users?.email
     if (uid) await sendNotification({
@@ -191,6 +203,7 @@ export async function notifyCollabFunded(admin: Admin, collabId: string) {
       body: 'This campaign has been filled. Thanks for applying, new campaigns are posted regularly.',
       payload: { application_id: l.id },
       dedupeKey: `application:${l.id}:rejected`,
+      email: false,
     })
     if (email) await sendProductEmail({ to: email, ...productEmails.applicationRejected({ campaignTitle: title, applicationId: l.id }) })
   }

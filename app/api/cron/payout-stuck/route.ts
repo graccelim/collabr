@@ -46,21 +46,27 @@ export async function GET(req: NextRequest) {
     const stuckSince = (c.captured_at as string) || (c.funded_at as string) || null
     const stuckDays = ageDays(stuckSince)
 
-    // 2. Escalate once, at the grace period, to manual support review.
+    // 2. Escalate once, at the grace period, to manual support review. The
+    // stamp is CAS-guarded and checked: if it didn't land (error or another
+    // run claimed it), skip — otherwise the un-deduped admin email re-sends
+    // every day.
     if (stuckDays >= GRACE_DAYS && !c.payout_review_at) {
-      await admin.from('collabs').update({ payout_review_at: nowIso }).eq('id', c.id).is('payout_review_at', null)
+      const { data: stamped, error: stampErr } = await admin.from('collabs')
+        .update({ payout_review_at: nowIso }).eq('id', c.id).is('payout_review_at', null)
+        .select('id')
+      if (stampErr || !stamped?.length) continue
       if (creatorUserId) {
         await sendNotification({ userId: creatorUserId, type: 'payout_review',
           title: 'Your held payout is under review',
           body: `${amount} is waiting on your payout setup. Connect a payout account to release it, or contact support.`,
-          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-review` })
+          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-review`, email: false })
         await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.payoutUnderReview({ amount, collabId: c.id }) })
       }
       if (brandUserId) {
         await sendNotification({ userId: brandUserId, type: 'payout_review',
           title: 'A collab payment is held under review',
           body: `Your payment is captured and safe. We're following up with ${creatorName} to finish their payout setup.`,
-          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-held-brand` })
+          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-held-brand`, email: false })
         await sendProductEmail({ userId: brandUserId, ...productEmails.payoutHeldBrand({ creatorName, collabId: c.id }) })
       }
       await sendPayoutAdminEmail(`Payout stuck · ${(c.campaigns as any)?.title || 'collab'}`, {
@@ -77,13 +83,17 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Before the grace period: periodic reminder to connect payouts.
-    if (!c.payout_review_at && ageDays(c.payout_reminded_at as string) >= REMINDER_DAYS) {
-      await admin.from('collabs').update({ payout_reminded_at: nowIso }).eq('id', c.id)
+    // payout_reminded_at is null until the FIRST reminder — that must send
+    // immediately (null means "never reminded", not "reminded just now").
+    if (!c.payout_review_at && (!c.payout_reminded_at || ageDays(c.payout_reminded_at as string) >= REMINDER_DAYS)) {
+      const { error: remindErr } = await admin.from('collabs')
+        .update({ payout_reminded_at: nowIso }).eq('id', c.id)
+      if (remindErr) { console.error('[CRON payout-stuck] remind stamp failed:', remindErr.message); continue }
       if (creatorUserId) {
         await sendNotification({ userId: creatorUserId, type: 'payout_pending',
           title: `Connect payouts to receive ${amount}`,
           body: 'Your payment is held safely. Connect a payout account and we release it automatically.',
-          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-reminder:${nowIso.slice(0, 10)}` })
+          payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payout-reminder:${nowIso.slice(0, 10)}`, email: false })
         await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.payoutReminder({ amount, collabId: c.id, key: nowIso.slice(0, 10) }) })
       }
       reminded++

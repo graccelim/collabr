@@ -3,6 +3,7 @@ import { ensureCampaignSlug } from '@/lib/slug-server'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 import { normalizeNiche, normalizeNicheTags } from '@/lib/niches'
+import { SOCIAL_PLATFORMS } from '@/lib/onboarding'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
@@ -70,6 +71,34 @@ export async function POST(req: NextRequest) {
     const gate = proGateResponse(plan, 'Barter campaigns')
     if (gate) return gate
   }
+
+  // Budgets (cents): whole non-negative integers, sane cap, min ≤ max — an
+  // inverted range would render "S$300 to S$150" and skew budget-fit matching.
+  const asBudget = (v: unknown) => {
+    if (v == null || v === '' || v === 0) return null
+    const n = Number(v)
+    return Number.isInteger(n) && n > 0 && n <= 100_000_000 ? n : undefined
+  }
+  const budgetMin = asBudget(body.budget_min)
+  const budgetMax = asBudget(body.budget_max)
+  if (budgetMin === undefined || budgetMax === undefined) {
+    return NextResponse.json({ error: 'Budget must be a positive amount.' }, { status: 400 })
+  }
+  if (budgetMin != null && budgetMax != null && budgetMin > budgetMax) {
+    return NextResponse.json({ error: 'Minimum budget cannot exceed maximum budget.' }, { status: 400 })
+  }
+  const creatorsNeeded = Number(body.creators_needed ?? 1)
+  if (!Number.isInteger(creatorsNeeded) || creatorsNeeded < 1 || creatorsNeeded > 50) {
+    return NextResponse.json({ error: 'Creators needed must be between 1 and 50.' }, { status: 400 })
+  }
+
+  // Platform targeting: canonical slugs only (matches the 050 check constraint).
+  // Empty = open to all platforms.
+  const platforms = Array.isArray(body.platforms)
+    ? Array.from(new Set(body.platforms)).filter((p): p is string =>
+        (SOCIAL_PLATFORMS as readonly string[]).includes(p as string))
+    : []
+
   const admin = createAdminClient()
   const { data, error } = await admin.from('campaigns').insert({
     brand_id: brand.id,
@@ -77,13 +106,14 @@ export async function POST(req: NextRequest) {
     brief: body.brief,
     deliverable_types: body.deliverable_types || [],
     comp_type: body.comp_type,
-    budget_min: body.budget_min || null,
-    budget_max: body.budget_max || null,
+    budget_min: budgetMin,
+    budget_max: budgetMax,
     barter_detail: body.barter_detail || null,
     // Normalize to canonical slugs so matching is reliable + the DB trigger accepts them.
     niche_tags: normalizeNicheTags(Array.isArray(body.niche_tags) ? body.niche_tags : []),
+    platforms,
     min_followers: body.min_followers || 0,
-    creators_needed: body.creators_needed || 1,
+    creators_needed: creatorsNeeded,
     deadline: body.deadline || null,
     status: 'active',
   }).select().single()

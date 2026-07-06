@@ -20,9 +20,19 @@ export async function GET(req: NextRequest) {
   if (!aiConfigured()) return NextResponse.json({ classified: 0, note: 'AI not configured, classification skipped' })
 
   const admin = createAdminClient()
-  const { data: posts } = await admin.from('content_posts')
-    .select('id, title, caption, hashtags, duration_sec, class_hash, class_source')
-    .limit(2000)
+  // Manual overrides are excluded server-side; hash staleness is client-side (hash of
+  // creator metadata). Paginated — PostgREST caps unpaged reads at 1000 rows.
+  const BATCH = 1000
+  const posts: any[] = []
+  for (let from = 0; ; from += BATCH) {
+    const { data: batch } = await admin.from('content_posts')
+      .select('id, title, caption, hashtags, duration_sec, class_hash, class_source')
+      .or('class_source.is.null,class_source.neq.manual')
+      .order('id', { ascending: true })
+      .range(from, from + BATCH - 1)
+    posts.push(...(batch ?? []))
+    if (!batch || batch.length < BATCH) break
+  }
 
   const hashOf = (p: any) => classHash({ title: p.title, caption: p.caption, hashtags: p.hashtags, durationSec: p.duration_sec })
   const stale = (posts ?? []).filter((p) => p.class_source !== 'manual' && hashOf(p) !== p.class_hash).slice(0, MAX_PER_RUN)

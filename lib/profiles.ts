@@ -1,11 +1,19 @@
 import { z } from 'zod'
 import { CREATOR_NICHES, BRAND_INDUSTRIES, SOCIAL_PLATFORMS } from '@/lib/onboarding'
 
+// zod's .url() accepts any parseable URL — including javascript:/data: schemes,
+// which would become stored XSS when rendered as an href on public profiles.
+// Every user-supplied link must be plain http(s).
+const isHttpUrl = (v: string) => {
+  try { return new URL(v).protocol === 'http:' || new URL(v).protocol === 'https:' } catch { return false }
+}
+const HTTP_ONLY_MSG = 'Link must start with http:// or https://'
+
 // A brand's stored social profile (multiple per brand, one primary).
 export const brandSocialSchema = z.object({
   platform: z.enum(SOCIAL_PLATFORMS),
   handle: z.string().trim().min(1).max(64),
-  url: z.string().trim().url().max(300),
+  url: z.string().trim().url().max(300).refine(isHttpUrl, HTTP_ONLY_MSG),
   is_primary: z.boolean(),
   follower_count: z.number().int().min(0).max(1_000_000_000).nullable().optional(),
 })
@@ -26,7 +34,8 @@ const emptyToNull = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? 
 
 const optionalUrl = z.preprocess(
   emptyToNull,
-  z.string().trim().url('Must be a valid URL (include https://)').max(300).nullish()
+  z.string().trim().url('Must be a valid URL (include https://)').max(300)
+    .refine(isHttpUrl, HTTP_ONLY_MSG).nullish()
 )
 
 const optionalText = (max: number, label: string) => z.preprocess(
@@ -47,6 +56,7 @@ export const creatorProfileUpdateSchema = z.object({
   location: optionalText(120, 'Location'),
   portfolio_links: z.array(
     z.string().trim().url('Each portfolio link must be a valid URL (include https://)').max(300)
+      .refine(isHttpUrl, HTTP_ONLY_MSG)
   ).max(10, 'Up to 10 portfolio links').optional(),
   media_kit_url: optionalUrl,
   average_rate_sgd: z.number().int().min(0).max(100_000_000).nullish(),

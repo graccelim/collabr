@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { requireCreator } from '@/lib/auth';
-import { remainingSpots } from '@/lib/collab-status';
+import { remainingSpots, consumesSpot } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import { Compass, ArrowLeft } from 'lucide-react';
 import { rankCampaignsForCreator } from '@/lib/recommend';
@@ -46,7 +46,7 @@ export default async function JobsPage({
   // Social accounts (self-reported followers), the creator's existing
   // applications, and the creator's score row all key off the creator id -
   // batch them.
-  const [{ data: socials }, { data: myApps }, { data: scoreRow }, { data: savedRows }] =
+  const [{ data: socials }, { data: myApps }, { data: scoreRow }, { data: savedRows }, { data: myCollabs }] =
     await Promise.all([
       supabase
         .from('social_accounts')
@@ -65,10 +65,29 @@ export default async function JobsPage({
         .from('saved_campaigns')
         .select('campaign_id')
         .eq('creator_id', creator?.id ?? ''),
+      supabase
+        .from('collabs')
+        .select('campaign_id, status, payment_status, agreed_rate')
+        .eq('creator_id', creator?.id ?? '')
+        .neq('status', 'cancelled'),
     ]);
+  // "Selected" is only shown once the collab is REAL — funded escrow (or a
+  // barter collab, committed at accept). A selected-but-unfunded pick still
+  // reads "Applied" here, matching the job detail page, so the two surfaces
+  // never contradict each other one click apart.
+  const committedCampaigns = new Set(
+    (myCollabs ?? [])
+      .filter((c) => consumesSpot(c) || (c.agreed_rate ?? 0) === 0)
+      .map((c) => c.campaign_id as string)
+  );
   const appStatusByCampaign = new Map<string, string>();
   for (const a of myApps ?? [])
-    appStatusByCampaign.set(a.campaign_id as string, a.status as string);
+    appStatusByCampaign.set(
+      a.campaign_id as string,
+      a.status === 'selected' && !committedCampaigns.has(a.campaign_id as string)
+        ? 'pending'
+        : (a.status as string)
+    );
   const savedCampaignIds = new Set(
     (savedRows ?? []).map((s) => s.campaign_id as string)
   );

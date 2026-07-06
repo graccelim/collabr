@@ -21,8 +21,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (!['creator_wins', 'brand_wins', 'split', 'mutual'].includes(outcome)) {
     return NextResponse.json({ error: 'Invalid outcome' }, { status: 400 })
   }
-  if (outcome === 'split' && (!split_percentage || split_percentage < 0 || split_percentage > 100)) {
-    return NextResponse.json({ error: 'split_percentage 0 to 100 required for split outcome' }, { status: 400 })
+  if (outcome === 'split' && (!Number.isInteger(split_percentage) || split_percentage < 1 || split_percentage > 99)) {
+    return NextResponse.json({ error: 'split_percentage must be a whole number from 1 to 99 for a split outcome' }, { status: 400 })
   }
 
   const { data: claimed, error: claimError } = await admin.rpc('claim_dispute_resolution', {
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   for (const uid of finalized === true ? [creatorUserId, brandUserId].filter(Boolean) : []) {
     await sendNotification({ userId: uid, type: 'dispute_resolved',
       title: `Dispute resolved, ${outcomeLabel}`, payload: { collab_id: collab.id },
-      dedupeKey: `dispute:${params.id}:resolved` })
+      dedupeKey: `dispute:${params.id}:resolved`, email: false })
     await sendProductEmail({ userId: uid, ...productEmails.disputeResolved({ collabId: collab.id, disputeId: params.id, outcomeLabel, recipientId: uid, isBarter }) })
   }
 

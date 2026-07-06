@@ -55,7 +55,9 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       title: isUpdate ? 'Shipping details updated' : 'Shipping details provided',
       body: 'The creator added their shipping address. Open the collab to view it and send the product.',
       payload: { collab_id: params.id },
-      dedupeKey: `collab:${params.id}:shipping:${isUpdate ? Date.now() : 'first'}`,
+      // Updates dedupe per day (not per save) so address touch-ups can't spam
+      // the brand with one email per edit.
+      dedupeKey: `collab:${params.id}:shipping:${isUpdate ? `update:${new Date().toISOString().slice(0, 10)}` : 'first'}`,
     })
   }
   return NextResponse.json({ success: true })

@@ -18,6 +18,36 @@ function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success'>('idle')
+  // Arriving from an expired/used verification link (auth/confirm redirects
+  // here with ?error=link_expired). Offer a resend right on this page — an
+  // unverified user cannot log in, so this must work without a session.
+  const linkExpired = params.get('error') === 'link_expired'
+  const [resending, setResending] = useState(false)
+  const [resent, setResent] = useState(false)
+
+  async function resendVerification() {
+    if (resending) return
+    const target = email.trim()
+    if (!/.+@.+\..+/.test(target)) {
+      toast.error('Enter your email above first, then tap resend.')
+      return
+    }
+    setResending(true)
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: target }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) { toast.error(data.error || 'Could not resend. Try again later.'); setResending(false); return }
+      setResent(true)
+      toast.success('If that address has an unverified account, a fresh link is on its way.')
+    } catch {
+      toast.error('Network error — please try again.')
+    }
+    setResending(false)
+  }
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -43,6 +73,25 @@ function LoginForm() {
       <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 28 }}>
         Log in and pick up right where you left off.
       </p>
+
+      {linkExpired && (
+        <div className="card" style={{ padding: '13px 16px', marginBottom: 20, background: 'var(--warn-tint, #FBF3E6)', border: '1px solid rgba(178,106,30,.25)' }}>
+          <p style={{ fontSize: 13, color: 'var(--warn-deep, #8A5215)', margin: 0, lineHeight: 1.5 }}>
+            That verification link has expired or was already used.{' '}
+            {resent ? (
+              <strong>A fresh link is on its way — check your inbox.</strong>
+            ) : (
+              <>
+                Enter your email below, then{' '}
+                <button type="button" onClick={resendVerification} disabled={resending}
+                  style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', fontWeight: 650, color: 'var(--warn-deep, #8A5215)', textDecoration: 'underline', font: 'inherit' }}>
+                  {resending ? 'sending…' : 'resend the verification email'}
+                </button>.
+              </>
+            )}
+          </p>
+        </div>
+      )}
 
       <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 7 }}>
@@ -80,9 +129,9 @@ function LoginForm() {
           {status === 'success' ? (
             <><Loader2 size={16} className="animate-spin" /> Taking you back…</>
           ) : status === 'loading' ? (
-            <><Loader2 size={16} className="animate-spin" /> Signing in…</>
+            <><Loader2 size={16} className="animate-spin" /> Logging in…</>
           ) : (
-            <>Sign in <ArrowRight size={16} /></>
+            <>Log in <ArrowRight size={16} /></>
           )}
         </button>
       </form>

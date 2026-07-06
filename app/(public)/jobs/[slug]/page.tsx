@@ -5,7 +5,7 @@ import { isUuid } from '@/lib/slug';
 import { ensureCampaignSlug } from '@/lib/slug-server';
 import { consumesSpot, isCampaignFilled } from '@/lib/collab-status';
 import { formatSGD, getInitials } from '@/lib/utils';
-import { NICHE_LABELS, INDUSTRY_LABELS, type CreatorNiche, type BrandIndustry } from '@/lib/onboarding';
+import { NICHE_LABELS, INDUSTRY_LABELS, SOCIAL_LABELS, type CreatorNiche, type BrandIndustry, type SocialPlatform } from '@/lib/onboarding';
 import { computeFit, bestFollowers } from '@/lib/fit';
 import Link from 'next/link';
 import { ChevronLeft, Shield, CheckCircle2, Wallet, PenLine, Send, Coins, Star, Briefcase, ArrowRight, Package, Sparkles } from 'lucide-react';
@@ -170,19 +170,19 @@ export default async function JobDetailPage({
   const collabHref = collab?.id ? `/collabs/${collab.id}` : '/collabs';
   const isSavedCampaign = Boolean(savedRow);
 
-  // A pending invite for this creator → they review the brief here and accept or
-  // decline (no apply form; they were invited, not applying).
-  const { data: pendingInvite } = creator && !existing
-    ? await supabase.from('campaign_invites')
-        .select('id, proposed_rate')
-        .eq('campaign_id', campaignId).eq('creator_id', creator.id).eq('status', 'pending')
-        .maybeSingle()
-    : { data: null };
-
-  // Capacity: filled once enough creators are FUNDED. A filled campaign can't
-  // be applied to (existing applicants still see their own state).
-  const { data: campaignCollabs } = await admin.from('collabs')
-    .select('status, payment_status').eq('campaign_id', campaignId);
+  // A pending invite for this creator (they review the brief here and accept or
+  // decline — no apply form) + campaign capacity: independent, fetched together.
+  const [{ data: pendingInvite }, { data: campaignCollabs }] = await Promise.all([
+    creator && !existing
+      ? supabase.from('campaign_invites')
+          .select('id, proposed_rate')
+          .eq('campaign_id', campaignId).eq('creator_id', creator.id).eq('status', 'pending')
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+    // Capacity: filled once enough creators are FUNDED. A filled campaign can't
+    // be applied to (existing applicants still see their own state).
+    admin.from('collabs').select('status, payment_status').eq('campaign_id', campaignId),
+  ]);
   const campaignFilled = isCampaignFilled((campaign as { creators_needed?: number }).creators_needed, campaignCollabs || []);
 
   const brand = campaign.brand_profiles as {
@@ -238,8 +238,16 @@ export default async function JobDetailPage({
           ? formatSGD(campaign.budget_max)
           : 'Paid';
 
+  // Platform targeting (050): canonical slugs → labels; empty = any platform.
+  const platformNames = ((campaign.platforms as string[] | null) ?? [])
+    .map((p) => SOCIAL_LABELS[p as SocialPlatform] ?? p);
+
   const briefMeta: { label: string; value: string }[] = [
     { label: 'Deliverable', value: campaign.deliverable_types?.[0] ?? '-' },
+    {
+      label: 'Platforms',
+      value: platformNames.length ? platformNames.join(', ') : 'Any',
+    },
     {
       label: 'Min followers',
       value: campaign.min_followers

@@ -4,7 +4,7 @@ import { flags } from '@/lib/flags'
 import { aiConfigured } from '@/lib/ai/client'
 import { isCreatorProActive } from '@/lib/creator-pro'
 import { contentLab } from '@/lib/ai/service'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 
 const PLATFORMS = ['tiktok', 'instagram', 'youtube', 'lemon8', 'xhs', 'x']
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!(await isCreatorProActive(admin, creator.id))) {
     return NextResponse.json({ error: 'Creator Pro required.' }, { status: 403 })
   }
-  if (!checkRateLimit(`ai-lab:${user.id}`, 30, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`ai-lab:${user.id}`, 30, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many requests. Try again later.' }, { status: 429 })
   }
 

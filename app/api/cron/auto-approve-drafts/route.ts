@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
     if (creatorUserId) {
       await sendNotification({ userId: creatorUserId, type: 'draft_approved',
         title: 'Draft auto-approved, post live now!', body: 'Brand did not respond in 48h, so your draft was auto-approved.',
-        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator` })
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:creator`, email: false })
       // Email matching the in-app event (deduped via email_log).
       await sendProductEmail({ userId: creatorUserId, ...productEmails.draftAutoApproved({ collabId: c.id }) })
     }
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
       await sendNotification({ userId: brandUserId, type: 'draft_auto_approved',
         title: 'A draft was automatically approved',
         body: 'A creator’s draft was automatically approved because the review window ended. The collaboration can now continue to the live-post stage.',
-        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:brand` })
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:draft-auto-approved:brand`, email: false })
       await sendProductEmail({ userId: brandUserId, ...productEmails.draftAutoApprovedBrand({ collabId: c.id }) })
     }
     processed++

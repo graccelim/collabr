@@ -6,16 +6,19 @@ interface Props {
   hasInvited: boolean
   hasFunded: boolean
   hasDraft: boolean
+  /** Inviting is Plus-gated — hide that step for brands who can't do it, or
+      the checklist sticks below 100% forever with a paywalled item. */
+  canInvite?: boolean
 }
 
 /**
  * Brand activation checklist — gets a new brand to their first collaboration as
- * fast as possible. Hidden once all four are done.
+ * fast as possible. Hidden once all steps are done.
  */
-export default function BrandActivation({ hasCampaign, hasInvited, hasFunded, hasDraft }: Props) {
+export default function BrandActivation({ hasCampaign, hasInvited, hasFunded, hasDraft, canInvite = false }: Props) {
   const items = [
     { label: 'Create your first campaign', done: hasCampaign, href: '/post-job' },
-    { label: 'Invite creators', done: hasInvited, href: '/creators' },
+    ...(canInvite ? [{ label: 'Invite creators', done: hasInvited, href: '/creators' }] : []),
     { label: 'Fund your first collaboration', done: hasFunded, href: '/collabs' },
     { label: 'Receive your first draft', done: hasDraft, href: '/collabs' },
   ]

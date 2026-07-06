@@ -40,7 +40,7 @@ export default function WithdrawApplicationButton({ applicationId }: { applicati
         <div onClick={() => !busy && setOpen(false)}
           style={{ position: 'fixed', inset: 0, zIndex: 80, background: 'rgba(14,16,22,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 18 }}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background: 'var(--surface, #fff)', width: '100%', maxWidth: 380, borderRadius: 16, padding: '22px 22px 18px', boxShadow: '0 20px 50px rgba(14,16,22,.25)' }}>
+            style={{ background: 'var(--surface, #fff)', width: '100%', maxWidth: 380, borderRadius: 'var(--radius-lg)', padding: '22px 22px 18px', boxShadow: 'var(--shadow-lg)' }}>
             <h2 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 8px' }}>Withdraw application?</h2>
             <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55, margin: '0 0 20px' }}>
               You can apply again later if this campaign is still open.

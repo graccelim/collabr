@@ -76,10 +76,18 @@ export async function POST(req: NextRequest) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated':
       case 'customer.subscription.deleted': {
-        const sub = event.data.object as Stripe.Subscription
-        const creatorId = sub.metadata?.creator_id
-        if (!creatorId) break // not a Creator Pro subscription
-        await applySubscription(admin, creatorId, sub, event.type === 'customer.subscription.deleted')
+        const evSub = event.data.object as Stripe.Subscription
+        const creatorId = evSub.metadata?.creator_id
+        if (creatorId == null || evSub.metadata?.kind !== 'creator_pro') break // not a Creator Pro subscription
+        if (event.type === 'customer.subscription.deleted') {
+          await applySubscription(admin, creatorId, evSub, true)
+          break
+        }
+        // Stripe retries out of order for up to 3 days: applying the EVENT
+        // payload could resurrect a canceled subscription from a stale retry.
+        // Re-retrieve the subscription and apply its CURRENT state instead.
+        const sub = await stripe.subscriptions.retrieve(evSub.id)
+        await applySubscription(admin, creatorId, sub, sub.status === 'canceled')
         break
       }
       default:

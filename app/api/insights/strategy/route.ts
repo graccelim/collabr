@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { flags } from '@/lib/flags'
 import { isCreatorProActive } from '@/lib/creator-pro'
 import { generateStrategistForPlatform } from '@/lib/analytics/sync'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 
 // Generates ONLY the AI strategist (game plan) for one platform, on demand, from
 // the already-computed deterministic insights. The Strategy tab calls this so the
@@ -16,6 +17,11 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Same per-user cap as the sibling AI routes (brand-coach / content-lab).
+  if (!(await checkRateLimitDurable(`ai-strategy:${user.id}`, 30, 60 * 60 * 1000))) {
+    return NextResponse.json({ error: 'Too many requests. Try again later.' }, { status: 429 })
+  }
 
   const admin = createAdminClient()
   const { data: creator } = await supabase.from('creator_profiles').select('id').eq('user_id', user.id).single()

@@ -58,7 +58,9 @@ export default function CollabResultsForm({ collabId, existing }: { collabId: st
         <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>{existing ? 'Update your results' : 'Add your results'}</h3>
       </div>
       <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', margin: '0 0 14px', lineHeight: 1.5 }}>
-        Share how your post did so {`the brand`} can see the results. It only takes a minute and makes you far more likely to get booked again.
+        Share how your post did so the brand can see the results. Creators who
+        report results earn a &ldquo;shares results&rdquo; trust signal on their
+        public profile — one of the first things brands check before booking.
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }} className="result-tiles">

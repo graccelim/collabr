@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, boostEnabled, boostPriceIds, BOOST_DAYS } from '@/lib/stripe'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 
 // Creator purchases a paid Boost. This route ONLY creates a Stripe Checkout
 // session - the boost is activated by the webhook (checkout.session.completed,
@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Anti-spam: cap checkout-session creation per creator.
-  if (!checkRateLimit(`boost:${user.id}`, 5, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`boost:${user.id}`, 5, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
   }
 

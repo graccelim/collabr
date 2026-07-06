@@ -15,14 +15,24 @@ export async function GET(req: NextRequest) {
   const dry = req.nextUrl.searchParams.get('dry') === '1'
   const admin = createAdminClient()
 
-  const { data: rows, error } = await admin.rpc('collabr_certification_facts', { p_creator_id: null })
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // Set-returning RPC — paginated (PostgREST caps unpaged reads at 1000 rows),
+  // ordered by creator_id so pages are stable across the loop.
+  const BATCH = 1000
+  const rows: Array<Record<string, number | string | null>> = []
+  for (let from = 0; ; from += BATCH) {
+    const { data: batch, error } = await admin.rpc('collabr_certification_facts', { p_creator_id: null })
+      .order('creator_id', { ascending: true })
+      .range(from, from + BATCH - 1)
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    rows.push(...((batch ?? []) as Array<Record<string, number | string | null>>))
+    if (!batch || batch.length < BATCH) break
+  }
 
   const certRows: Record<string, unknown>[] = []
   const nowCertified: string[] = []
   const notCertified: string[] = []
 
-  for (const r of (rows ?? []) as Array<Record<string, number | string | null>>) {
+  for (const r of rows) {
     const completed = Number(r.completed_count ?? 0)
     const cancelled = Number(r.cancelled_count ?? 0)
     const disputes = Number(r.disputes_count ?? 0)

@@ -10,9 +10,14 @@ import EmptyState from '@/components/EmptyState'
 import Link from 'next/link'
 import { Check, Receipt } from 'lucide-react'
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams?: { subscribed?: string }
+}) {
   const user = await requireBrand()
   const supabase = createClient()
+  const justSubscribed = searchParams?.subscribed === '1'
 
   // Admin client: subscription columns are not client-readable; this is the
   // signed-in brand's own row, scoped by user_id.
@@ -60,6 +65,25 @@ export default async function BillingPage() {
     <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-xl font-semibold text-gray-900">Billing</h1>
 
+      {/* Back from Stripe Checkout: confirm receipt even if the webhook that
+          flips the plan hasn't landed yet — otherwise the page looks unchanged
+          and a paying brand thinks the purchase failed. */}
+      {justSubscribed && !plan.isPlus && (
+        <div className="card" style={{ padding: '13px 16px', background: 'var(--money-tint)', border: '1px solid rgba(21,122,85,.25)' }}>
+          <p style={{ fontSize: 13.5, color: 'var(--money-deep)', margin: 0 }}>
+            Payment received — your plan is activating and will appear here in a
+            moment. Refresh if it hasn&rsquo;t updated shortly.
+          </p>
+        </div>
+      )}
+      {justSubscribed && plan.isPlus && (
+        <div className="card" style={{ padding: '13px 16px', background: 'var(--money-tint)', border: '1px solid rgba(21,122,85,.25)' }}>
+          <p style={{ fontSize: 13.5, color: 'var(--money-deep)', margin: 0 }}>
+            You&rsquo;re on Plus — Creator Discovery, invites and saved creators are unlocked.
+          </p>
+        </div>
+      )}
+
       {/* Current plan — navy card */}
       <div className="card" style={{ background: 'linear-gradient(122deg,#0A0C22 0%,#1A2150 60%,#0A0C22 100%)', border: 'none', color: '#E7E9F5' }}>
         <div className="flex items-start justify-between gap-4">
@@ -101,6 +125,27 @@ export default async function BillingPage() {
             (normally {CURRENCY}{PLAN_PRICING.pro.monthly}/mo) while collabr is in beta. If we ever add paid plans,
             you&rsquo;ll get plenty of notice first, no surprises.
           </p>
+        )}
+
+        {/* A paying subscriber (e.g. beta-priced Plus) must ALWAYS be able to
+            reach the Stripe portal — "Cancel anytime" needs a real path even
+            while the beta layout hides the paid-mode actions below. */}
+        {beta && stripeCustomerId && (
+          <div className="mt-4 pt-4 flex items-center gap-3 flex-wrap" style={{ borderTop: '1px solid rgba(255,255,255,.12)' }}>
+            <BillingActions action="portal" label="Manage subscription" />
+            {plan.state === 'past_due' && (
+              <p className="text-xs" style={{ color: 'var(--warn-deep)' }}>
+                Your last payment failed, update your payment method to keep your plan.
+              </p>
+            )}
+            {plan.proReason === 'cancelled_until_period_end' ? (
+              <p className="text-xs" style={{ color: '#9AA0C8' }}>
+                Subscription cancelled, access remains until {periodEnd}.
+              </p>
+            ) : periodEnd && plan.isPlus ? (
+              <p className="text-xs" style={{ color: '#9AA0C8' }}>Renews {periodEnd}</p>
+            ) : null}
+          </div>
         )}
 
         {/* Paid mode actions */}

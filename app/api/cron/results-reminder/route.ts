@@ -36,6 +36,14 @@ export async function GET(req: NextRequest) {
     const creatorUserId = (c as any).creator_profiles?.user_id
     const email = (c as any).creator_profiles?.users?.email
     const brandName = (c as any).brand_profiles?.company_name || 'the brand'
+    // Stamp BEFORE sending, and only send if the stamp actually landed —
+    // otherwise a failed write means the same reminder re-sends every day
+    // (the date-suffixed email key would never dedupe across days).
+    const { data: stamped, error: stampErr } = await admin.from('collabs')
+      .update({ results_reminded_at: nowIso })
+      .eq('id', c.id).is('results_reminded_at', null)
+      .select('id')
+    if (stampErr || !stamped?.length) continue
     if (creatorUserId) {
       await sendNotification({
         userId: creatorUserId, type: 'results_reminder',
@@ -43,10 +51,10 @@ export async function GET(req: NextRequest) {
         body: `Add your results for ${brandName} so they can see how it performed.`,
         payload: { collab_id: c.id },
         dedupeKey: `collab:${c.id}:results-reminder`,
+        email: false,
       })
     }
     if (email) await sendProductEmail({ to: email, userId: creatorUserId, ...productEmails.resultsReminder({ brandName, collabId: c.id as string, key }) })
-    await admin.from('collabs').update({ results_reminded_at: nowIso }).eq('id', c.id)
     reminded++
   }
 

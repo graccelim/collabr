@@ -18,11 +18,20 @@ export async function GET(req: NextRequest) {
     .is('revealed_at', null)
     .lt('created_at', cutoff)
 
-  let revealed = 0
+  // CAS-guarded (only still-hidden rows) and error-checked: if the reveal write
+  // fails, we must NOT tell people their review "is now visible".
+  let revealedIds = new Set<string>()
   if (overdue && overdue.length > 0) {
     const ids = overdue.map(r => r.id)
-    await supabase.from('reviews').update({ revealed_at: new Date().toISOString() }).in('id', ids)
-    revealed = ids.length
+    const { data: updated, error: revealErr } = await supabase.from('reviews')
+      .update({ revealed_at: new Date().toISOString() })
+      .in('id', ids).is('revealed_at', null)
+      .select('id')
+    if (revealErr) {
+      console.error('[CRON update-ratings] reveal update failed:', revealErr.message)
+      return NextResponse.json({ revealed: 0, error: revealErr.message }, { status: 500 })
+    }
+    revealedIds = new Set((updated || []).map(r => r.id))
   }
 
   // Recompute every party's visible reputation from revealed reviews.
@@ -31,6 +40,7 @@ export async function GET(req: NextRequest) {
   // Notify both sides of each newly-revealed collaboration (idempotent).
   const notifiedCollabs = new Set<string>()
   for (const r of overdue || []) {
+    if (!revealedIds.has(r.id)) continue
     if (notifiedCollabs.has(r.collab_id)) continue
     notifiedCollabs.add(r.collab_id)
     const c = r.collabs as any
@@ -46,5 +56,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ revealed, collabs_notified: notifiedCollabs.size })
+  return NextResponse.json({ revealed: revealedIds.size, collabs_notified: notifiedCollabs.size })
 }

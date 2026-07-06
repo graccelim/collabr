@@ -1,5 +1,5 @@
 'use client'
-import { motion } from 'framer-motion'
+import { LazyMotion, domAnimation, m } from 'framer-motion'
 
 const EASE = [0.2, 0.7, 0.2, 1] as const
 
@@ -19,7 +19,8 @@ export default function WorkflowSteps({
   lineColor: string
 }) {
   return (
-    <motion.div
+    <LazyMotion features={domAnimation}>
+    <m.div
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.35 }}
@@ -27,7 +28,7 @@ export default function WorkflowSteps({
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
       {steps.map(([title, desc], i) => (
-        <motion.div
+        <m.div
           key={title}
           className="workflow-step"
           variants={{
@@ -37,7 +38,7 @@ export default function WorkflowSteps({
           style={{ display: 'flex', gap: 13, position: 'relative' }}
         >
           {i < steps.length - 1 && (
-            <motion.span
+            <m.span
               aria-hidden
               variants={{
                 hidden: { scaleY: 0 },
@@ -64,8 +65,9 @@ export default function WorkflowSteps({
             <div className="workflow-title" style={{ fontWeight: 700, fontSize: 14.5 }}>{title}</div>
             <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2, lineHeight: 1.45 }}>{desc}</div>
           </div>
-        </motion.div>
+        </m.div>
       ))}
-    </motion.div>
+    </m.div>
+    </LazyMotion>
   )
 }

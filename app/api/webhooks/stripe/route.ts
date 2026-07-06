@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { notifyCollabFunded, retryStuckPayoutsForAccount } from '@/lib/collab-funding'
-import { stripe, BOOST_MAX_HORIZON_DAYS, brandPlusPriceIds } from '@/lib/stripe'
+import { stripe, BOOST_MAX_HORIZON_DAYS, brandProPriceIds, brandPlusPriceIds, brandPlusBetaPriceIds } from '@/lib/stripe'
 import { setBrandStripeCustomer, getBrandIdByStripeCustomer } from '@/lib/brand-billing'
 import { paymentStatusFromIntent } from '@/lib/payments'
 import { sendPayoutAdminEmail, link } from '@/lib/email'
@@ -30,11 +30,23 @@ async function applySubscriptionToBrand(
     ? new Date(subscription.current_period_end * 1000).toISOString()
     : null
 
-  // Map the subscribed price to the brand tier (Pro vs Plus).
+  // Map the subscribed price to the brand tier (Pro vs Plus). Plus can be sold
+  // at full OR beta (discounted) prices — both must resolve to 'plus', and the
+  // checkout's tier metadata is honoured as a fallback so a paying Plus brand
+  // is never silently downgraded to Pro.
   const priceId = subscription.items?.data?.[0]?.price?.id
   const plusIds = brandPlusPriceIds()
+  const plusBetaIds = brandPlusBetaPriceIds()
+  const proIds = brandProPriceIds()
+  const isPlusPrice = !!priceId && [
+    plusIds.monthly, plusIds.annual, plusBetaIds.monthly, plusBetaIds.annual,
+  ].filter(Boolean).includes(priceId)
+  const isProPrice = !!priceId && [proIds.monthly, proIds.annual]
+    .filter(Boolean).includes(priceId)
+  // Metadata is stamped once at checkout and NOT updated on portal plan
+  // switches — trust it only when the price matches neither known tier.
   const paidTier: 'pro' | 'plus' =
-    priceId && (priceId === plusIds.monthly || priceId === plusIds.annual) ? 'plus' : 'pro'
+    isPlusPrice || (!isProPrice && subscription.metadata?.tier === 'plus') ? 'plus' : 'pro'
 
   let status: 'active' | 'cancelled' | 'past_due'
   let plan: 'free' | 'pro' | 'plus'
@@ -246,9 +258,18 @@ export async function POST(req: NextRequest) {
       const charge = event.data.object as Stripe.Charge
       if (typeof charge.payment_intent === 'string') {
         const { data: c } = await supabase.from('collabs')
-          .select('id, stripe_transfer_id, payment_status')
+          .select('id, stripe_transfer_id, payment_status, dispute_released_cents')
           .eq('stripe_payment_intent_id', charge.payment_intent).maybeSingle()
         if (c) {
+          // On the pinned (pre-Basil) API version, partial capture (split
+          // dispute) and hold cancellation auto-generate Refund objects. Those
+          // are EXPECTED — not out-of-band refunds — and must not flag manual
+          // review or clobber payment_status. Real app refunds always carry
+          // metadata.collab_id (lib/payments.ts) and are matched by amount here.
+          const expectedSplitRemainder = c.dispute_released_cents != null
+            && charge.amount_refunded === c.dispute_released_cents
+          const cancelledHold = c.payment_status === 'cancelled'
+          if (expectedSplitRemainder || cancelledHold) break
           const paidOut = Boolean(c.stripe_transfer_id) || ['paid', 'manual_exception'].includes(c.payment_status as string)
           if (paidOut) {
             // Out-of-band refund (e.g. from the Stripe dashboard) on a collab the
@@ -280,9 +301,18 @@ export async function POST(req: NextRequest) {
       const refund = event.data.object as Stripe.Refund
       if (typeof refund.payment_intent === 'string') {
         const { data: c } = await supabase.from('collabs')
-          .select('id, stripe_transfer_id, payment_status')
+          .select('id, stripe_transfer_id, payment_status, dispute_released_cents')
           .eq('stripe_payment_intent_id', refund.payment_intent).maybeSingle()
         if (c) {
+          // Same guard as charge.refunded: Stripe-generated refunds from a
+          // split-dispute partial capture or a cancelled hold are expected —
+          // skip them (real app refunds carry metadata.collab_id).
+          const appRefund = Boolean(refund.metadata?.collab_id)
+          const expectedSplitRemainder = !appRefund
+            && c.dispute_released_cents != null
+            && refund.amount === c.dispute_released_cents
+          const cancelledHold = !appRefund && c.payment_status === 'cancelled'
+          if (expectedSplitRemainder || cancelledHold) break
           const paidOut = Boolean(c.stripe_transfer_id) || ['paid', 'manual_exception'].includes(c.payment_status as string)
           if (paidOut) {
             await ensureWrite(supabase.from('collabs').update({

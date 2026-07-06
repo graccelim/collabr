@@ -192,6 +192,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         : 'The collab has been created, secure the payment to get work started.',
       payload: { invite_id: invite.id, collab_id: collabId },
       dedupeKey: `invite:${invite.id}:accepted`,
+      email: false,
     })
     if (collabId) await sendProductEmail({ userId: brandUserId, ...productEmails.inviteAccepted({ creatorName, collabId, inviteId: invite.id }) })
   }

@@ -53,11 +53,16 @@ export async function GET(req: NextRequest) {
       if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'collab_completed',
         title: 'Your barter collab is complete', body: 'Auto-completed after 72h. Leave a review to build trust.',
         payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:completed` })
+      // The brand must hear it completed too (reviews just opened for them).
+      if (brandUserId) await sendNotification({ userId: brandUserId, type: 'collab_completed',
+        title: 'Your barter collab is complete',
+        body: `Your collaboration with ${creatorName} auto-completed after the 72h window. Leave a review to build trust.`,
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:completed-brand` })
     } else if (settlement.completed) {
       const amount = formatSGD(c.creator_payout)
       if (creatorUserId) await sendNotification({ userId: creatorUserId, type: 'payment_released',
         title: `${amount} transferred`, body: 'Automatic settlement succeeded after 72h.',
-        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payment-released` })
+        payload: { collab_id: c.id }, dedupeKey: `collab:${c.id}:payment-released`, email: false })
       await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: c.id }) })
       await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: c.id }) })
     }

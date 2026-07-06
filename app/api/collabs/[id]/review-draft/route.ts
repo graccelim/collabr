@@ -49,13 +49,13 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
   if (decision === 'approved') {
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'draft_approved',
       title: 'Draft approved, post live now!', payload: { collab_id: params.id },
-      dedupeKey: `submission:${submissionId}:approved` })
+      dedupeKey: `submission:${submissionId}:approved`, email: false })
     if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.draftApproved({ collabId: params.id, key: String(submissionId) }) })
 
   } else if (decision === 'revision') {
     if (creatorUserId && applied) await sendNotification({ userId: creatorUserId, type: 'revision_requested',
       title: 'Revision requested', body: feedback, payload: { collab_id: params.id },
-      dedupeKey: `submission:${submissionId}:revision` })
+      dedupeKey: `submission:${submissionId}:revision`, email: false })
     if (creatorEmail && applied) await sendProductEmail({ to: creatorEmail, ...productEmails.revisionRequested({ collabId: params.id, key: String(submissionId) }) })
   }
 

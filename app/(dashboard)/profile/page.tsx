@@ -279,7 +279,13 @@ export default function ProfilePage() {
     if (!res.ok) { toast.error('Could not update followers'); setSocials(prev) }
   }
 
-  if (loading) return <div className="text-sm text-gray-400">Loading…</div>
+  if (loading) return (
+    <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div className="skel" style={{ width: 220, height: 30, borderRadius: 7 }} />
+      <div className="skel" style={{ height: 280, borderRadius: 'var(--radius)' }} />
+      <div className="skel" style={{ height: 220, borderRadius: 'var(--radius)' }} />
+    </div>
+  )
 
   const completion = creatorCompletion({
     avatar_url: avatarUrl || avatarPreview,

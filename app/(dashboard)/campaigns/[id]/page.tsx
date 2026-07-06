@@ -6,7 +6,7 @@ import ApplicantList from '@/components/ApplicantList'
 import ResultsSummary from '@/components/ResultsSummary'
 import { aggregateResults } from '@/lib/results/report'
 import EmptyState from '@/components/EmptyState'
-import { PLAN_COLUMNS } from '@/lib/plans'
+import { PLAN_COLUMNS, resolvePlan } from '@/lib/plans'
 import { computeMatch, creatorIndicators } from '@/lib/recommend'
 import { toCreatorSignals, toCampaignSignals, type ScoreRow } from '@/lib/discovery-data'
 import { consumesSpot } from '@/lib/collab-status'
@@ -19,6 +19,8 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
   // Admin client: subscription columns are server-only; own row by user_id.
   const { data: brand } = await createAdminClient().from('brand_profiles')
     .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
+
+  const isPlus = resolvePlan(brand).isPlus
 
   const { data: campaign } = await supabase.from('campaigns')
     .select('*').eq('id', params.id).eq('brand_id', brand!.id).single()
@@ -187,17 +189,30 @@ export default async function CampaignDetailPage({ params }: { params: { id: str
           </div>
 
           {(!applications || applications.length === 0) ? (
-            <EmptyState
-              icon={Inbox}
-              title="Applications are on the way"
-              body="Creators are browsing right now, most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
-              actionHref="/creators"
-              actionLabel="Invite creators"
-            />
+            // The empty state's CTA must be something the brand can actually
+            // do: inviting is Plus-gated, so non-Plus brands get their
+            // shareable public link instead of a paywall.
+            isPlus ? (
+              <EmptyState
+                icon={Inbox}
+                title="Applications are on the way"
+                body="Creators are browsing right now, most active campaigns receive their first applications within 48 hours. You can also invite creators directly."
+                actionHref="/creators"
+                actionLabel="Invite creators"
+              />
+            ) : (
+              <EmptyState
+                icon={Inbox}
+                title="Applications are on the way"
+                body="Creators are browsing right now, most active campaigns receive their first applications within 48 hours. Sharing your campaign link on your socials speeds this up."
+                actionHref={`/jobs/${(campaign as { slug?: string | null }).slug || params.id}`}
+                actionLabel="View & share your campaign"
+              />
+            )
           ) : (
             <>
               <ApplicantList applications={visibleApps} campaignId={params.id} campaign={campaign}
-                spotsLeft={Math.max(0, (campaign.creators_needed || 1) - spotsFilled)} />
+                spotsLeft={Math.max(0, (campaign.creators_needed || 1) - spotsFilled)} canInvite={isPlus} />
             </>
           )}
         </div>

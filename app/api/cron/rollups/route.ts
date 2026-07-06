@@ -35,9 +35,18 @@ export async function GET(req: NextRequest) {
 
 async function rollupCampaigns(admin: ReturnType<typeof createAdminClient>): Promise<number> {
   // Posts explicitly linked to a collab (canonical-URL match) drive campaign analytics.
-  const { data: linked } = await admin.from('content_posts')
-    .select('id, creator_id, platform, url, posted_at, collab_id')
-    .not('collab_id', 'is', null)
+  // Paginated — PostgREST caps unpaged reads at 1000 rows.
+  const BATCH = 1000
+  const linked: any[] = []
+  for (let from = 0; ; from += BATCH) {
+    const { data: batch } = await admin.from('content_posts')
+      .select('id, creator_id, platform, url, posted_at, collab_id')
+      .not('collab_id', 'is', null)
+      .order('id', { ascending: true })
+      .range(from, from + BATCH - 1)
+    linked.push(...(batch ?? []))
+    if (!batch || batch.length < BATCH) break
+  }
   if (!linked?.length) return 0
 
   const collabIds = Array.from(new Set(linked.map((p) => p.collab_id as string)))
@@ -49,9 +58,23 @@ async function rollupCampaigns(admin: ReturnType<typeof createAdminClient>): Pro
   // All collabs per campaign (for connected-coverage), and latest snapshot per linked post.
   const { data: allCollabs } = await admin.from('collabs')
     .select('id, campaign_id, creator_id, creator_payout').in('campaign_id', campaignIds)
-  const { data: snaps } = await admin.from('post_snapshots')
-    .select('post_id, views, likes, comments, shares, saves, reach, captured_at')
-    .in('post_id', linked.map((p) => p.id)).order('captured_at', { ascending: false })
+  // Snapshots for the linked posts — per-chunk of post ids (bounded .in() list) with a
+  // range loop inside; captured_at desc keeps "first seen per post = latest", the id
+  // tiebreaker keeps pagination stable.
+  const linkedIds = linked.map((p) => p.id as string)
+  const snaps: any[] = []
+  for (let i = 0; i < linkedIds.length; i += 200) {
+    const ids = linkedIds.slice(i, i + 200)
+    for (let from = 0; ; from += BATCH) {
+      const { data: batch } = await admin.from('post_snapshots')
+        .select('post_id, views, likes, comments, shares, saves, reach, captured_at')
+        .in('post_id', ids)
+        .order('captured_at', { ascending: false }).order('id', { ascending: true })
+        .range(from, from + BATCH - 1)
+      snaps.push(...(batch ?? []))
+      if (!batch || batch.length < BATCH) break
+    }
+  }
   const latest = new Map<string, NonNullable<typeof snaps>[number]>()
   for (const s of snaps ?? []) if (!latest.has(s.post_id)) latest.set(s.post_id, s)
 

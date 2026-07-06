@@ -86,7 +86,7 @@ export default function DisputeStatusCard({
       {/* Original reason */}
       <div style={{ fontSize: 13, color: 'var(--ink)', background: 'var(--surface-2)', borderRadius: 'var(--radius-sm)', padding: '10px 12px' }}>
         <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '.04em' }}>Reason</span>
-        <div style={{ marginTop: 4, lineHeight: 1.5 }}>{reason}</div>
+        <div style={{ marginTop: 4, lineHeight: 1.5, overflowWrap: 'anywhere' }}>{reason}</div>
       </div>
 
       {/* Evidence thread */}
@@ -100,7 +100,7 @@ export default function DisputeStatusCard({
                 <Clock size={11} style={{ color: 'var(--ink-faint-solid)' }} />
                 <span style={{ color: 'var(--ink-faint-solid)' }}>{when(ev.created_at)}</span>
               </div>
-              {ev.body && <p style={{ fontSize: 13.5, color: 'var(--ink)', margin: '4px 0 0', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{ev.body}</p>}
+              {ev.body && <p style={{ fontSize: 13.5, color: 'var(--ink)', margin: '4px 0 0', lineHeight: 1.5, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{ev.body}</p>}
               {ev.attachment_urls.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
                   {ev.attachment_urls.map((u, j) => (

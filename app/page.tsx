@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getAuthUser } from '@/lib/auth';
 import { Reveal, RevealItem } from '@/components/Reveal';
 import { flags } from '@/lib/flags';
 import WorkflowSteps from '@/components/WorkflowSteps';
@@ -167,6 +165,31 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
   },
 ];
 
+/* FAQ — answers the objections that stop signups. Honest copy only: mechanics
+   that exist in the product today. */
+const FAQ: readonly (readonly [string, string])[] = [
+  [
+    'How much does Collabr cost?',
+    'Collabr is free during beta — no subscription and no credit card required to join. Brands pay only the agreed rate when they fund a collaboration, with no commission on top. Creators keep 90% of every payout (the 10% platform fee covers payment protection and dispute support).',
+  ],
+  [
+    'How are payments protected?',
+    'The brand funds the collaboration upfront and the money is held securely by the platform. It is only released to the creator once the content is approved and live — so brands never pay for work that is not delivered, and creators never start work unpaid.',
+  ],
+  [
+    'When do creators get paid?',
+    'As soon as the approved post is live, payment is released automatically to your connected bank account. No invoices and no chasing.',
+  ],
+  [
+    'What if the content is not what we agreed?',
+    'Every collaboration has a structured draft-and-revision workflow, so brands review content before it goes live. If something still goes wrong, a built-in dispute process lets the platform mediate fairly, typically within 3 days.',
+  ],
+  [
+    'Who can join Collabr?',
+    'Brands of any size and creators on TikTok, Instagram, and YouTube. Signing up takes about 2 minutes, and you can browse campaigns or creators right away.',
+  ],
+];
+
 /* Benefit-led USP grid. Shown on all viewports before "How it works" — leading
    with value, then mechanism, is the stronger conversion order. */
 function WhySection() {
@@ -330,12 +353,9 @@ function WhySection() {
   );
 }
 
-export default async function HomePage() {
-  // Logged-in users never see the public marketing page - bounce them into the
-  // app. This also stops an authed session lingering on a public route.
-  const user = await getAuthUser();
-  if (user) redirect('/dashboard');
-
+export default function HomePage() {
+  // Logged-in users are redirected to /dashboard by the middleware, so this
+  // page stays fully static (prerendered HTML, served from the edge cache).
   return (
     <div
       style={{
@@ -393,7 +413,7 @@ export default async function HomePage() {
           margin: '0 auto',
         }}
       >
-        <Reveal immediate>
+        <div className="hero-enter">
           <h1
             className="display-face"
             style={{
@@ -433,7 +453,18 @@ export default async function HomePage() {
               I&rsquo;m a creator
             </Link>
           </div>
-        </Reveal>
+          {/* Objection-killers belong next to the CTA, not buried in the
+              footer CTA band. */}
+          <p
+            style={{
+              fontSize: 13,
+              color: 'var(--ink-faint-solid)',
+              marginTop: 14,
+            }}
+          >
+            Free during beta · No credit card required · Takes 2 minutes
+          </p>
+        </div>
       </header>
 
       {/* ── Dual-sided split (the interaction worth keeping) ── */}
@@ -449,11 +480,8 @@ export default async function HomePage() {
           >
             B
           </div>
-          <Reveal
-            immediate
-            x={-40}
-            duration={0.6}
-            delay={0.06}
+          <div
+            className="hero-enter-left"
             style={{ position: 'relative', zIndex: 1, maxWidth: 440 }}
           >
             <span
@@ -492,7 +520,7 @@ export default async function HomePage() {
                 'Matched to your niche and budget',
                 'See real creator reputation, not just follower counts',
                 'Funds protected until content is delivered and approved',
-                'Post analytics reported back to you automatically, no chasing',
+                'Post results reported back to you, with automatic reminders',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
@@ -525,7 +553,7 @@ export default async function HomePage() {
             >
               Find creators <Arrow />
             </span>
-          </Reveal>
+          </div>
         </Link>
 
         <div className="split-medallion">
@@ -554,11 +582,8 @@ export default async function HomePage() {
           >
             C
           </div>
-          <Reveal
-            immediate
-            x={40}
-            duration={0.6}
-            delay={0.16}
+          <div
+            className="hero-enter-right"
             style={{
               position: 'relative',
               zIndex: 1,
@@ -602,7 +627,7 @@ export default async function HomePage() {
                 'Discover campaigns matched to your niche and rates',
                 'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
-                'Regular analytics updates to help u stand out to brands',
+                'Build a results track record that helps you stand out to brands',
                 'Built-in dispute support if things do not go as planned',
               ].map((t) => (
                 <div
@@ -628,7 +653,7 @@ export default async function HomePage() {
             >
               Find campaigns <Arrow />
             </span>
-          </Reveal>
+          </div>
         </Link>
       </div>
 
@@ -857,6 +882,40 @@ export default async function HomePage() {
             </RevealItem>
           ))}
         </Reveal>
+      </section>
+
+      {/* ══ FAQ ══ answers the last objections right before the final ask.
+          Native <details> — server-rendered, zero JS, SEO-indexable. ══ */}
+      <section className="lp-section">
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <Reveal
+            style={{
+              textAlign: 'center',
+              marginBottom: 'clamp(28px,3.5vw,40px)',
+            }}
+          >
+            <div className="eyebrow" style={{ marginBottom: 10 }}>
+              FAQ
+            </div>
+            <h2
+              className="display-face"
+              style={{
+                fontSize: 'clamp(26px,3.4vw,38px)',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              Questions, answered.
+            </h2>
+          </Reveal>
+          <Reveal>
+            {FAQ.map(([q, a]) => (
+              <details key={q} className="faq-item">
+                <summary>{q}</summary>
+                <p>{a}</p>
+              </details>
+            ))}
+          </Reveal>
+        </div>
       </section>
 
       {/* ══ FINAL CTA ══ */}

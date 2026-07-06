@@ -2,7 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { emails } from '@/lib/email'
-import { checkRateLimit, clientIp } from '@/lib/rate-limit'
+import { checkRateLimitDurable, clientIp } from '@/lib/rate-limit'
 import {
   brandOnboardingFields, creatorOnboardingSchema, requireWebsiteOrSocial, socialUrl,
 } from '@/lib/onboarding'
@@ -36,7 +36,7 @@ const brandSignupSchema = baseSchema.extend({
 
 export async function POST(req: NextRequest) {
   // Anti-spam: 5 signups per hour per IP (lightweight, per-instance).
-  if (!checkRateLimit(`signup:${clientIp(req)}`, 5, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`signup:${clientIp(req)}`, 5, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many signups. Try again later.' }, { status: 429 })
   }
 
@@ -117,6 +117,17 @@ export async function POST(req: NextRequest) {
   }
   if (!data.user) {
     return NextResponse.json({ error: 'Signup failed' }, { status: 500 })
+  }
+
+  // With email-enumeration protection, signing up an EXISTING address returns a
+  // fake user whose identities array is empty. Without this check the users
+  // insert below hits the unique-email constraint and the person sees a
+  // meaningless "Could not create profile" — tell them to sign in instead.
+  if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+    return NextResponse.json(
+      { error: 'This email is already registered. Sign in instead — or use "Forgot password" if you need access.' },
+      { status: 409 }
+    )
   }
 
   // With "Confirm email" enabled in Supabase, signUp returns no session - the

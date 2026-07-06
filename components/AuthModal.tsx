@@ -32,7 +32,7 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Sign in to continue"
+      aria-label="Log in to continue"
       onClick={onClose}
       style={{
         position: 'fixed', inset: 0, zIndex: 100,
@@ -43,7 +43,7 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
       <div
         onClick={(e) => e.stopPropagation()}
         className="card"
-        style={{ maxWidth: 420, width: '100%', padding: '28px 26px', position: 'relative' }}
+        style={{ maxWidth: 420, width: '100%', padding: '28px 26px', position: 'relative', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-lg)', maxHeight: '90dvh', overflowY: 'auto' }}
       >
         <button
           type="button"
@@ -59,7 +59,7 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
         </button>
 
         <h2 style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--ink)' }}>
-          Sign in to continue
+          Log in to continue
         </h2>
         <p style={{ fontSize: 14, color: 'var(--ink-soft)', marginTop: 8, lineHeight: 1.55 }}>
           Create a free account to apply for campaigns, invite creators, save opportunities, and manage collaborations.
@@ -70,7 +70,7 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
             Join free
           </Link>
           <Link href={`/login?next=${next}`} className="btn-secondary btn-block" style={{ justifyContent: 'center' }}>
-            Sign in
+            Log in
           </Link>
           <button type="button" onClick={onClose} className="btn-ghost btn-block" style={{ justifyContent: 'center' }}>
             Continue browsing

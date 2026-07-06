@@ -36,6 +36,16 @@ export async function middleware(req: NextRequest) {
   // Always call getUser() - this refreshes the session token and writes updated cookies
   const { data: { user } } = await supabase.auth.getUser()
 
+  // Logged-in users never see the public marketing page — bounce them into the
+  // app here (not in the page) so the landing stays statically rendered.
+  if (pathname === '/' && user) {
+    const redirect = NextResponse.redirect(new URL('/dashboard', req.url))
+    // carry any refreshed session cookies forward on the redirect
+    res.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    redirect.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate')
+    return redirect
+  }
+
   // A public detail page wins over the protected-prefix match (e.g. "/creators/"
   // beats the "/creators" gate), so logged-out visitors are never redirected.
   const isPublicDetail = PUBLIC_DETAIL_PREFIXES.some(prefix =>

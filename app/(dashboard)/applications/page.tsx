@@ -3,7 +3,7 @@ import { requireCreator } from '@/lib/auth';
 import Link from 'next/link';
 import { formatSGD, relativeTime, getInitials } from '@/lib/utils';
 import EmptyState from '@/components/EmptyState';
-import { Send } from 'lucide-react';
+import { Send, Lock } from 'lucide-react';
 import { creatorApplicationState, CREATOR_APP_LABEL } from '@/lib/collab-status';
 import WithdrawApplicationButton from '@/components/WithdrawApplicationButton';
 import StatusPill, { type StatusPillKind } from '@/components/StatusPill';
@@ -35,7 +35,7 @@ type AppRowData = {
 
 const PROTECTED_TAG = (
   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--money-deep)' }}>
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--money)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 018 0v3" /></svg>
+    <Lock size={11} style={{ color: 'var(--money)' }} />
     Protected on start
   </span>
 );
@@ -60,7 +60,7 @@ function ActionEl({ r }: { r: AppRowData }) {
 
 function DesktopRow({ r }: { r: AppRowData }) {
   return (
-    <div style={{
+    <div className="cl-trow" style={{
       display: 'grid', gridTemplateColumns: 'minmax(0,1fr) 150px 132px 118px', gap: 16,
       alignItems: 'center', padding: '15px 18px', borderBottom: '1px solid var(--line)',
     }}>

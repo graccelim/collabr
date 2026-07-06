@@ -150,7 +150,8 @@ export async function POST(req: NextRequest) {
       type: 'new_application',
       title: `New application for "${campaignTitle}"`,
       body: 'Review the pitch and shortlist or select the creator.',
-      payload: { application_id: data.id, campaign_id: body.campaign_id }
+      payload: { application_id: data.id, campaign_id: body.campaign_id },
+      email: false,
     })
     // Email the brand (deduped) + send the creator a confirmation.
     await sendProductEmail({ userId: brandUserId, ...productEmails.newApplication({ campaignTitle, applicationId: data.id, campaignId: body.campaign_id }) })

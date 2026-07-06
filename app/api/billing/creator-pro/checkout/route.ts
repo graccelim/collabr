@@ -1,7 +1,7 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe, creatorProEnabled, creatorProPriceIds } from '@/lib/stripe'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 import { flags } from '@/lib/flags'
 
 // Creator Pro subscription checkout. Mirrors the Boost pattern: this route ONLY
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Creator Pro is not available yet.' }, { status: 503 })
   }
 
-  if (!checkRateLimit(`creator-pro:${user.id}`, 5, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`creator-pro:${user.id}`, 5, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
   }
 
@@ -45,7 +45,19 @@ export async function POST(req: NextRequest) {
   // Reuse an existing Stripe customer (so renewals don't create duplicates).
   const admin = createAdminClient()
   const { data: sub } = await admin.from('creator_subscriptions')
-    .select('stripe_customer_id').eq('creator_id', creator.id).maybeSingle()
+    .select('stripe_customer_id, stripe_subscription_id, status, pro_until').eq('creator_id', creator.id).maybeSingle()
+
+  // Already subscribed → manage it in the portal instead of stacking a second
+  // live subscription on the same customer (which would double-bill).
+  const activeNow = ['active', 'trialing', 'past_due'].includes(sub?.status || '')
+    && (!sub?.pro_until || new Date(sub.pro_until) > new Date())
+  if (activeNow) {
+    return NextResponse.json(
+      { error: 'You already have Creator Pro. Manage it from Creator Studio.' },
+      { status: 409 }
+    )
+  }
+
   let customerId = sub?.stripe_customer_id || null
   if (!customerId) {
     const customer = await stripe.customers.create({
@@ -64,13 +76,17 @@ export async function POST(req: NextRequest) {
   const returnTo = rt.startsWith('/') && !rt.startsWith('//') ? rt : '/studio'
   const sep = returnTo.includes('?') ? '&' : '?'
 
+  // One free trial per creator, ever: a creator who had a subscription before
+  // (cancel → resubscribe) starts paid immediately — no perpetual-trial loop.
+  const trialDays = sub?.stripe_subscription_id ? undefined : CREATOR_PRO_TRIAL_DAYS
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
       subscription_data: {
-        trial_period_days: CREATOR_PRO_TRIAL_DAYS,
+        ...(trialDays ? { trial_period_days: trialDays } : {}),
         metadata: { kind: 'creator_pro', creator_id: creator.id },
       },
       success_url: `${appUrl}${returnTo}${sep}pro=success`,

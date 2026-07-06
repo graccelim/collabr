@@ -41,7 +41,8 @@ function SignupForm() {
   // back to the dashboard. Sanitized to block open redirects.
   const next = safeNextPath(params.get('next'))
   const loginHref = next === '/dashboard' ? '/login' : `/login?next=${encodeURIComponent(next)}`
-  const defaultRole = (params.get('role') as 'brand' | 'creator') || 'creator'
+  const roleParam = params.get('role')
+  const defaultRole = roleParam === 'brand' || roleParam === 'creator' ? roleParam : 'creator'
   const [role, setRole] = useState<'brand' | 'creator'>(defaultRole)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -117,12 +118,20 @@ function SignupForm() {
     }
 
     setStatus('loading')
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
+    let res: Response
+    let data: any
+    try {
+      res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      data = await res.json().catch(() => ({}))
+    } catch {
+      toast.error('Network error — please check your connection and try again')
+      setStatus('idle')
+      return
+    }
     if (!res.ok) { toast.error(data.error || 'Signup failed'); setStatus('idle'); return }
     if (data.warning) toast(data.warning)
     setStatus('success')
@@ -286,7 +295,7 @@ function SignupForm() {
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
         Already have an account?{' '}
-        <Link href={loginHref} style={{ color: 'var(--accent)', fontWeight: 530 }}>Sign in</Link>
+        <Link href={loginHref} style={{ color: 'var(--accent)', fontWeight: 530 }}>Log in</Link>
       </p>
     </AuthShell>
   )

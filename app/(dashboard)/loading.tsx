@@ -4,7 +4,7 @@ export default function DashboardLoading() {
       {/* Greeting */}
       <div style={{ marginTop: 8, marginBottom: 44 }}>
         <div className="skel" style={{ width: 280, height: 30, borderRadius: 7 }} />
-        <div className="skel" style={{ width: 360, height: 15, borderRadius: 5, marginTop: 12 }} />
+        <div className="skel" style={{ width: '100%', maxWidth: 360, height: 15, borderRadius: 5, marginTop: 12 }} />
       </div>
 
       {/* Dark money panel */}

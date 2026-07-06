@@ -11,7 +11,11 @@ import DateField from '@/components/DateField'
 
 const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
 const DELIVERABLES = ['IG Reel','TikTok video','IG Post','IG Stories','YouTube review','Blog post','Unboxing video']
-const PLATFORMS = ['Instagram','TikTok','YouTube','X','Lemon8','RED (Xiaohongshu)']
+// Canonical slugs (stored in campaigns.platforms, 050 check constraint) + labels.
+const PLATFORMS: [string, string][] = [
+  ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'],
+  ['x', 'X'], ['lemon8', 'Lemon8'], ['xiaohongshu', 'RED (Xiaohongshu)'],
+]
 
 const COMP_OPTIONS = [
   { value: 'paid', label: 'Paid' },
@@ -129,11 +133,11 @@ export default function PostJobPage() {
               <div>
                 <label className="label">Platforms</label>
                 <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  {PLATFORMS.map(p => (
-                    <button key={p} type="button"
-                      className={`chip${form.platforms.includes(p) ? ' on' : ''}`}
-                      onClick={() => toggle('platforms', p)}>
-                      {p}
+                  {PLATFORMS.map(([slug, label]) => (
+                    <button key={slug} type="button"
+                      className={`chip${form.platforms.includes(slug) ? ' on' : ''}`}
+                      onClick={() => toggle('platforms', slug)}>
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -207,7 +211,7 @@ export default function PostJobPage() {
                         onClick={() => setForm(f => ({ ...f, comp_type: o.value }))}
                         style={{
                           height: 36, padding: '0 14px', border: 'none', cursor: 'pointer',
-                          borderRadius: 'calc(var(--radius-sm), 2px)',
+                          borderRadius: 'var(--radius-sm)',
                           fontSize: 13, fontWeight: 530, letterSpacing: '-0.005em',
                           background: on ? 'var(--surface)' : 'transparent',
                           color: on ? 'var(--ink)' : 'var(--ink-faint-solid)',
@@ -281,7 +285,7 @@ export default function PostJobPage() {
 
           <div style={{ display: 'flex', gap: 12, paddingBottom: 8 }}>
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ display: 'inline-flex', gap: 8 }}>
-              {loading ? 'Posting…' : <><span>Post campaign</span><ArrowRight size={15} /></>}
+              {loading ? 'Posting…' : <><span>Post a campaign</span><ArrowRight size={15} /></>}
             </button>
           </div>
         </form>

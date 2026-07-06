@@ -3,7 +3,7 @@ import { requireAuth, getUserRow } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import DisputeForm from '@/components/DisputeForm'
 import Link from 'next/link'
-import { ChevronLeft } from 'lucide-react'
+import { ChevronLeft, Lock } from 'lucide-react'
 
 export default async function DisputePage({ params }: { params: { id: string } }) {
   const user = await requireAuth()
@@ -66,7 +66,7 @@ export default async function DisputePage({ params }: { params: { id: string } }
           {/* frozen notice (barter has no payment to freeze) */}
           <div style={{ padding: '14px 16px', background: 'var(--warn-tint)', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(217,119,6,.2)' }}>
             <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--warn-deep)', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 7 }}>
-              {isBarter ? 'This collaboration is on hold during a dispute' : '🔒 The payment is frozen during a dispute'}
+              {isBarter ? 'This collaboration is on hold during a dispute' : <><Lock size={13} style={{ flexShrink: 0 }} /> The payment is frozen during a dispute</>}
             </div>
             <p style={{ fontSize: 13, color: 'var(--warn-deep)', margin: 0, lineHeight: 1.55 }}>
               {isBarter

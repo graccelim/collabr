@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
           body: 'You both reviewed, feedback is now revealed on both sides.',
           payload: { collab_id: body.collab_id },
           dedupeKey: `review_revealed:${body.collab_id}:${uid}`,
+          email: false,
         })
       }
     } else if (counterpartyUserId) {
@@ -93,6 +94,7 @@ export async function POST(req: NextRequest) {
         body: 'Leave your review to unlock both sides.',
         payload: { collab_id: body.collab_id },
         dedupeKey: `review_waiting:${body.collab_id}:${counterpartyUserId}`,
+        email: false,
       })
     }
     // Email the counterparty that they received a review (both cases).

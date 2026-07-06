@@ -128,10 +128,24 @@ export async function recomputeCreatorInsights(admin: Admin, creatorId: string, 
     .eq('creator_id', creatorId)
   if (!posts?.length) return false
 
-  const { data: snaps } = await admin.from('post_snapshots')
-    .select('post_id, views, likes, comments, shares, saves, reach, captured_at')
-    .in('post_id', posts.map((p) => p.id))
-    .order('captured_at', { ascending: false })
+  // Snapshots — per-chunk of post ids (bounded .in() list) with a range loop inside
+  // (PostgREST caps unpaged reads at 1000 rows); captured_at desc keeps "first seen
+  // per post = latest", the id tiebreaker keeps pagination stable.
+  const BATCH = 1000
+  const postIds = posts.map((p) => p.id)
+  const snaps: any[] = []
+  for (let i = 0; i < postIds.length; i += 200) {
+    const ids = postIds.slice(i, i + 200)
+    for (let from = 0; ; from += BATCH) {
+      const { data: batch } = await admin.from('post_snapshots')
+        .select('post_id, views, likes, comments, shares, saves, reach, captured_at')
+        .in('post_id', ids)
+        .order('captured_at', { ascending: false }).order('id', { ascending: true })
+        .range(from, from + BATCH - 1)
+      snaps.push(...(batch ?? []))
+      if (!batch || batch.length < BATCH) break
+    }
+  }
   const latest = new Map<string, NonNullable<typeof snaps>[number]>()
   for (const s of snaps ?? []) if (!latest.has(s.post_id)) latest.set(s.post_id, s)
 

@@ -25,12 +25,14 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Plus is 50% off during beta (beta price IDs), falling back to full price.
+  // Plus is 50% off during beta (beta price IDs). NO silent full-price
+  // fallback while beta is on: the UI shows the beta price, so charging the
+  // full price would be a mischarge — fail closed instead.
   const priceId = tier === 'plus'
-    ? ((isBetaFreePro() ? brandPlusBetaPriceIds()[cycle] : null) || brandPlusPriceIds()[cycle])
+    ? (isBetaFreePro() ? brandPlusBetaPriceIds()[cycle] : brandPlusPriceIds()[cycle])
     : brandProPriceIds()[cycle]
   if (!priceId) {
-    console.error(`[BILLING] Brand ${tier} ${cycle} price is not configured`)
+    console.error(`[BILLING] Brand ${tier} ${cycle} price is not configured${isBetaFreePro() && tier === 'plus' ? ' (beta price ID missing — set STRIPE_BRAND_PLUS_BETA_PRICE_*)' : ''}`)
     return NextResponse.json({ error: 'This plan is not available yet.' }, { status: 503 })
   }
 

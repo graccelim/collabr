@@ -107,6 +107,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       body: 'Open the dispute to see it and add your own.',
       payload: { collab_id: params.id },
       dedupeKey: `dispute:${dispute.id}:evidence:${evidence.id}`,
+      email: false,
     })
   }
   if (otherEmail && otherUserId) {

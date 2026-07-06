@@ -1,5 +1,5 @@
 'use client'
-import { motion } from 'framer-motion'
+import { LazyMotion, domAnimation, m } from 'framer-motion'
 import type { CSSProperties, ReactNode } from 'react'
 
 const EASE = [0.2, 0.7, 0.2, 1] as const
@@ -8,6 +8,8 @@ const EASE = [0.2, 0.7, 0.2, 1] as const
  * Scroll-reveal wrapper (landing page). Fades + rises its content into view
  * once. Respects reduced-motion via Framer. Keeps the existing design - just
  * animates it in. `stagger` cascades direct children for grids/lists.
+ * Uses LazyMotion + m (domAnimation subset) so the landing bundle carries
+ * ~2/3 less framer-motion than the full `motion` import.
  */
 export function Reveal({
   children, y = 18, x = 0, delay = 0, duration = 0.5,
@@ -25,26 +27,30 @@ export function Reveal({
 
   if (stagger) {
     return (
-      <motion.div
-        className={className} style={style}
-        initial="hidden" {...trigger}
-        variants={{ show: { transition: { staggerChildren: 0.07, delayChildren: delay } } }}
-      >
-        {children}
-      </motion.div>
+      <LazyMotion features={domAnimation}>
+        <m.div
+          className={className} style={style}
+          initial="hidden" {...trigger}
+          variants={{ show: { transition: { staggerChildren: 0.07, delayChildren: delay } } }}
+        >
+          {children}
+        </m.div>
+      </LazyMotion>
     )
   }
   return (
-    <motion.div
-      className={className} style={style}
-      initial="hidden" {...trigger}
-      variants={{
-        hidden: { opacity: 0, y, x },
-        show: { opacity: 1, y: 0, x: 0, transition: { duration, ease: EASE, delay } },
-      }}
-    >
-      {children}
-    </motion.div>
+    <LazyMotion features={domAnimation}>
+      <m.div
+        className={className} style={style}
+        initial="hidden" {...trigger}
+        variants={{
+          hidden: { opacity: 0, y, x },
+          show: { opacity: 1, y: 0, x: 0, transition: { duration, ease: EASE, delay } },
+        }}
+      >
+        {children}
+      </m.div>
+    </LazyMotion>
   )
 }
 
@@ -53,12 +59,12 @@ export function RevealItem({ children, y = 16, className, style }: {
   children: ReactNode; y?: number; className?: string; style?: CSSProperties
 }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       style={style}
       variants={{ hidden: { opacity: 0, y }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE } } }}
     >
       {children}
-    </motion.div>
+    </m.div>
   )
 }

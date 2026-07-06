@@ -4,7 +4,7 @@ import { flags } from '@/lib/flags'
 import { aiConfigured } from '@/lib/ai/client'
 import { isCreatorProActive } from '@/lib/creator-pro'
 import { collaborationAnalysis } from '@/lib/ai/service'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 
 // Collaboration analysis — grounded in the campaign's own performance + the
 // creator's platform insights (not "coaching"). Pro/flag/AI-gated, fail-safe.
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!(await isCreatorProActive(admin, creator.id))) {
     return NextResponse.json({ error: 'Creator Pro required.' }, { status: 403 })
   }
-  if (!checkRateLimit(`ai-brand:${user.id}`, 30, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`ai-brand:${user.id}`, 30, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Too many requests. Try again later.' }, { status: 429 })
   }
 

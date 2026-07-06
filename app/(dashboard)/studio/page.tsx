@@ -7,6 +7,7 @@ import CreatorProShowcase from '@/components/studio/CreatorProShowcase';
 import StudioTabs from '@/components/studio/StudioTabs';
 import PostConnectSync from '@/components/studio/PostConnectSync';
 import BackButton from '@/components/BackButton';
+import BillingActions from '@/components/BillingActions';
 import MockBanner from '@/components/MockBanner';
 import { platformConnectable } from '@/lib/analytics/oauth';
 import type { Platform } from '@/lib/analytics/adapters/types';
@@ -116,13 +117,18 @@ export default async function StudioPage({
     <div className="max-w-6xl mx-auto space-y-5">
       <PostConnectSync accounts={(accounts ?? []).map((a) => ({ id: a.id as string, platform: a.platform as string, status: a.status as string }))} />
       <BackButton />
-      <header>
-        <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>
-          Creator Studio
-        </h1>
-        <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>
-          Your private growth workspace.
-        </p>
+      <header style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+        <div>
+          <h1 className="text-xl font-semibold" style={{ color: 'var(--ink)' }}>
+            Creator Studio
+          </h1>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: 4 }}>
+            Your private growth workspace.
+          </p>
+        </div>
+        {/* "Cancel anytime" needs a real path: the Stripe portal handles payment
+            method, invoices, and cancellation for Creator Pro. */}
+        <BillingActions action="portal" label="Manage subscription" />
       </header>
 
       <MockBanner />

@@ -150,6 +150,10 @@ export default function CollabActions({
           <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '12px 0 0', lineHeight: 1.4 }}>
             We check your card first. Work only starts once the money is safely in.
           </p>
+          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.4 }}>
+            Secure the payment within 72 hours — unfunded selections are released
+            back to the applicant pool so creators aren&rsquo;t left waiting.
+          </p>
           {!creatorHasConnect && (
             <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '8px 0 0', lineHeight: 1.4 }}>
               {creatorName.split(' ')[0]} hasn’t connected a payout account yet, that’s fine to fund now; the payout is released to them once they connect.

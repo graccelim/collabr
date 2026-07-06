@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimitDurable } from '@/lib/rate-limit'
 import { resolvePlan, featureGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 
 const inviteSchema = z.object({
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   if (gate) return gate
 
   // Anti-spam: 20 invites per hour per brand.
-  if (!checkRateLimit(`invites:${user.id}`, 20, 60 * 60 * 1000)) {
+  if (!(await checkRateLimitDurable(`invites:${user.id}`, 20, 60 * 60 * 1000))) {
     return NextResponse.json({ error: 'Invite limit reached, try again in an hour' }, { status: 429 })
   }
 
@@ -127,6 +127,7 @@ export async function POST(req: NextRequest) {
       body: 'Review the offer and accept to start the collab.',
       payload: { invite_id: invite.id },
       dedupeKey: `invite:${invite.id}:received`,
+      email: false,
     })
     await sendProductEmail({ userId: creator.user_id, ...productEmails.inviteReceived({ brandName: brand.company_name || 'A brand', campaignTitle: campaign.title, inviteId: invite.id, isBarter: parsed.data.proposed_rate <= 0 }) })
   }

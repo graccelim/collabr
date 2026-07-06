@@ -182,7 +182,7 @@ export default async function InvitesPage() {
   const pastCard = (inv: any) => {
     const brandName = (inv.brand_profiles as any)?.company_name || 'Brand';
     return (
-      <div className="card" style={{ padding: 14, display: 'flex', alignItems: 'center', gap: 12, opacity: 0.92 }}>
+      <div className="card" style={{ padding: 16, display: 'flex', alignItems: 'center', gap: 12, opacity: 0.92 }}>
         <Avatar src={(inv.brand_profiles as any)?.logo_url} name={brandName} size={38} />
         <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontWeight: 600, fontSize: 14.5, letterSpacing: '-0.01em', color: 'var(--ink)' }}>{brandName}</div>

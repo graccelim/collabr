@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { formatSGD, getInitials } from '@/lib/utils';
 import { deriveWorkflow, actorLabel } from '@/lib/workflow';
 import { brandCompletion } from '@/lib/profile-completion';
-import { isBetaFreePro } from '@/lib/plans';
+import { isBetaFreePro, resolvePlan, PLAN_COLUMNS } from '@/lib/plans';
 import BrandBetaWelcome from '@/components/BrandBetaWelcome';
 import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
@@ -357,7 +357,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
   // Independent reads - run concurrently. Admin client: creator display
   // identity is RLS own-row-only for session clients; scoped to this brand.
   const admin = createAdminClient();
-  const [{ data: campaigns }, { data: collabs }, { data: activeCampaigns }, { data: spotCollabs }] = await Promise.all([
+  const [{ data: campaigns }, { data: collabs }, { data: activeCampaigns }, { data: spotCollabs }, { count: inviteCount }, { data: planRow }] = await Promise.all([
     supabase.from('campaigns').select('id, status').eq('brand_id', brand.id),
     admin
       .from('collabs')
@@ -369,7 +369,11 @@ async function BrandDashboard({ userId }: { userId: string }) {
       .limit(6),
     supabase.from('campaigns').select('id, title, creators_needed').eq('brand_id', brand.id).eq('status', 'active'),
     admin.from('collabs').select('campaign_id, status, payment_status').eq('brand_id', brand.id),
+    admin.from('campaign_invites')
+      .select('*', { count: 'exact', head: true }).eq('brand_id', brand.id),
+    admin.from('brand_profiles').select(PLAN_COLUMNS).eq('id', brand.id).single(),
   ]);
+  const isPlus = resolvePlan(planRow).isPlus;
 
   // "Choose applicants": active campaigns that still have open spots (funded-
   // aware) AND pending applicants waiting to be reviewed.
@@ -420,14 +424,13 @@ async function BrandDashboard({ userId }: { userId: string }) {
     (!collabs || collabs.length === 0);
 
   // Activation checklist: create campaign → invite → fund → receive a draft.
-  const { count: inviteCount } = await admin.from('campaign_invites')
-    .select('*', { count: 'exact', head: true }).eq('brand_id', brand.id);
   const SECURED = ['funded', 'capture_pending', 'captured', 'transfer_pending', 'paid', 'manual_exception'];
   const activation = {
     hasCampaign: (campaigns?.length ?? 0) > 0,
     hasInvited: (inviteCount ?? 0) > 0,
     hasFunded: (spotCollabs || []).some((c) => SECURED.includes(c.payment_status)),
     hasDraft: (collabs || []).some((c) => c.status !== 'briefed'),
+    canInvite: isPlus,
   };
 
   return (
@@ -686,6 +689,7 @@ async function CreatorDashboard({
     { data: openApps },
     { data: openCampaigns },
     { data: scoreRow },
+    { data: proSub },
   ] = await Promise.all([
     supabase
       .from('collabs')
@@ -727,6 +731,11 @@ async function CreatorDashboard({
     supabase
       .from('creator_scores')
       .select('*')
+      .eq('creator_id', creator.id)
+      .maybeSingle(),
+    createAdminClient()
+      .from('creator_subscriptions')
+      .select('status, pro_until')
       .eq('creator_id', creator.id)
       .maybeSingle(),
   ]);
@@ -797,8 +806,6 @@ async function CreatorDashboard({
   const isEmpty = !collabs || collabs.length === 0;
 
   // Entice non-Pro creators to upgrade (card self-hides when the flag is off).
-  const { data: proSub } = await createAdminClient()
-    .from('creator_subscriptions').select('status, pro_until').eq('creator_id', creator.id).maybeSingle();
   const showUpgrade = !isProActive(proSub ?? null);
 
   return (

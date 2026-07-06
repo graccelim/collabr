@@ -67,13 +67,23 @@ export async function GET(req: NextRequest) {
 
   if (toDecline.length === 0) return NextResponse.json({ declined: 0 })
 
-  await admin.from('applications')
+  // Notify ONLY the rows this update actually rejected: an applicant selected
+  // between the read and the write must not get a rejection email, and if the
+  // write fails nobody should hear about a rejection that never happened.
+  const { data: rejectedRows, error: rejectErr } = await admin.from('applications')
     .update({ status: 'rejected' })
     .in('id', toDecline.map(d => d.id))
     .in('status', ['pending', 'shortlisted']) // guard: don't touch ones since selected
+    .select('id')
+  if (rejectErr) {
+    console.error('[CRON expire-applications] reject update failed:', rejectErr.message)
+    return NextResponse.json({ declined: 0, error: rejectErr.message }, { status: 500 })
+  }
+  const rejectedIds = new Set((rejectedRows || []).map(r => r.id))
 
   let notified = 0
   for (const d of toDecline) {
+    if (!rejectedIds.has(d.id)) continue
     if (d.userId) {
       await sendNotification({
         userId: d.userId,
@@ -82,6 +92,7 @@ export async function GET(req: NextRequest) {
         body: 'This campaign is no longer accepting applicants. Thanks for applying, new campaigns are posted regularly.',
         payload: { application_id: d.id },
         dedupeKey: `application:${d.id}:rejected`,
+        email: false,
       })
       notified++
     }
@@ -90,5 +101,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ declined: toDecline.length, notified })
+  return NextResponse.json({ declined: rejectedIds.size, notified })
 }

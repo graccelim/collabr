@@ -5,7 +5,8 @@ import { flags } from '@/lib/flags'
 // Server-side: is this creator currently an active Creator Pro subscriber?
 // Reads the PRIVATE creator_subscriptions row via the admin client and applies
 // the pure entitlement rules. Used at collab creation to set the commission rate
-// (Creator Pro = 10%, Free = 12%) — independent of the brand's plan.
+// (see computeFee in lib/utils.ts: Free = 10%, Creator Pro = 8%) — independent
+// of the brand's plan.
 export async function isCreatorProActive(
   admin: ReturnType<typeof createAdminClient>,
   creatorId: string | null | undefined,

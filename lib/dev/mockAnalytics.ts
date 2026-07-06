@@ -121,7 +121,7 @@ export async function seedCreatorAnalytics(
     ? new Date(Date.now() - 5 * 86_400_000).toISOString()
     : new Date(Date.now() + 25 * 86_400_000).toISOString()
   await admin.from('creator_subscriptions').upsert(
-    { creator_id: creatorId, status: opts.pro === 'expired' ? 'cancelled' : 'active', pro_until: proUntil, updated_at: new Date().toISOString() },
+    { creator_id: creatorId, status: opts.pro === 'expired' ? 'canceled' : 'active', pro_until: proUntil, updated_at: new Date().toISOString() },
     { onConflict: 'creator_id' },
   )
 

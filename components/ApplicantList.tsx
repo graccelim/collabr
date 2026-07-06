@@ -53,9 +53,11 @@ interface Props {
   campaignId: string
   campaign?: CampaignFit
   spotsLeft?: number
+  /** Inviting is Plus-gated — the invite promo renders only when true. */
+  canInvite?: boolean
 }
 
-export default function ApplicantList({ applications, campaignId, campaign, spotsLeft = 0 }: Props) {
+export default function ApplicantList({ applications, campaignId, campaign, spotsLeft = 0, canInvite = false }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState<string | null>(null)
   const [statuses, setStatuses] = useState<Record<string, string>>(
@@ -297,7 +299,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
                       title="Remove from your private shortlist, the creator isn't notified"
                       style={{ height: 32, fontSize: 13, padding: '0 11px', display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--ink-faint-solid)' }}
                     >
-                      <Bookmark size={13} fill="currentColor" /> {loading === `${app.id}-pending` ? '…' : 'Remove from shortlist'}
+                      <Bookmark size={14} fill="currentColor" /> {loading === `${app.id}-pending` ? '…' : 'Remove from shortlist'}
                     </button>
                   )}
                   {status === 'pending' && (
@@ -374,7 +376,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
       })}
 
       {/* Sparse state - keep the page productive: invite creators directly. */}
-      {filter === 'all' && spotsLeft > 0 && appliedCount <= 2 && (
+      {filter === 'all' && canInvite && spotsLeft > 0 && appliedCount <= 2 && (
         <div className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', background: 'var(--accent-tint)', border: '1px solid var(--accent-tint-2)' }}>
           <div style={{ width: 42, height: 42, borderRadius: 11, flexShrink: 0, background: '#fff', color: 'var(--accent-deep)', display: 'grid', placeItems: 'center' }}>
             <UserPlus size={20} />

@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 import { normalizeNicheTags } from '@/lib/niches'
+import { SOCIAL_PLATFORMS } from '@/lib/onboarding'
 import { CONTENT_FIELDS, notifyCampaignChange, notifyCampaignClosed } from '@/lib/campaign-notify'
 
 async function getAuthedBrand(supabase: ReturnType<typeof createClient>, userId: string, campaignId: string) {
@@ -31,7 +32,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
   const body = await req.json()
   const allowed = ['title', 'brief', 'deliverable_types', 'comp_type', 'budget_min', 'budget_max',
-    'barter_detail', 'niche_tags', 'min_followers', 'creators_needed', 'deadline', 'status']
+    'barter_detail', 'niche_tags', 'platforms', 'min_followers', 'creators_needed', 'deadline', 'status']
   const updates = Object.fromEntries(Object.entries(body).filter(([k]) => allowed.includes(k)))
   // Title: trim + cap at 70 chars (matches the form) so it stays legible everywhere.
   if (updates.title !== undefined) {
@@ -43,6 +44,33 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   // Normalize edited niche tags to canonical slugs (matching + trigger safety).
   if (Array.isArray(updates.niche_tags)) {
     updates.niche_tags = normalizeNicheTags(updates.niche_tags as string[])
+  }
+  // Platform targeting: canonical slugs only (050 check constraint).
+  if (updates.platforms !== undefined) {
+    updates.platforms = Array.isArray(updates.platforms)
+      ? Array.from(new Set(updates.platforms)).filter((p): p is string =>
+          (SOCIAL_PLATFORMS as readonly string[]).includes(p as string))
+      : []
+  }
+
+  // Budgets (cents): whole non-negative integers, sane cap, min ≤ max against
+  // the value that will be stored (edited or existing).
+  if (updates.budget_min !== undefined || updates.budget_max !== undefined) {
+    const asBudget = (v: unknown) => {
+      if (v == null || v === '' || v === 0) return null
+      const n = Number(v)
+      return Number.isInteger(n) && n > 0 && n <= 100_000_000 ? n : undefined
+    }
+    const nextMin = updates.budget_min !== undefined ? asBudget(updates.budget_min) : campaign.budget_min ?? null
+    const nextMax = updates.budget_max !== undefined ? asBudget(updates.budget_max) : campaign.budget_max ?? null
+    if (nextMin === undefined || nextMax === undefined) {
+      return NextResponse.json({ error: 'Budget must be a positive amount.' }, { status: 400 })
+    }
+    if (nextMin != null && nextMax != null && nextMin > nextMax) {
+      return NextResponse.json({ error: 'Minimum budget cannot exceed maximum budget.' }, { status: 400 })
+    }
+    if (updates.budget_min !== undefined) updates.budget_min = nextMin
+    if (updates.budget_max !== undefined) updates.budget_max = nextMax
   }
 
   // Brands may only open/close campaigns. 'completed' feeds the public

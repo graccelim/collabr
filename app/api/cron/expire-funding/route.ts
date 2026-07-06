@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
           body: `You selected ${creatorName} for "${campaignTitle}", but payment wasn't secured within 72 hours. They've been returned to the applicant pool.`,
           payload: { campaign_id: campaignId, href: `/campaigns/${campaignId}` },
           dedupeKey: `collab:${c.id}:selection-expired`,
+          email: false,
         })
         if (brandEmail) {
           await sendProductEmail({ to: brandEmail, ...productEmails.selectionExpired({ creatorName, campaignTitle, campaignId, collabId: c.id }) })

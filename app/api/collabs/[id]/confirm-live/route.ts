@@ -50,6 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           body: `The brand approved your work and the payment is secured. Connect your payout account to receive ${formatSGD(collab.creator_payout)}.`,
           payload: { collab_id: params.id, href: '/earnings' },
           dedupeKey: `collab:${params.id}:payout-pending`,
+          email: false,
         })
         await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.payoutPending({ amount: formatSGD(collab.creator_payout), collabId: params.id }) })
       }
@@ -79,6 +80,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
         title: `${amount} is on the way`,
         payload: { collab_id: params.id },
         dedupeKey: `collab:${params.id}:payment-released`,
+        email: false,
       })
       await sendProductEmail({ to: creatorEmail, userId: creatorUserId, ...productEmails.paymentReleased({ amount, collabId: params.id }) })
       await sendProductEmail({ userId: brandUserId, ...productEmails.collabCompletedBrand({ creatorName, amount, collabId: params.id }) })

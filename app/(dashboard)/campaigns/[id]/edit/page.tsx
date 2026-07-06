@@ -9,7 +9,11 @@ import { normalizeNicheTags } from '@/lib/niches'
 
 const NICHES = ['Food','Beauty','Fashion','Lifestyle','Wellness','Travel','Tech','Home','Parenting','Gaming']
 const DELIVERABLES = ['IG Reel','TikTok video','IG Post','IG Stories','YouTube review','Blog post','Unboxing video']
-const PLATFORMS = ['Instagram','TikTok','YouTube','X','Lemon8','RED (Xiaohongshu)']
+// Canonical slugs (stored in campaigns.platforms, 050 check constraint) + labels.
+const PLATFORMS: [string, string][] = [
+  ['instagram', 'Instagram'], ['tiktok', 'TikTok'], ['youtube', 'YouTube'],
+  ['x', 'X'], ['lemon8', 'Lemon8'], ['xiaohongshu', 'RED (Xiaohongshu)'],
+]
 const COMP_OPTIONS = [
   { value: 'paid', label: 'Paid' },
   { value: 'barter', label: 'Barter' },
@@ -116,7 +120,16 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
     setStatus('active'); setClosing(false)
   }
 
-  if (loading) return <div style={{ color: 'var(--ink-soft)' }}>Loading…</div>
+  if (loading) return (
+    <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+      <div>
+        <div className="skel" style={{ width: 130, height: 12, borderRadius: 4, marginBottom: 12 }} />
+        <div className="skel" style={{ width: 240, height: 30, borderRadius: 7 }} />
+      </div>
+      <div className="skel" style={{ height: 320, borderRadius: 'var(--radius)' }} />
+      <div className="skel" style={{ height: 220, borderRadius: 'var(--radius)' }} />
+    </div>
+  )
 
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -150,8 +163,8 @@ export default function EditCampaignPage({ params }: { params: { id: string } })
           <div>
             <label className="label">Platforms</label>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PLATFORMS.map(p => (
-                <button key={p} type="button" className={`chip${form.platforms.includes(p) ? ' on' : ''}`} onClick={() => toggle('platforms', p)}>{p}</button>
+              {PLATFORMS.map(([slug, label]) => (
+                <button key={slug} type="button" className={`chip${form.platforms.includes(slug) ? ' on' : ''}`} onClick={() => toggle('platforms', slug)}>{label}</button>
               ))}
             </div>
           </div>

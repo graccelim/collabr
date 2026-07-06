@@ -261,7 +261,7 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
                 {planLabel ? planLabel.toUpperCase() : 'BETA'}
               </span>
               <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,.55)', lineHeight: 1.45, margin: 0 }}>
-                All features free during beta. We&rsquo;ll give 30 days&rsquo; notice before pricing.
+                Pro features free during beta. We&rsquo;ll give 30 days&rsquo; notice before pricing.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

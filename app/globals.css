@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400..600&family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Instrument+Serif:ital@0;1&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,15 +9,16 @@
    ============================================================ */
 
 :root {
-  --font-display: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-body:    "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono:    "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* fonts are self-hosted via next/font (app/layout.tsx) — the --nf-* vars */
+  --font-display: var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-body:    var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   /* money amounts: clean proportional sans with tabular figures (chic, not
      code-y). Mono stays for eyebrow labels only. */
-  --font-money:   "Bricolage Grotesque", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-money:   var(--nf-bricolage), var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   /* editorial faces: grotesk for hero headlines, serif-italic for accents */
-  --font-grotesk: "Bricolage Grotesque", "Geist", sans-serif;
-  --font-serif:   "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-grotesk: var(--nf-bricolage), var(--font-geist-sans), sans-serif;
+  --font-serif:   var(--nf-instrument), Georgia, "Times New Roman", serif;
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 
   /* canvas + surfaces (cool, clean) */
@@ -578,6 +578,18 @@
 .fade { animation: fadeIn .25s ease both; }
 .pop  { animation: popIn .25s cubic-bezier(.2,.7,.2,1) both; }
 
+/* Landing hero entrances — pure CSS so the static HTML paints before any JS
+   hydrates (framer-motion Reveal stays for below-the-fold sections only). */
+@keyframes heroRise  { from { opacity: 0; transform: translateY(18px); }  to { opacity: 1; transform: none; } }
+@keyframes heroLeft  { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: none; } }
+@keyframes heroRight { from { opacity: 0; transform: translateX(40px); }  to { opacity: 1; transform: none; } }
+.hero-enter       { animation: heroRise .5s cubic-bezier(.2,.7,.2,1) both; }
+.hero-enter-left  { animation: heroLeft .6s cubic-bezier(.2,.7,.2,1) .06s both; }
+.hero-enter-right { animation: heroRight .6s cubic-bezier(.2,.7,.2,1) .16s both; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-enter, .hero-enter-left, .hero-enter-right { animation: none; }
+}
+
 /* Loading skeleton */
 .skel {
   background: var(--paper-2);
@@ -659,6 +671,44 @@
 /* Landing section rhythm - one consistent vertical step (mobile override above). */
 .lp-section { padding: 84px 40px; }
 .lp-narrow  { max-width: 1040px; margin: 0 auto; }
+
+/* Landing FAQ — native <details>, zero JS. */
+.faq-item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.faq-item summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 16px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.faq-item summary::-webkit-details-marker { display: none; }
+.faq-item summary::after {
+  content: '+';
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--ink-faint-solid);
+  flex-shrink: 0;
+  transition: transform .18s ease;
+}
+.faq-item[open] summary::after { transform: rotate(45deg); }
+.faq-item p {
+  margin: 0;
+  padding: 0 20px 16px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
 
 /* ============================================================
    COLLABS PAGE  (desktop table + mobile cards, distinct layouts)
@@ -982,10 +1032,10 @@
   /* "How it works" steps: 4-up on desktop → 2-up on phones. */
   .how-steps { grid-template-columns: 1fr 1fr !important; gap: 18px 16px !important; }
 
-  /* Campaign brief meta (Deliverable / Min followers / Due): on phones the
-     "Min followers" label wraps to two lines while its neighbours stay on one,
-     dropping its value off the shared baseline. Reserve a two-line label height
-     so every value aligns. Desktop labels fit on one line — left untouched. */
+  /* Campaign brief meta (Deliverable / Platforms / Min followers / Due): four
+     columns crush to ~68px each on phones — collapse to a 2×2 grid instead
+     (!important beats the inline gridTemplateColumns). */
+  .brief-grid { grid-template-columns: 1fr 1fr !important; row-gap: 14px; }
   .brief-grid .brief-label { min-height: 24px; }
 
   /* Creator profile (visitor): the share button leaves the actions row and sits

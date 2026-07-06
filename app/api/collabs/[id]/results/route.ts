@@ -58,6 +58,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       body: `See how "${campaignTitle}" performed.`,
       payload: { collab_id: params.id },
       dedupeKey: `collab:${params.id}:results-reported:${new Date().toISOString().slice(0, 10)}`,
+      email: false,
     })
     if (brandEmail) {
       await sendProductEmail({ to: brandEmail, ...productEmails.resultsReported({ creatorName, campaignTitle, collabId: params.id }) })
