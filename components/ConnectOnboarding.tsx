@@ -19,8 +19,8 @@ export default function ConnectOnboarding({ accountExists, payoutsEnabled, justC
     setLoading(true)
     try {
       const res = await fetch('/api/stripe/connect', { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.url) throw new Error(data.error || 'Could not start payout setup')
       window.location.href = data.url
     } catch (e: any) {
       toast.error(e.message || 'Something went wrong')

@@ -1,5 +1,6 @@
 'use client'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
@@ -9,11 +10,18 @@ import BoostPurchase from './BoostPurchase'
  * Lightweight boost dialog (centered on desktop, bottom sheet on mobile). Keeps
  * the creator in context - the actual payment still hands off to Stripe Checkout
  * and returns to the page it was opened from. Reuses BoostPurchase for content.
+ *
+ * PORTALED to <body> (same fix as PlansCTA): rendered inline it sits under
+ * ancestors whose transform/overflow make them the containing block for
+ * position:fixed, so the overlay left a gap at the top instead of covering the
+ * viewport.
  */
 export default function BoostModal({
   open, onClose, preview, boostUntil,
 }: { open: boolean; onClose: () => void; preview: boolean; boostUntil: string | null }) {
   const pathname = usePathname()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
 
   useEffect(() => {
     if (!open) return
@@ -23,7 +31,8 @@ export default function BoostModal({
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = '' }
   }, [open, onClose])
 
-  return (
+  if (!mounted) return null
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -32,7 +41,7 @@ export default function BoostModal({
           transition={{ duration: 0.15 }}
           onClick={onClose}
           style={{
-            position: 'fixed', inset: 0, zIndex: 100,
+            position: 'fixed', inset: 0, zIndex: 200,
             background: 'rgba(10,12,34,.45)', backdropFilter: 'blur(2px)',
             display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16,
           }}
@@ -66,6 +75,7 @@ export default function BoostModal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

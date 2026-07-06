@@ -2,12 +2,20 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { Zap, ArrowUp, TrendingUp, Eye, ShieldCheck } from 'lucide-react'
+import { Zap, ArrowUp, TrendingUp, Eye, ShieldCheck, Clock, Sparkles } from 'lucide-react'
 import { CURRENCY, BOOST_PRICING } from '@/lib/pricing'
 
+const perDay = (price: number, days: number) => `${CURRENCY}${(price / days).toFixed(2)}/day`
+
 const OPTIONS = [
-  { type: 'per_app' as const, days: '7 days', price: `${CURRENCY}${BOOST_PRICING.per_app}`, tag: 'Quick boost' },
-  { type: 'monthly' as const, days: '30 days', price: `${CURRENCY}${BOOST_PRICING.monthly}`, tag: 'Popular', featured: true },
+  {
+    type: 'per_app' as const, label: '7 days', icon: Clock, tag: 'Quick boost',
+    price: `${CURRENCY}${BOOST_PRICING.per_app}`, sub: `≈ ${perDay(BOOST_PRICING.per_app, 7)} · try it out`,
+  },
+  {
+    type: 'monthly' as const, label: '30 days', icon: Sparkles, tag: 'Most popular', featured: true,
+    price: `${CURRENCY}${BOOST_PRICING.monthly}`, sub: `≈ ${perDay(BOOST_PRICING.monthly, 30)} · best value`,
+  },
 ]
 
 const BENEFITS = [
@@ -101,24 +109,39 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
 
       <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 20 }}>
         {OPTIONS.map(o => (
-          <div key={o.type} className="card" style={{
-            padding: 20, display: 'flex', flexDirection: 'column', gap: 4, position: 'relative',
-            border: o.featured ? '1.5px solid var(--accent)' : '1px solid var(--line)',
-            background: o.featured ? 'linear-gradient(160deg, var(--accent-tint) 0%, var(--surface) 55%)' : 'var(--surface)',
-          }}>
-            <span style={{
-              alignSelf: 'flex-start', fontSize: 11, fontWeight: 700, letterSpacing: '.02em',
-              textTransform: 'uppercase', padding: '3px 8px', borderRadius: 999,
-              background: o.featured ? 'var(--accent)' : 'var(--surface-2)',
-              color: o.featured ? '#fff' : 'var(--ink-soft)',
-            }}>{o.tag}</span>
-            <span style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 6 }}>{o.days}</span>
-            <span className="mono-num" style={{ fontSize: 30, fontWeight: 700, letterSpacing: '-0.02em' }}>{o.price}</span>
+          <div
+            key={o.type}
+            className={o.featured ? 'money-panel boost-option' : 'card boost-option'}
+            style={{
+              padding: 20, display: 'flex', flexDirection: 'column', gap: 4,
+              ...(o.featured ? {} : { border: '1px solid var(--line)', background: 'var(--surface)' }),
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{
+                fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase',
+                padding: '4px 9px', borderRadius: 999,
+                background: o.featured ? 'rgba(255,255,255,.14)' : 'var(--surface-2)',
+                border: o.featured ? '1px solid rgba(255,255,255,.22)' : '1px solid transparent',
+                color: o.featured ? '#fff' : 'var(--ink-soft)',
+              }}>{o.tag}</span>
+              <o.icon size={16} style={{ color: o.featured ? 'var(--accent-on-dark)' : 'var(--ink-faint-solid)' }} />
+            </div>
+            <span style={{ fontSize: 13, fontWeight: 600, marginTop: 10, color: o.featured ? 'var(--accent-on-dark)' : 'var(--ink-soft)' }}>{o.label}</span>
+            <span className="mono-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: o.featured ? '#fff' : 'var(--ink)' }}>{o.price}</span>
+            <span style={{ fontSize: 12, color: o.featured ? 'rgba(255,255,255,.68)' : 'var(--ink-faint-solid)' }}>{o.sub}</span>
             <button
               onClick={() => purchase(o.type)}
               disabled={!!loading || preview}
-              className={o.featured ? 'btn-primary btn-block' : 'btn-secondary btn-block'}
-              style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+              className={o.featured ? 'btn-block' : 'btn-secondary btn-block'}
+              style={{
+                marginTop: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                ...(o.featured ? {
+                  border: 0, background: '#fff', color: 'var(--accent-deep)', cursor: 'pointer',
+                  fontSize: 13.5, fontWeight: 700, borderRadius: 'var(--radius-sm)', padding: '10px 17px',
+                  fontFamily: 'var(--font-body)', opacity: loading || preview ? .65 : 1,
+                } : {}),
+              }}
             >
               {preview ? 'Preview only' : loading === o.type ? 'Redirecting…' : (
                 <>{isActive ? 'Extend' : 'Boost'} <ArrowUp size={15} /></>

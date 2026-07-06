@@ -1091,3 +1091,12 @@
 /* Dispute CTA hover (was an inline onMouseEnter handler, illegal in a Server
    Component — moved to CSS). */
 .dispute-cta:hover { background: var(--danger-tint); }
+
+/* Boost purchase option cards - gentle lift on hover so the choices feel
+   tappable rather than flat. */
+.boost-option { transition: transform .18s ease, box-shadow .18s ease; }
+.boost-option:hover { transform: translateY(-2px); }
+.card.boost-option:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); }
+@media (prefers-reduced-motion: reduce) {
+  .boost-option, .boost-option:hover { transition: none; transform: none; }
+}
