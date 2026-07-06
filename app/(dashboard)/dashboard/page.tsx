@@ -1011,14 +1011,15 @@ async function CreatorDashboard({
             width: '100%',
             textDecoration: 'none',
             marginBottom: 14,
-            background: 'var(--surface)',
-            border: '1px solid var(--line)',
+            background: 'linear-gradient(135deg, #EAF3FE 0%, #DFEBFC 100%)',
+            border: 0,
             borderRadius: 'var(--radius)',
             padding: '14px 16px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 14,
+            boxShadow: '0 2px 6px rgba(30,58,138,.08), 0 14px 28px -14px rgba(30,58,138,.28)',
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -1028,10 +1029,11 @@ async function CreatorDashboard({
                 height: 32,
                 flexShrink: 0,
                 borderRadius: 'var(--radius-sm)',
-                background: 'var(--money-tint)',
+                background: '#fff',
                 color: 'var(--money-deep)',
                 display: 'grid',
                 placeItems: 'center',
+                boxShadow: '0 1px 3px rgba(30,58,138,.14)',
               }}
             >
               <Wallet size={16} />

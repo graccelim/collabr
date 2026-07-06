@@ -17,7 +17,7 @@ function isUnusableAccount(e: any): boolean {
 // Live mode blocks account creation until the Connect platform profile
 // (loss-liability questionnaire) is completed in the Stripe dashboard.
 function isPlatformProfileError(e: any): boolean {
-  return /platform-profile|responsibilities of managing losses/i.test(e?.message ?? '')
+  return /platform.?profile|managing losses/i.test(e?.message ?? '')
 }
 
 // POST: create / retrieve Connect account and return onboarding URL
