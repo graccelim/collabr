@@ -126,10 +126,9 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
               // borderless family so neither option reads as an afterthought.
               ...(o.featured ? {} : {
                 borderRadius: 'var(--radius-lg)',
-                background:
-                  'linear-gradient(120deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.12) 42%, transparent 65%), ' +
-                  'linear-gradient(160deg, #EFF6FF 0%, #DBEAFD 100%)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.65), 0 2px 6px rgba(37,99,235,.10), 0 14px 28px -16px rgba(37,99,235,.32)',
+                background: 'linear-gradient(160deg, #E4EFFD 0%, #CFE2FB 100%)',
+                border: '1px solid rgba(41,99,214,.16)',
+                boxShadow: '0 2px 6px rgba(37,99,235,.08), 0 14px 28px -16px rgba(37,99,235,.28)',
               }),
             }}
           >

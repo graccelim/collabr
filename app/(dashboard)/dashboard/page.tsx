@@ -1011,9 +1011,7 @@ async function CreatorDashboard({
             width: '100%',
             textDecoration: 'none',
             marginBottom: 14,
-            background:
-              'linear-gradient(120deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.06) 38%, transparent 60%), ' +
-              'linear-gradient(135deg, #5B9BFA 0%, #3172EC 55%, #2258C9 100%)',
+            background: '#fff',
             border: 0,
             borderRadius: 'var(--radius)',
             padding: '14px 16px',
@@ -1021,31 +1019,40 @@ async function CreatorDashboard({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 14,
-            boxShadow:
-              'inset 0 1px 0 rgba(255,255,255,.32), 0 3px 8px rgba(37,99,235,.22), 0 16px 32px -14px rgba(37,99,235,.55)',
+            boxShadow: '0 1px 2px rgba(13,18,40,.10), 0 10px 24px -8px rgba(13,18,40,.20)',
           }}
         >
-          <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 13, minWidth: 0 }}>
             <span
               style={{
-                width: 32,
-                height: 32,
+                width: 40,
+                height: 40,
                 flexShrink: 0,
-                borderRadius: 'var(--radius-sm)',
-                background: '#fff',
-                color: '#2258C9',
+                borderRadius: 11,
+                background: 'var(--accent)',
+                color: '#E8D48B',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 2px 5px rgba(16,42,110,.28)',
               }}
             >
-              <Wallet size={16} />
+              <Wallet size={18} />
             </span>
-            <span style={{ fontSize: 14.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(16,42,110,.18)' }}>
-              View earnings &amp; payouts
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: 'block', fontSize: 14.5, fontWeight: 700, color: 'var(--ink)' }}>
+                View earnings &amp; payouts
+              </span>
+              <span style={{ display: 'block', fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 1 }}>
+                Track collabs, escrow and payout history
+              </span>
             </span>
           </span>
-          <ArrowRight size={16} style={{ flexShrink: 0, color: 'rgba(255,255,255,.9)' }} />
+          <span style={{
+            width: 32, height: 32, flexShrink: 0, borderRadius: 999,
+            background: 'var(--surface-2)', color: 'var(--ink)',
+            display: 'grid', placeItems: 'center',
+          }}>
+            <ArrowRight size={16} />
+          </span>
         </Link>
       )}
 
