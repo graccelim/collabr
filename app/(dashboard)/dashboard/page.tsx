@@ -1011,7 +1011,9 @@ async function CreatorDashboard({
             width: '100%',
             textDecoration: 'none',
             marginBottom: 14,
-            background: 'linear-gradient(135deg, #EAF3FE 0%, #DFEBFC 100%)',
+            background:
+              'linear-gradient(120deg, rgba(255,255,255,.28) 0%, rgba(255,255,255,.06) 38%, transparent 60%), ' +
+              'linear-gradient(135deg, #5B9BFA 0%, #3172EC 55%, #2258C9 100%)',
             border: 0,
             borderRadius: 'var(--radius)',
             padding: '14px 16px',
@@ -1019,7 +1021,8 @@ async function CreatorDashboard({
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 14,
-            boxShadow: '0 2px 6px rgba(30,58,138,.08), 0 14px 28px -14px rgba(30,58,138,.28)',
+            boxShadow:
+              'inset 0 1px 0 rgba(255,255,255,.32), 0 3px 8px rgba(37,99,235,.22), 0 16px 32px -14px rgba(37,99,235,.55)',
           }}
         >
           <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
@@ -1030,19 +1033,19 @@ async function CreatorDashboard({
                 flexShrink: 0,
                 borderRadius: 'var(--radius-sm)',
                 background: '#fff',
-                color: 'var(--money-deep)',
+                color: '#2258C9',
                 display: 'grid',
                 placeItems: 'center',
-                boxShadow: '0 1px 3px rgba(30,58,138,.14)',
+                boxShadow: '0 2px 5px rgba(16,42,110,.28)',
               }}
             >
               <Wallet size={16} />
             </span>
-            <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--ink)' }}>
+            <span style={{ fontSize: 14.5, fontWeight: 700, color: '#fff', textShadow: '0 1px 2px rgba(16,42,110,.18)' }}>
               View earnings &amp; payouts
             </span>
           </span>
-          <ArrowRight size={16} style={{ flexShrink: 0, color: 'var(--ink-soft)' }} />
+          <ArrowRight size={16} style={{ flexShrink: 0, color: 'rgba(255,255,255,.9)' }} />
         </Link>
       )}
 
