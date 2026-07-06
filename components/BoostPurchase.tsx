@@ -119,37 +119,46 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
         {OPTIONS.map(o => (
           <div
             key={o.type}
-            className={o.featured ? 'money-panel boost-option' : 'card boost-option'}
+            className={o.featured ? 'money-panel boost-option' : 'boost-option'}
             style={{
               padding: 20, display: 'flex', flexDirection: 'column', gap: 4,
-              ...(o.featured ? {} : { border: '1px solid var(--line)', background: 'var(--surface)' }),
+              // Light sky sibling of the featured navy panel - same glossy,
+              // borderless family so neither option reads as an afterthought.
+              ...(o.featured ? {} : {
+                borderRadius: 'var(--radius-lg)',
+                background:
+                  'linear-gradient(120deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.12) 42%, transparent 65%), ' +
+                  'linear-gradient(160deg, #EFF6FF 0%, #DBEAFD 100%)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.65), 0 2px 6px rgba(37,99,235,.10), 0 14px 28px -16px rgba(37,99,235,.32)',
+              }),
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <span style={{
                 fontSize: 11, fontWeight: 700, letterSpacing: '.04em', textTransform: 'uppercase',
                 padding: '4px 9px', borderRadius: 999,
-                background: o.featured ? 'rgba(255,255,255,.14)' : 'var(--surface-2)',
+                background: o.featured ? 'rgba(255,255,255,.14)' : '#fff',
                 border: o.featured ? '1px solid rgba(255,255,255,.22)' : '1px solid transparent',
-                color: o.featured ? '#fff' : 'var(--ink-soft)',
+                boxShadow: o.featured ? 'none' : '0 1px 3px rgba(37,99,235,.16)',
+                color: o.featured ? '#fff' : '#2963D6',
               }}>{o.tag}</span>
-              <o.icon size={16} style={{ color: o.featured ? 'var(--accent-on-dark)' : 'var(--ink-faint-solid)' }} />
+              <o.icon size={16} style={{ color: o.featured ? 'var(--accent-on-dark)' : '#3172EC' }} />
             </div>
-            <span style={{ fontSize: 13, fontWeight: 600, marginTop: 10, color: o.featured ? 'var(--accent-on-dark)' : 'var(--ink-soft)' }}>{o.label}</span>
-            <span className="mono-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: o.featured ? '#fff' : 'var(--ink)' }}>{o.price}</span>
-            <span style={{ fontSize: 12, color: o.featured ? 'rgba(255,255,255,.68)' : 'var(--ink-faint-solid)' }}>{o.sub}</span>
-            <span style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 8, marginBottom: 14, color: o.featured ? 'rgba(255,255,255,.8)' : 'var(--ink-soft)' }}>{o.desc}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, marginTop: 10, color: o.featured ? 'var(--accent-on-dark)' : '#2963D6' }}>{o.label}</span>
+            <span className="mono-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: o.featured ? '#fff' : '#122B66' }}>{o.price}</span>
+            <span style={{ fontSize: 12, color: o.featured ? 'rgba(255,255,255,.68)' : 'rgba(18,43,102,.6)' }}>{o.sub}</span>
+            <span style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 8, marginBottom: 14, color: o.featured ? 'rgba(255,255,255,.8)' : 'rgba(18,43,102,.78)' }}>{o.desc}</span>
             <button
               onClick={() => purchase(o.type)}
               disabled={!!loading || preview}
-              className={o.featured ? 'btn-block' : 'btn-secondary btn-block'}
+              className="btn-block"
               style={{
                 marginTop: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                ...(o.featured ? {
-                  border: 0, background: '#fff', color: 'var(--accent-deep)', cursor: 'pointer',
-                  fontSize: 13.5, fontWeight: 700, borderRadius: 'var(--radius-sm)', padding: '10px 17px',
-                  fontFamily: 'var(--font-body)', opacity: loading || preview ? .65 : 1,
-                } : {}),
+                border: 0, background: '#fff', cursor: 'pointer',
+                color: o.featured ? 'var(--accent-deep)' : '#2963D6',
+                fontSize: 13.5, fontWeight: 700, borderRadius: 'var(--radius-sm)', padding: '10px 17px',
+                fontFamily: 'var(--font-body)', opacity: loading || preview ? .65 : 1,
+                boxShadow: o.featured ? 'none' : '0 2px 6px rgba(37,99,235,.18)',
               }}
             >
               {preview ? 'Preview only' : loading === o.type ? 'Redirecting…' : (
