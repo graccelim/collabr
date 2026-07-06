@@ -10,11 +10,13 @@ const perDay = (price: number, days: number) => `${CURRENCY}${(price / days).toF
 const OPTIONS = [
   {
     type: 'per_app' as const, label: '7 days', icon: Clock, tag: 'Quick boost',
-    price: `${CURRENCY}${BOOST_PRICING.per_app}`, sub: `≈ ${perDay(BOOST_PRICING.per_app, 7)} · try it out`,
+    price: `${CURRENCY}${BOOST_PRICING.per_app}`, sub: `≈ ${perDay(BOOST_PRICING.per_app, 7)}`,
+    desc: 'One week on top — great for pushing a pitch you just sent, or trying boost out.',
   },
   {
     type: 'monthly' as const, label: '30 days', icon: Sparkles, tag: 'Most popular', featured: true,
     price: `${CURRENCY}${BOOST_PRICING.monthly}`, sub: `≈ ${perDay(BOOST_PRICING.monthly, 30)} · best value`,
+    desc: 'A full month on top — best if you’re actively applying to campaigns.',
   },
 ]
 
@@ -107,7 +109,13 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
         </div>
       )}
 
-      <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 20 }}>
+      {/* The two options do the same thing - only the duration differs. Say so,
+          or creators can't tell what they're choosing between. */}
+      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', marginTop: 20, marginBottom: 0 }}>
+        Both boosts work exactly the same — just pick how long you stay on top.
+      </p>
+
+      <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginTop: 12 }}>
         {OPTIONS.map(o => (
           <div
             key={o.type}
@@ -130,12 +138,13 @@ export default function BoostPurchase({ initialBoostUntil, preview = false, retu
             <span style={{ fontSize: 13, fontWeight: 600, marginTop: 10, color: o.featured ? 'var(--accent-on-dark)' : 'var(--ink-soft)' }}>{o.label}</span>
             <span className="mono-num" style={{ fontSize: 32, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.1, color: o.featured ? '#fff' : 'var(--ink)' }}>{o.price}</span>
             <span style={{ fontSize: 12, color: o.featured ? 'rgba(255,255,255,.68)' : 'var(--ink-faint-solid)' }}>{o.sub}</span>
+            <span style={{ fontSize: 12.5, lineHeight: 1.5, marginTop: 8, marginBottom: 14, color: o.featured ? 'rgba(255,255,255,.8)' : 'var(--ink-soft)' }}>{o.desc}</span>
             <button
               onClick={() => purchase(o.type)}
               disabled={!!loading || preview}
               className={o.featured ? 'btn-block' : 'btn-secondary btn-block'}
               style={{
-                marginTop: 14, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                marginTop: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                 ...(o.featured ? {
                   border: 0, background: '#fff', color: 'var(--accent-deep)', cursor: 'pointer',
                   fontSize: 13.5, fontWeight: 700, borderRadius: 'var(--radius-sm)', padding: '10px 17px',
