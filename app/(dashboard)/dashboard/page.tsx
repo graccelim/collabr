@@ -27,6 +27,7 @@ import {
   BarChart3,
   UserRound,
   Users,
+  Wallet,
 } from 'lucide-react';
 
 // Calm, single-column dashboards (Collabr Redesign): one dark money anchor,
@@ -874,13 +875,27 @@ async function CreatorDashboard({
       {/* Single onboarding-progress surface (the "Welcome to Collabr" checklist),
           below the greeting. The old "Finish your profile, N of M" nudge was a
           duplicate with a different count, so it's removed. */}
-      <div style={{ marginBottom: isEmpty ? 28 : 18 }}>
+      {/* DESKTOP: unchanged — Earnings lives in the sidebar, so the payout step
+          isn't needed here. */}
+      <div className="hidden md:block" style={{ marginBottom: isEmpty ? 28 : 18 }}>
         <ProfileCompletion
           hasPhoto={Boolean(avatarUrl)}
           hasBio={Boolean(creator.bio)}
           hasNiche={(creator.niche_tags?.length ?? 0) > 0}
           hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
           hasExtraSocials={(socials?.length ?? 0) > 1}
+        />
+      </div>
+      {/* MOBILE: adds a "Connect your payout account" step (Earnings has no
+          bottom-tab entry on phones, so the checklist is the way in). */}
+      <div className="md:hidden" style={{ marginBottom: isEmpty ? 28 : 18 }}>
+        <ProfileCompletion
+          hasPhoto={Boolean(avatarUrl)}
+          hasBio={Boolean(creator.bio)}
+          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
+          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
+          hasExtraSocials={(socials?.length ?? 0) > 1}
+          needsPayout={needsPayoutSetup}
         />
       </div>
 
@@ -981,6 +996,51 @@ async function CreatorDashboard({
           >
             Set up <ArrowRight size={15} />
           </span>
+        </Link>
+      )}
+
+      {/* MOBILE earnings entry: Earnings isn't in the bottom tab bar, so a
+          connected creator otherwise has no way to reach payouts/history on a
+          phone. Shown only when the payout account is already connected (the
+          nudge above handles the not-connected case). Desktop uses the sidebar. */}
+      {!needsPayoutSetup && (
+        <Link
+          href="/earnings"
+          className="md:hidden"
+          style={{
+            width: '100%',
+            textDecoration: 'none',
+            marginBottom: 14,
+            background: 'var(--surface)',
+            border: '1px solid var(--line)',
+            borderRadius: 'var(--radius)',
+            padding: '14px 16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 14,
+          }}
+        >
+          <span style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+            <span
+              style={{
+                width: 32,
+                height: 32,
+                flexShrink: 0,
+                borderRadius: 'var(--radius-sm)',
+                background: 'var(--money-tint)',
+                color: 'var(--money-deep)',
+                display: 'grid',
+                placeItems: 'center',
+              }}
+            >
+              <Wallet size={16} />
+            </span>
+            <span style={{ fontSize: 14.5, fontWeight: 600, color: 'var(--ink)' }}>
+              View earnings &amp; payouts
+            </span>
+          </span>
+          <ArrowRight size={16} style={{ flexShrink: 0, color: 'var(--ink-soft)' }} />
         </Link>
       )}
 

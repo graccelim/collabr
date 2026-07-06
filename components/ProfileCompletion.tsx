@@ -7,6 +7,9 @@ interface Props {
   hasNiche: boolean
   hasRates: boolean
   hasExtraSocials: boolean
+  /** When true, adds a "Connect your payout account" step (links to /earnings).
+   *  Used on the MOBILE dashboard, where Earnings has no bottom-tab entry. */
+  needsPayout?: boolean
 }
 
 /**
@@ -14,13 +17,15 @@ interface Props {
  * social was required); this nudges the OPTIONAL fields with a completion % so
  * creators improve discoverability without being blocked up front. Hidden at 100%.
  */
-export default function ProfileCompletion({ hasPhoto, hasBio, hasNiche, hasRates, hasExtraSocials }: Props) {
-  const items = [
-    { label: 'Add a profile photo', done: hasPhoto },
-    { label: 'Add a short bio', done: hasBio },
-    { label: 'Add your niche', done: hasNiche },
-    { label: 'Add your rates', done: hasRates },
-    { label: 'Add another social account', done: hasExtraSocials },
+export default function ProfileCompletion({ hasPhoto, hasBio, hasNiche, hasRates, hasExtraSocials, needsPayout = false }: Props) {
+  const items: { label: string; done: boolean; href: string }[] = [
+    // Getting paid comes first — a creator can't receive money without it.
+    ...(needsPayout ? [{ label: 'Connect your payout account', done: false, href: '/earnings' }] : []),
+    { label: 'Add a profile photo', done: hasPhoto, href: '/profile' },
+    { label: 'Add a short bio', done: hasBio, href: '/profile' },
+    { label: 'Add your niche', done: hasNiche, href: '/profile' },
+    { label: 'Add your rates', done: hasRates, href: '/profile' },
+    { label: 'Add another social account', done: hasExtraSocials, href: '/profile' },
   ]
   const done = items.filter(i => i.done).length
   const pct = Math.round((done / items.length) * 100)
@@ -41,7 +46,7 @@ export default function ProfileCompletion({ hasPhoto, hasBio, hasNiche, hasRates
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {items.map(i => (
-          <Link key={i.label} href="/profile" style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: i.done ? 'var(--ink-faint-solid)' : 'var(--ink)', textDecoration: i.done ? 'line-through' : 'none' }}>
+          <Link key={i.label} href={i.href} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 13.5, color: i.done ? 'var(--ink-faint-solid)' : 'var(--ink)', textDecoration: i.done ? 'line-through' : 'none' }}>
             {i.done
               ? <Check size={16} color="var(--money-deep)" style={{ flexShrink: 0 }} />
               : <Circle size={16} color="var(--ink-faint-solid)" style={{ flexShrink: 0 }} />}
