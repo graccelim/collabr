@@ -42,6 +42,7 @@ export function creatorOnboardingSteps(d: {
   hasPhoto: boolean
   hasBio: boolean
   hasRates: boolean
+  hasPayout: boolean
 }): StepsSummary {
   const socialsDone = d.socialsCount > 0
   return summarize([
@@ -79,6 +80,14 @@ export function creatorOnboardingSteps(d: {
       done: d.hasRates,
       href: '/profile',
       cta: 'Set rates',
+    },
+    {
+      key: 'payout',
+      label: 'Connect your payout account',
+      detail: 'Payments release the moment your work is approved — this is where they land.',
+      done: d.hasPayout,
+      href: '/earnings',
+      cta: 'Set up payouts',
     },
     {
       key: 'ready',

@@ -838,6 +838,7 @@ async function CreatorDashboard({
     hasPhoto: Boolean(avatarUrl),
     hasBio: Boolean(creator.bio),
     hasRates: Boolean(creator.base_rate || creator.average_rate_sgd),
+    hasPayout: !needsPayoutSetup,
   });
 
   // Entice non-Pro creators to upgrade (card self-hides when the flag is off).
