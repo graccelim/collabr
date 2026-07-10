@@ -457,6 +457,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
             greeting={onboardingDone
               ? 'Welcome to Collabr'
               : 'Welcome to Collabr — you’re verified'}
+            readyNote="You’re live — your campaign is open for applications."
           />
         </div>
       )}
@@ -920,6 +921,7 @@ async function CreatorDashboard({
             greeting={creator.onboarding_completed_at
               ? 'Welcome to Collabr'
               : 'Welcome to Collabr — you’re verified'}
+            readyNote="You’re live — you can apply to campaigns right now."
           />
         </div>
       )}

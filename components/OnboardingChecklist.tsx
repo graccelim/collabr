@@ -9,11 +9,13 @@ import type { StepsSummary } from '@/lib/onboarding-steps'
  * from live profile data (lib/onboarding-steps), so it resumes wherever the
  * user left off. Step 1 arrives pre-checked — the endowed-progress head start.
  */
-export default function OnboardingChecklist({ summary, greeting }: {
+export default function OnboardingChecklist({ summary, greeting, readyNote }: {
   summary: StepsSummary
   greeting?: string
+  /** Shown as a green status banner once the activation gate is open. */
+  readyNote?: string
 }) {
-  const { steps, done, total, current } = summary
+  const { steps, done, total, current, ready } = summary
   const pct = Math.round((done / total) * 100)
 
   return (
@@ -32,6 +34,19 @@ export default function OnboardingChecklist({ summary, greeting }: {
       <div style={{ height: 7, borderRadius: 99, background: 'var(--surface-2)', overflow: 'hidden', marginBottom: 16 }}>
         <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 99, transition: 'width .3s ease' }} />
       </div>
+
+      {/* "Ready" is a STATE, not a step — once the gate is open it reads as a
+          live status, never as an out-of-order tick at the bottom of the list. */}
+      {ready && readyNote && (
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14,
+          padding: '9px 12px', borderRadius: 'var(--radius-sm)',
+          background: 'var(--money-tint)',
+        }}>
+          <Check size={15} color="var(--money-deep)" style={{ flexShrink: 0 }} strokeWidth={3} />
+          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--money-deep)' }}>{readyNote}</span>
+        </div>
+      )}
 
       <ol style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
         {steps.map((s, i) => {

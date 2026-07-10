@@ -24,11 +24,15 @@ export interface StepsSummary {
   total: number
   /** First not-done step — the one the checklist spotlights. */
   current: OnboardingStep | null
+  /** The activation gate is open (can transact) — a STATE, not a step: it can
+   *  be true while later polish steps are pending, so rendering it as a row
+   *  would look like an out-of-order tick. Shown as a status banner instead. */
+  ready: boolean
 }
 
-function summarize(steps: OnboardingStep[]): StepsSummary {
+function summarize(steps: OnboardingStep[], ready: boolean): StepsSummary {
   const done = steps.filter(s => s.done).length
-  return { steps, done, total: steps.length, current: steps.find(s => !s.done) ?? null }
+  return { steps, done, total: steps.length, current: steps.find(s => !s.done) ?? null, ready }
 }
 
 /**
@@ -89,15 +93,7 @@ export function creatorOnboardingSteps(d: {
       href: '/earnings',
       cta: 'Set up payouts',
     },
-    {
-      key: 'ready',
-      label: 'Ready to receive opportunities',
-      detail: 'Apply to live campaigns while the rest of your profile fills out.',
-      done: socialsDone,
-      href: '/jobs',
-      cta: 'Browse campaigns',
-    },
-  ])
+  ], socialsDone)
 }
 
 /**
@@ -137,10 +133,5 @@ export function brandOnboardingSteps(d: {
       href: '/post-job',
       cta: 'Post a campaign',
     },
-    {
-      key: 'ready',
-      label: 'Ready to receive applications',
-      done: d.companyBasicsDone && d.campaignCount > 0,
-    },
-  ])
+  ], d.companyBasicsDone && d.campaignCount > 0)
 }
