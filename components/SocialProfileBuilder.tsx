@@ -4,6 +4,7 @@ import {
   SOCIAL_PLATFORMS, SOCIAL_LABELS,
   type SocialPlatform,
 } from '@/lib/onboarding'
+import { socialIcon } from '@/components/SocialIcon'
 
 // One repeatable social-profile row. `username` is what the creator types - a
 // bare username for most platforms (we prepend the domain), or a pasted profile
@@ -57,18 +58,26 @@ export default function SocialProfileBuilder({
       </div>
       <div className="space-y-3">
         {rows.map((row, i) => {
+          // Native <select> options can't render SVGs, so the selected
+          // platform's brand glyph overlays the control's left edge instead.
+          const Glyph = socialIcon(row.platform)
           return (
             <div key={i} className="space-y-2" style={{ border: '1px solid var(--line)', borderRadius: 'var(--radius-sm)', padding: 12 }}>
               {/* platform + profile, side by side (follower count sits below) */}
               <div className="flex items-center gap-2">
-                <select className="input" style={{ width: 'auto', flexShrink: 0, maxWidth: 150 }} value={row.platform}
-                  onChange={e => changePlatform(i, e.target.value as SocialPlatform)}>
-                  {SOCIAL_PLATFORMS.map(p => (
-                    <option key={p} value={p} disabled={p !== row.platform && used.has(p)}>
-                      {SOCIAL_LABELS[p]}
-                    </option>
-                  ))}
-                </select>
+                <div style={{ position: 'relative', flexShrink: 0 }}>
+                  <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'grid', placeItems: 'center' }}>
+                    <Glyph size={16} />
+                  </span>
+                  <select className="input" style={{ width: 'auto', maxWidth: 165, paddingLeft: 34 }} value={row.platform}
+                    onChange={e => changePlatform(i, e.target.value as SocialPlatform)}>
+                    {SOCIAL_PLATFORMS.map(p => (
+                      <option key={p} value={p} disabled={p !== row.platform && used.has(p)}>
+                        {SOCIAL_LABELS[p]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <input className="input" style={{ flex: 1, minWidth: 0 }}
                   inputMode="text" autoCapitalize="none" autoCorrect="off" spellCheck={false}
                   placeholder="@handle"

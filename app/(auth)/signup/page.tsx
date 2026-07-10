@@ -141,10 +141,10 @@ function SignupForm() {
 
   // Spell out what's still required so a disabled button never feels mysterious.
   const missing: string[] = []
-  if (name.trim().length < 2) missing.push(isBrand ? 'company name' : 'your name')
-  if (!emailLooksValid) missing.push('a valid email')
-  if (password.length < 8) missing.push('a password (8+ characters)')
-  if (!agree) missing.push('agree to the terms')
+  if (name.trim().length < 2) missing.push(isBrand ? 'Company Name' : 'Name')
+  if (!emailLooksValid) missing.push('Valid Email')
+  if (password.length < 8) missing.push('Password (8+ characters)')
+  if (!agree) missing.push('Agree to Terms')
 
   return (
     <AuthShell role={role}>
@@ -199,8 +199,9 @@ function SignupForm() {
         </label>
 
         {!busy && (!formComplete || !agree) && missing.length > 0 && (
-          <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', lineHeight: 1.5, margin: '-4px 0 0' }}>
-            Still needed: {missing.join(', ')}.
+          <p style={{ fontSize: 12.5, lineHeight: 1.6, margin: '-4px 0 0' }}>
+            <span style={{ color: 'var(--danger, #B23A33)', fontWeight: 600 }}>Please fill in:</span>{' '}
+            <span style={{ color: 'var(--ink-soft)' }}>{missing.join(' · ')}</span>
           </p>
         )}
 
