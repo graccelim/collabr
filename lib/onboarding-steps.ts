@@ -41,6 +41,7 @@ export function creatorOnboardingSteps(d: {
   nicheCount: number
   hasPhoto: boolean
   hasBio: boolean
+  hasRates: boolean
 }): StepsSummary {
   const socialsDone = d.socialsCount > 0
   return summarize([
@@ -70,6 +71,14 @@ export function creatorOnboardingSteps(d: {
       done: d.hasPhoto && d.hasBio,
       href: '/profile',
       cta: 'Complete profile',
+    },
+    {
+      key: 'rates',
+      label: 'Set your rates',
+      detail: 'Brands filter by budget — a rate helps the right ones find you.',
+      done: d.hasRates,
+      href: '/profile',
+      cta: 'Set rates',
     },
     {
       key: 'ready',

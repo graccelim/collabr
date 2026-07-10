@@ -3,12 +3,11 @@ import { Check, Circle, ArrowRight } from 'lucide-react'
 import type { StepsSummary } from '@/lib/onboarding-steps'
 
 /**
- * The post-verification onboarding surface. Rendered at the top of the
- * dashboard while `onboarding_completed_at` is null; steps are derived from
- * live profile data (lib/onboarding-steps), so it resumes wherever the user
- * left off. Step 1 arrives pre-checked — the endowed-progress head start.
- * Once onboarding completes, the existing surfaces (ProfileCompletion /
- * BrandActivation) take over the remaining polish nudges.
+ * The guided setup surface at the top of the dashboard. Runs the WHOLE
+ * journey — the hard gate steps and the recommended-path steps after them —
+ * with one spotlighted next step, and disappears at 100%. Steps are derived
+ * from live profile data (lib/onboarding-steps), so it resumes wherever the
+ * user left off. Step 1 arrives pre-checked — the endowed-progress head start.
  */
 export default function OnboardingChecklist({ summary, greeting }: {
   summary: StepsSummary

@@ -3,7 +3,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ArrowRight, Loader2, Star, Megaphone, MailCheck } from 'lucide-react'
+import { ArrowRight, Loader2, Star, Megaphone, MailCheck, Check, Circle } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import { safeNextPath } from '@/lib/nav'
 
@@ -139,12 +139,15 @@ function SignupForm() {
   const emailLooksValid = /.+@.+\..+/.test(email.trim())
   const formComplete = name.trim().length >= 2 && emailLooksValid && password.length >= 8
 
-  // Spell out what's still required so a disabled button never feels mysterious.
-  const missing: string[] = []
-  if (name.trim().length < 2) missing.push(isBrand ? 'Company Name' : 'Name')
-  if (!emailLooksValid) missing.push('Valid Email')
-  if (password.length < 8) missing.push('Password (8+ characters)')
-  if (!agree) missing.push('Agree to Terms')
+  // Requirement chips: each pill flips grey → green as it's satisfied, so a
+  // disabled button never feels mysterious. Progress, not error — no red
+  // before the user has even tried.
+  const requirements = [
+    { label: isBrand ? 'Company' : 'Name', done: name.trim().length >= 2 },
+    { label: 'Email', done: emailLooksValid },
+    { label: 'Password', done: password.length >= 8 },
+    { label: 'Terms', done: agree },
+  ]
 
   return (
     <AuthShell role={role}>
@@ -198,11 +201,25 @@ function SignupForm() {
           </span>
         </label>
 
-        {!busy && (!formComplete || !agree) && missing.length > 0 && (
-          <p style={{ fontSize: 12.5, lineHeight: 1.6, margin: '-4px 0 0' }}>
-            <span style={{ color: 'var(--danger, #B23A33)', fontWeight: 600 }}>Please fill in:</span>{' '}
-            <span style={{ color: 'var(--ink-soft)' }}>{missing.join(' · ')}</span>
-          </p>
+        {!busy && (!formComplete || !agree) && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, margin: '-4px 0 0' }}>
+            {requirements.map(r => (
+              <span key={r.label} style={{
+                display: 'inline-flex', alignItems: 'center', gap: 5,
+                fontSize: 12, fontWeight: 550, padding: '4px 11px', borderRadius: 999,
+                background: r.done ? 'var(--money-tint)' : 'var(--paper-2)',
+                color: r.done ? 'var(--money-deep)' : 'var(--ink-faint-solid)',
+                border: '1px solid',
+                borderColor: r.done ? 'transparent' : 'var(--line)',
+                transition: 'all .15s ease',
+              }}>
+                {r.done
+                  ? <Check size={12} strokeWidth={3} />
+                  : <Circle size={10} strokeWidth={2} />}
+                {r.label}
+              </span>
+            ))}
+          </div>
         )}
 
         <button type="submit" className="btn-primary btn-lg btn-block" disabled={busy || !agree || !formComplete}>

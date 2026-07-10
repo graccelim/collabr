@@ -11,7 +11,6 @@ import { rankCampaignsForCreator } from '@/lib/recommend';
 import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
-import ProfileCompletion from '@/components/ProfileCompletion';
 import OnboardingChecklist from '@/components/OnboardingChecklist';
 import { creatorOnboardingSteps, brandOnboardingSteps } from '@/lib/onboarding-steps';
 import CreatorProCTA from '@/components/CreatorProCTA';
@@ -436,28 +435,32 @@ async function BrandDashboard({ userId }: { userId: string }) {
     canInvite: isPlus,
   };
 
-  // Until the onboarding gate is set, the step checklist IS the dashboard's
-  // guidance surface — the polish nudges (BrandActivation, CompletionNudge)
-  // take over once onboarding completes.
+  // The step checklist runs the guided journey (company details gate → logo/
+  // description → first campaign) and disappears at 100%; the deeper-funnel
+  // nudges (BrandActivation, CompletionNudge) take over from there.
   const onboardingDone = Boolean(brand.onboarding_completed_at);
+  const brandSteps = brandOnboardingSteps({
+    companyBasicsDone: onboardingDone,
+    hasLogo: Boolean(brand.logo_url),
+    hasDescription: Boolean(brand.company_description?.trim()),
+    campaignCount: campaigns?.length ?? 0,
+  });
+  const brandStepsDone = brandSteps.done >= brandSteps.total;
 
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {isBetaFreePro() && <BrandBetaWelcome />}
-      {!onboardingDone && (
+      {!brandStepsDone && (
         <div style={{ marginTop: 8 }}>
           <OnboardingChecklist
-            summary={brandOnboardingSteps({
-              companyBasicsDone: onboardingDone,
-              hasLogo: Boolean(brand.logo_url),
-              hasDescription: Boolean(brand.company_description?.trim()),
-              campaignCount: campaigns?.length ?? 0,
-            })}
-            greeting="Welcome to Collabr — you're verified"
+            summary={brandSteps}
+            greeting={onboardingDone
+              ? 'Welcome to Collabr'
+              : 'Welcome to Collabr — you’re verified'}
           />
         </div>
       )}
-      {onboardingDone && !isEmpty && (
+      {brandStepsDone && !isEmpty && (
         <div style={{ marginTop: 8 }}>
           <BrandActivation {...activation} />
         </div>
@@ -482,7 +485,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
         </p>
       </div>
 
-      {onboardingDone && (
+      {brandStepsDone && (
         <CompletionNudge
           href="/settings"
           label="Finish your brand profile"
@@ -828,6 +831,15 @@ async function CreatorDashboard({
     new Date(creator.boost_active_until) > new Date();
   const isEmpty = !collabs || collabs.length === 0;
 
+  // Guided setup steps, derived from live profile data (persists/resumes).
+  const creatorSteps = creatorOnboardingSteps({
+    socialsCount: socials?.length ?? 0,
+    nicheCount: creator.niche_tags?.length ?? 0,
+    hasPhoto: Boolean(avatarUrl),
+    hasBio: Boolean(creator.bio),
+    hasRates: Boolean(creator.base_rate || creator.average_rate_sgd),
+  });
+
   // Entice non-Pro creators to upgrade (card self-hides when the flag is off).
   const showUpgrade = !isProActive(proSub ?? null);
 
@@ -894,47 +906,21 @@ async function CreatorDashboard({
         </p>
       </div>
 
-      {/* Single onboarding-progress surface below the greeting. Before the
-          onboarding gate is set: the step checklist (minimal-signup flow).
-          After: the "Welcome to Collabr" completion card for optional polish. */}
-      {!creator.onboarding_completed_at ? (
+      {/* Single onboarding-progress surface below the greeting: the step
+          checklist runs the WHOLE journey (socials gate → niches → photo/bio →
+          rates) with one spotlighted next step, and disappears at 100%. The
+          steps past the gate don't block anything — they're the recommended
+          path, presented as a sequence so there's never a "what now?" moment.
+          (The payout nudge stays separate, under the earnings card.) */}
+      {creatorSteps.done < creatorSteps.total && (
         <div style={{ marginBottom: isEmpty ? 28 : 18 }}>
           <OnboardingChecklist
-            summary={creatorOnboardingSteps({
-              socialsCount: socials?.length ?? 0,
-              nicheCount: creator.niche_tags?.length ?? 0,
-              hasPhoto: Boolean(avatarUrl),
-              hasBio: Boolean(creator.bio),
-            })}
-            greeting="Welcome to Collabr — you're verified"
+            summary={creatorSteps}
+            greeting={creator.onboarding_completed_at
+              ? 'Welcome to Collabr'
+              : 'Welcome to Collabr — you’re verified'}
           />
         </div>
-      ) : (
-        <>
-          {/* DESKTOP: Earnings lives in the sidebar, so the payout step isn't
-              needed here. */}
-          <div className="hidden md:block" style={{ marginBottom: isEmpty ? 28 : 18 }}>
-            <ProfileCompletion
-              hasPhoto={Boolean(avatarUrl)}
-              hasBio={Boolean(creator.bio)}
-              hasNiche={(creator.niche_tags?.length ?? 0) > 0}
-              hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
-              hasExtraSocials={(socials?.length ?? 0) > 1}
-            />
-          </div>
-          {/* MOBILE: adds a "Connect your payout account" step (Earnings has no
-              bottom-tab entry on phones, so the checklist is the way in). */}
-          <div className="md:hidden" style={{ marginBottom: isEmpty ? 28 : 18 }}>
-            <ProfileCompletion
-              hasPhoto={Boolean(avatarUrl)}
-              hasBio={Boolean(creator.bio)}
-              hasNiche={(creator.niche_tags?.length ?? 0) > 0}
-              hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
-              hasExtraSocials={(socials?.length ?? 0) > 1}
-              needsPayout={needsPayoutSetup}
-            />
-          </div>
-        </>
       )}
 
       {/* earnings - the one dark anchor */}

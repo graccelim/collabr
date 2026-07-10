@@ -3,8 +3,8 @@ import { creatorOnboardingSteps, brandOnboardingSteps } from '@/lib/onboarding-s
 
 describe('creator onboarding steps', () => {
   it('fresh verified account: step 1 pre-checked, socials is the current step', () => {
-    const s = creatorOnboardingSteps({ socialsCount: 0, nicheCount: 0, hasPhoto: false, hasBio: false })
-    expect(s.total).toBe(5)
+    const s = creatorOnboardingSteps({ socialsCount: 0, nicheCount: 0, hasPhoto: false, hasBio: false, hasRates: false })
+    expect(s.total).toBe(6)
     expect(s.done).toBe(1) // the endowed-progress head start
     expect(s.steps[0]).toMatchObject({ key: 'account', done: true })
     expect(s.current?.key).toBe('socials')
@@ -12,7 +12,7 @@ describe('creator onboarding steps', () => {
   })
 
   it('one social flips both the gate step and the ready step', () => {
-    const s = creatorOnboardingSteps({ socialsCount: 1, nicheCount: 0, hasPhoto: false, hasBio: false })
+    const s = creatorOnboardingSteps({ socialsCount: 1, nicheCount: 0, hasPhoto: false, hasBio: false, hasRates: false })
     expect(s.steps.find(x => x.key === 'socials')?.done).toBe(true)
     expect(s.steps.find(x => x.key === 'ready')?.done).toBe(true)
     expect(s.current?.key).toBe('niches')
@@ -22,14 +22,21 @@ describe('creator onboarding steps', () => {
   })
 
   it('progress derives from data, so it resumes wherever the user left off', () => {
-    const s = creatorOnboardingSteps({ socialsCount: 2, nicheCount: 3, hasPhoto: true, hasBio: false })
-    expect(s.done).toBe(4) // account, socials, niches, ready — bio still missing
+    const s = creatorOnboardingSteps({ socialsCount: 2, nicheCount: 3, hasPhoto: true, hasBio: false, hasRates: false })
+    expect(s.done).toBe(4) // account, socials, niches, ready — bio + rates still missing
     expect(s.current?.key).toBe('profile')
   })
 
-  it('fully set up: everything done, no current step', () => {
-    const s = creatorOnboardingSteps({ socialsCount: 1, nicheCount: 2, hasPhoto: true, hasBio: true })
+  it('the recommended-path steps (photo/bio, rates) continue past the gate', () => {
+    const s = creatorOnboardingSteps({ socialsCount: 1, nicheCount: 2, hasPhoto: true, hasBio: true, hasRates: false })
     expect(s.done).toBe(5)
+    expect(s.current?.key).toBe('rates')
+    expect(s.current?.href).toBe('/profile')
+  })
+
+  it('fully set up: everything done, no current step', () => {
+    const s = creatorOnboardingSteps({ socialsCount: 1, nicheCount: 2, hasPhoto: true, hasBio: true, hasRates: true })
+    expect(s.done).toBe(6)
     expect(s.current).toBeNull()
   })
 })
