@@ -50,19 +50,19 @@ export default function TrustBanners({ emailVerified, onboardingComplete, role, 
           </button>
         </div>
       )}
-      {/* Hidden on the dashboard home, the "Welcome to Collabr" completion card
-          already prompts this there (avoids a redundant double nudge). Links to
-          the editable profile, not /onboarding (which just bounces to overview). */}
+      {/* Hidden on the dashboard home (the onboarding checklist already prompts
+          this there) and on /onboarding itself (that IS the step surface the
+          minimal-signup flow links to). */}
       {!onboardingComplete && pathname !== '/onboarding' && pathname !== '/dashboard' && (
         <div className="card flex items-center gap-3 py-2.5"
           style={{ borderColor: 'rgba(79,70,229,.25)', background: 'var(--accent-tint)' }}>
           <UserCheck size={16} className="shrink-0" style={{ color: 'var(--accent)' }} />
           <p className="text-sm text-gray-700 flex-1">
             {role === 'creator'
-              ? 'Complete onboarding to apply to campaigns.'
-              : 'Complete onboarding to create campaigns.'}
+              ? 'Add a social profile to apply to campaigns.'
+              : 'Add your company details to create campaigns.'}
           </p>
-          <Link href={profileHref} className="text-sm font-medium"
+          <Link href="/onboarding" className="text-sm font-medium"
             style={{ color: 'var(--accent-deep)' }}>
             Finish setup →
           </Link>

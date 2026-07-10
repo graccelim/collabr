@@ -36,6 +36,19 @@ export async function middleware(req: NextRequest) {
   // Always call getUser() - this refreshes the session token and writes updated cookies
   const { data: { user } } = await supabase.auth.getUser()
 
+  // A signed-in user has no business on /login or /signup — send them into the
+  // app. This is what makes the verification link feel like auto-login even if
+  // the Supabase email template still points its ?next= at /login: /auth/confirm
+  // sets the session cookie on its redirect, and this bounce completes the trip.
+  // (/reset-password is deliberately NOT included: recovery sessions must stay
+  // on the reset page.)
+  if ((pathname === '/login' || pathname === '/signup') && user) {
+    const redirect = NextResponse.redirect(new URL('/dashboard', req.url))
+    res.cookies.getAll().forEach((c) => redirect.cookies.set(c))
+    redirect.headers.set('Cache-Control', 'no-store, max-age=0, must-revalidate')
+    return redirect
+  }
+
   // Logged-in users never see the public marketing page — bounce them into the
   // app here (not in the page) so the landing stays statically rendered.
   if (pathname === '/' && user) {

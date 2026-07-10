@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { resolvePlan, proGateResponse, PLAN_COLUMNS } from '@/lib/plans'
 import { normalizeNiche, normalizeNicheTags } from '@/lib/niches'
 import { SOCIAL_PLATFORMS } from '@/lib/onboarding'
+import { notifyNewCampaign } from '@/lib/campaign-notify'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient()
@@ -124,6 +125,9 @@ export async function POST(req: NextRequest) {
   if (data?.id) {
     const slug = await ensureCampaignSlug(admin, data.id, title, brand.company_name || '')
     if (slug) (data as { slug?: string }).slug = slug
+    // Campaign alert fan-out to on-niche creators (batched, deduped,
+    // best-effort - a send failure never blocks the campaign going live).
+    await notifyNewCampaign(admin, data, brand.company_name || 'A brand')
   }
   return NextResponse.json(data, { status: 201 })
 }

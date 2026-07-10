@@ -61,6 +61,8 @@ export default function SettingsPage() {
   const [socialRows, setSocialRows] = useState<SocialRow[]>([])
   const [logoUrl, setLogoUrl] = useState('')
   const [logoUploading, setLogoUploading] = useState(false)
+  // Creator-only: "email me when a campaign matches my niche" (null = not loaded).
+  const [campaignAlerts, setCampaignAlerts] = useState<boolean | null>(null)
   const [saving, setSaving] = useState(false)
   const [userId, setUserId] = useState('')
   const [brandId, setBrandId] = useState('')
@@ -120,6 +122,10 @@ export default function SettingsPage() {
           }))
         }
       } else {
+        // Campaign alerts flag (052) - default true if the column isn't applied yet.
+        const { data: cp } = await supabase.from('creator_profiles')
+          .select('campaign_alerts').eq('user_id', user.id).single()
+        setCampaignAlerts((cp as { campaign_alerts?: boolean } | null)?.campaign_alerts ?? true)
         setInitialSnapshot(settingsSnapshot({
           role: profile.role as 'creator', displayName: profile.display_name || '',
           companyName: '', companyDescription: '', industry: '', location: '', website: '', socials: [], logoUrl: '',
@@ -349,6 +355,34 @@ export default function SettingsPage() {
               Pick a platform and pop in your handle, we&rsquo;ll build the link. Your first one shows as primary. Add at least a website or one social profile.
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Email alerts - creators only. Saves instantly (independent of the form). */}
+      {role === 'creator' && campaignAlerts !== null && (
+        <div className="card space-y-3">
+          <h2 className="text-sm font-medium text-gray-900">Email alerts</h2>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={campaignAlerts}
+              onChange={async e => {
+                const next = e.target.checked
+                setCampaignAlerts(next)
+                const { error } = await supabase.from('creator_profiles')
+                  .update({ campaign_alerts: next }).eq('user_id', userId)
+                if (error) { setCampaignAlerts(!next); toast.error('Could not save, try again.') }
+                else toast.success(next ? 'Campaign alerts on' : 'Campaign alerts off')
+              }}
+            />
+            <span>
+              <span className="text-sm text-gray-900 block">Campaign alerts</span>
+              <span className="text-xs text-gray-500 block mt-0.5">
+                Email me when a brand posts a campaign that matches my niche, so I can apply early.
+              </span>
+            </span>
+          </label>
         </div>
       )}
 

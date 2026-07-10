@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { createHmac, timingSafeEqual } from 'crypto'
 import { createAdminClient } from '@/lib/supabase/server'
 
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/+$/, '')
@@ -20,6 +21,54 @@ export async function sendEmail({ to, subject, html, headers }: { to: string; su
   const resend = new Resend(key)
   const { error } = await resend.emails.send({ from: `collabr. <${from}>`, to, subject, html, ...(headers ? { headers } : {}) })
   if (error) console.error('[EMAIL ERROR]', error)
+}
+
+// One Resend batch call sends up to 100 emails - used by high-fan-out sends
+// (campaign alerts) where a per-recipient loop would hit the 2 req/s rate limit.
+export const EMAIL_BATCH_LIMIT = 100
+
+export async function sendEmailBatch(
+  items: { to: string; subject: string; html: string; headers?: Record<string, string> }[],
+) {
+  const key = process.env.RESEND_API_KEY
+  const from = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
+  if (items.length === 0) return
+  if (!key) {
+    console.warn(`[EMAIL] RESEND_API_KEY missing, skipping batch of ${items.length}`)
+    return
+  }
+  const resend = new Resend(key)
+  for (let i = 0; i < items.length; i += EMAIL_BATCH_LIMIT) {
+    const chunk = items.slice(i, i + EMAIL_BATCH_LIMIT)
+    const { error } = await resend.batch.send(
+      chunk.map(({ to, subject, html, headers }) =>
+        ({ from: `collabr. <${from}>`, to, subject, html, ...(headers ? { headers } : {}) })),
+    )
+    if (error) console.error('[EMAIL BATCH ERROR]', error)
+  }
+}
+
+// ── One-click unsubscribe tokens ─────────────────────────────────────────────
+// HMAC of the user id, keyed by the service-role key (always present server-
+// side, never exposed). Lets the unsubscribe link in campaign-alert emails
+// flip the opt-out flag without a login - the token proves the link came from
+// an email we sent to that user.
+function unsubscribeSecret(): string {
+  return process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.CRON_SECRET || 'dev-only'
+}
+
+export function unsubscribeToken(userId: string): string {
+  return createHmac('sha256', unsubscribeSecret()).update(`unsub:${userId}`).digest('hex')
+}
+
+export function verifyUnsubscribeToken(userId: string, token: string): boolean {
+  const expected = Buffer.from(unsubscribeToken(userId))
+  const given = Buffer.from(token)
+  return expected.length === given.length && timingSafeEqual(expected, given)
+}
+
+export function unsubscribeUrl(userId: string): string {
+  return link(`/api/email/unsubscribe?uid=${encodeURIComponent(userId)}&token=${unsubscribeToken(userId)}`)
 }
 
 // ── Reusable premium layout (pure, email-safe) ──────────────────────────────
@@ -79,6 +128,110 @@ ${footnote ? `<tr><td style="padding:0 40px 36px 40px;font-family:${FONT};"><p s
 </td></tr>
 <tr><td style="padding:22px 8px 8px 8px;font-family:${FONT};">
 <p style="margin:0 0 6px 0;font-size:12px;line-height:1.6;color:#8A909C;">You're receiving this because you have a Collabr account.</p>
+<p style="margin:0;font-size:12px;line-height:1.6;color:#A6ABB6;">Collabr &middot; Creator collaborations with payment protection.</p>
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`
+}
+
+// ── Campaign alert (rich niche-matched broadcast) ────────────────────────────
+export interface CampaignAlertContent {
+  campaignTitle: string
+  brandName: string
+  brief: string
+  /** Pre-formatted compensation line, e.g. "S$150.00 to S$300.00" or "Barter". */
+  compValue: string
+  barterDetail?: string | null
+  deliverables: string[]
+  /** Canonical platform slugs + labels; empty = any platform. */
+  platforms: { slug: string; label: string }[]
+  /** Human niche labels ("Food, Lifestyle"). */
+  nicheLabels: string[]
+  minFollowers: number
+  campaignUrl: string
+  unsubscribeUrl: string
+}
+
+/**
+ * The "Campaign alert" email sent to on-niche creators when a campaign goes
+ * live. Same chrome as renderEmail, plus a hero banner and per-platform icon
+ * badges - both served from public/email/ (Gmail strips inline SVG, so icons
+ * must be hosted images). CAMPAIGN_ALERT_HERO_URL overrides the bundled
+ * banner for seasonal/custom artwork without a deploy.
+ */
+export function renderCampaignAlertEmail(d: CampaignAlertContent): string {
+  const FONT = `-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif`
+  const heroUrl = process.env.CAMPAIGN_ALERT_HERO_URL || link('/email/campaign-alert-hero.jpg')
+  const hero = `<tr><td style="border-top-left-radius:16px;border-top-right-radius:16px;overflow:hidden;"><img src="${heroUrl}" width="600" alt="Campaign alert - new in your niche" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-top-left-radius:16px;border-top-right-radius:16px;background-color:#000435;color:#FFFFFF;"></td></tr>`
+
+  const brief = d.brief.length > 300 ? `${d.brief.slice(0, 300).trimEnd()}…` : d.brief
+  // Lines are pre-escaped HTML: text goes through esc() at the call site so the
+  // platform line can carry its icon <img> tags.
+  const section = (label: string, lines: string[]) => lines.length === 0 ? '' : `
+<tr><td style="padding:0 40px 22px 40px;font-family:${FONT};">
+<p style="margin:0 0 6px 0;font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#8A909C;">${esc(label)}</p>
+${lines.map(l => `<p style="margin:0 0 4px 0;font-size:15px;line-height:1.6;color:#0E1016;">${l}</p>`).join('')}
+</td></tr>`
+
+  // Platform badges ship as tiny hosted PNGs (public/email/icons/<slug>.png).
+  const platformLine = d.platforms
+    .map(p => `<img src="${link(`/email/icons/${p.slug}.png`)}" width="18" height="18" alt="" style="vertical-align:-4px;border:0;">&nbsp;${esc(p.label)}`)
+    .join(' &nbsp;&nbsp; ')
+
+  const getLines = [esc(d.compValue), ...(d.barterDetail ? [esc(d.barterDetail)] : [])]
+  const createLines = [
+    ...(d.deliverables.length ? [esc(d.deliverables.join(', '))] : []),
+    ...(d.platforms.length ? [platformLine] : []),
+  ]
+  const applyLines = [
+    ...(d.nicheLabels.length ? [esc(`${d.nicheLabels.join(', ')} creators`)] : []),
+    ...(d.minFollowers > 0 ? [esc(`${d.minFollowers.toLocaleString()}+ followers`)] : []),
+  ]
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="x-apple-disable-message-reformatting">
+<title>${esc(d.campaignTitle)}</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+</head>
+<body style="margin:0;padding:0;background-color:#F6F7F9;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#F6F7F9;opacity:0;">${esc(`${d.brandName} is looking for ${d.nicheLabels.join(', ') || 'creators'} - apply early to get noticed.`)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F6F7F9;">
+<tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;margin:0 auto;">
+<tr><td align="left" style="padding:4px 8px 22px 8px;font-family:${FONT};">
+<span style="font-size:22px;font-weight:700;letter-spacing:-0.03em;color:#0E1016;">collabr<span style="color:#000435;">.</span></span>
+</td></tr>
+<tr><td style="background-color:#FFFFFF;border:1px solid #E6E8EE;border-radius:16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+${hero}
+<tr><td style="padding:36px 40px 8px 40px;font-family:${FONT};">
+<h1 style="margin:0 0 6px 0;font-size:24px;line-height:1.3;font-weight:700;letter-spacing:-0.02em;color:#0E1016;">${esc(d.campaignTitle)}</h1>
+<p style="margin:0 0 18px 0;font-size:14px;color:#8A909C;">by ${esc(d.brandName)}</p>
+<p style="margin:0 0 26px 0;font-size:15px;line-height:1.6;color:#545A66;">${esc(brief)}</p>
+</td></tr>
+${section('What you get', getLines)}
+${section("What you'll create", createLines)}
+${section('Who should apply', applyLines)}
+<tr><td align="left" style="padding:6px 40px 32px 40px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td align="center" bgcolor="#000435" style="border-radius:10px;">
+<!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${d.campaignUrl}" style="height:48px;v-text-anchor:middle;width:240px;" arcsize="21%" stroke="f" fillcolor="#000435"><w:anchorlock/><center style="color:#ffffff;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;">View campaign &amp; apply</center></v:roundrect><![endif]-->
+<!--[if !mso]><!-- --><a href="${d.campaignUrl}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:${FONT};font-size:15px;font-weight:600;line-height:20px;color:#FFFFFF;text-decoration:none;border-radius:10px;background-color:#000435;">View campaign &amp; apply</a><!--<![endif]-->
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:0 40px 36px 40px;font-family:${FONT};"><p style="margin:0;font-size:13px;line-height:1.5;color:#8A909C;">Most brands start reviewing applications within a day or two - early applicants get noticed first.</p></td></tr>
+</table>
+</td></tr>
+<tr><td style="padding:22px 8px 8px 8px;font-family:${FONT};">
+<p style="margin:0 0 6px 0;font-size:12px;line-height:1.6;color:#8A909C;">You're getting campaign alerts because your creator profile matches this campaign's niche. <a href="${d.unsubscribeUrl}" style="color:#8A909C;text-decoration:underline;">Turn off campaign alerts</a></p>
 <p style="margin:0;font-size:12px;line-height:1.6;color:#A6ABB6;">Collabr &middot; Creator collaborations with payment protection.</p>
 </td></tr>
 </table>

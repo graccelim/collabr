@@ -471,23 +471,25 @@ idx_creator_boost          ON creator_profiles(boost_active_until)
 
 ## 4. User Flows
 
-### Flow 1: Creator signup
+### Flow 1: Creator signup (minimal signup + onboarding checklist, 2026-07)
 
 1. Creator visits `/signup?role=creator`
-2. Selects "I'm a creator", enters name/email/password
-3. `POST /api/auth/signup` - creates `auth.users` row, then (via admin client) inserts `users` and `creator_profiles`
-4. Welcome email sent via Resend: "Set up your profile to get your first collab"
-5. Redirected to `/dashboard`
-6. Creator fills in `/profile`: bio, niches, platforms, base rate
+2. Selects "I'm a creator", enters ONLY name/email/password + terms
+3. `POST /api/auth/signup` - creates `auth.users` row, then (via admin client) inserts `users` and a BARE `creator_profiles` row (`onboarding_completed_at` stays NULL)
+4. Page flips to an in-place "Check your inbox" state (resend button included; no bounce to /login)
+5. Creator clicks the Supabase verification link → `/auth/confirm` verifies the token, SETS THE SESSION COOKIE, sends the welcome email, and redirects into the app (`?welcome=1`)
+6. Dashboard shows the onboarding checklist with Step 1 (Account created) pre-checked: socials → niches → photo/bio → ready. Steps are DERIVED from profile data (`lib/onboarding-steps.ts`), so progress persists and resumes anywhere
+7. Adding a social via `/onboarding` (`POST /api/onboarding/creator`) sets `onboarding_completed_at` → unlocks applying. Niches/photo/bio remain optional polish
 
 ### Flow 2: Brand signup
 
-1. Brand visits `/signup?role=brand`
-2. Selects "I'm a brand", enters company name/email/password
-3. `POST /api/auth/signup` - creates `auth.users`, `users`, and `brand_profiles`
-4. Welcome email sent via Resend: "Post your first campaign in 5 minutes"
-5. Redirected to `/dashboard`
-6. Brand completes `/settings`: company details, logo upload
+Same shape: minimal signup → verify → checklist. The brand gate step is company details (`/onboarding` → `POST /api/onboarding/brand` sets `onboarding_completed_at`, unlocking campaign creation); then logo/description, then "post your first campaign" as the activation step.
+
+> **Supabase config (manual, one-time)**: the *Confirm signup* email template must point its redirect at the app, not the login page:
+> `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup&next=/dashboard`
+> `/auth/confirm` already logs the user in via cookie; middleware additionally bounces any signed-in visitor from `/login` or `/signup` to `/dashboard`, so an outdated template still lands correctly.
+
+Existing accounts (created under the long-form signup) all have `onboarding_completed_at` set, so they never see the checklist.
 
 ### Flow 3: Forgot password
 
@@ -887,9 +889,9 @@ All routes return JSON. Auth check: `supabase.auth.getUser()`. Errors return `{ 
 
 #### `POST /api/auth/signup`
 
-Body: `{ email, password, name, role: 'brand'|'creator' }`
+Body: `{ email, password, name, role: 'brand'|'creator' }` — nothing else; socials/niches/company details are collected post-verification by the onboarding checklist.
 
-Creates `auth.users`, `users`, and role-specific profile via admin client. Sends welcome email. Returns `{ success: true }`.
+Creates `auth.users`, `users`, and a bare role-specific profile via admin client (`onboarding_completed_at` NULL). Rate-limited 5/hour/IP; enumeration-safe duplicate handling (409). Welcome email is sent from `/auth/confirm` when the link is clicked (or immediately if email confirmation is disabled). Returns `{ success: true, requiresEmailVerification }`.
 
 #### `POST /api/auth/signout`
 

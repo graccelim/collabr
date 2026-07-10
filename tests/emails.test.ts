@@ -27,9 +27,13 @@ vi.mock('@/lib/supabase/server', () => ({
 
 // No network: stub Resend so even a stray API key can't send.
 const resendSend = vi.fn(async () => ({ error: null }))
-vi.mock('resend', () => ({ Resend: class { emails = { send: resendSend } } }))
+const resendBatchSend = vi.fn(async (_payload?: unknown[]) => ({ error: null }))
+vi.mock('resend', () => ({ Resend: class { emails = { send: resendSend }; batch = { send: resendBatchSend } } }))
 
-import { productEmails, renderEmail, link, sendProductEmail } from '@/lib/email'
+import {
+  productEmails, renderEmail, link, sendProductEmail, sendEmailBatch,
+  renderCampaignAlertEmail, unsubscribeToken, verifyUnsubscribeToken, unsubscribeUrl,
+} from '@/lib/email'
 
 const APP = 'https://app.collabr.test'
 
@@ -38,8 +42,10 @@ beforeEach(() => {
   state.userEmail = 'recipient@example.com'
   state.insertCalls = 0
   resendSend.mockClear()
+  resendBatchSend.mockClear()
   // Present so the send path runs (Resend is mocked → no network).
   process.env.RESEND_API_KEY = 're_test_dummy'
+  delete process.env.CAMPAIGN_ALERT_HERO_URL
 })
 
 describe('link()', () => {
@@ -219,5 +225,122 @@ describe('sendProductEmail dedupe behaviour', () => {
     expect(result).toBe('skipped')
     // never reached the dedupe insert
     expect(state.insertCalls).toBe(0)
+  })
+})
+
+describe('renderCampaignAlertEmail', () => {
+  const base = {
+    campaignTitle: 'Mighty Nugs dog food collab',
+    brandName: 'Mighty Nugs',
+    brief: 'Freeze-dried pet food launching in Singapore.',
+    compValue: 'S$150.00 to S$300.00 per creator',
+    deliverables: ['1 x IG Reel', '2 x IG Stories'],
+    platforms: [{ slug: 'instagram', label: 'Instagram' }],
+    nicheLabels: ['Lifestyle'],
+    minFollowers: 2000,
+    campaignUrl: `${APP}/jobs/mighty-nugs-collab`,
+    unsubscribeUrl: `${APP}/api/email/unsubscribe?uid=u1&token=t`,
+  }
+
+  it('renders every campaign section, the CTA, and the unsubscribe link', () => {
+    const html = renderCampaignAlertEmail(base)
+    expect(html).toContain('Mighty Nugs dog food collab')
+    expect(html).toContain('by Mighty Nugs')
+    expect(html).toContain('S$150.00 to S$300.00 per creator')
+    expect(html).toContain('1 x IG Reel, 2 x IG Stories')
+    expect(html).toContain('Instagram')
+    expect(html).toContain('Lifestyle creators')
+    expect(html).toContain('2,000+ followers')
+    expect(html).toContain(`href="${base.campaignUrl}"`)
+    expect(html).toContain(base.unsubscribeUrl)
+    expect(html).toContain('Turn off campaign alerts')
+  })
+
+  it('defaults to the bundled hero banner served from the app', () => {
+    const html = renderCampaignAlertEmail(base)
+    expect(html).toContain(`<img src="${APP}/email/campaign-alert-hero.jpg"`)
+  })
+
+  it('uses the custom hero image when CAMPAIGN_ALERT_HERO_URL is set', () => {
+    process.env.CAMPAIGN_ALERT_HERO_URL = 'https://cdn.example.com/hero.png'
+    const html = renderCampaignAlertEmail(base)
+    expect(html).toContain('<img src="https://cdn.example.com/hero.png"')
+  })
+
+  it('renders a hosted icon badge next to each platform label', () => {
+    const html = renderCampaignAlertEmail({
+      ...base,
+      platforms: [{ slug: 'instagram', label: 'Instagram' }, { slug: 'tiktok', label: 'TikTok' }],
+    })
+    expect(html).toContain(`<img src="${APP}/email/icons/instagram.png" width="18" height="18"`)
+    expect(html).toContain(`<img src="${APP}/email/icons/tiktok.png" width="18" height="18"`)
+    expect(html).toContain('TikTok')
+  })
+
+  it('escapes HTML in user-provided fields and truncates long briefs', () => {
+    const html = renderCampaignAlertEmail({
+      ...base,
+      campaignTitle: '<script>alert(1)</script>',
+      brief: 'x'.repeat(400),
+    })
+    expect(html).not.toContain('<script>')
+    expect(html).toContain('&lt;script&gt;')
+    expect(html).toContain(`${'x'.repeat(300)}…`)
+    expect(html).not.toContain('x'.repeat(301))
+  })
+
+  it('omits empty sections (barter campaign with no platforms or follower floor)', () => {
+    const html = renderCampaignAlertEmail({
+      ...base, compValue: 'Barter (a product or service exchange)',
+      barterDetail: 'Free 400g bag', platforms: [], minFollowers: 0,
+    })
+    expect(html).toContain('Free 400g bag')
+    expect(html).not.toContain('/email/icons/')
+    expect(html).not.toContain('+ followers')
+  })
+})
+
+describe('unsubscribe tokens', () => {
+  it('round-trips for the same user and rejects tampering', () => {
+    const t = unsubscribeToken('user-1')
+    expect(verifyUnsubscribeToken('user-1', t)).toBe(true)
+    expect(verifyUnsubscribeToken('user-2', t)).toBe(false)
+    expect(verifyUnsubscribeToken('user-1', 'deadbeef')).toBe(false)
+    expect(verifyUnsubscribeToken('user-1', '')).toBe(false)
+  })
+
+  it('unsubscribeUrl embeds the uid and its matching token', () => {
+    const url = unsubscribeUrl('user-1')
+    expect(url).toBe(`${APP}/api/email/unsubscribe?uid=user-1&token=${unsubscribeToken('user-1')}`)
+  })
+})
+
+describe('sendEmailBatch', () => {
+  it('sends one batch call with from + headers applied to every item', async () => {
+    await sendEmailBatch([
+      { to: 'a@x.com', subject: 's1', html: '<p>1</p>', headers: { 'List-Unsubscribe': '<u>' } },
+      { to: 'b@x.com', subject: 's2', html: '<p>2</p>' },
+    ])
+    expect(resendBatchSend).toHaveBeenCalledTimes(1)
+    const payload = resendBatchSend.mock.calls[0][0] as any[]
+    expect(payload).toHaveLength(2)
+    expect(payload[0].from).toMatch(/^collabr\. </)
+    expect(payload[0].headers['List-Unsubscribe']).toBe('<u>')
+    expect(payload[1].headers).toBeUndefined()
+  })
+
+  it('chunks at 100 emails per Resend batch call', async () => {
+    await sendEmailBatch(Array.from({ length: 150 }, (_, i) =>
+      ({ to: `c${i}@x.com`, subject: 's', html: '<p>.</p>' })))
+    expect(resendBatchSend).toHaveBeenCalledTimes(2)
+    expect((resendBatchSend.mock.calls[0][0] as any[])).toHaveLength(100)
+    expect((resendBatchSend.mock.calls[1][0] as any[])).toHaveLength(50)
+  })
+
+  it('is a no-op with no items or no API key', async () => {
+    await sendEmailBatch([])
+    delete process.env.RESEND_API_KEY
+    await sendEmailBatch([{ to: 'a@x.com', subject: 's', html: '<p>.</p>' }])
+    expect(resendBatchSend).not.toHaveBeenCalled()
   })
 })

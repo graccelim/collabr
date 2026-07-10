@@ -12,6 +12,8 @@ import { toCreatorSignals, toCampaignForCreator } from '@/lib/discovery-data';
 import { capacityBreakdown } from '@/lib/collab-status';
 import EmptyState from '@/components/EmptyState';
 import ProfileCompletion from '@/components/ProfileCompletion';
+import OnboardingChecklist from '@/components/OnboardingChecklist';
+import { creatorOnboardingSteps, brandOnboardingSteps } from '@/lib/onboarding-steps';
 import CreatorProCTA from '@/components/CreatorProCTA';
 import { isProActive } from '@/lib/entitlements';
 import { flags } from '@/lib/flags';
@@ -340,7 +342,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
   const { data: brand } = await supabase
     .from('brand_profiles')
     .select(
-      'id, user_id, company_name, company_description, industry, website, social_url, logo_url, created_at, rating_avg, rating_count, completed_campaigns'
+      'id, user_id, company_name, company_description, industry, website, social_url, logo_url, onboarding_completed_at, created_at, rating_avg, rating_count, completed_campaigns'
     )
     .eq('user_id', userId)
     .single();
@@ -434,10 +436,28 @@ async function BrandDashboard({ userId }: { userId: string }) {
     canInvite: isPlus,
   };
 
+  // Until the onboarding gate is set, the step checklist IS the dashboard's
+  // guidance surface — the polish nudges (BrandActivation, CompletionNudge)
+  // take over once onboarding completes.
+  const onboardingDone = Boolean(brand.onboarding_completed_at);
+
   return (
     <div style={{ maxWidth: 680, margin: '0 auto' }}>
       {isBetaFreePro() && <BrandBetaWelcome />}
-      {!isEmpty && (
+      {!onboardingDone && (
+        <div style={{ marginTop: 8 }}>
+          <OnboardingChecklist
+            summary={brandOnboardingSteps({
+              companyBasicsDone: onboardingDone,
+              hasLogo: Boolean(brand.logo_url),
+              hasDescription: Boolean(brand.company_description?.trim()),
+              campaignCount: campaigns?.length ?? 0,
+            })}
+            greeting="Welcome to Collabr — you're verified"
+          />
+        </div>
+      )}
+      {onboardingDone && !isEmpty && (
         <div style={{ marginTop: 8 }}>
           <BrandActivation {...activation} />
         </div>
@@ -462,12 +482,14 @@ async function BrandDashboard({ userId }: { userId: string }) {
         </p>
       </div>
 
-      <CompletionNudge
-        href="/settings"
-        label="Finish your brand profile"
-        done={completion.items.filter((i) => i.done).length}
-        total={completion.items.length}
-      />
+      {onboardingDone && (
+        <CompletionNudge
+          href="/settings"
+          label="Finish your brand profile"
+          done={completion.items.filter((i) => i.done).length}
+          total={completion.items.length}
+        />
+      )}
 
       <div style={{ marginBottom: 14 }}>
         <MoneyPanel
@@ -664,7 +686,7 @@ async function CreatorDashboard({
   const { data: creator } = await supabase
     .from('creator_profiles')
     .select(
-      'id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, base_rate, average_rate_sgd, availability_status, boost_active_until, rating_avg, rating_count, collabs_completed'
+      'id, user_id, bio, niche, niches, niche_tags, location, portfolio_links, base_rate, average_rate_sgd, availability_status, boost_active_until, onboarding_completed_at, rating_avg, rating_count, collabs_completed'
     )
     .eq('user_id', userId)
     .single();
@@ -872,32 +894,48 @@ async function CreatorDashboard({
         </p>
       </div>
 
-      {/* Single onboarding-progress surface (the "Welcome to Collabr" checklist),
-          below the greeting. The old "Finish your profile, N of M" nudge was a
-          duplicate with a different count, so it's removed. */}
-      {/* DESKTOP: unchanged — Earnings lives in the sidebar, so the payout step
-          isn't needed here. */}
-      <div className="hidden md:block" style={{ marginBottom: isEmpty ? 28 : 18 }}>
-        <ProfileCompletion
-          hasPhoto={Boolean(avatarUrl)}
-          hasBio={Boolean(creator.bio)}
-          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
-          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
-          hasExtraSocials={(socials?.length ?? 0) > 1}
-        />
-      </div>
-      {/* MOBILE: adds a "Connect your payout account" step (Earnings has no
-          bottom-tab entry on phones, so the checklist is the way in). */}
-      <div className="md:hidden" style={{ marginBottom: isEmpty ? 28 : 18 }}>
-        <ProfileCompletion
-          hasPhoto={Boolean(avatarUrl)}
-          hasBio={Boolean(creator.bio)}
-          hasNiche={(creator.niche_tags?.length ?? 0) > 0}
-          hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
-          hasExtraSocials={(socials?.length ?? 0) > 1}
-          needsPayout={needsPayoutSetup}
-        />
-      </div>
+      {/* Single onboarding-progress surface below the greeting. Before the
+          onboarding gate is set: the step checklist (minimal-signup flow).
+          After: the "Welcome to Collabr" completion card for optional polish. */}
+      {!creator.onboarding_completed_at ? (
+        <div style={{ marginBottom: isEmpty ? 28 : 18 }}>
+          <OnboardingChecklist
+            summary={creatorOnboardingSteps({
+              socialsCount: socials?.length ?? 0,
+              nicheCount: creator.niche_tags?.length ?? 0,
+              hasPhoto: Boolean(avatarUrl),
+              hasBio: Boolean(creator.bio),
+            })}
+            greeting="Welcome to Collabr — you're verified"
+          />
+        </div>
+      ) : (
+        <>
+          {/* DESKTOP: Earnings lives in the sidebar, so the payout step isn't
+              needed here. */}
+          <div className="hidden md:block" style={{ marginBottom: isEmpty ? 28 : 18 }}>
+            <ProfileCompletion
+              hasPhoto={Boolean(avatarUrl)}
+              hasBio={Boolean(creator.bio)}
+              hasNiche={(creator.niche_tags?.length ?? 0) > 0}
+              hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
+              hasExtraSocials={(socials?.length ?? 0) > 1}
+            />
+          </div>
+          {/* MOBILE: adds a "Connect your payout account" step (Earnings has no
+              bottom-tab entry on phones, so the checklist is the way in). */}
+          <div className="md:hidden" style={{ marginBottom: isEmpty ? 28 : 18 }}>
+            <ProfileCompletion
+              hasPhoto={Boolean(avatarUrl)}
+              hasBio={Boolean(creator.bio)}
+              hasNiche={(creator.niche_tags?.length ?? 0) > 0}
+              hasRates={Boolean(creator.base_rate || creator.average_rate_sgd)}
+              hasExtraSocials={(socials?.length ?? 0) > 1}
+              needsPayout={needsPayoutSetup}
+            />
+          </div>
+        </>
+      )}
 
       {/* earnings - the one dark anchor */}
       <div className="money-panel" style={{ marginBottom: 14 }}>

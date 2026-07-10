@@ -44,6 +44,9 @@ export async function GET(req: NextRequest) {
     // by the recovery token (so it never resets a pre-existing, different account).
     const dest = new URL(next, origin)
     if (type === 'recovery') dest.searchParams.set('verified', '1')
+    // Fresh-from-verification marker: the dashboard's onboarding checklist can
+    // greet the arrival ("You're verified"). Harmless anywhere else.
+    if (type === 'signup') dest.searchParams.set('welcome', '1')
     const res = NextResponse.redirect(dest)
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
