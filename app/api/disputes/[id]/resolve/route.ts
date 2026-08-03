@@ -1,16 +1,13 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAdminApi } from '@/lib/auth'
 import { sendNotification } from '@/lib/notifications'
 import { sendProductEmail, productEmails } from '@/lib/email'
 import { cancelOrRefundPayment, captureTransferAndComplete, completeBarterCollab, settleSplitDispute } from '@/lib/payments'
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') return NextResponse.json({ error: 'Admin only' }, { status: 403 })
+  const { error: authError } = await requireAdminApi()
+  if (authError) return authError
 
   const admin = createAdminClient()
   const { data: dispute } = await admin.from('disputes').select('*, collabs(*)').eq('id', params.id).single()

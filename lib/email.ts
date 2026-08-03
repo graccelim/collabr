@@ -642,6 +642,13 @@ export async function sendPayoutAdminEmail(subject: string, rows: Record<string,
   await sendInboxEmail(subject, rows, threadKey ? { kind: 'payout', key: threadKey } : undefined)
 }
 
+// Concierge beta: a brand "Request Collaboration"'d a creator who hasn't
+// claimed their profile yet — surface it to the support inbox so a human
+// (you) can go DM them. Never auto-resolves; the claim flow closes the loop.
+export async function sendOpsAdminEmail(subject: string, rows: Record<string, string>, threadKey?: string) {
+  await sendInboxEmail(subject, rows, threadKey ? { kind: 'ops', key: threadKey } : undefined)
+}
+
 // ── Legacy onboarding welcomes (kept; routed through the premium layout) ─────
 export const emails = {
   welcomeCreator: (name: string, email: string) =>

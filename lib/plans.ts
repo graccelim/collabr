@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
+import { flags } from '@/lib/flags'
 
 // Phase 10: single source of truth for plan resolution and feature gating.
 //
@@ -49,9 +50,13 @@ export function isBetaFreePro(): boolean {
  * Plus is GATED during beta by default (Brand Pro is free in beta, Brand Plus is
  * not). Set BETA_FREE_PLUS=true to also make Plus (Creator Discovery + analytics)
  * complimentary during beta — off by default per product direction.
+ *
+ * flags.launchBeta (concierge launch mode) also unlocks Plus, so a brand can
+ * browse Creator Discovery and send invites without you needing to separately
+ * manage BETA_FREE_PLUS - one switch instead of two.
  */
 export function isBetaFreePlus(): boolean {
-  return process.env.BETA_FREE_PLUS === 'true'
+  return process.env.BETA_FREE_PLUS === 'true' || flags.launchBeta
 }
 
 /** Pro-tier features (barter). */

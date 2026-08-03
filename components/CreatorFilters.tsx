@@ -33,9 +33,9 @@ const RATE_CAPS = [
   ['2500', 'Up to S$2,500'],
 ] as const
 
-const FILTER_KEYS = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'location', 'saved', 'certified']
+const FILTER_KEYS = ['platform', 'niche', 'followers', 'availability', 'maxRate', 'location', 'saved', 'certified', 'q']
 
-export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
+export default function CreatorFilters({ showSaved, basePath = '/creators' }: { showSaved: boolean; basePath?: string }) {
   const router = useRouter()
   const params = useSearchParams()
   const [open, setOpen] = useState(false)
@@ -54,7 +54,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     if (value) next.set(key, value)
     else next.delete(key)
     next.delete('page') // any filter change resets pagination
-    startTransition(() => router.push(`/creators?${next.toString()}`))
+    startTransition(() => router.push(`${basePath}?${next.toString()}`))
   }
 
   const hasFilters = FILTER_KEYS.some(k => params.get(k))
@@ -73,6 +73,17 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     >
       {options.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
     </select>
+  )
+
+  const searchInput = (block = false) => (
+    <input
+      className="input"
+      style={block ? { width: '100%', fontSize: 14, padding: '11px 12px' } : { width: 160, fontSize: 13, padding: '6px 10px' }}
+      placeholder="Search creators…"
+      defaultValue={params.get('q') || ''}
+      onKeyDown={e => { if (e.key === 'Enter') setParam('q', (e.target as HTMLInputElement).value.trim()) }}
+      onBlur={e => { if ((e.target.value.trim() || '') !== (params.get('q') || '')) setParam('q', e.target.value.trim()) }}
+    />
   )
 
   const locationInput = (block = false) => (
@@ -143,6 +154,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
     <>
       {/* Desktop: the full inline filter bar (unchanged). */}
       <div className="cf-inline" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', ...pendingStyle }}>
+        {searchInput()}
         {select('platform', platformOpts)}
         {select('niche', nicheOpts)}
         {select('followers', FOLLOWER_TIERS)}
@@ -153,7 +165,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
         {showSaved && savedToggle()}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           {hasFilters && (
-            <button type="button" className="btn-ghost btn-sm" onClick={() => router.push('/creators')}>Clear</button>
+            <button type="button" className="btn-ghost btn-sm" onClick={() => router.push(basePath)}>Clear</button>
           )}
           {select('sort', SORTS)}
         </div>
@@ -190,6 +202,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <Field label="Search">{searchInput(true)}</Field>
               <Field label="Platform">{select('platform', platformOpts, true)}</Field>
               <Field label="Niche">{select('niche', nicheOpts, true)}</Field>
               <Field label="Followers">{select('followers', FOLLOWER_TIERS, true)}</Field>
@@ -201,7 +214,7 @@ export default function CreatorFilters({ showSaved }: { showSaved: boolean }) {
             <div style={{ display: 'flex', gap: 10, marginTop: 20 }}>
               {hasFilters && (
                 <button type="button" className="btn-secondary" style={{ flex: 1, justifyContent: 'center' }}
-                  onClick={() => { router.push('/creators'); setOpen(false) }}>
+                  onClick={() => { router.push(basePath); setOpen(false) }}>
                   Clear all
                 </button>
               )}

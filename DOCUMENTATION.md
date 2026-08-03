@@ -531,12 +531,12 @@ Existing accounts (created under the long-form signup) all have `onboarding_comp
 ### Flow 7: Brand pays escrow
 
 1. Brand opens `/collabs/[id]` - status is `briefed`
-2. If creator has no `stripe_connect_id`: warning shown, payment button hidden
-3. If creator has Connect: `StripePaymentButton` mounts (Apple Pay / Google Pay)
-4. On click → `POST /api/payments/create-intent` creates PaymentIntent with `capture_method: 'manual'`
-5. Brand completes Apple Pay / Google Pay in browser
-6. Funds held in Stripe escrow (`requires_capture` state)
-7. Page refreshes to "Escrow active" state
+2. `StripePaymentButton` renders regardless of the creator's Connect status - funding never blocks on it (payout release is what waits on Connect, not funding)
+3. On click → `POST /api/payments/create-intent` creates a Stripe Checkout Session (`mode: 'payment'`, `payment_intent_data.capture_method: 'manual'`) and returns its `url`
+4. Browser redirects to Stripe's own hosted checkout page (`checkout.stripe.com`) - card, Apple Pay, Google Pay all available there automatically
+5. Stripe redirects back to `success_url` (`/collabs/[id]?funded=1`)
+6. `StripePaymentButton` detects `?funded=1`, re-POSTs `create-intent` to sync status immediately (webhook reconciles independently)
+7. Funds held in Stripe escrow (`requires_capture` state); page shows "Escrow active"
 
 ### Flow 8: Draft submission workflow
 
@@ -872,12 +872,10 @@ Client component. Embedded inside `CollabActions.tsx`.
 Props: `collabId`, `amountCents`, `label`, `onSuccess`
 
 Behaviour:
-- On mount: loads Stripe.js, creates PaymentIntent via `/api/payments/create-intent`, builds `paymentRequest` object
-- Calls `canMakePayment()` - if false, shows "Apple Pay and Google Pay not available" message
-- If available: mounts Stripe Payment Request Button element
-- On payment: `stripe.confirmCardPayment()` with `capture_method: manual`
-- Shows pulsing skeleton while initialising
-- `paying` state: button becomes non-interactive during payment processing
+- On click: `POST /api/payments/create-intent`, then `window.location.href` to the returned Stripe Checkout URL - no Stripe.js loaded client-side, no card form on collabr's own page. Redirecting to Stripe's own hosted page (rather than an embedded card form) matters most for brands who arrived cold via outreach and don't have existing trust in collabr yet.
+- Auto-starts when arriving via `?fund=1` (set by the "Accept & fund" button elsewhere)
+- Detects the return trip via `?funded=1`, re-syncs status, and calls `onSuccess()` without waiting on the webhook
+- `starting` state: button disabled while the Checkout Session is being created
 
 ---
 
@@ -985,9 +983,9 @@ Response: `{ success: true }`.
 
 Brand only. Body: `{ collab_id }`.
 
-Creates or retrieves Stripe PaymentIntent with `capture_method: 'manual'`, SGD, for `agreed_rate` cents. Creates Stripe customer for brand if none exists. Saves `stripe_payment_intent_id` on collab.
+Creates a Stripe Checkout Session (`mode: 'payment'`, `payment_intent_data.capture_method: 'manual'`, SGD, `agreed_rate` cents) and returns its hosted URL - the brand pays on Stripe's own page, not an embedded form. Creates a Stripe customer for the brand if none exists. Saves the resulting `stripe_payment_intent_id` on the collab immediately (available synchronously off the session). If a prior attempt already has a non-`unfunded`/`authorizing` status, short-circuits and returns that status instead of creating a new session (never double-charges).
 
-Response: `{ client_secret }`.
+Response: `{ url }`, or `{ payment_status }` if already funded/captured/etc.
 
 #### `POST /api/payments/boost-creator`
 
@@ -1082,7 +1080,7 @@ Admin only. Returns platform-level stats.
 ## 9. Email System
 
 **Library**: Resend (`lib/email.ts`)
-**From address**: `RESEND_FROM_EMAIL` env var (default `onboarding@resend.dev` during beta; switch to `hello@collabr.sg` once domain is verified in Resend)
+**From address**: `RESEND_FROM_EMAIL` env var (default `onboarding@resend.dev` during beta; switch to `hello@joincollabr.com` once domain is verified in Resend)
 **Fallback**: if `RESEND_API_KEY` is not set, emails are skipped with a console log
 
 ### Email templates
@@ -1199,7 +1197,7 @@ Reads all brand reviews (reviewer_type = 'brand'). Groups by creator. Computes a
 
 1. **Stripe payment for Boost** - currently activates instantly without charging. Phase 6 item: create Stripe Checkout session for S$4 (per_app) or S$20 (monthly). See `app/api/payments/boost-creator/route.ts` - `// TODO Phase 6` comment.
 
-2. **Pro plan billing** - currently manual (email `hello@collabr.sg`). Need Stripe Subscription for S$99/mo. Billing page has static upgrade button.
+2. **Pro plan billing** - currently manual (email `hello@joincollabr.com`). Need Stripe Subscription for S$99/mo. Billing page has static upgrade button.
 
 3. **Connect transfer to creator** - currently Stripe captures to platform account. Need to implement transfer to creator's `stripe_connect_id` on confirm-live. Funds sit in platform balance.
 
@@ -1349,12 +1347,12 @@ All times are UTC. Singapore time is UTC+8, so e.g. `0 9 * * *` = 5:00 PM SGT.
 - [ ] Switch publishable + secret keys to live mode
 - [ ] Update webhook endpoint to production URL in Stripe dashboard
 - [ ] Verify Stripe Connect is enabled for SG Express accounts
-- [ ] Enable Apple Pay domain verification in Stripe dashboard for `collabr.vercel.app`
+- [ ] Enable Apple Pay domain verification in Stripe dashboard for `joincollabr.com`
 
 ### Resend production checklist
 
-- [ ] Verify `collabr.sg` domain in Resend dashboard
-- [ ] Update `RESEND_FROM_EMAIL` to `hello@collabr.sg`
+- [ ] Verify `joincollabr.com` domain in Resend dashboard
+- [ ] Update `RESEND_FROM_EMAIL` to `hello@joincollabr.com`
 - [ ] Remove `onboarding@resend.dev` fallback comment
 
 ### Supabase production

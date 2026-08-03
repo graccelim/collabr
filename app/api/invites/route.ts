@@ -1,10 +1,9 @@
 import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { sendNotification } from '@/lib/notifications'
-import { sendProductEmail, productEmails } from '@/lib/email'
 import { checkRateLimitDurable } from '@/lib/rate-limit'
 import { resolvePlan, featureGateResponse, PLAN_COLUMNS } from '@/lib/plans'
+import { createInvite, createPendingCollabRequest } from '@/lib/invites'
 
 const inviteSchema = z.object({
   creator_id: z.string().uuid(),
@@ -63,74 +62,35 @@ export async function POST(req: NextRequest) {
 
   const admin = createAdminClient()
 
-  // Campaign must belong to this brand, be active, and pay creators -
-  // acceptance creates a paid collab through the existing workflow.
-  const { data: campaign } = await admin.from('campaigns')
-    .select('id, title, status, comp_type, brand_id')
-    .eq('id', parsed.data.campaign_id).eq('brand_id', brand.id).maybeSingle()
-  if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
-  if (campaign.status !== 'active') {
-    return NextResponse.json({ error: 'Only active campaigns can send invites' }, { status: 400 })
-  }
-  if (!['paid', 'both', 'barter'].includes(campaign.comp_type)) {
-    return NextResponse.json({ error: 'This campaign type cannot send invites' }, { status: 400 })
-  }
-  // Paid/both invites need a positive rate; barter invites may be rate-0.
-  if (campaign.comp_type !== 'barter' && parsed.data.proposed_rate <= 0) {
-    return NextResponse.json({ error: 'Enter the rate you’re offering for this campaign' }, { status: 400 })
-  }
-
   const { data: creator } = await admin.from('creator_profiles')
     .select('id, user_id').eq('id', parsed.data.creator_id).maybeSingle()
   if (!creator) return NextResponse.json({ error: 'Creator not found' }, { status: 404 })
 
-  // Already collaborating on this campaign? (Ignore cancelled collabs — an undone
-  // selection / expired funding must not permanently block a re-invite. Also use
-  // limit(1) so a cancelled+live pair never trips maybeSingle's multi-row error.)
-  const { data: existingCollab } = await admin.from('collabs')
-    .select('id').eq('campaign_id', campaign.id).eq('creator_id', creator.id)
-    .neq('status', 'cancelled').limit(1).maybeSingle()
-  if (existingCollab) {
-    return NextResponse.json({ error: 'You already have a collab with this creator on this campaign' }, { status: 409 })
-  }
-
-  const { data: invite, error } = await admin.from('campaign_invites').insert({
-    campaign_id: campaign.id,
-    brand_id: brand.id,
-    creator_id: creator.id,
-    proposed_rate: parsed.data.proposed_rate,
-    message: parsed.data.message || null,
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  }).select().single()
-
-  if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ error: 'This creator already has a pending invite for this campaign' }, { status: 409 })
-    }
-    // 23514 = check-constraint violation. The most likely cause is the legacy
-    // proposed_rate > 0 constraint on a barter (rate-0) invite — point the brand
-    // at the fix instead of a generic failure.
-    if (error.code === '23514' && parsed.data.proposed_rate === 0) {
-      return NextResponse.json({
-        error: 'Barter invites aren’t enabled on this database yet (migration 032). Apply it, or invite with a cash offer for now.',
-      }, { status: 409 })
-    }
-    console.error('[INVITE CREATE]', error)
-    return NextResponse.json({ error: 'Could not send invite. Please try again.' }, { status: 500 })
-  }
-
-  if (creator.user_id) {
-    await sendNotification({
-      userId: creator.user_id,
-      type: 'invite_received',
-      title: `${brand.company_name || 'A brand'} invited you to "${campaign.title}"`,
-      body: 'Review the offer and accept to start the collab.',
-      payload: { invite_id: invite.id },
-      dedupeKey: `invite:${invite.id}:received`,
-      email: false,
+  // Claimed: send a real invite now, exactly like today. Not yet claimed:
+  // queue the ask - there's no account to notify or invite yet - and it
+  // materializes into a real invite automatically the moment they claim.
+  if (!creator.user_id) {
+    const pending = await createPendingCollabRequest(admin, {
+      campaignId: parsed.data.campaign_id,
+      brandId: brand.id,
+      brandName: brand.company_name || 'A brand',
+      creatorId: creator.id,
+      proposedRate: parsed.data.proposed_rate,
+      message: parsed.data.message,
     })
-    await sendProductEmail({ userId: creator.user_id, ...productEmails.inviteReceived({ brandName: brand.company_name || 'A brand', campaignTitle: campaign.title, inviteId: invite.id, isBarter: parsed.data.proposed_rate <= 0 }) })
+    if (!pending.ok) return NextResponse.json({ error: pending.error }, { status: pending.status })
+    return NextResponse.json({ pending: true }, { status: 201 })
   }
 
-  return NextResponse.json(invite, { status: 201 })
+  const result = await createInvite(admin, {
+    campaignId: parsed.data.campaign_id,
+    brandId: brand.id,
+    brandName: brand.company_name || 'A brand',
+    creatorId: creator.id,
+    proposedRate: parsed.data.proposed_rate,
+    message: parsed.data.message,
+  })
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
+
+  return NextResponse.json(result.invite, { status: 201 })
 }

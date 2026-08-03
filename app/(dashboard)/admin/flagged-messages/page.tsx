@@ -1,6 +1,5 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import Link from 'next/link'
 import { relativeTime } from '@/lib/utils'
 import { ShieldAlert } from 'lucide-react'
@@ -8,11 +7,7 @@ import { ShieldAlert } from 'lucide-react'
 // Phase 11 - moderation queue: messages the contact-info detector flagged as a
 // possible attempt to take a deal off-platform. Admins review and act manually.
 export default async function FlaggedMessagesPage() {
-  const user = await requireAuth()
-  const supabase = createClient()
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
-
+  await requireAdmin()
   const admin = createAdminClient()
   const { data: flagged } = await admin.from('collab_messages')
     .select('id, collab_id, body, flag_reasons, created_at, users(display_name, email)')

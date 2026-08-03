@@ -1,4 +1,5 @@
 import Stripe from 'stripe'
+import { flags } from '@/lib/flags'
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-02-24.acacia',
@@ -66,9 +67,11 @@ export function boostPreview(): boolean {
   return process.env.BOOST_UI_PREVIEW === 'true'
 }
 
-/** Should the Boost UI surfaces (hint + /boost page) render? Real config OR preview. */
+/** Should the Boost UI surfaces (hint + /boost page) render? Real config OR
+ *  preview - AND NOT concierge launch beta, which force-hides it regardless
+ *  of Boost's own env vars (one switch to hide every upgrade prompt). */
 export function boostUiEnabled(): boolean {
-  return boostEnabled() || boostPreview()
+  return (boostEnabled() || boostPreview()) && !flags.launchBeta
 }
 
 // ── Creator Pro (subscription) configuration ────────────────────────────────

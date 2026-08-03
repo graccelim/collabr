@@ -60,9 +60,15 @@ export async function checkRateLimitDurable(
   }
 }
 
-/** Best-effort client IP for keying anonymous rate limits. */
-export function clientIp(req: NextRequest): string {
-  const fwd = req.headers.get('x-forwarded-for')
+/** Best-effort client IP for keying anonymous rate limits - takes any
+ *  Headers-like object so it works both from an API route's NextRequest and
+ *  from a Server Component's next/headers() (no request object there). */
+export function clientIpFromHeaders(headers: { get(name: string): string | null }): string {
+  const fwd = headers.get('x-forwarded-for')
   if (fwd) return fwd.split(',')[0].trim()
-  return req.headers.get('x-real-ip') || 'unknown'
+  return headers.get('x-real-ip') || 'unknown'
+}
+
+export function clientIp(req: NextRequest): string {
+  return clientIpFromHeaders(req.headers)
 }

@@ -9,6 +9,7 @@ import BrandCreatorActions from '@/components/BrandCreatorActions'
 import CreatorTrust from '@/components/CreatorTrust'
 import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge'
 import ConnectedCreatorBadge from '@/components/ConnectedCreatorBadge'
+import CreatorActiveBadge from '@/components/CreatorActiveBadge'
 import BrandConnectedAnalytics from '@/components/BrandConnectedAnalytics'
 import { socialIcon } from '@/components/SocialIcon'
 import ProfileStats, { type ProfileStat } from '@/components/ProfileStats'
@@ -25,7 +26,8 @@ import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import { reportingRate, sharesResults } from '@/lib/results/report'
 import Link from 'next/link'
-import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck } from 'lucide-react'
+import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck, Send } from 'lucide-react'
+import AuthGateButton from '@/components/AuthGateButton'
 
 // SEO: "[Creator name] on Collabr". Resolves by slug or UUID, same as the page.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -50,9 +52,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   // UUID so both /creators/girl-devours and /creators/<uuid> work.
   const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, is_verified, certified, connected, connected_platforms, insights_last_synced_at, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, users(display_name, avatar_url)')
+    .select('id, slug, user_id, bio, niche, niches, niche_tags, location, portfolio_links, media_kit_url, average_rate_sgd, availability_status, platforms, base_rate, onboarding_completed_at, certified, connected, connected_platforms, insights_last_synced_at, boost_active_until, rating_avg, rating_count, collabs_completed, created_at, archived_at, users(display_name, avatar_url)')
     .eq(byCol, params.slug).single()
   if (!creator) return <p className="text-sm text-red-500">Creator not found.</p>
+  // Archived = hidden from public view, same as discovery/search - but never
+  // from the creator's own eyes (archiving is a visibility control, not a
+  // suspension, and they can still use their own dashboard).
+  if (creator.archived_at && creator.user_id !== user?.id) {
+    return <p className="text-sm text-red-500">Creator not found.</p>
+  }
   const creatorId = creator.id
   // Backfill a stable slug on first view if missing; the canonical URL uses it.
   const slug = creator.slug
@@ -115,7 +123,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
       .select(`id, ${PLAN_COLUMNS}`).eq('user_id', user.id).single()
     viewerIsPro = resolvePlan(brand).isPlus // inviting is a Brand Plus feature
     if (brand) {
-      const [{ data: saved }, { data: campaigns }, { data: pendingInvites }] = await Promise.all([
+      const [{ data: saved }, { data: campaigns }, { data: pendingInvites }, { data: pendingRequests }] = await Promise.all([
         supabase.from('saved_creators')
           .select('id').eq('brand_id', brand.id).eq('creator_id', creatorId).maybeSingle(),
         supabase.from('campaigns')
@@ -124,10 +132,16 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
         supabase.from('campaign_invites')
           .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', creatorId)
           .eq('status', 'pending'),
+        // Unclaimed-creator asks queued via pending_collab_requests count too -
+        // a brand shouldn't be able to request the same campaign twice just
+        // because no campaign_invites row exists for it yet.
+        admin.from('pending_collab_requests')
+          .select('campaign_id').eq('brand_id', brand.id).eq('creator_id', creatorId)
+          .is('materialized_at', null),
       ])
       isSaved = Boolean(saved)
       inviteCampaigns = campaigns || []
-      pendingInviteCampaignIds = (pendingInvites || [])
+      pendingInviteCampaignIds = [...(pendingInvites || []), ...(pendingRequests || [])]
         .map(i => i.campaign_id).filter((id): id is string => Boolean(id))
     }
   }
@@ -205,6 +219,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
                     <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                    <CreatorActiveBadge claimed={!!creator.user_id} onboardingCompleted={!!creator.onboarding_completed_at} />
                     <CollabrCertifiedBadge certified={!!creator.certified} />
                     <ConnectedCreatorBadge connected={!!creator.connected} lastSyncedAt={creator.insights_last_synced_at as string | null} showSync={false} />
                     {isNewCreator && <span className="badge badge-neutral" style={{ fontSize: 11 }}>New Creator</span>}
@@ -268,6 +283,17 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
               />
             ) : (
               <div className="bc-actions" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
+                {/* Logged out: reuse the exact same "sign in to continue" gate
+                    already used for Apply on the public campaign page - not a
+                    new auth flow. AuthModal's signup/login links carry
+                    ?next=<this exact profile>, so after authenticating the
+                    visitor lands right back here, where hasProfileCtas turns
+                    true and the real Request Collaboration form takes over. */}
+                {!user && (
+                  <AuthGateButton>
+                    <Send size={14} style={{ marginRight: 7 }} /> Request Collaboration
+                  </AuthGateButton>
+                )}
                 {/* No CTAs: Share is desktop-only here (phones show it beside the
                     name via .vis-hero-share). */}
                 <span className="vis-row-share">

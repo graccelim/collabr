@@ -1,8 +1,8 @@
 'use client'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { loadStripe, type Stripe, type StripeElements } from '@stripe/stripe-js'
 import toast from 'react-hot-toast'
 import { formatSGD } from '@/lib/utils'
+import { flags } from '@/lib/flags'
 
 interface Props {
   collabId: string
@@ -11,59 +11,35 @@ interface Props {
   onSuccess: () => void
 }
 
-// Load Stripe once per page, lazily.
-let stripePromise: Promise<Stripe | null> | null = null
-function getStripe() {
-  const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  if (!key) return null
-  if (!stripePromise) stripePromise = loadStripe(key)
-  return stripePromise
-}
-
 /**
- * Funding button + card payment modal.
+ * Funding button - redirects to Stripe's own hosted Checkout page.
  *
- * Click "Fund …" → we create (or reuse) the manual-capture PaymentIntent, open a
- * modal with Stripe's Payment Element (card + any available wallets), and confirm
- * on "Pay". Works on every desktop browser — no reliance on Apple/Google Pay.
+ * This used to be an embedded Stripe Elements card form inside a modal on
+ * collabr's own page. That's just as secure under the hood, but visually
+ * indistinguishable from a phishing form to a brand who doesn't know collabr
+ * yet - a card field on some unfamiliar site's own page reads as suspicious
+ * regardless of how it's built. Redirecting to Stripe's own checkout.stripe.com
+ * page inherits Stripe's recognizable branding instead, which matters a lot
+ * more for cold-outreach brands than for people who already trust the product.
  *
- * After a successful authorization we re-hit create-intent, which calls
- * persistIntentTruth and flips the collab to `funded` immediately, so the brand
- * isn't left on "authorizing" while waiting for the webhook (important in dev).
+ * Escrow semantics are unchanged - the underlying PaymentIntent still uses
+ * manual capture, so money is authorized now and only captured on live-post
+ * approval, exactly as before.
  *
- * Auto-opens when the brand arrives via "Accept & fund" (`?fund=1`).
+ * Auto-starts when the brand arrives via "Accept & fund" (`?fund=1`), and
+ * detects the return trip from Stripe (`?funded=1`) to sync status and show
+ * a success state without waiting on the webhook to land first.
  */
 export default function StripePaymentButton({ collabId, amountCents, label, onSuccess }: Props) {
   const [starting, setStarting] = useState(false)
-  const [open, setOpen] = useState(false)
-  const [ready, setReady] = useState(false)
-  const [paying, setPaying] = useState(false)
-
-  const stripeRef = useRef<Stripe | null>(null)
-  const elementsRef = useRef<StripeElements | null>(null)
-  const clientSecretRef = useRef<string | null>(null)
-  const mountRef = useRef<HTMLDivElement>(null)
   const autoStarted = useRef(false)
-
-  const hasKey = Boolean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  const syncedReturn = useRef(false)
   const amount = formatSGD(amountCents)
 
   const startPayment = useCallback(async () => {
-    if (starting || paying || open) return
+    if (starting) return
     setStarting(true)
     try {
-      const sp = getStripe()
-      if (!sp) {
-        toast.error('Payments are not configured. Please contact support.')
-        return
-      }
-      const stripe = await sp
-      if (!stripe) {
-        toast.error('Could not load the payment form. Please retry.')
-        return
-      }
-      stripeRef.current = stripe
-
       const res = await fetch('/api/payments/create-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -72,103 +48,70 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
       const data = await res.json()
       if (!res.ok) {
         toast.error(data.error || 'Could not start the payment.')
+        setStarting(false)
         return
       }
-      if (data.payment_status === 'funded') {
+      if (data.payment_status && data.payment_status !== 'unfunded') {
         toast.success('This collab is already funded.')
         onSuccess()
+        setStarting(false)
         return
       }
-      if (!data.client_secret) {
+      if (!data.url) {
         toast.error('Could not start the payment. Please retry.')
+        setStarting(false)
         return
       }
-      clientSecretRef.current = data.client_secret
-      setReady(false)
-      setOpen(true)
+      window.location.href = data.url
     } catch (e: any) {
       toast.error(e?.message || 'Could not start the payment.')
-    } finally {
       setStarting(false)
     }
-  }, [collabId, onSuccess, starting, paying, open])
+  }, [collabId, onSuccess, starting])
 
-  // Auto-open when the brand was sent here straight from "Accept & fund".
-  // Read the flag from window (client-only) rather than useSearchParams — the
-  // latter renders during SSR and can crash the page without a Suspense wrapper.
+  // Auto-start when sent here straight from "Accept & fund".
   useEffect(() => {
-    if (autoStarted.current || !hasKey) return
+    if (autoStarted.current || !flags.escrowLive) return
     const params = new URLSearchParams(window.location.search)
     if (params.get('fund') === '1') {
       autoStarted.current = true
-      // Strip the flag so a refresh doesn't reopen the modal.
       params.delete('fund')
       const qs = params.toString()
       window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''))
       startPayment()
     }
-  }, [hasKey, startPayment])
+  }, [startPayment])
 
-  // Mount the Payment Element once the modal is open and we have a client secret.
+  // Returning from Stripe's success_url: sync status immediately (the create-
+  // intent route re-syncs from Stripe when called again) rather than leaving
+  // the page showing "unfunded" until the webhook lands.
   useEffect(() => {
-    if (!open || !stripeRef.current || !clientSecretRef.current || !mountRef.current) return
-    const elements = stripeRef.current.elements({
-      clientSecret: clientSecretRef.current,
-      appearance: {
-        theme: 'stripe',
-        variables: { colorPrimary: '#000435', borderRadius: '10px', fontFamily: 'inherit' },
-      },
-    })
-    const paymentEl = elements.create('payment', { layout: 'tabs' })
-    paymentEl.on('ready', () => setReady(true))
-    paymentEl.mount(mountRef.current)
-    elementsRef.current = elements
-    return () => {
-      paymentEl.unmount()
-      elementsRef.current = null
-    }
-  }, [open])
-
-  async function pay() {
-    const stripe = stripeRef.current
-    const elements = elementsRef.current
-    if (!stripe || !elements) return
-    setPaying(true)
-    try {
-      const { error } = await stripe.confirmPayment({
-        elements,
-        redirect: 'if_required',
-        confirmParams: { return_url: window.location.href },
+    if (syncedReturn.current) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('funded') === '1') {
+      syncedReturn.current = true
+      params.delete('funded')
+      const qs = params.toString()
+      window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''))
+      fetch('/api/payments/create-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ collab_id: collabId }),
       })
-      if (error) {
-        toast.error(error.message || 'Payment failed. Please check your card details.')
-        return
-      }
-      // Authorized (manual capture → requires_capture). Force the collab to
-      // reflect `funded` now instead of waiting on the webhook.
-      try {
-        await fetch('/api/payments/create-intent', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ collab_id: collabId }),
+        .then(() => {
+          toast.success('Payment secured, work can begin.')
+          onSuccess()
         })
-      } catch { /* webhook will reconcile if this sync call fails */ }
-      toast.success('Payment secured, work can begin.')
-      setOpen(false)
-      onSuccess()
-    } catch (e: any) {
-      toast.error(e?.message || 'Payment failed. Please retry.')
-    } finally {
-      setPaying(false)
+        .catch(() => { /* webhook will reconcile if this sync call fails */ })
     }
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  if (!hasKey) {
+  if (!flags.escrowLive) {
     return (
-      <div className="text-xs text-gray-500 border border-dashed border-gray-300 rounded-lg px-4 py-3 text-center">
-        Card payments are not available right now.{' '}
-        <a href="mailto:joincollabr@gmail.com" className="underline">Contact us</a> to fund this collab.
-      </div>
+      <p style={{ fontSize: 13, color: 'var(--ink-soft)', textAlign: 'center', padding: '12px 0' }}>
+        Payments are temporarily paused. Please check back shortly.
+      </p>
     )
   }
 
@@ -183,84 +126,9 @@ export default function StripePaymentButton({ collabId, amountCents, label, onSu
       >
         {starting ? 'Opening secure checkout…' : `Fund ${amount} securely`}
       </button>
-
-      {open && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Secure payment"
-          onClick={() => !paying && setOpen(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 80,
-            background: 'rgba(10,12,34,.55)',
-            backdropFilter: 'blur(3px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 20,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: 460,
-              background: 'var(--surface)',
-              borderRadius: 'var(--radius)',
-              boxShadow: 'var(--shadow-lg)',
-              padding: 'clamp(20px,3vw,28px)',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 6 }}>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--ink)', letterSpacing: '-0.01em', margin: 0 }}>
-                Secure {amount}
-              </h3>
-              <button
-                type="button"
-                onClick={() => !paying && setOpen(false)}
-                aria-label="Close"
-                style={{ background: 'none', border: 'none', fontSize: 22, lineHeight: 1, color: 'var(--ink-faint-solid)', cursor: 'pointer' }}
-              >
-                ×
-              </button>
-            </div>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 18px' }}>
-              Your card is held by collabr, not the creator. The money only moves once you approve the live post.
-            </p>
-
-            <div ref={mountRef} style={{ minHeight: 200 }} />
-            {!ready && (
-              <div style={{ height: 200, borderRadius: 10, background: 'var(--paper-2)' }} className="animate-pulse" />
-            )}
-
-            <button
-              type="button"
-              className="btn btn-primary btn-block btn-lg"
-              style={{ justifyContent: 'center', width: '100%', marginTop: 18 }}
-              onClick={pay}
-              disabled={!ready || paying}
-            >
-              {paying ? 'Processing…' : `Pay ${amount}`}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost btn-block"
-              style={{ justifyContent: 'center', width: '100%', marginTop: 8 }}
-              onClick={() => !paying && setOpen(false)}
-              disabled={paying}
-            >
-              Cancel
-            </button>
-            <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '12px 0 0' }}>
-              Powered by Stripe · your card details never touch collabr.
-            </p>
-          </div>
-        </div>
-      )}
+      <p style={{ fontSize: 11.5, color: 'var(--ink-faint-solid)', textAlign: 'center', margin: '10px 0 0' }}>
+        You'll pay on Stripe's own secure checkout page · your card details never touch collabr.
+      </p>
     </>
   )
 }

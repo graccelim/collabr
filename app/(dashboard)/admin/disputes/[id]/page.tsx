@@ -1,17 +1,11 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server'
-import { requireAuth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { createAdminClient } from '@/lib/supabase/server'
+import { requireAdmin } from '@/lib/auth'
 import { formatSGD } from '@/lib/utils'
 import Link from 'next/link'
 import DisputeResolutionForm from '@/components/DisputeResolutionForm'
 
 export default async function AdminDisputeDetailPage({ params }: { params: { id: string } }) {
-  const user = await requireAuth()
-  const supabase = createClient()
-
-  const { data: profile } = await supabase.from('users').select('role').eq('id', user.id).single()
-  if (profile?.role !== 'admin') redirect('/dashboard')
-
+  await requireAdmin()
   const admin = createAdminClient()
   const { data: dispute } = await admin.from('disputes')
     .select('*, collabs(id, agreed_rate, creator_payout, platform_fee, stripe_payment_intent_id, campaigns(title, brief), creator_profiles(users(display_name, email)), brand_profiles(company_name, users(email)))')

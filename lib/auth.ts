@@ -1,6 +1,7 @@
 import { cache } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { NextResponse } from 'next/server'
 
 // ── Per-request memoized auth + profile ──────────────────────────────────────
 // `supabase.auth.getUser()` is a NETWORK round-trip to the auth server (it
@@ -45,6 +46,35 @@ export async function requireCreator() {
   const profile = await getUserRow()
   if (profile?.role !== 'creator') redirect('/dashboard')
   return user
+}
+
+/** Page guard for /admin/* server components - reuses the same `role ===
+ *  'admin'` check that already gates /admin/disputes and
+ *  /admin/flagged-messages (users.role has allowed 'admin' since the first
+ *  migration). No hardcoded email/id anywhere - set a user's role to 'admin'
+ *  directly in the DB to grant access, same as those existing pages. */
+export async function requireAdmin() {
+  const user = await getAuthUser()
+  if (!user) redirect('/login')
+  const profile = await getUserRow()
+  if (profile?.role !== 'admin') redirect('/dashboard')
+  return user
+}
+
+/** API-route counterpart of requireAdmin() - returns a ready-to-return
+ *  NextResponse instead of redirecting, matching app/api/admin/stats/route.ts's
+ *  existing inline pattern. Usage:
+ *    const { user, error } = await requireAdminApi()
+ *    if (error) return error
+ */
+export async function requireAdminApi(): Promise<
+  { user: NonNullable<Awaited<ReturnType<typeof getAuthUser>>>; error: null } | { user: null; error: NextResponse }
+> {
+  const user = await getAuthUser()
+  if (!user) return { user: null, error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) }
+  const profile = await getUserRow()
+  if (profile?.role !== 'admin') return { user: null, error: NextResponse.json({ error: 'Admin only' }, { status: 403 }) }
+  return { user, error: null }
 }
 
 export async function getProfile(userId: string) {

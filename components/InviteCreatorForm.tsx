@@ -38,7 +38,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     return (
       <div className="card" style={{ background: 'var(--surface-2)' }}>
         <p style={{ fontSize: 13, color: 'var(--ink-soft)' }}>
-          You need an active paid campaign to invite {first}.
+          You need an active paid campaign to request {first}.
         </p>
         <a href="/post-job" className="btn-primary btn-sm" style={{ marginTop: 10 }}>Post a campaign</a>
       </div>
@@ -67,11 +67,13 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     })
     const data = await res.json()
     if (!res.ok) {
-      toast.error(data.error || 'Could not send invite')
+      toast.error(data.error || 'Could not send request')
       setSending(false)
       return
     }
-    toast.success(`Invite sent to ${first}, you'll be notified when they respond`)
+    toast.success(data.pending
+      ? `We'll reach out to ${first} and let you know once they respond`
+      : `Request sent to ${first}, you'll be notified when they respond`)
     setOpen(false)
     setRate(''); setMessage('')
     setSending(false)
@@ -82,7 +84,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     return (
       <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
         <Send size={14} />
-        Invite
+        Request Collaboration
       </button>
     )
   }
@@ -91,7 +93,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     // `invite-open` lets the action row hide Save/Share on phones (CSS :has)
     // so the open form spans the full width.
     <form onSubmit={submit} className="card space-y-3 invite-open" style={{ width: '100%' }}>
-      <h2 style={{ fontSize: 14, fontWeight: 600 }}>Invite {first} to a campaign</h2>
+      <h2 style={{ fontSize: 14, fontWeight: 600 }}>Request {first} for a campaign</h2>
       <div>
         <label className="label">Campaign</label>
         <select className="input" value={campaignId} onChange={e => setCampaignId(e.target.value)}>
@@ -120,7 +122,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
       </div>
       <div style={{ display: 'flex', gap: 8 }}>
         <button type="submit" className="btn-primary" disabled={sending}>
-          {sending ? 'Sending…' : 'Send invite'}
+          {sending ? 'Sending…' : 'Send request'}
         </button>
         <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>Cancel</button>
       </div>
