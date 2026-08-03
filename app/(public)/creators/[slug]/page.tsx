@@ -28,16 +28,27 @@ import { reportingRate, sharesResults } from '@/lib/results/report'
 import Link from 'next/link'
 import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck, Send } from 'lucide-react'
 import AuthGateButton from '@/components/AuthGateButton'
+import CreatorClaimInviteCard from '@/components/CreatorClaimInviteCard'
 
 // SEO: "[Creator name] on Collabr". Resolves by slug or UUID, same as the page.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const admin = createAdminClient()
   const byCol = isUuid(params.slug) ? 'id' : 'slug'
   const { data } = await admin.from('creator_profiles')
-    .select('users(display_name)').eq(byCol, params.slug).maybeSingle()
-  const name = (data?.users as any)?.display_name || 'Creator'
+    .select('display_name, user_id, users(display_name)').eq(byCol, params.slug).maybeSingle()
+  const name = (data?.users as any)?.display_name || data?.display_name || 'Creator'
   const title = `${name} on Collabr`
-  return { title, description: `${name}'s creator profile on Collabr, work, niches and rates.`, openGraph: { title }, twitter: { title } }
+  return {
+    title,
+    description: `${name}'s creator profile on Collabr, work, niches and rates.`,
+    openGraph: { title },
+    twitter: { title },
+    // Unclaimed profiles stay reachable via /browse and a direct link (brand
+    // discovery is unaffected) but skip search-engine indexing - a creator's
+    // own vanity search shouldn't surface a page they don't recognize before
+    // the claim DM does. Flips to indexed the moment they claim.
+    robots: { index: !!data?.user_id, follow: true },
+  }
 }
 
 export default async function CreatorProfilePage({ params, searchParams }: { params: { slug: string }; searchParams: { from?: string } }) {
@@ -574,12 +585,15 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   )
 
   // Owner leads with their rate, then availability, then socials; a visiting
-  // brand leads with rates & terms, then socials, availability.
+  // brand leads with rates & terms, then socials, availability. An unclaimed
+  // profile adds the claim-invite card last - secondary to everything a
+  // brand actually came for, but still reachable by a self-Googling creator
+  // scanning their own page. isOwner is always false here (no user_id yet).
   const rail = (
     <div style={{ position: 'sticky', top: 24 }}>
       {isOwner
         ? <>{rateCard}{availabilitySection}{socialSection}</>
-        : <>{ratesTerms}{socialSection}{availabilitySection}</>}
+        : <>{ratesTerms}{socialSection}{availabilitySection}{!creator.user_id && <CreatorClaimInviteCard creatorId={creatorId} />}</>}
     </div>
   )
 

@@ -1,7 +1,7 @@
 import type { createClient, createAdminClient } from '@/lib/supabase/server'
 import { rankCreators } from '@/lib/recommend'
 import { toCreatorSignals, type ScoreRow } from '@/lib/discovery-data'
-import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
+import { NICHE_LABELS, extractHandle, type CreatorNiche, type SocialPlatform } from '@/lib/onboarding'
 import type { SocialAccount } from '@/types'
 
 type Supabase = ReturnType<typeof createClient>
@@ -212,4 +212,26 @@ export async function runCreatorDiscovery(
   const pageCreators = ranked.slice(from, from + DISCOVERY_PAGE_SIZE)
 
   return { pageCreators, socialsByCreator, scoreById, savedSet, total, totalPages, page }
+}
+
+/**
+ * Platform + handle -> creator lookup for /join's creator-activation flow.
+ * The precise counterpart to the free-text `q` search above: a handle a
+ * creator types about themselves is exact (unlike a guessed display name), so
+ * this is a direct social_accounts match, not a ranked/fuzzy one - reuses
+ * extractHandle for the same @/URL normalization the admin form and bulk
+ * import already apply, so "my own handle" always resolves the same way
+ * regardless of how it was typed in either direction.
+ */
+export async function findCreatorBySocial(
+  admin: Admin, platform: SocialPlatform, rawHandle: string,
+): Promise<{ id: string; user_id: string | null } | null> {
+  const handle = extractHandle(platform, rawHandle)
+  if (!handle) return null
+  const { data: social } = await admin.from('social_accounts')
+    .select('creator_id').eq('platform', platform).eq('handle', handle).maybeSingle()
+  if (!social) return null
+  const { data: creator } = await admin.from('creator_profiles')
+    .select('id, user_id').eq('id', social.creator_id).maybeSingle()
+  return creator
 }

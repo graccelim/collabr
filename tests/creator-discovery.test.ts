@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { makeSupabaseStub } from './helpers/supabase-stub'
-import { runCreatorDiscovery, DISCOVERY_PAGE_SIZE } from '@/lib/creator-discovery'
+import { runCreatorDiscovery, findCreatorBySocial, DISCOVERY_PAGE_SIZE } from '@/lib/creator-discovery'
 
 function baseRow(overrides: Record<string, unknown>) {
   return {
@@ -96,5 +96,45 @@ describe('runCreatorDiscovery - pagination', () => {
     })
     await runCreatorDiscovery(client as any, client as any, {}, null)
     expect(calls.writes.some(w => w.table === 'saved_creators')).toBe(false)
+  })
+})
+
+describe('findCreatorBySocial - /join\'s exact platform+handle lookup', () => {
+  it('returns the creator when the handle matches a social_accounts row', async () => {
+    const { client } = makeSupabaseStub({
+      tables: {
+        social_accounts: [{ data: { creator_id: 'cr-1' } }],
+        creator_profiles: [{ data: { id: 'cr-1', user_id: null } }],
+      },
+    })
+    const result = await findCreatorBySocial(client as any, 'instagram', '@graceeats')
+    expect(result).toEqual({ id: 'cr-1', user_id: null })
+  })
+
+  it('returns null when no social_accounts row matches, without querying creator_profiles', async () => {
+    const { client, calls } = makeSupabaseStub({
+      tables: { social_accounts: [{ data: null }] },
+    })
+    const result = await findCreatorBySocial(client as any, 'instagram', 'nobodyhere')
+    expect(result).toBeNull()
+    expect(calls.writes).toHaveLength(0)
+  })
+
+  it('returns null for an empty/unusable handle without touching the DB', async () => {
+    const { client, calls } = makeSupabaseStub({ tables: {} })
+    const result = await findCreatorBySocial(client as any, 'instagram', '   ')
+    expect(result).toBeNull()
+    expect(calls.writes).toHaveLength(0)
+  })
+
+  it('surfaces whether the matched profile is already claimed', async () => {
+    const { client } = makeSupabaseStub({
+      tables: {
+        social_accounts: [{ data: { creator_id: 'cr-2' } }],
+        creator_profiles: [{ data: { id: 'cr-2', user_id: 'real-user' } }],
+      },
+    })
+    const result = await findCreatorBySocial(client as any, 'tiktok', 'graceeats')
+    expect(result?.user_id).toBe('real-user')
   })
 })

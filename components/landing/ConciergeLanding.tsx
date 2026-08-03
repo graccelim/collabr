@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { Search, ArrowRight, ShieldCheck, ListChecks, Handshake } from 'lucide-react'
+import { Search, ArrowRight, ShieldCheck, ListChecks, Handshake, Check } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { runCreatorDiscovery } from '@/lib/creator-discovery'
 import CreatorFilters from '@/components/CreatorFilters'
@@ -88,7 +88,10 @@ export default async function ConciergeLanding() {
           collabr<span style={{ color: 'var(--creator)' }}>.</span>
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <Link href="/browse" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Browse Creators</Link>
+          {/* The hero's own "Browse Creators" button covers phones one scroll
+              down - dropping the nav link there is what keeps this row from
+              overflowing next to "Log in" + "Join free" on a narrow screen. */}
+          <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Browse Creators</Link>
           <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Log in</Link>
           <Link href="/signup" className="btn btn-primary btn-sm">Join free</Link>
         </div>
@@ -266,6 +269,33 @@ export default async function ConciergeLanding() {
             </Link>
           </div>
         </Reveal>
+      </section>
+
+      {/* Subtle creator entry point - secondary to the brand journey above,
+          but a real, complete pitch of its own (not a single throwaway
+          link). Routes to /join, not signup: /join searches for an existing
+          seeded profile first (reusing runCreatorDiscovery) so a creator who
+          already has one lands on the real claim-request card instead of
+          accidentally creating a duplicate account. */}
+      <section style={{ padding: '40px 20px', background: 'var(--surface-2)', borderTop: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+            Are you a creator?
+          </p>
+          <p style={{ fontSize: 15.5, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 16 }}>
+            Brands are already discovering creators on Collabr.
+          </p>
+          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 7, textAlign: 'left', marginBottom: 20 }}>
+            {['Receive collaboration requests directly', 'Manage campaigns in one place', 'Protected payments', 'Everything is free during beta'].map(b => (
+              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--ink-soft)' }}>
+                <Check size={14} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
+              </div>
+            ))}
+          </div>
+          <div>
+            <Link href="/join" className="btn-secondary">Join Collabr</Link>
+          </div>
+        </div>
       </section>
 
       {/* ── Footer ── */}

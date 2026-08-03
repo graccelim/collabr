@@ -53,7 +53,7 @@ function toSocialsPayload(rows: SocialRow[]) {
 
 function outreachMessage(displayName: string, claimUrl: string): string {
   const first = displayName.split(' ')[0]
-  return `Hi ${first}! I'm building Collabr, a platform connecting brands and creators in Singapore for paid collabs. I put together a profile for you — it's yours if you want it: ${claimUrl}`
+  return `Hi ${first}! Brands on Collabr are already looking for creators like you. I set up a starting profile from your public info — takes 2 minutes to claim, totally free: ${claimUrl}`
 }
 
 /** Create/edit form - same shape for both, the caller decides which endpoint to hit. */
@@ -83,7 +83,8 @@ function CreatorForm({ initial, busy, onCancel, onSubmit }: {
       </div>
       <div>
         <label className="label">Bio (optional)</label>
-        <textarea className="input min-h-[70px]" value={bio} onChange={e => setBio(e.target.value)} disabled={busy} />
+        <textarea className="input min-h-[70px]" value={bio} onChange={e => setBio(e.target.value)} disabled={busy}
+          placeholder="Third person reads best before they've joined, e.g. &quot;Singapore-based food creator known for street food reviews.&quot;" />
       </div>
       <div>
         <label className="label">Niches</label>

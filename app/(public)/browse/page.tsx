@@ -67,6 +67,9 @@ export default async function BrowsePage({ searchParams }: { searchParams: Disco
         <p style={{ marginTop: 6, fontSize: 14.5, color: 'var(--ink-soft)' }}>
           Real creators on Collabr. Search, filter, and open a profile, no account needed.
         </p>
+        <p style={{ marginTop: 4, fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
+          Some creator profiles were prepared using publicly available information. Creators can join Collabr to manage and update their own profile.
+        </p>
       </div>
 
       <Suspense>
