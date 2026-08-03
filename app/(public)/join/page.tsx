@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimitDurable, clientIpFromHeaders } from '@/lib/rate-limit'
 import { findCreatorBySocial } from '@/lib/creator-discovery'
 import CreatorClaimInviteCard from '@/components/CreatorClaimInviteCard'
+import Avatar from '@/components/Avatar'
 import { SOCIAL_PLATFORMS, SOCIAL_LABELS, type SocialPlatform } from '@/lib/onboarding'
 
 export const metadata: Metadata = {
@@ -24,18 +25,35 @@ function isSocialPlatform(v: string | undefined): v is SocialPlatform {
   return !!v && (SOCIAL_PLATFORMS as readonly string[]).includes(v)
 }
 
+function joinUrl(platform: string, handle: string, confirm?: 'yes' | 'no') {
+  const qs = new URLSearchParams({ platform, handle })
+  if (confirm) qs.set('confirm', confirm)
+  return `/join?${qs.toString()}`
+}
+
 // The single creator entry point: one CTA everywhere ("Join Collabr") leads
 // here, which asks for a platform + handle and lets the SYSTEM decide what
 // happens next - a creator never has to know whether they're "claiming" a
 // seeded profile or creating a new one. Lookup reuses findCreatorBySocial
 // (an exact platform+handle match against social_accounts, the same key the
 // admin tool writes), so there's no separate/fuzzy matching logic here.
-export default async function JoinPage({ searchParams }: { searchParams: { platform?: string; handle?: string } }) {
+//
+// A match is shown as a QUESTION ("is this your creator profile?"), not an
+// announcement ("we found you") - benefits and activation mechanics only
+// appear after the creator confirms it's them, never before. Presenting a
+// found profile as already-known-to-us before they've agreed is exactly the
+// "wait, who told you that" feeling this whole pass exists to avoid.
+export default async function JoinPage({
+  searchParams,
+}: {
+  searchParams: { platform?: string; handle?: string; confirm?: string }
+}) {
   const platform = isSocialPlatform(searchParams.platform) ? searchParams.platform : undefined
   const handle = (searchParams.handle || '').trim()
   const searched = Boolean(platform && handle)
+  const confirm = searchParams.confirm === 'yes' || searchParams.confirm === 'no' ? searchParams.confirm : null
 
-  let found: { id: string; user_id: string | null } | null = null
+  let found: { id: string; user_id: string | null; displayName: string } | null = null
   let rateLimited = false
 
   if (searched && platform) {
@@ -67,25 +85,44 @@ export default async function JoinPage({ searchParams }: { searchParams: { platf
         <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--ink-soft)' }}>
           Too many attempts. Please try again in a few minutes.
         </p>
+      ) : searched && found && found.user_id ? (
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>You're already on Collabr.</p>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>This profile has already been activated.</p>
+          <Link href="/login" className="btn-primary">Log in</Link>
+        </div>
+      ) : searched && found && confirm === 'yes' ? (
+        // Only past this point does the page talk about how it works.
+        <div className="card" style={{ padding: 24 }}>
+          <CreatorClaimInviteCard creatorId={found.id} buttonLabel="Request Activation" contactPlatform={platform as SocialPlatform} />
+        </div>
+      ) : searched && found && confirm === 'no' ? (
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>No problem.</p>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 18 }}>
+            Try a different platform or handle, or create a new account instead.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link href="/join" className="btn-secondary">Try again</Link>
+            <Link href="/signup?role=creator" className="btn-primary">Create your account</Link>
+          </div>
+        </div>
       ) : searched && found ? (
-        found.user_id ? (
-          <div className="card" style={{ padding: 24, textAlign: 'center' }}>
-            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>You're already on Collabr.</p>
-            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>This profile has already been activated.</p>
-            <Link href="/login" className="btn-primary">Log in</Link>
+        // The confirmation step itself - just identity, nothing else.
+        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
+          <Avatar src={null} name={found.displayName} size={64} />
+          <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)', marginTop: 12 }}>{found.displayName}</p>
+          <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 2, marginBottom: 22 }}>
+            {SOCIAL_LABELS[platform as SocialPlatform]} · @{handle.replace(/^@+/, '')}
+          </p>
+          <p style={{ fontSize: 15.5, fontWeight: 600, color: 'var(--ink)', marginBottom: 16 }}>
+            Is this your creator profile?
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+            <Link href={joinUrl(platform as string, handle, 'yes')} className="btn-primary">Yes, that's me</Link>
+            <Link href={joinUrl(platform as string, handle, 'no')} className="btn-secondary">No, that's not me</Link>
           </div>
-        ) : (
-          <div className="card" style={{ padding: 24 }}>
-            <div style={{ textAlign: 'center', marginBottom: 18 }}>
-              <p style={{ fontSize: 17, fontWeight: 700, color: 'var(--ink)', marginBottom: 6 }}>🎉 Great news!</p>
-              <p style={{ fontSize: 14, color: 'var(--ink-soft)', lineHeight: 1.55 }}>
-                We found your creator profile. We'll send you a secure activation link shortly so you can activate
-                your Collabr profile and start receiving collaboration requests.
-              </p>
-            </div>
-            <CreatorClaimInviteCard creatorId={found.id} buttonLabel="Request Activation" showIntro={false} />
-          </div>
-        )
+        </div>
       ) : searched ? (
         <div className="card" style={{ padding: 24, textAlign: 'center' }}>
           <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>

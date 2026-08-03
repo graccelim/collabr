@@ -28,7 +28,7 @@ import { reportingRate, sharesResults } from '@/lib/results/report'
 import Link from 'next/link'
 import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck, Send } from 'lucide-react'
 import AuthGateButton from '@/components/AuthGateButton'
-import CreatorClaimInviteCard from '@/components/CreatorClaimInviteCard'
+import CreatorJoinTeaserCard from '@/components/CreatorJoinTeaserCard'
 
 // SEO: "[Creator name] on Collabr". Resolves by slug or UUID, same as the page.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -176,6 +176,12 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
 
   const socials = (socialAccounts as SocialAccount[]) || []
   const primarySocial = socials[0]
+  // Pre-filled so a creator who clicks through from their own profile lands
+  // straight on /join's confirm-identity step instead of having to re-type
+  // the platform/handle it already knows.
+  const joinHref = primarySocial
+    ? `/join?platform=${primarySocial.platform}&handle=${encodeURIComponent(primarySocial.handle)}`
+    : '/join'
   const totalFollowers = socials.reduce((sum, s) => sum + (s.follower_count || 0), 0)
   const rate = creator.average_rate_sgd ?? creator.base_rate
 
@@ -593,7 +599,7 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
     <div style={{ position: 'sticky', top: 24 }}>
       {isOwner
         ? <>{rateCard}{availabilitySection}{socialSection}</>
-        : <>{ratesTerms}{socialSection}{availabilitySection}{!creator.user_id && <CreatorClaimInviteCard creatorId={creatorId} />}</>}
+        : <>{ratesTerms}{socialSection}{availabilitySection}{!creator.user_id && <CreatorJoinTeaserCard creatorId={creatorId} joinHref={joinHref} />}</>}
     </div>
   )
 

@@ -225,13 +225,18 @@ export async function runCreatorDiscovery(
  */
 export async function findCreatorBySocial(
   admin: Admin, platform: SocialPlatform, rawHandle: string,
-): Promise<{ id: string; user_id: string | null } | null> {
+): Promise<{ id: string; user_id: string | null; displayName: string } | null> {
   const handle = extractHandle(platform, rawHandle)
   if (!handle) return null
   const { data: social } = await admin.from('social_accounts')
     .select('creator_id').eq('platform', platform).eq('handle', handle).maybeSingle()
   if (!social) return null
   const { data: creator } = await admin.from('creator_profiles')
-    .select('id, user_id').eq('id', social.creator_id).maybeSingle()
-  return creator
+    .select('id, user_id, display_name, users(display_name)').eq('id', social.creator_id).maybeSingle()
+  if (!creator) return null
+  return {
+    id: creator.id,
+    user_id: creator.user_id,
+    displayName: (creator.users as any)?.display_name || creator.display_name || 'this creator',
+  }
 }

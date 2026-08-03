@@ -100,15 +100,26 @@ describe('runCreatorDiscovery - pagination', () => {
 })
 
 describe('findCreatorBySocial - /join\'s exact platform+handle lookup', () => {
-  it('returns the creator when the handle matches a social_accounts row', async () => {
+  it('returns the creator (with a display name) when the handle matches a social_accounts row', async () => {
     const { client } = makeSupabaseStub({
       tables: {
         social_accounts: [{ data: { creator_id: 'cr-1' } }],
-        creator_profiles: [{ data: { id: 'cr-1', user_id: null } }],
+        creator_profiles: [{ data: { id: 'cr-1', user_id: null, display_name: 'Grace Eats', users: null } }],
       },
     })
     const result = await findCreatorBySocial(client as any, 'instagram', '@graceeats')
-    expect(result).toEqual({ id: 'cr-1', user_id: null })
+    expect(result).toEqual({ id: 'cr-1', user_id: null, displayName: 'Grace Eats' })
+  })
+
+  it('prefers the claimed users.display_name over the pre-claim field', async () => {
+    const { client } = makeSupabaseStub({
+      tables: {
+        social_accounts: [{ data: { creator_id: 'cr-2' } }],
+        creator_profiles: [{ data: { id: 'cr-2', user_id: 'real-user', display_name: 'Old Seed Name', users: { display_name: 'Real Name' } } }],
+      },
+    })
+    const result = await findCreatorBySocial(client as any, 'instagram', 'graceeats')
+    expect(result?.displayName).toBe('Real Name')
   })
 
   it('returns null when no social_accounts row matches, without querying creator_profiles', async () => {
