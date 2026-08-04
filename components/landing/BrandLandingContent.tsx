@@ -66,32 +66,37 @@ export default function BrandLandingContent({
 }) {
   return (
     <>
-      {/* ══ HERO ══ soft atmosphere behind the headline, same technique as
-          the final CTA band below - gives the top of the page some depth
-          instead of sitting flat on the canvas. ══ */}
-      <header style={{ position: 'relative', textAlign: 'center', padding: 'clamp(28px,5vw,48px) 20px clamp(20px,3vw,28px)', overflow: 'hidden' }}>
+      {/* ══ HERO ══ dark navy, continuing the band from the nav/tab switcher
+          above - violet atmosphere glow, same technique as the final CTA
+          band below, so the page reads as one considered dark-to-light
+          composition rather than a flat white page with a dark footer. ══ */}
+      <header style={{
+        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(44px,6vw,64px)',
+        overflow: 'hidden', background: 'var(--brand)',
+        borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+      }}>
         <div aria-hidden style={{
-          position: 'absolute', top: '-25%', left: '50%', transform: 'translateX(-50%)',
-          width: 640, height: 420, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0,4,53,.07), transparent 68%)',
+          position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
+          width: 680, height: 440, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(124,108,255,.22), transparent 65%)',
           pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
-          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
+          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16, color: '#fff' }}>
             Find creators for your next campaign.
           </h1>
-          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
+          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'rgba(255,255,255,.62)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
             Browse real creators and request a collaboration in minutes.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Link href="/browse" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Link href="/browse" className="btn btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               Browse Creators <ArrowRight size={16} />
             </Link>
-            <Link href="/signup?role=brand" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
+            <Link href="/signup?role=brand" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.62)' }}>
               Already know who you want? Post a campaign
             </Link>
           </div>
-          <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', marginTop: 14 }}>
             Free during beta · No credit card required · Browsing needs no account
           </p>
         </div>

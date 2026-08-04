@@ -22,59 +22,65 @@ export default function LandingTabs({
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--app-bg)', fontFamily: 'var(--font-body)' }}>
-      {/* ── Nav ── */}
-      <nav style={{
-        position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 clamp(20px,5vw,40px)', height: 64, background: 'rgba(253,250,249,.85)', backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid var(--line)',
-      }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.04em', color: 'var(--ink)' }}>
-          collabr<span style={{ color: 'var(--creator)' }}>.</span>
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          {tab === 'brand' ? (
-            <>
-              <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Browse Creators</Link>
-              <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Log in</Link>
-              <Link href="/signup" className="btn btn-primary btn-sm">Join free</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Log in</Link>
-              <Link href="/join" className="btn btn-primary btn-sm">Join Collabr</Link>
-            </>
-          )}
-        </div>
-      </nav>
-
-      {/* ── Tab switcher - the one audience-selection moment on the page ── */}
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '22px 20px 0' }}>
-        <div role="tablist" aria-label="I am a" style={{
-          display: 'inline-flex', background: 'var(--surface-2)', border: '1px solid var(--line)',
-          borderRadius: 999, padding: 4, gap: 2,
+      {/* Dark navy band - nav + tab switcher, continuing seamlessly into each
+          tab's own dark hero (same var(--brand) navy set there) before the
+          page drops back to the light canvas for the rest of the content.
+          Same premium "dark band up top" pattern as the footer/final CTA
+          already use, just now bookending the top of the page too. */}
+      <div style={{ background: 'var(--brand)' }}>
+        <nav style={{
+          position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 clamp(20px,5vw,40px)', height: 64, background: 'rgba(10,12,34,.85)', backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(255,255,255,.08)',
         }}>
-          <button
-            type="button" role="tab" aria-selected={tab === 'brand'} onClick={() => setTab('brand')}
-            style={{
-              padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-              background: tab === 'brand' ? 'var(--ink)' : 'transparent',
-              color: tab === 'brand' ? 'var(--brand-ink)' : 'var(--ink-soft)',
-            }}
-          >
-            I'm a Brand
-          </button>
-          <button
-            type="button" role="tab" aria-selected={tab === 'creator'} onClick={() => setTab('creator')}
-            style={{
-              padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-              fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-              background: tab === 'creator' ? 'var(--ink)' : 'transparent',
-              color: tab === 'creator' ? 'var(--brand-ink)' : 'var(--ink-soft)',
-            }}
-          >
-            I'm a Creator
-          </button>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.04em', color: '#fff' }}>
+            collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            {tab === 'brand' ? (
+              <>
+                <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.65)' }}>Browse Creators</Link>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.65)' }}>Log in</Link>
+                <Link href="/signup" className="btn btn-sm" style={{ background: '#fff', color: 'var(--ink)' }}>Join free</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.65)' }}>Log in</Link>
+                <Link href="/join" className="btn btn-sm" style={{ background: '#fff', color: 'var(--ink)' }}>Join Collabr</Link>
+              </>
+            )}
+          </div>
+        </nav>
+
+        {/* ── Tab switcher - the one audience-selection moment on the page ── */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '22px 20px 0' }}>
+          <div role="tablist" aria-label="I am a" style={{
+            display: 'inline-flex', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)',
+            borderRadius: 999, padding: 4, gap: 2,
+          }}>
+            <button
+              type="button" role="tab" aria-selected={tab === 'brand'} onClick={() => setTab('brand')}
+              style={{
+                padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
+                background: tab === 'brand' ? '#fff' : 'transparent',
+                color: tab === 'brand' ? 'var(--ink)' : 'rgba(255,255,255,.6)',
+              }}
+            >
+              I'm a Brand
+            </button>
+            <button
+              type="button" role="tab" aria-selected={tab === 'creator'} onClick={() => setTab('creator')}
+              style={{
+                padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
+                fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
+                background: tab === 'creator' ? '#fff' : 'transparent',
+                color: tab === 'creator' ? 'var(--ink)' : 'rgba(255,255,255,.6)',
+              }}
+            >
+              I'm a Creator
+            </button>
+          </div>
         </div>
       </div>
 

@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { PartyPopper, Check, ArrowRight } from 'lucide-react'
+import { PartyPopper, Check } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimitDurable, clientIpFromHeaders } from '@/lib/rate-limit'
 import { findCreatorBySocial } from '@/lib/creator-discovery'
 import CreatorClaimInviteCard from '@/components/CreatorClaimInviteCard'
 import Avatar from '@/components/Avatar'
 import { SOCIAL_PLATFORMS, SOCIAL_LABELS, type SocialPlatform } from '@/lib/onboarding'
+import AccountForm from '@/components/AccountForm'
 
 export const metadata: Metadata = {
   title: 'Join as a creator',
@@ -103,15 +104,14 @@ export default async function JoinPage({
           <CreatorClaimInviteCard creatorId={found.id} buttonLabel="Request Activation" contactPlatform={platform as SocialPlatform} />
         </div>
       ) : searched && found && confirm === 'no' ? (
-        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>No problem.</p>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 18 }}>
-            Try a different platform or handle, or create a new account instead.
-          </p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/join" className="btn-secondary">Try again</Link>
-            <Link href="/signup?role=creator&from=join" className="btn-primary">Create your account</Link>
+        <div className="card" style={{ padding: 24 }}>
+          <div style={{ textAlign: 'center', marginBottom: 22 }}>
+            <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>No problem.</p>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>
+              <Link href="/join" style={{ color: 'var(--accent)', fontWeight: 530 }}>Try a different platform or handle</Link>, or create a new account below.
+            </p>
           </div>
+          <AccountForm role="creator" />
         </div>
       ) : searched && found ? (
         // The confirmation step itself - just identity, nothing else.
@@ -130,24 +130,23 @@ export default async function JoinPage({
           </div>
         </div>
       ) : searched ? (
-        <div className="card" style={{ padding: '30px 26px', textAlign: 'center' }}>
-          <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 8 }}>
-            No existing profile found
-          </p>
-          <h2 className="display-face" style={{ fontSize: 'clamp(20px,2.6vw,26px)', letterSpacing: '-0.02em', marginBottom: 20 }}>
-            Let's get you set up.
-          </h2>
-          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 9, textAlign: 'left', marginBottom: 26 }}>
-            {BENEFITS.map(b => (
-              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14.5, color: 'var(--ink)' }}>
-                <Check size={16} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
-              </div>
-            ))}
+        <div className="card" style={{ padding: '28px 24px' }}>
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 8 }}>
+              No existing profile found
+            </p>
+            <h2 className="display-face" style={{ fontSize: 'clamp(20px,2.6vw,26px)', letterSpacing: '-0.02em', marginBottom: 20 }}>
+              Let's get you set up.
+            </h2>
+            <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 9, textAlign: 'left', marginBottom: 26 }}>
+              {BENEFITS.map(b => (
+                <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14.5, color: 'var(--ink)' }}>
+                  <Check size={16} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
+                </div>
+              ))}
+            </div>
           </div>
-          <Link href="/signup?role=creator&from=join" className="btn-primary btn-lg btn-block" style={{ justifyContent: 'center' }}>
-            Create your free account <ArrowRight size={16} />
-          </Link>
-          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 12 }}>Takes under a minute</p>
+          <AccountForm role="creator" />
         </div>
       ) : (
         <>
