@@ -1,31 +1,29 @@
 import Link from 'next/link'
-import { Suspense } from 'react'
-import { Search, ArrowRight, ShieldCheck, ListChecks, Handshake, Check } from 'lucide-react'
+import { ArrowRight, ShieldCheck, ListChecks, Star, Handshake, Check } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { runCreatorDiscovery } from '@/lib/creator-discovery'
-import CreatorFilters from '@/components/CreatorFilters'
 import CreatorDiscoveryCard from '@/components/CreatorDiscoveryCard'
 import { Reveal } from '@/components/Reveal'
 import WorkflowSteps from '@/components/WorkflowSteps'
 import { CREATOR_NICHES, NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 
-const PREVIEW_COUNT = 8
+const PREVIEW_COUNT = 4
 
 const WHY: { icon: () => JSX.Element; title: string; body: string }[] = [
-  {
-    icon: () => <Search size={19} />,
-    title: 'Browse creators',
-    body: 'Search and filter a real, growing roster by niche, platform, and rate, no account needed to look.',
-  },
-  {
-    icon: () => <ListChecks size={19} />,
-    title: 'Organize collaborations',
-    body: 'Briefs, drafts, feedback, and approvals all live in one place instead of scattered across DMs.',
-  },
   {
     icon: () => <ShieldCheck size={19} />,
     title: 'Protected payments',
     body: 'Funds are held securely and only released once you approve the delivered content.',
+  },
+  {
+    icon: () => <ListChecks size={19} />,
+    title: 'Manage campaigns in one place',
+    body: 'Briefs, drafts, feedback, and approvals all live in one place instead of scattered across DMs.',
+  },
+  {
+    icon: () => <Star size={19} />,
+    title: 'Real reputation, not just followers',
+    body: 'See ratings and completed collaborations, so you know who’s reliable before you reach out.',
   },
   {
     icon: () => <Handshake size={19} />,
@@ -37,7 +35,7 @@ const WHY: { icon: () => JSX.Element; title: string; body: string }[] = [
 const STEPS: readonly (readonly [string, string])[] = [
   ['Browse creators', 'Search and filter the roster, no account needed to look around.'],
   ['Request collaboration', 'Found a fit? Request them, on a campaign you post or one we help you set up.'],
-  ["We'll help connect you", "Already joined creators hear from you right away. Haven't joined yet? We personally reach out."],
+  ['Connect on Collabr', 'Once they accept, you’ll coordinate directly through the platform. During beta, we’ll personally help facilitate the introduction if a creator hasn’t joined yet.'],
   ['Manage everything in Collabr', 'Briefs, approvals, and protected payments, all handled inside the platform from there.'],
 ]
 
@@ -63,9 +61,9 @@ const FAQ: readonly (readonly [string, string])[] = [
 export default async function ConciergeLanding() {
   const admin = createAdminClient()
   // No searchParams here by design - "/" stays a fixed, cacheable fetch (see
-  // app/page.tsx's `revalidate`). Real search/filtering happens by handing
-  // off to /browse (the search form below, and CreatorFilters), which is the
-  // one place a per-request, per-filter query actually needs to run.
+  // app/page.tsx's `revalidate`). All search/filter/sort/pagination lives
+  // exclusively on /browse now - the landing page only ever shows a small,
+  // fixed preview, never the marketplace itself.
   //
   // admin passed for BOTH client slots (not createClient()): the session
   // client transitively calls cookies() via @supabase/ssr, which forces
@@ -102,8 +100,8 @@ export default async function ConciergeLanding() {
         <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
           Find creators for your next campaign.
         </h1>
-        <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 560, margin: '0 auto 24px' }}>
-          Browse real creators, request a collaboration, and manage everything, briefs, approvals, and protected payments, in one place.
+        <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
+          Browse real creators and request a collaboration in minutes.
         </p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
           <Link href="/browse" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
@@ -117,57 +115,6 @@ export default async function ConciergeLanding() {
           Free during beta · No credit card required · Browsing needs no account
         </p>
       </header>
-
-      {/* ── Search ── plain GET form, zero JS, hands off to /browse ── */}
-      <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 20px 8px' }}>
-        <form action="/browse" method="GET" style={{ display: 'flex', gap: 8 }}>
-          <div style={{ position: 'relative', flex: 1 }}>
-            <Search size={16} style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-faint-solid)' }} />
-            <input
-              type="text" name="q" placeholder="Search by name, niche, or handle…"
-              className="input" style={{ width: '100%', padding: '13px 14px 13px 40px', fontSize: 15 }}
-            />
-          </div>
-          <button type="submit" className="btn-primary" style={{ flexShrink: 0 }}>Search</button>
-        </form>
-      </div>
-
-      {/* ══ BROWSE CREATORS ══ real data, real filters, working right here ══ */}
-      <section className="lp-section">
-        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 20px' }}>
-          <Reveal style={{ marginBottom: 22 }}>
-            <div className="eyebrow" style={{ marginBottom: 8 }}>Browse creators</div>
-            <h2 className="display-face" style={{ fontSize: 'clamp(22px,2.8vw,30px)', letterSpacing: '-0.02em' }}>
-              A real, growing roster, not a mockup.
-            </h2>
-          </Reveal>
-
-          <div style={{ marginBottom: 20 }}>
-            <Suspense>
-              <CreatorFilters showSaved={false} basePath="/browse" />
-            </Suspense>
-          </div>
-
-          {preview.length > 0 ? (
-            <>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
-                {preview.map(c => (
-                  <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} />
-                ))}
-              </div>
-              <div style={{ textAlign: 'center', marginTop: 24 }}>
-                <Link href="/browse" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-                  Browse all creators <ArrowRight size={15} />
-                </Link>
-              </div>
-            </>
-          ) : (
-            <p style={{ textAlign: 'center', color: 'var(--ink-faint-solid)', fontSize: 14, padding: '40px 0' }}>
-              New creators are joining Collabr right now, check back shortly.
-            </p>
-          )}
-        </div>
-      </section>
 
       {/* ══ HOW IT WORKS ══ single column, the real order of operations ══ */}
       <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
@@ -184,7 +131,7 @@ export default async function ConciergeLanding() {
         </div>
       </section>
 
-      {/* ══ WHY JOINCOLLABR ══ */}
+      {/* ══ WHY COLLABR ══ */}
       <section className="lp-section">
         <div className="lp-narrow">
           <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
@@ -210,22 +157,53 @@ export default async function ConciergeLanding() {
         </div>
       </section>
 
-      {/* ══ CREATOR CATEGORIES ══ real niches, no inflated counts ══ */}
+      {/* ══ MEET CREATORS ON COLLABR ══ a small, fixed preview - never the
+          marketplace itself. No search, no filters, no sort, no pagination;
+          all of that lives exclusively on /browse. ══ */}
       <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
-        <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(24px,3vw,32px)' }}>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>Categories</div>
+        <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 20px' }}>
+          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+            <div className="eyebrow" style={{ marginBottom: 8 }}>Creators</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(24px,3vw,32px)', letterSpacing: '-0.02em' }}>
-              Find creators by niche.
+              Meet creators on Collabr.
             </h2>
           </Reveal>
-          <Reveal style={{ display: 'flex', flexWrap: 'wrap', gap: 10, justifyContent: 'center' }}>
-            {CREATOR_NICHES.map(n => (
-              <Link key={n} href={`/browse?niche=${n}`} className="chip" style={{ padding: '9px 18px', fontSize: 14 }}>
-                {NICHE_LABELS[n as CreatorNiche]}
-              </Link>
-            ))}
-          </Reveal>
+
+          {preview.length > 0 ? (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16, maxWidth: 1040, margin: '0 auto' }}>
+                {preview.map(c => (
+                  <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} />
+                ))}
+              </div>
+              <div style={{ textAlign: 'center', marginTop: 28 }}>
+                <Link href="/browse" className="btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                  Browse all creators <ArrowRight size={15} />
+                </Link>
+              </div>
+            </>
+          ) : (
+            <p style={{ textAlign: 'center', color: 'var(--ink-faint-solid)', fontSize: 14, padding: '40px 0' }}>
+              New creators are joining every week.
+            </p>
+          )}
+        </div>
+      </section>
+
+      {/* ══ CATEGORIES ══ a lightweight nav aid straight into /browse, not
+          its own marketing section - small heading, no body copy, chips
+          only. Plain background (vs. the surface-2 band above/below) so it
+          visually reads as a quiet in-between strip, not a peer section. ══ */}
+      <section style={{ padding: '28px 20px 36px', textAlign: 'center' }}>
+        <h2 style={{ fontSize: 14, fontWeight: 700, color: 'var(--ink-soft)', letterSpacing: '-0.01em', marginBottom: 14 }}>
+          Browse by category
+        </h2>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center', maxWidth: 640, margin: '0 auto' }}>
+          {CREATOR_NICHES.map(n => (
+            <Link key={n} href={`/browse?niche=${n}`} className="chip" style={{ padding: '9px 18px', fontSize: 14 }}>
+              {NICHE_LABELS[n as CreatorNiche]}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -255,12 +233,9 @@ export default async function ConciergeLanding() {
       }}>
         <Reveal>
           <h2 className="display-face" style={{ fontSize: 'clamp(26px,4vw,42px)', color: '#fff', marginBottom: 12, letterSpacing: '-0.03em' }}>
-            Your next creator is already here.
+            Your next collaboration starts here.
           </h2>
-          <p style={{ color: 'rgba(255,255,255,.55)', fontSize: 15.5, marginBottom: 28 }}>
-            Free during beta · No credit card needed
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
             <Link href="/browse" className="btn btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', gap: 8 }}>
               Browse Creators <ArrowRight size={16} />
             </Link>
@@ -271,30 +246,21 @@ export default async function ConciergeLanding() {
         </Reveal>
       </section>
 
-      {/* Subtle creator entry point - secondary to the brand journey above,
-          but a real, complete pitch of its own (not a single throwaway
-          link). Routes to /join, not signup: /join searches for an existing
-          seeded profile first (reusing runCreatorDiscovery) so a creator who
-          already has one lands on the real claim-request card instead of
-          accidentally creating a duplicate account. */}
-      <section style={{ padding: '40px 20px', background: 'var(--surface-2)', borderTop: '1px solid var(--line)' }}>
-        <div style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 10 }}>
+      {/* Subtle creator entry point - deliberately quiet (small type, muted
+          surface, secondary button styling) so it never competes with the
+          brand journey above. Routes to /join, not signup: /join searches
+          for an existing seeded profile first (reusing runCreatorDiscovery)
+          so a creator who already has one lands on the real claim-request
+          card instead of accidentally creating a duplicate account. */}
+      <section style={{ padding: '32px 20px', background: 'var(--surface-2)', borderTop: '1px solid var(--line)' }}>
+        <div style={{ maxWidth: 440, margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 8 }}>
             Are you a creator?
           </p>
-          <p style={{ fontSize: 15.5, color: 'var(--ink)', lineHeight: 1.5, marginBottom: 16 }}>
-            Brands are already discovering creators on Collabr.
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 14 }}>
+            Join Collabr to receive collaboration requests directly and manage everything in one place.
           </p>
-          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 7, textAlign: 'left', marginBottom: 20 }}>
-            {['Receive collaboration requests directly', 'Manage campaigns in one place', 'Protected payments', 'Everything is free during beta'].map(b => (
-              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13.5, color: 'var(--ink-soft)' }}>
-                <Check size={14} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
-              </div>
-            ))}
-          </div>
-          <div>
-            <Link href="/join" className="btn-secondary">Join Collabr</Link>
-          </div>
+          <Link href="/join" className="btn-secondary btn-sm">Join Collabr</Link>
         </div>
       </section>
 
