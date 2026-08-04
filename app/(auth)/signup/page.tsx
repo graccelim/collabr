@@ -35,7 +35,13 @@ function SignupForm() {
   const next = safeNextPath(params.get('next'))
   const loginHref = next === '/dashboard' ? '/login' : `/login?next=${encodeURIComponent(next)}`
   const roleParam = params.get('role')
-  const defaultRole = roleParam === 'brand' || roleParam === 'creator' ? roleParam : 'creator'
+  // Defaults to brand, not creator: every creator-facing "join" button in the
+  // app (landing page, profile pages) already points to /join, which checks
+  // for a profile we may have already seeded before deciding whether to
+  // activate or create one. A bare, context-less link into /signup (e.g. from
+  // /login) landing on the creator form by default was the one remaining path
+  // that could bypass that check entirely.
+  const defaultRole = roleParam === 'brand' || roleParam === 'creator' ? roleParam : 'brand'
   const [role, setRole] = useState<'brand' | 'creator'>(defaultRole)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -172,6 +178,17 @@ function SignupForm() {
           </button>
         ))}
       </div>
+
+      {/* The one consolidated interception point for creators: rather than
+          scattering this nudge across every page that could lead here, it
+          only needs to exist right here, right before someone who picked
+          "I'm a creator" is about to fill out a brand-new account form that
+          has no idea whether we've already seeded a profile for them. */}
+      {isBrand === false && (
+        <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: -14, marginBottom: 22, lineHeight: 1.5 }}>
+          Already have a profile on Collabr? <Link href="/join" style={{ color: 'var(--accent)', fontWeight: 530 }}>Check first</Link> before creating a new account.
+        </p>
+      )}
 
       <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <Field label={isBrand ? 'Company name' : 'Full name'}>
