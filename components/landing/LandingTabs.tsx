@@ -42,7 +42,7 @@ export default function LandingTabs({
           ~150px-tall parent made it scroll away the instant that small box
           passed the top of the viewport. Giving nav the full-height page as
           its containing block is what lets it stay pinned all the way down. */}
-      <nav style={{ position: 'sticky', top: 0, zIndex: 40, background: NAVY, borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+      <nav style={{ position: 'sticky', top: 0, zIndex: 40, background: NAVY, boxShadow: '0 2px 16px rgba(0,0,0,.28)' }}>
         <div style={{
           maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)', height: 64,
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',

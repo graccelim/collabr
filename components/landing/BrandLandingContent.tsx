@@ -1,11 +1,16 @@
 import Link from 'next/link'
-import CreatorDiscoveryCard from '@/components/CreatorDiscoveryCard'
+import {
+  Utensils, Sparkles, Plane, Shirt, Wand2, Dumbbell, Cpu, Baby, Briefcase, Gamepad2, GraduationCap, LayoutGrid,
+} from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import { CREATOR_NICHES, NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
-import type { DiscoveryCreatorRow } from '@/lib/creator-discovery'
-import type { ScoreRow } from '@/lib/discovery-data'
-import type { SocialAccount } from '@/types'
 import { NAVY, INK_SOFT, INK_FAINT, LINE, ACCENT, ACCENT_TINT, GLOW } from './tokens'
+
+const NICHE_ICON: Record<CreatorNiche, typeof Utensils> = {
+  food: Utensils, lifestyle: Sparkles, travel: Plane, fashion: Shirt, beauty: Wand2,
+  fitness: Dumbbell, tech: Cpu, parenting: Baby, business: Briefcase, gaming: Gamepad2,
+  education: GraduationCap, other: LayoutGrid,
+}
 
 const STEPS: readonly (readonly [string, string])[] = [
   ['Browse creators', 'Search and filter the roster, no account needed to look around.'],
@@ -40,13 +45,7 @@ const FAQ: readonly (readonly [string, string])[] = [
   ],
 ]
 
-export default function BrandLandingContent({
-  preview, socialsByCreator, scoreById,
-}: {
-  preview: DiscoveryCreatorRow[]
-  socialsByCreator: Record<string, SocialAccount[]>
-  scoreById: Record<string, ScoreRow>
-}) {
+export default function BrandLandingContent() {
   return (
     <>
       {/* ══ HERO ══ */}
@@ -127,42 +126,50 @@ export default function BrandLandingContent({
         </div>
       </section>
 
-      {/* ══ MEET CREATORS ON COLLABR ══ a small, fixed preview - never the
-          marketplace itself. No search, no filters, no sort, no pagination;
-          all of that lives exclusively on /browse. ══ */}
+      {/* ══ CREATORS ACROSS EVERY NICHE ══ category tiles into /browse
+          rather than individual creator cards - real people's photos,
+          handles, and rates don't belong on a public marketing page nobody
+          has to log in to see. This also sidesteps overstating (or
+          embarrassingly understating) how many creators are on the
+          platform right now; the categories are real regardless of count. */}
       <section id="creators" className="lp-section" style={{ background: '#fff', borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}>
         <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)' }}>
           <Reveal immediate style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, marginBottom: 36, flexWrap: 'wrap' }}>
             <div>
               <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 14px' }}>Creators</p>
               <h2 style={{ fontSize: 'clamp(28px,3.6vw,40px)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 800, margin: 0, maxWidth: 600, textWrap: 'balance' }}>
-                Meet creators on Collabr.
+                Creators across every niche.
               </h2>
+              <p style={{ fontSize: 15.5, lineHeight: 1.6, color: INK_SOFT, margin: '12px 0 0', maxWidth: 480 }}>
+                From food and beauty to tech and gaming, browse real creators building a roster on Collabr.
+              </p>
             </div>
-            <Link href="/browse" style={{ fontSize: 15, fontWeight: 600, color: ACCENT, whiteSpace: 'nowrap' }}>Browse all →</Link>
+            <Link href="/browse" style={{ fontSize: 15, fontWeight: 600, color: ACCENT, whiteSpace: 'nowrap' }}>Browse all creators →</Link>
           </Reveal>
 
-          {preview.length > 0 ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18 }}>
-              {preview.map(c => (
-                <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} />
-              ))}
-            </div>
-          ) : (
-            <p style={{ textAlign: 'center', color: INK_FAINT, fontSize: 14, padding: '40px 0' }}>
-              New creators are joining every week.
-            </p>
-          )}
-
-          <div style={{ marginTop: 44, paddingTop: 30, borderTop: '1px solid #EDF0F8', display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: INK_FAINT }}>Browse by category</span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-              {CREATOR_NICHES.map(n => (
-                <Link key={n} href={`/browse?niche=${n}`} style={{ fontSize: 13.5, fontWeight: 600, color: '#3A4260', background: '#F4F6FC', border: `1px solid ${LINE}`, borderRadius: 999, padding: '8px 15px' }}>
-                  {NICHE_LABELS[n as CreatorNiche]}
-                </Link>
-              ))}
-            </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+            {CREATOR_NICHES.map(n => {
+              const Icon = NICHE_ICON[n]
+              return (
+                <Reveal immediate key={n}>
+                  <Link
+                    href={`/browse?niche=${n}`} className="hover-lift"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px',
+                      background: '#F4F6FC', border: `1px solid ${LINE}`, borderRadius: 14, color: 'inherit',
+                    }}
+                  >
+                    <span style={{
+                      width: 36, height: 36, borderRadius: 10, background: ACCENT_TINT, color: ACCENT,
+                      display: 'grid', placeItems: 'center', flexShrink: 0,
+                    }}>
+                      <Icon size={17} />
+                    </span>
+                    <span style={{ fontSize: 14.5, fontWeight: 700 }}>{NICHE_LABELS[n]}</span>
+                  </Link>
+                </Reveal>
+              )
+            })}
           </div>
         </div>
       </section>
