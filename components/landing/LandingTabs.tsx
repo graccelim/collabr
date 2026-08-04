@@ -33,38 +33,45 @@ export default function LandingTabs({
           one-time "which audience am I" choice made once near the top of
           the page, not chrome someone needs while reading the FAQ, so it
           scrolls away with the hero instead of permanently eating ~150px of
-          viewport on every screen size (mobile especially). Same dark navy
-          background on both so the two still read as one continuous band
-          at the top of the page. */}
-      <div style={{ background: NAVY }}>
-        <nav style={{ position: 'sticky', top: 0, zIndex: 40, background: NAVY, borderBottom: '1px solid rgba(255,255,255,.08)' }}>
-          <div style={{
-            maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)', height: 64,
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>
-              collabr<span style={{ color: ACCENT_ON_DARK }}>.</span>
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-              {isBrand ? (
-                <>
-                  <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Browse Creators</Link>
-                  <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
-                  <Link href="/signup" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join free</Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
-                  <Link href="/join" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join Collabr</Link>
-                </>
-              )}
-            </div>
-          </div>
-        </nav>
+          viewport on every screen size (mobile especially).
 
-        {/* Tab switcher - a sliding white pill behind whichever label is
-            active, rather than two independently-colored buttons. Not
-            sticky: it lives with the hero, not the persistent nav. */}
+          `nav` is a direct child of the full-page wrapper below, not nested
+          inside the (short) navy band that used to hold it plus the
+          switcher - position:sticky only holds an element in place while
+          its own parent is still on screen, so nesting nav inside that
+          ~150px-tall parent made it scroll away the instant that small box
+          passed the top of the viewport. Giving nav the full-height page as
+          its containing block is what lets it stay pinned all the way down. */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 40, background: NAVY, borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+        <div style={{
+          maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)', height: 64,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        }}>
+          <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>
+            collabr<span style={{ color: ACCENT_ON_DARK }}>.</span>
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+            {isBrand ? (
+              <>
+                <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Browse Creators</Link>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
+                <Link href="/signup" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join free</Link>
+              </>
+            ) : (
+              <>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
+                <Link href="/join" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join Collabr</Link>
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* Tab switcher - a sliding white pill behind whichever label is
+          active, rather than two independently-colored buttons. Not
+          sticky: it lives with the hero, not the persistent nav. Same navy
+          background as nav so the two still read as one continuous band. */}
+      <div style={{ background: NAVY }}>
         <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 20px 24px' }}>
           <div role="tablist" aria-label="I am a" style={{
             position: 'relative', display: 'flex', width: 300, padding: 4, borderRadius: 999,
