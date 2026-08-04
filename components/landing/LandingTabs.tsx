@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { plusJakarta, jetbrainsMono } from '@/lib/landing-fonts'
+import { NAVY, NAVY_DEEP, ACCENT_ON_DARK, PAGE_BG } from './tokens'
 
 type Tab = 'brand' | 'creator'
 
@@ -22,99 +24,97 @@ export default function LandingTabs({
   const isBrand = tab === 'brand'
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--app-bg)', fontFamily: 'var(--font-body)' }}>
-      {/* Top band - nav + tab switcher, continuing seamlessly into whichever
-          hero sits directly beneath it: dark navy for the brand tab, a
-          premium light blue for the creator tab (matching the light → dark →
-          light rhythm the creator tab runs, as opposed to the brand tab's
-          dark → light → dark). Same "band bleeds into the section below"
-          pattern the footer/final CTA already use, just now up top too. */}
-      <div style={{
-        background: isBrand ? 'var(--brand)' : 'linear-gradient(180deg, #EAF1FE 0%, #DEE9FC 100%)',
-      }}>
-        <nav style={{
-          position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 clamp(20px,5vw,40px)', height: 64, backdropFilter: 'blur(10px)',
-          background: isBrand ? 'rgba(10,12,34,.85)' : 'rgba(234,241,254,.85)',
-          borderBottom: isBrand ? '1px solid rgba(255,255,255,.08)' : '1px solid rgba(0,4,53,.08)',
+    <div
+      className={`${plusJakarta.variable} ${jetbrainsMono.variable}`}
+      style={{ minHeight: '100vh', background: PAGE_BG, fontFamily: 'var(--lp-font-body), system-ui, sans-serif', color: '#0B1023' }}
+    >
+      {/* Dark navy nav + tab switcher, same on both tabs - only the page
+          body underneath changes, so switching audiences never involves a
+          jarring top-of-page repaint. */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 40, background: NAVY, borderBottom: '1px solid rgba(255,255,255,.08)' }}>
+        <div style={{
+          maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)', height: 64,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
-          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 20, letterSpacing: '-0.04em', color: isBrand ? '#fff' : 'var(--ink)' }}>
-            collabr<span style={{ color: isBrand ? 'var(--accent-on-dark)' : 'var(--creator-deep)' }}>.</span>
+          <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>
+            collabr<span style={{ color: ACCENT_ON_DARK }}>.</span>
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
             {isBrand ? (
               <>
-                <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.65)' }}>Browse Creators</Link>
-                <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.65)' }}>Log in</Link>
-                <Link href="/signup" className="btn btn-sm" style={{ background: '#fff', color: 'var(--ink)' }}>Join free</Link>
+                <Link href="/browse" className="hidden md:inline" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Browse Creators</Link>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
+                <Link href="/signup" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join free</Link>
               </>
             ) : (
               <>
-                <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>Log in</Link>
-                <Link href="/join" className="btn-primary btn-sm">Join Collabr</Link>
+                <Link href="/login" style={{ fontSize: 14, fontWeight: 500, color: 'rgba(255,255,255,.62)' }}>Log in</Link>
+                <Link href="/join" style={{ background: '#fff', color: NAVY, border: 0, borderRadius: 8, padding: '10px 18px', fontSize: 14, fontWeight: 700 }}>Join Collabr</Link>
               </>
             )}
           </div>
-        </nav>
+        </div>
 
-        {/* ── Tab switcher - the one audience-selection moment on the page ── */}
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '22px 20px 0' }}>
+        {/* Tab switcher - a sliding white pill behind whichever label is
+            active, rather than two independently-colored buttons. */}
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 20px 24px' }}>
           <div role="tablist" aria-label="I am a" style={{
-            display: 'inline-flex', borderRadius: 999, padding: 4, gap: 2,
-            background: isBrand ? 'rgba(255,255,255,.08)' : 'rgba(0,4,53,.055)',
-            border: isBrand ? '1px solid rgba(255,255,255,.12)' : '1px solid rgba(0,4,53,.1)',
+            position: 'relative', display: 'flex', width: 300, padding: 4, borderRadius: 999,
+            background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)',
           }}>
-            {/* Each tab's active state uses its own identity colour - navy
-                for brand, an elevated white pill for creator - rather than
-                both resolving to the same treatment, so the toggle itself
-                hints at the two different experiences underneath. */}
+            <span aria-hidden style={{
+              position: 'absolute', top: 4, bottom: 4, width: 'calc(50% - 4px)', borderRadius: 999,
+              background: '#fff', boxShadow: '0 2px 10px rgba(0,0,0,.28)',
+              transition: 'left 220ms cubic-bezier(.4,0,.2,1)', left: isBrand ? 4 : '50%',
+            }} />
             <button
-              type="button" role="tab" aria-selected={tab === 'brand'} onClick={() => setTab('brand')}
+              type="button" role="tab" aria-selected={isBrand} onClick={() => setTab('brand')}
               style={{
-                padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-                background: tab === 'brand' ? '#2A3266' : 'transparent',
-                color: tab === 'brand' ? '#fff' : isBrand ? 'rgba(255,255,255,.6)' : 'rgba(0,4,53,.4)',
+                position: 'relative', flex: 1, border: 0, background: 'transparent', borderRadius: 999,
+                padding: '10px 0', fontSize: 14.5, fontWeight: 700, transition: 'color 180ms',
+                color: isBrand ? NAVY : 'rgba(255,255,255,.55)',
               }}
             >
               I'm a Brand
             </button>
             <button
-              type="button" role="tab" aria-selected={tab === 'creator'} onClick={() => setTab('creator')}
+              type="button" role="tab" aria-selected={!isBrand} onClick={() => setTab('creator')}
               style={{
-                padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
-                fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-                background: tab === 'creator' ? '#fff' : 'transparent',
-                boxShadow: tab === 'creator' ? '0 1px 3px rgba(0,4,53,.18)' : 'none',
-                color: tab === 'creator' ? 'var(--ink)' : isBrand ? 'rgba(255,255,255,.6)' : 'rgba(0,4,53,.4)',
+                position: 'relative', flex: 1, border: 0, background: 'transparent', borderRadius: 999,
+                padding: '10px 0', fontSize: 14.5, fontWeight: 700, transition: 'color 180ms',
+                color: !isBrand ? NAVY : 'rgba(255,255,255,.55)',
               }}
             >
               I'm a Creator
             </button>
           </div>
         </div>
-      </div>
+      </nav>
 
-      {tab === 'brand' ? brandContent : creatorContent}
+      {isBrand ? brandContent : creatorContent}
 
       {/* ── Footer ── */}
       <footer style={{
-        background: 'var(--brand)', borderTop: '1px solid rgba(255,255,255,.08)', padding: '22px clamp(20px,5vw,40px)',
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8,
+        background: NAVY_DEEP, padding: '40px 0',
       }}>
-        <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, letterSpacing: '-0.04em', color: '#fff' }}>
-          collabr<span style={{ color: 'var(--accent-on-dark)' }}>.</span>
-        </span>
-        <div style={{ display: 'flex', gap: 22, alignItems: 'center', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>© 2026 collabr. · Singapore</span>
-          <Link href="/privacy" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Privacy</Link>
-          <Link href="/terms" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Terms</Link>
-          <Link href="/data-deletion" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Data deletion</Link>
-          <a href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Contact us</a>
-          <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,255,255,.45)', fontWeight: 500 }}>Log in</Link>
-          <Link href={tab === 'brand' ? '/signup' : '/join'} style={{ fontSize: 13, color: 'var(--accent-on-dark)', fontWeight: 600 }}>
-            {tab === 'brand' ? 'Join free →' : 'Join Collabr →'}
-          </Link>
+        <div style={{
+          maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)',
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20,
+        }}>
+          <span style={{ fontSize: 17, fontWeight: 800, letterSpacing: '-0.02em', color: '#fff' }}>
+            collabr<span style={{ color: ACCENT_ON_DARK }}>.</span>
+          </span>
+          <div style={{ display: 'flex', gap: 24, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 13, color: 'rgba(255,255,255,.5)' }}>© 2026 collabr · Singapore</span>
+            <Link href="/privacy" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', fontWeight: 500 }}>Privacy</Link>
+            <Link href="/terms" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', fontWeight: 500 }}>Terms</Link>
+            <Link href="/data-deletion" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', fontWeight: 500 }}>Data deletion</Link>
+            <a href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', fontWeight: 500 }}>Contact us</a>
+            <Link href="/login" style={{ fontSize: 13, color: 'rgba(255,255,255,.5)', fontWeight: 500 }}>Log in</Link>
+            <Link href={isBrand ? '/signup' : '/join'} style={{ fontSize: 13, color: ACCENT_ON_DARK, fontWeight: 600 }}>
+              {isBrand ? 'Join free →' : 'Join Collabr →'}
+            </Link>
+          </div>
         </div>
       </footer>
     </div>

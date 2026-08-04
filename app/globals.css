@@ -672,6 +672,16 @@
 .lp-section { padding: 84px 40px; }
 .lp-narrow  { max-width: 1040px; margin: 0 auto; }
 
+/* Sticky-split layout (How it works / FAQ on the toggle landing): a label +
+   heading column that stays pinned while the taller content column scrolls
+   past it, collapsing to a single stacked column on smaller screens. */
+.lp-split  { display: grid; grid-template-columns: 340px 1fr; gap: 88px; align-items: start; }
+.lp-sticky { position: sticky; top: 100px; }
+@media (max-width: 860px) {
+  .lp-split  { grid-template-columns: 1fr !important; gap: 28px !important; }
+  .lp-sticky { position: static !important; }
+}
+
 /* Landing FAQ — native <details>, zero JS. */
 .faq-item {
   border: 1px solid var(--line);
