@@ -104,7 +104,7 @@ export default async function JoinPage({
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/join" className="btn-secondary">Try again</Link>
-            <Link href="/signup?role=creator" className="btn-primary">Create your account</Link>
+            <Link href="/signup?role=creator&from=join" className="btn-primary">Create your account</Link>
           </div>
         </div>
       ) : searched && found ? (
@@ -131,7 +131,7 @@ export default async function JoinPage({
           <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>
             Let's create your free Collabr account.
           </p>
-          <Link href="/signup?role=creator" className="btn-primary">Create your account</Link>
+          <Link href="/signup?role=creator&from=join" className="btn-primary">Create your account</Link>
         </div>
       ) : (
         <>

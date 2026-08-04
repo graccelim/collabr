@@ -3,7 +3,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
-import { ArrowRight, Loader2, Star, Megaphone, MailCheck, Check, Circle } from 'lucide-react'
+import { ArrowRight, Loader2, Star, Megaphone, MailCheck, Check, Circle, Search } from 'lucide-react'
 import AuthShell from '@/components/AuthShell'
 import { safeNextPath } from '@/lib/nav'
 
@@ -43,6 +43,14 @@ function SignupForm() {
   // that could bypass that check entirely.
   const defaultRole = roleParam === 'brand' || roleParam === 'creator' ? roleParam : 'brand'
   const [role, setRole] = useState<'brand' | 'creator'>(defaultRole)
+  // Set only by /join's own "no profile found, create a new account" link -
+  // the one legitimate way to reach the real creator form directly, since
+  // /join already did the lookup. Every other path that ends with role
+  // set to 'creator' has NOT been checked yet, so it must not be possible to
+  // submit a creator account without going through that check first - a text
+  // hint next to the form isn't enough, since a creator we've already seeded
+  // but haven't contacted yet has no reason to think to click it.
+  const fromJoin = params.get('from') === 'join'
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -179,17 +187,30 @@ function SignupForm() {
         ))}
       </div>
 
-      {/* The one consolidated interception point for creators: rather than
-          scattering this nudge across every page that could lead here, it
-          only needs to exist right here, right before someone who picked
-          "I'm a creator" is about to fill out a brand-new account form that
-          has no idea whether we've already seeded a profile for them. */}
-      {isBrand === false && (
-        <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: -14, marginBottom: 22, lineHeight: 1.5 }}>
-          Already have a profile on Collabr? <Link href="/join" style={{ color: 'var(--accent)', fontWeight: 530 }}>Check first</Link> before creating a new account.
-        </p>
-      )}
-
+      {/* Creator + not arrived via /join's own "no profile found" link: don't
+          render the form at all. A hint next to the form only helps someone
+          who already suspects they might have a profile - a creator we've
+          seeded but haven't contacted yet has no reason to expect that, so
+          the check has to be unavoidable, not optional. */}
+      {role === 'creator' && !fromJoin ? (
+        <div className="card" style={{ padding: 22, textAlign: 'center' }}>
+          <span style={{
+            width: 40, height: 40, borderRadius: 10, background: 'var(--accent-tint)', color: 'var(--accent)',
+            display: 'inline-grid', placeItems: 'center', marginBottom: 14,
+          }}>
+            <Search size={19} />
+          </span>
+          <p style={{ fontSize: 14.5, color: 'var(--ink)', fontWeight: 600, marginBottom: 6 }}>
+            Let's check for an existing profile first
+          </p>
+          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 18 }}>
+            We source some creators before they've signed up. Takes a few seconds either way.
+          </p>
+          <Link href="/join" className="btn-primary btn-block" style={{ justifyContent: 'center' }}>
+            Continue <ArrowRight size={16} />
+          </Link>
+        </div>
+      ) : (
       <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         <Field label={isBrand ? 'Company name' : 'Full name'}>
           <input className="input" value={name} onChange={e => setName(e.target.value)}
@@ -247,6 +268,7 @@ function SignupForm() {
           )}
         </button>
       </form>
+      )}
 
       <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 22 }}>
         Already have an account?{' '}
