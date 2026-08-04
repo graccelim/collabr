@@ -58,13 +58,17 @@ export default function LandingTabs({
             display: 'inline-flex', background: 'rgba(255,255,255,.08)', border: '1px solid rgba(255,255,255,.12)',
             borderRadius: 999, padding: 4, gap: 2,
           }}>
+            {/* Each tab's active state uses its own identity colour - navy
+                for brand, a lighter periwinkle-blue for creator - rather than
+                both resolving to the same plain white pill, so the toggle
+                itself hints at the two different experiences underneath. */}
             <button
               type="button" role="tab" aria-selected={tab === 'brand'} onClick={() => setTab('brand')}
               style={{
                 padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-                background: tab === 'brand' ? '#fff' : 'transparent',
-                color: tab === 'brand' ? 'var(--ink)' : 'rgba(255,255,255,.6)',
+                background: tab === 'brand' ? '#2A3266' : 'transparent',
+                color: tab === 'brand' ? '#fff' : 'rgba(255,255,255,.6)',
               }}
             >
               I'm a Brand
@@ -74,7 +78,7 @@ export default function LandingTabs({
               style={{
                 padding: '9px 20px', borderRadius: 999, border: 'none', cursor: 'pointer',
                 fontSize: 13.5, fontWeight: 600, transition: 'all .15s ease',
-                background: tab === 'creator' ? '#fff' : 'transparent',
+                background: tab === 'creator' ? '#EEF1FF' : 'transparent',
                 color: tab === 'creator' ? 'var(--ink)' : 'rgba(255,255,255,.6)',
               }}
             >

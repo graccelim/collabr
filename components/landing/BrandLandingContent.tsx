@@ -71,9 +71,9 @@ export default function BrandLandingContent({
           band below, so the page reads as one considered dark-to-light
           composition rather than a flat white page with a dark footer. ══ */}
       <header style={{
-        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(44px,6vw,64px)',
-        overflow: 'hidden', background: 'var(--brand)',
-        borderBottomLeftRadius: 28, borderBottomRightRadius: 28,
+        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(56px,7vw,76px)',
+        overflow: 'hidden',
+        background: 'linear-gradient(180deg, var(--brand) 0%, var(--brand) 85%, var(--app-bg) 100%)',
       }}>
         <div aria-hidden style={{
           position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
