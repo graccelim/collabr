@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { PartyPopper, Check } from 'lucide-react'
+import { PartyPopper, Check, ArrowRight } from 'lucide-react'
 import { createAdminClient } from '@/lib/supabase/server'
 import { checkRateLimitDurable, clientIpFromHeaders } from '@/lib/rate-limit'
 import { findCreatorBySocial } from '@/lib/creator-discovery'
@@ -68,10 +68,16 @@ export default async function JoinPage({
   }
 
   return (
-    <div style={{ maxWidth: 520, margin: '0 auto', padding: '48px 20px 80px' }}>
-      <div style={{ textAlign: 'center', marginBottom: 30 }}>
-        <span style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--accent-tint)', color: 'var(--accent)', display: 'inline-grid', placeItems: 'center', marginBottom: 14 }}>
-          <PartyPopper size={22} />
+    <div style={{ maxWidth: 520, margin: '0 auto', padding: '56px 20px 80px', position: 'relative' }}>
+      <div aria-hidden style={{
+        position: 'absolute', top: -40, left: '50%', transform: 'translateX(-50%)',
+        width: 480, height: 320, borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(0,4,53,.08), transparent 68%)',
+        pointerEvents: 'none', zIndex: 0,
+      }} />
+      <div style={{ position: 'relative', textAlign: 'center', marginBottom: 30 }}>
+        <span style={{ width: 52, height: 52, borderRadius: 14, background: 'var(--accent-tint)', color: 'var(--accent)', display: 'inline-grid', placeItems: 'center', marginBottom: 16 }}>
+          <PartyPopper size={24} />
         </span>
         <h1 className="display-face" style={{ fontSize: 'clamp(24px,3.6vw,32px)', letterSpacing: '-0.02em', marginBottom: 10 }}>
           Brands are already looking for creators like you.
@@ -124,14 +130,24 @@ export default async function JoinPage({
           </div>
         </div>
       ) : searched ? (
-        <div className="card" style={{ padding: 24, textAlign: 'center' }}>
-          <p style={{ fontSize: 15, fontWeight: 600, color: 'var(--ink)', marginBottom: 6 }}>
-            We couldn't find an existing creator profile.
+        <div className="card" style={{ padding: '30px 26px', textAlign: 'center' }}>
+          <p style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.03em', marginBottom: 8 }}>
+            No existing profile found
           </p>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginBottom: 16 }}>
-            Let's create your free Collabr account.
-          </p>
-          <Link href="/signup?role=creator&from=join" className="btn-primary">Create your account</Link>
+          <h2 className="display-face" style={{ fontSize: 'clamp(20px,2.6vw,26px)', letterSpacing: '-0.02em', marginBottom: 20 }}>
+            Let's get you set up.
+          </h2>
+          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 9, textAlign: 'left', marginBottom: 26 }}>
+            {BENEFITS.map(b => (
+              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14.5, color: 'var(--ink)' }}>
+                <Check size={16} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
+              </div>
+            ))}
+          </div>
+          <Link href="/signup?role=creator&from=join" className="btn-primary btn-lg btn-block" style={{ justifyContent: 'center' }}>
+            Create your free account <ArrowRight size={16} />
+          </Link>
+          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 12 }}>Takes under a minute</p>
         </div>
       ) : (
         <>

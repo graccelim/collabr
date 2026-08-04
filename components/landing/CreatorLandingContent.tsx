@@ -59,29 +59,37 @@ const FAQ: readonly (readonly [string, string])[] = [
 export default function CreatorLandingContent() {
   return (
     <>
-      {/* ══ HERO ══ */}
-      <header style={{ textAlign: 'center', padding: 'clamp(28px,5vw,48px) 20px clamp(20px,3vw,28px)', maxWidth: 760, margin: '0 auto' }}>
-        <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
-          Brands are already looking for creators like you.
-        </h1>
-        <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
-          Get discovered, receive collaboration requests, and get paid securely.
-        </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link href="/join" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            Join Collabr <ArrowRight size={16} />
-          </Link>
-          <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
-            Already active on Collabr? Log in
-          </Link>
+      {/* ══ HERO ══ same soft-atmosphere treatment as the brand hero ══ */}
+      <header style={{ position: 'relative', textAlign: 'center', padding: 'clamp(28px,5vw,48px) 20px clamp(20px,3vw,28px)', overflow: 'hidden' }}>
+        <div aria-hidden style={{
+          position: 'absolute', top: '-25%', left: '50%', transform: 'translateX(-50%)',
+          width: 640, height: 420, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,4,53,.08), transparent 68%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
+          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
+            Brands are already looking for creators like you.
+          </h1>
+          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
+            Get discovered, receive collaboration requests, and get paid securely.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link href="/join" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              Join Collabr <ArrowRight size={16} />
+            </Link>
+            <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
+              Already active on Collabr? Log in
+            </Link>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
+            Free during beta · No credit card required · Takes 2 minutes
+          </p>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
-          Free during beta · No credit card required · Takes 2 minutes
-        </p>
       </header>
 
       {/* ══ HOW IT WORKS ══ */}
-      <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
+      <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
         <div className="lp-narrow">
           <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>How it works</div>

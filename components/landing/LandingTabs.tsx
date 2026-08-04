@@ -21,7 +21,7 @@ export default function LandingTabs({
   const [tab, setTab] = useState<Tab>('brand')
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--paper)', fontFamily: 'var(--font-body)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--app-bg)', fontFamily: 'var(--font-body)' }}>
       {/* ── Nav ── */}
       <nav style={{
         position: 'sticky', top: 0, zIndex: 40, display: 'flex', alignItems: 'center', justifyContent: 'space-between',

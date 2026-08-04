@@ -193,22 +193,34 @@ function SignupForm() {
           seeded but haven't contacted yet has no reason to expect that, so
           the check has to be unavoidable, not optional. */}
       {role === 'creator' && !fromJoin ? (
-        <div className="card" style={{ padding: 22, textAlign: 'center' }}>
+        <div className="card" style={{ padding: '28px 24px', textAlign: 'center' }}>
           <span style={{
-            width: 40, height: 40, borderRadius: 10, background: 'var(--accent-tint)', color: 'var(--accent)',
-            display: 'inline-grid', placeItems: 'center', marginBottom: 14,
+            width: 48, height: 48, borderRadius: 12, background: 'var(--accent-tint)', color: 'var(--accent)',
+            display: 'inline-grid', placeItems: 'center', marginBottom: 16,
           }}>
-            <Search size={19} />
+            <Search size={22} />
           </span>
-          <p style={{ fontSize: 14.5, color: 'var(--ink)', fontWeight: 600, marginBottom: 6 }}>
-            Let's check for an existing profile first
-          </p>
-          <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, marginBottom: 18 }}>
-            We source some creators before they've signed up. Takes a few seconds either way.
-          </p>
-          <Link href="/join" className="btn-primary btn-block" style={{ justifyContent: 'center' }}>
+          <h2 className="display-face" style={{ fontSize: 'clamp(19px,2.4vw,23px)', letterSpacing: '-0.02em', marginBottom: 18 }}>
+            You could be seconds from getting discovered.
+          </h2>
+          <div style={{ display: 'inline-flex', flexDirection: 'column', gap: 9, textAlign: 'left', marginBottom: 22 }}>
+            {[
+              'Receive collaboration requests directly',
+              'Manage your campaigns in one place',
+              'Protected payments',
+              'Everything is free during beta',
+            ].map(b => (
+              <div key={b} style={{ display: 'flex', alignItems: 'center', gap: 9, fontSize: 14, color: 'var(--ink)' }}>
+                <Check size={15} style={{ color: 'var(--money)', flexShrink: 0 }} /> {b}
+              </div>
+            ))}
+          </div>
+          <Link href="/join" className="btn-primary btn-lg btn-block" style={{ justifyContent: 'center' }}>
             Continue <ArrowRight size={16} />
           </Link>
+          <p style={{ fontSize: 12, color: 'var(--ink-faint-solid)', marginTop: 12 }}>
+            We source some creators before they've signed up — takes a few seconds either way.
+          </p>
         </div>
       ) : (
       <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>

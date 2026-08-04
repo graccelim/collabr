@@ -66,29 +66,39 @@ export default function BrandLandingContent({
 }) {
   return (
     <>
-      {/* ══ HERO ══ */}
-      <header style={{ textAlign: 'center', padding: 'clamp(28px,5vw,48px) 20px clamp(20px,3vw,28px)', maxWidth: 760, margin: '0 auto' }}>
-        <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
-          Find creators for your next campaign.
-        </h1>
-        <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
-          Browse real creators and request a collaboration in minutes.
-        </p>
-        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-          <Link href="/browse" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-            Browse Creators <ArrowRight size={16} />
-          </Link>
-          <Link href="/signup?role=brand" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
-            Already know who you want? Post a campaign
-          </Link>
+      {/* ══ HERO ══ soft atmosphere behind the headline, same technique as
+          the final CTA band below - gives the top of the page some depth
+          instead of sitting flat on the canvas. ══ */}
+      <header style={{ position: 'relative', textAlign: 'center', padding: 'clamp(28px,5vw,48px) 20px clamp(20px,3vw,28px)', overflow: 'hidden' }}>
+        <div aria-hidden style={{
+          position: 'absolute', top: '-25%', left: '50%', transform: 'translateX(-50%)',
+          width: 640, height: 420, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,4,53,.07), transparent 68%)',
+          pointerEvents: 'none',
+        }} />
+        <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
+          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16 }}>
+            Find creators for your next campaign.
+          </h1>
+          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
+            Browse real creators and request a collaboration in minutes.
+          </p>
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
+            <Link href="/browse" className="btn-primary btn-lg" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              Browse Creators <ArrowRight size={16} />
+            </Link>
+            <Link href="/signup?role=brand" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
+              Already know who you want? Post a campaign
+            </Link>
+          </div>
+          <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
+            Free during beta · No credit card required · Browsing needs no account
+          </p>
         </div>
-        <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
-          Free during beta · No credit card required · Browsing needs no account
-        </p>
       </header>
 
       {/* ══ HOW IT WORKS ══ */}
-      <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
+      <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
         <div className="lp-narrow">
           <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>How it works</div>
@@ -131,7 +141,7 @@ export default function BrandLandingContent({
       {/* ══ MEET CREATORS ON COLLABR ══ a small, fixed preview - never the
           marketplace itself. No search, no filters, no sort, no pagination;
           all of that lives exclusively on /browse. ══ */}
-      <section className="lp-section" style={{ background: 'var(--surface-2)' }}>
+      <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
         <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 20px' }}>
           <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 8 }}>Creators</div>
