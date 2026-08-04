@@ -87,7 +87,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Disco
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {pageCreators.map(c => (
-            <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} blurHandle />
+            <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} blurIdentity />
           ))}
         </div>
       )}

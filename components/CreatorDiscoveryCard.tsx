@@ -23,20 +23,21 @@ import type { DiscoveryCreatorRow } from '@/lib/creator-discovery'
  * of this markup.
  */
 export default function CreatorDiscoveryCard({
-  creator: c, socials, score, saveButton, blurHandle,
+  creator: c, socials, score, saveButton, blurIdentity,
 }: {
   creator: DiscoveryCreatorRow
   socials: SocialAccount[]
   score: ScoreRow | null
   saveButton?: React.ReactNode
   // Public /browse only (see that page's own comment on why it never adds
-  // auth checks): a passer-by could otherwise lift the exact @handle straight
-  // off the grid and DM the creator elsewhere, skipping Collabr's escrow and
-  // approvals entirely. Blurred rather than removed - it still reads as "a
-  // real, verified account" without giving away the literal string. Follower
-  // count (already shown below) carries the trust signal instead. The
-  // authenticated /creators dashboard doesn't pass this, so it's unaffected.
-  blurHandle?: boolean
+  // auth checks): a passer-by could otherwise lift the creator's name or
+  // exact @handle straight off the grid and find/DM them elsewhere, skipping
+  // Collabr's escrow and approvals entirely. Blurred rather than removed -
+  // it still reads as "a real, verified account" without giving away
+  // identifying text. Followers and niche stay legible as the actual
+  // evaluation signal. The authenticated /creators dashboard doesn't pass
+  // this, so it's unaffected.
+  blurIdentity?: boolean
 }) {
   const name = c.users?.display_name || c.display_name || 'Creator'
   const avatar = c.users?.avatar_url
@@ -68,8 +69,9 @@ export default function CreatorDiscoveryCard({
         <span style={{
           fontWeight: 600, fontSize: 15.5, letterSpacing: '-0.01em', color: 'var(--ink)',
           overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+          ...(blurIdentity ? { filter: 'blur(3.5px)', userSelect: 'none' as const } : {}),
         }}>
-          {name}
+          {blurIdentity ? <span aria-label="Verified creator">{name}</span> : name}
         </span>
         <CreatorActiveBadge claimed={!!c.user_id} onboardingCompleted={!!c.onboarding_completed_at} size={13} />
         <CollabrCertifiedBadge certified={!!c.certified} size="sm" showTip={false} />
@@ -96,7 +98,7 @@ export default function CreatorDiscoveryCard({
       {/* handle · niche */}
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {primary ? (
-          blurHandle ? (
+          blurIdentity ? (
             <span aria-label="Verified account" style={{ filter: 'blur(3.5px)', userSelect: 'none', display: 'inline-block' }}>
               {socialHandleLabel(primary.platform as SocialPlatform, primary.handle)}
             </span>
@@ -121,7 +123,7 @@ export default function CreatorDiscoveryCard({
           {totalFollowers > 0 ? (
             <>
               {totalFollowers.toLocaleString()}
-              <span style={{ color: 'var(--ink-faint-solid)' }}> followers (self-reported)</span>
+              <span style={{ color: 'var(--ink-faint-solid)' }}> followers</span>
             </>
           ) : (
             <span style={{ color: 'var(--ink-faint-solid)' }}>No socials yet</span>
