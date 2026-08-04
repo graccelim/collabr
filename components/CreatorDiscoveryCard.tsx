@@ -23,12 +23,20 @@ import type { DiscoveryCreatorRow } from '@/lib/creator-discovery'
  * of this markup.
  */
 export default function CreatorDiscoveryCard({
-  creator: c, socials, score, saveButton,
+  creator: c, socials, score, saveButton, blurHandle,
 }: {
   creator: DiscoveryCreatorRow
   socials: SocialAccount[]
   score: ScoreRow | null
   saveButton?: React.ReactNode
+  // Public /browse only (see that page's own comment on why it never adds
+  // auth checks): a passer-by could otherwise lift the exact @handle straight
+  // off the grid and DM the creator elsewhere, skipping Collabr's escrow and
+  // approvals entirely. Blurred rather than removed - it still reads as "a
+  // real, verified account" without giving away the literal string. Follower
+  // count (already shown below) carries the trust signal instead. The
+  // authenticated /creators dashboard doesn't pass this, so it's unaffected.
+  blurHandle?: boolean
 }) {
   const name = c.users?.display_name || c.display_name || 'Creator'
   const avatar = c.users?.avatar_url
@@ -87,7 +95,15 @@ export default function CreatorDiscoveryCard({
 
       {/* handle · niche */}
       <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)', marginTop: 2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {primary ? socialHandleLabel(primary.platform as SocialPlatform, primary.handle) : c.location || 'collabr creator'}
+        {primary ? (
+          blurHandle ? (
+            <span aria-label="Verified account" style={{ filter: 'blur(3.5px)', userSelect: 'none', display: 'inline-block' }}>
+              {socialHandleLabel(primary.platform as SocialPlatform, primary.handle)}
+            </span>
+          ) : (
+            socialHandleLabel(primary.platform as SocialPlatform, primary.handle)
+          )
+        ) : c.location || 'collabr creator'}
         {primaryNiche ? ` · ${primaryNiche}` : ''}
       </div>
 
