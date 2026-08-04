@@ -11,19 +11,19 @@ const EASE = [0.2, 0.7, 0.2, 1] as const
  * regardless of copy length, which keeps it solid on mobile too.
  */
 export default function WorkflowSteps({
-  steps, dotBg, dotInk, lineColor,
+  steps, dotBg, dotInk, lineColor, descColor = 'var(--ink-soft)',
 }: {
   steps: readonly (readonly [string, string])[]
   dotBg: string
   dotInk: string
   lineColor: string
+  descColor?: string
 }) {
   return (
     <LazyMotion features={domAnimation}>
     <m.div
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.35 }}
+      animate="show"
       variants={{ show: { transition: { staggerChildren: 0.14 } } }}
       style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
     >
@@ -63,7 +63,7 @@ export default function WorkflowSteps({
           </div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div className="workflow-title" style={{ fontWeight: 700, fontSize: 14.5 }}>{title}</div>
-            <div style={{ fontSize: 13, color: 'var(--ink-soft)', marginTop: 2, lineHeight: 1.45 }}>{desc}</div>
+            <div style={{ fontSize: 13, color: descColor, marginTop: 2, lineHeight: 1.45 }}>{desc}</div>
           </div>
         </m.div>
       ))}

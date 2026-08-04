@@ -59,50 +59,62 @@ const FAQ: readonly (readonly [string, string])[] = [
 export default function CreatorLandingContent() {
   return (
     <>
-      {/* ══ HERO ══ same dark-navy band as the brand hero ══ */}
+      {/* ══ HERO ══ light - the creator tab deliberately runs the opposite
+          rhythm to the brand tab (light → dark → light instead of
+          dark → light → dark), so switching tabs feels like a genuinely
+          different experience, not just a relabelled copy. ══ */}
       <header style={{
-        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(56px,7vw,76px)',
-        overflow: 'hidden',
-        background: 'linear-gradient(180deg, var(--brand) 0%, var(--brand) 85%, var(--app-bg) 100%)',
+        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(40px,6vw,64px)',
+        overflow: 'hidden', background: 'var(--app-bg)',
+        borderBottom: '1px solid var(--line)',
       }}>
         <div aria-hidden style={{
           position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
           width: 680, height: 440, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(124,108,255,.22), transparent 65%)',
+          background: 'radial-gradient(circle, rgba(0,4,53,.09), transparent 65%)',
           pointerEvents: 'none',
         }} />
         <div style={{ position: 'relative', maxWidth: 760, margin: '0 auto' }}>
-          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16, color: '#fff' }}>
+          <h1 className="display-face" style={{ fontSize: 'clamp(30px,4.8vw,52px)', lineHeight: 1.05, letterSpacing: '-0.03em', marginBottom: 16, color: 'var(--ink)' }}>
             Brands are already looking for creators like you.
           </h1>
-          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'rgba(255,255,255,.62)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
+          <p style={{ fontSize: 'clamp(15px,2vw,18px)', color: 'var(--ink-soft)', lineHeight: 1.5, maxWidth: 480, margin: '0 auto 24px' }}>
             Get discovered, receive collaboration requests, and get paid securely.
           </p>
           <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap', alignItems: 'center' }}>
-            <Link href="/join" className="btn btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+            <Link href="/join" className="btn-primary btn-lg hover-lift" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
               Join Collabr <ArrowRight size={16} />
             </Link>
-            <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'rgba(255,255,255,.62)' }}>
+            <Link href="/login" style={{ fontSize: 14, fontWeight: 600, color: 'var(--ink-soft)' }}>
               Already active on Collabr? Log in
             </Link>
           </div>
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,.4)', marginTop: 14 }}>
+          <p style={{ fontSize: 13, color: 'var(--ink-faint-solid)', marginTop: 14 }}>
             Free during beta · No credit card required · Takes 2 minutes
           </p>
         </div>
       </header>
 
-      {/* ══ HOW IT WORKS ══ */}
-      <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
+      {/* ══ HOW IT WORKS ══ the dark middle band ══ */}
+      <section className="lp-section" style={{
+        background: 'linear-gradient(135deg, var(--creator-deep) 0%, var(--creator-deep) 52%, color-mix(in srgb, var(--creator-deep) 82%, #4F46E5) 100%)',
+      }}>
         <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
-            <div className="eyebrow" style={{ marginBottom: 10 }}>How it works</div>
-            <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+            <div className="eyebrow" style={{ marginBottom: 10, color: 'rgba(255,255,255,.5)' }}>How it works</div>
+            <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em', color: '#fff' }}>
               Get discovered. Get paid.
             </h2>
           </Reveal>
-          <Reveal className="card" style={{ padding: 26, maxWidth: 520, margin: '0 auto' }}>
-            <WorkflowSteps steps={STEPS} dotBg="var(--creator)" dotInk="var(--creator-ink)" lineColor="var(--creator)" />
+          <Reveal immediate className="card" style={{
+            padding: 26, maxWidth: 520, margin: '0 auto', color: '#fff',
+            background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.14)', boxShadow: 'none',
+          }}>
+            <WorkflowSteps
+              steps={STEPS}
+              dotBg="#fff" dotInk="var(--creator-deep)" lineColor="rgba(255,255,255,.25)"
+              descColor="rgba(255,255,255,.62)"
+            />
           </Reveal>
         </div>
       </section>
@@ -110,7 +122,7 @@ export default function CreatorLandingContent() {
       {/* ══ WHY COLLABR ══ */}
       <section className="lp-section">
         <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>Why Collabr</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
               Built for creators who want less admin, more collabs.
@@ -118,7 +130,7 @@ export default function CreatorLandingContent() {
           </Reveal>
           <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
             {WHY.map(({ icon: Icon, title, body }) => (
-              <Reveal key={title} className="card" style={{ padding: 26 }}>
+              <Reveal immediate key={title} className="card" style={{ padding: 26 }}>
                 <div style={{
                   width: 38, height: 38, borderRadius: 10, background: 'var(--creator-tint)', color: 'var(--creator-deep)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
@@ -136,11 +148,11 @@ export default function CreatorLandingContent() {
       {/* ══ FAQ ══ */}
       <section className="lp-section">
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>FAQ</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>Questions, answered.</h2>
           </Reveal>
-          <Reveal>
+          <Reveal immediate>
             {FAQ.map(([q, a]) => (
               <details key={q} className="faq-item">
                 <summary>{q}</summary>
@@ -151,18 +163,18 @@ export default function CreatorLandingContent() {
         </div>
       </section>
 
-      {/* ══ FINAL CTA ══ */}
+      {/* ══ FINAL CTA ══ light, closing out the light → dark → light rhythm ══ */}
       <section style={{
-        background: 'linear-gradient(135deg, var(--creator-deep) 0%, var(--creator-deep) 52%, color-mix(in srgb, var(--creator-deep) 82%, #4F46E5) 100%)',
-        color: '#fff', padding: 'clamp(52px,7vw,76px) 20px', textAlign: 'center',
-        borderTop: '1px solid rgba(255,255,255,.08)',
+        background: 'var(--creator-tint)',
+        padding: 'clamp(52px,7vw,76px) 20px', textAlign: 'center',
+        borderTop: '1px solid var(--line)',
       }}>
-        <Reveal>
-          <h2 className="display-face" style={{ fontSize: 'clamp(26px,4vw,42px)', color: '#fff', marginBottom: 12, letterSpacing: '-0.03em' }}>
+        <Reveal immediate>
+          <h2 className="display-face" style={{ fontSize: 'clamp(26px,4vw,42px)', color: 'var(--ink)', marginBottom: 12, letterSpacing: '-0.03em' }}>
             Ready to get started?
           </h2>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap', marginTop: 28 }}>
-            <Link href="/join" className="btn btn-lg hover-lift" style={{ background: '#fff', color: 'var(--ink)', display: 'inline-flex', gap: 8 }}>
+            <Link href="/join" className="btn-primary btn-lg hover-lift" style={{ display: 'inline-flex', gap: 8 }}>
               Join Collabr <ArrowRight size={16} />
             </Link>
           </div>

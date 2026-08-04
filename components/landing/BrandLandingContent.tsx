@@ -68,12 +68,13 @@ export default function BrandLandingContent({
     <>
       {/* ══ HERO ══ dark navy, continuing the band from the nav/tab switcher
           above - violet atmosphere glow, same technique as the final CTA
-          band below, so the page reads as one considered dark-to-light
-          composition rather than a flat white page with a dark footer. ══ */}
+          band below. Brand tab runs dark → light → dark (hero, body,
+          final CTA); the creator tab below deliberately runs the opposite
+          rhythm, light → dark → light. ══ */}
       <header style={{
-        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(56px,7vw,76px)',
-        overflow: 'hidden',
-        background: 'linear-gradient(180deg, var(--brand) 0%, var(--brand) 85%, var(--app-bg) 100%)',
+        position: 'relative', textAlign: 'center', padding: 'clamp(40px,6vw,64px) 20px clamp(40px,6vw,64px)',
+        overflow: 'hidden', background: 'var(--brand)',
+        borderBottom: '1px solid rgba(255,255,255,.08)',
       }}>
         <div aria-hidden style={{
           position: 'absolute', top: '-20%', left: '50%', transform: 'translateX(-50%)',
@@ -105,13 +106,13 @@ export default function BrandLandingContent({
       {/* ══ HOW IT WORKS ══ */}
       <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
         <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>How it works</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
               Browse. Request. Manage.
             </h2>
           </Reveal>
-          <Reveal className="card" style={{ padding: 26, maxWidth: 520, margin: '0 auto' }}>
+          <Reveal immediate className="card" style={{ padding: 26, maxWidth: 520, margin: '0 auto' }}>
             <WorkflowSteps steps={STEPS} dotBg="var(--brand)" dotInk="#fff" lineColor="var(--brand)" />
           </Reveal>
         </div>
@@ -120,7 +121,7 @@ export default function BrandLandingContent({
       {/* ══ WHY COLLABR ══ */}
       <section className="lp-section">
         <div className="lp-narrow">
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>Why Collabr</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>
               Built for finding and working with creators.
@@ -128,7 +129,7 @@ export default function BrandLandingContent({
           </Reveal>
           <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
             {WHY.map(({ icon: Icon, title, body }) => (
-              <Reveal key={title} className="card" style={{ padding: 26 }}>
+              <Reveal immediate key={title} className="card" style={{ padding: 26 }}>
                 <div style={{
                   width: 38, height: 38, borderRadius: 10, background: 'var(--brand-tint)', color: 'var(--brand)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
@@ -148,7 +149,7 @@ export default function BrandLandingContent({
           all of that lives exclusively on /browse. ══ */}
       <section className="lp-section" style={{ background: 'linear-gradient(180deg, var(--surface-2) 0%, var(--paper-2) 100%)' }}>
         <div style={{ maxWidth: 1140, margin: '0 auto', padding: '0 20px' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 8 }}>Creators</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(24px,3vw,32px)', letterSpacing: '-0.02em' }}>
               Meet creators on Collabr.
@@ -193,11 +194,11 @@ export default function BrandLandingContent({
       {/* ══ FAQ ══ */}
       <section className="lp-section">
         <div style={{ maxWidth: 720, margin: '0 auto' }}>
-          <Reveal style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
+          <Reveal immediate style={{ textAlign: 'center', marginBottom: 'clamp(28px,3.5vw,40px)' }}>
             <div className="eyebrow" style={{ marginBottom: 10 }}>FAQ</div>
             <h2 className="display-face" style={{ fontSize: 'clamp(26px,3.4vw,38px)', letterSpacing: '-0.02em' }}>Questions, answered.</h2>
           </Reveal>
-          <Reveal>
+          <Reveal immediate>
             {FAQ.map(([q, a]) => (
               <details key={q} className="faq-item">
                 <summary>{q}</summary>
@@ -214,7 +215,7 @@ export default function BrandLandingContent({
         color: '#fff', padding: 'clamp(52px,7vw,76px) 20px', textAlign: 'center',
         borderTop: '1px solid rgba(255,255,255,.08)',
       }}>
-        <Reveal>
+        <Reveal immediate>
           <h2 className="display-face" style={{ fontSize: 'clamp(26px,4vw,42px)', color: '#fff', marginBottom: 12, letterSpacing: '-0.03em' }}>
             Your next collaboration starts here.
           </h2>
