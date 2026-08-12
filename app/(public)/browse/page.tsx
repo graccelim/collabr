@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { Users } from 'lucide-react'
 import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { getAuthUser } from '@/lib/auth'
 import { checkRateLimitDurable, clientIpFromHeaders } from '@/lib/rate-limit'
 import { runCreatorDiscovery, type DiscoveryParams } from '@/lib/creator-discovery'
 import CreatorFilters from '@/components/CreatorFilters'
@@ -14,10 +15,10 @@ import { NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 // Public, unauthenticated creator browsing - the primary acquisition surface
 // for a brand who hasn't signed up yet. Deliberately NOT added to
 // middleware.ts's PROTECTED_PREFIXES (that list still gates the full-featured
-// /creators dashboard for logged-in Plus brands unchanged) and deliberately
-// has zero auth/role checks of its own - always the same simple, public view
-// regardless of who's looking, so there's nothing here to rewrite later if
-// logged-in brands eventually get more actions layered on top.
+// /creators dashboard for logged-in Plus brands unchanged) and never
+// redirects regardless of who's looking. The one auth read below (getAuthUser)
+// is purely to decide whether creator identity is blurred - see
+// CreatorDiscoveryCard's blurIdentity - not to gate the page itself.
 export async function generateMetadata({ searchParams }: { searchParams: DiscoveryParams }): Promise<Metadata> {
   const niche = searchParams.niche ? NICHE_LABELS[searchParams.niche as CreatorNiche] || searchParams.niche : null
   const title = niche ? `Browse ${niche} creators` : 'Browse creators'
@@ -46,8 +47,12 @@ export default async function BrowsePage({ searchParams }: { searchParams: Disco
 
   const supabase = createClient()
   const admin = createAdminClient()
-  const { pageCreators, socialsByCreator, scoreById, total, totalPages, page } =
-    await runCreatorDiscovery(supabase, admin, searchParams, null)
+  const [user, discovery] = await Promise.all([
+    getAuthUser(),
+    runCreatorDiscovery(supabase, admin, searchParams, null),
+  ])
+  const { pageCreators, socialsByCreator, scoreById, total, totalPages, page } = discovery
+  const blurIdentity = !user
 
   function pageHref(p: number) {
     const entries = Object.entries(searchParams).filter(
@@ -87,7 +92,7 @@ export default async function BrowsePage({ searchParams }: { searchParams: Disco
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 16 }}>
           {pageCreators.map(c => (
-            <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} blurIdentity />
+            <CreatorDiscoveryCard key={c.id} creator={c} socials={socialsByCreator[c.id] || []} score={scoreById[c.id] || null} blurIdentity={blurIdentity} />
           ))}
         </div>
       )}

@@ -1,5 +1,5 @@
-import Link from 'next/link'
-import { Star } from 'lucide-react'
+import { Star, Lock } from 'lucide-react'
+import CreatorCardLink from '@/components/CreatorCardLink'
 import Avatar from '@/components/Avatar'
 import CreatorActiveBadge from '@/components/CreatorActiveBadge'
 import CollabrCertifiedBadge from '@/components/CollabrCertifiedBadge'
@@ -30,11 +30,11 @@ export default function CreatorDiscoveryCard({
   score: ScoreRow | null
   saveButton?: React.ReactNode
   // Public /browse only (see that page's own comment on why it never adds
-  // auth checks): a passer-by could otherwise lift the creator's name or
-  // exact @handle straight off the grid and find/DM them elsewhere, skipping
-  // Collabr's escrow and approvals entirely. Blurred rather than removed -
-  // it still reads as "a real, verified account" without giving away
-  // identifying text. Followers and niche stay legible as the actual
+  // auth checks): a passer-by could otherwise lift the creator's photo, name,
+  // or exact @handle straight off the grid and find/DM them elsewhere,
+  // skipping Collabr's escrow and approvals entirely. Blurred rather than
+  // removed - it still reads as "a real, verified account" without giving
+  // away identifying info. Followers and niche stay legible as the actual
   // evaluation signal. The authenticated /creators dashboard doesn't pass
   // this, so it's unaffected.
   blurIdentity?: boolean
@@ -53,14 +53,17 @@ export default function CreatorDiscoveryCard({
   const indicators = creatorIndicators(signals, null)
 
   return (
-    <Link
+    <CreatorCardLink
       href={`/creators/${c.slug || c.id}`}
+      gated={blurIdentity}
       className="card card-hover"
       style={{ display: 'flex', flexDirection: 'column', padding: 18 }}
     >
       {/* top: avatar + save (if provided) */}
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-        <Avatar src={avatar} name={name} size={46} />
+        <span style={blurIdentity ? { filter: 'blur(4px)', userSelect: 'none' as const } : undefined}>
+          <Avatar src={avatar} name={name} size={46} />
+        </span>
         {saveButton}
       </div>
 
@@ -93,6 +96,11 @@ export default function CreatorDiscoveryCard({
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 9 }}>
         {indicators.available && <span className="badge badge-accent" style={{ fontSize: 10.5 }}>Available Now</span>}
         {indicators.isNew && <span className="badge badge-neutral" style={{ fontSize: 10.5 }}>New Creator</span>}
+        {blurIdentity && (
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 10.5, fontWeight: 700, color: 'var(--accent)' }}>
+            <Lock size={10} /> Sign up to view profile
+          </span>
+        )}
       </div>
 
       {/* handle · niche */}
@@ -154,6 +162,6 @@ export default function CreatorDiscoveryCard({
           </span>
         </span>
       </div>
-    </Link>
+    </CreatorCardLink>
   )
 }

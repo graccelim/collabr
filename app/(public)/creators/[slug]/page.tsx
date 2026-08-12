@@ -26,9 +26,10 @@ import ReviewList from '@/components/ReviewList'
 import RatingSummaryCard from '@/components/RatingSummaryCard'
 import { reportingRate, sharesResults } from '@/lib/results/report'
 import Link from 'next/link'
-import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck, Send } from 'lucide-react'
+import { MapPin, ExternalLink, Clock, Pencil, FileText, Link2 as LinkIcon, Users, CheckCircle2, Star, ShieldCheck, Send, Lock } from 'lucide-react'
 import AuthGateButton from '@/components/AuthGateButton'
 import CreatorJoinTeaserCard from '@/components/CreatorJoinTeaserCard'
+import SocialProfileRow from '@/components/SocialProfileRow'
 
 // SEO: "[Creator name] on Collabr". Resolves by slug or UUID, same as the page.
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -166,6 +167,12 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
   const avatar = (creator.users as any)?.avatar_url
   const isBoosted = boostEnabled() && creator.boost_active_until && new Date(creator.boost_active_until) > new Date()
   const availability = creator.availability_status as AvailabilityStatus | null
+  // Logged-out visitor identity gate, consistent with /browse's grid cards -
+  // blurring the grid but showing everything in plain text one click away on
+  // this page would make that blur pointless. Never applies to the owner
+  // (isOwner already implies a signed-in user) or any other signed-in viewer,
+  // since anyone with an account is a real, accountable platform user.
+  const blurIdentity = !user
 
   // Honest, categorical responsiveness - "Not enough response history yet" until
   // there's a real sample. Never a percentage.
@@ -232,10 +239,20 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
           <div style={{ marginBottom: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', gap: 16, alignItems: 'center', minWidth: 0 }}>
-                <Avatar src={avatar} name={name} size={76} />
+                <span style={blurIdentity ? { filter: 'blur(6px)', userSelect: 'none' as const } : undefined}>
+                  <Avatar src={avatar} name={name} size={76} />
+                </span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 9, flexWrap: 'wrap' }}>
-                    <h1 className="display-face" style={{ fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05 }}>{name}</h1>
+                    <h1
+                      className="display-face"
+                      style={{
+                        fontSize: 'clamp(22px, 3vw, 28px)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.05,
+                        ...(blurIdentity ? { filter: 'blur(5px)', userSelect: 'none' as const } : {}),
+                      }}
+                    >
+                      {name}
+                    </h1>
                     <CreatorActiveBadge claimed={!!creator.user_id} onboardingCompleted={!!creator.onboarding_completed_at} />
                     <CollabrCertifiedBadge certified={!!creator.certified} />
                     <ConnectedCreatorBadge connected={!!creator.connected} lastSyncedAt={creator.insights_last_synced_at as string | null} showSync={false} />
@@ -251,7 +268,18 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   </div>
                   {primarySocial && (
                     <div style={{ fontSize: 13, color: 'var(--ink-soft)', fontWeight: 540, marginTop: 5 }}>
-                      {socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}
+                      {blurIdentity ? (
+                        <span style={{ filter: 'blur(4px)', userSelect: 'none', display: 'inline-block' }}>
+                          {socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)}
+                        </span>
+                      ) : (
+                        socialHandleLabel(primarySocial.platform as SocialPlatform, primarySocial.handle)
+                      )}
+                    </div>
+                  )}
+                  {blurIdentity && (
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 12, fontWeight: 700, color: 'var(--accent)', marginTop: 6 }}>
+                      <Lock size={11} /> Sign up to view this creator's profile
                     </div>
                   )}
                   <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '5px 12px', marginTop: 6, color: 'var(--ink-faint-solid)', fontSize: 13 }}>
@@ -462,30 +490,24 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                   {socials.map(s => {
                     const Icon = socialIcon(s.platform)
                     return (
-                      <a key={s.id} href={s.url} target="_blank" rel="noopener noreferrer" className="rail-link">
-                        <span style={{ width: 26, flexShrink: 0, display: 'grid', placeItems: 'center' }}>
-                          <Icon size={22} />
-                        </span>
-                        <span style={{ minWidth: 0, flex: 1 }}>
-                          <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <span style={{ fontSize: 13.5, fontWeight: 600, color: 'var(--ink)' }}>{SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}</span>
-                            {s.is_primary && (
-                              <span className="badge badge-accent" style={{ fontSize: 9.5, padding: '1px 6px' }}>Primary</span>
-                            )}
-                          </span>
-                          <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {socialHandleLabel(s.platform as SocialPlatform, s.handle)}
-                            {s.follower_count != null && ` · ${s.follower_count.toLocaleString()} followers`}
-                          </span>
-                        </span>
-                        <ExternalLink size={15} style={{ color: 'var(--ink-faint-solid)', flexShrink: 0 }} />
-                      </a>
+                      <SocialProfileRow
+                        key={s.id}
+                        href={s.url}
+                        icon={<Icon size={22} />}
+                        label={SOCIAL_LABELS[s.platform as SocialPlatform] || s.platform}
+                        primary={s.is_primary}
+                        handleLabel={socialHandleLabel(s.platform as SocialPlatform, s.handle)}
+                        followerText={s.follower_count != null ? ` · ${s.follower_count.toLocaleString()} followers` : null}
+                        gated={blurIdentity}
+                      />
                     )
                   })}
                 </div>
                 <p style={{ fontSize: 11, color: 'var(--ink-faint-solid)', marginTop: 10, lineHeight: 1.5 }}>
                   {isOwner
                     ? 'This is what brands see. Follower counts are self-reported.'
+                    : blurIdentity
+                    ? 'Sign up to view and verify this creator\'s social profiles.'
                     : 'These links come straight from the creator, open them to check the account yourself. Follower counts are self-reported.'}
                 </p>
               </>
@@ -502,7 +524,14 @@ export default async function CreatorProfilePage({ params, searchParams }: { par
                         </span>
                         <span style={{ minWidth: 0, flex: 1 }}>
                           <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600, color: 'var(--ink)', textTransform: 'capitalize' }}>{platform}</span>
-                          {info.handle && <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)' }}>@{info.handle}{info.followers ? ` · ${Number(info.followers).toLocaleString()} followers` : ''}</span>}
+                          {info.handle && (
+                            <span style={{
+                              display: 'block', fontSize: 12, color: 'var(--ink-faint-solid)',
+                              ...(blurIdentity ? { filter: 'blur(4px)', userSelect: 'none' as const } : {}),
+                            }}>
+                              @{info.handle}{info.followers ? ` · ${Number(info.followers).toLocaleString()} followers` : ''}
+                            </span>
+                          )}
                         </span>
                       </div>
                     )
