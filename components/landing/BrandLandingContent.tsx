@@ -2,7 +2,7 @@ import Link from 'next/link'
 import {
   Utensils, Sparkles, Plane, Shirt, Wand2, Dumbbell, Cpu, Baby, Briefcase, Gamepad2, GraduationCap, LayoutGrid,
 } from 'lucide-react'
-import { Reveal } from '@/components/Reveal'
+import { Reveal, RevealItem } from '@/components/Reveal'
 import { CREATOR_NICHES, NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { NAVY, INK_SOFT, INK_FAINT, LINE, ACCENT, ACCENT_TINT, GLOW } from './tokens'
 
@@ -91,7 +91,7 @@ export default function BrandLandingContent() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {STEPS.map(([title, body], i) => (
-              <Reveal immediate key={title} style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 18, padding: '22px 24px', background: '#fff', border: `1px solid ${LINE}`, borderRadius: 14 }}>
+              <Reveal key={title} delay={i * 0.06} style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: 18, padding: '22px 24px', background: '#fff', border: `1px solid ${LINE}`, borderRadius: 14 }}>
                 <span style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12.5, fontWeight: 500, color: ACCENT, background: ACCENT_TINT, borderRadius: 8, padding: '6px 0', textAlign: 'center', height: 'fit-content' }}>
                   {String(i + 1).padStart(2, '0')}
                 </span>
@@ -108,7 +108,7 @@ export default function BrandLandingContent() {
       {/* ══ WHY COLLABR ══ */}
       <section className="lp-section">
         <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)' }}>
-          <Reveal immediate style={{ marginBottom: 40 }}>
+          <Reveal style={{ marginBottom: 40 }}>
             <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 14px' }}>Why Collabr</p>
             <h2 style={{ fontSize: 'clamp(28px,3.6vw,40px)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 800, margin: 0, maxWidth: 720, textWrap: 'balance' }}>
               Built for finding and working with creators.
@@ -116,7 +116,7 @@ export default function BrandLandingContent() {
           </Reveal>
           <div className="resp-1col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             {WHY.map(([title, body], i) => (
-              <Reveal immediate key={title} style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 16, padding: '30px 32px 34px' }}>
+              <Reveal key={title} delay={i * 0.08} style={{ background: '#fff', border: `1px solid ${LINE}`, borderRadius: 16, padding: '30px 32px 34px' }}>
                 <span style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12, letterSpacing: '.1em', color: INK_FAINT }}>{String(i + 1).padStart(2, '0')}</span>
                 <h3 style={{ fontSize: 19, fontWeight: 700, letterSpacing: '-0.015em', margin: '18px 0 9px' }}>{title}</h3>
                 <p style={{ fontSize: 14.5, lineHeight: 1.6, color: INK_SOFT, margin: 0 }}>{body}</p>
@@ -134,7 +134,7 @@ export default function BrandLandingContent() {
           platform right now; the categories are real regardless of count. */}
       <section id="creators" className="lp-section" style={{ background: '#fff', borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}>
         <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)' }}>
-          <Reveal immediate style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, marginBottom: 36, flexWrap: 'wrap' }}>
+          <Reveal style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, marginBottom: 36, flexWrap: 'wrap' }}>
             <div>
               <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 14px' }}>Creators</p>
               <h2 style={{ fontSize: 'clamp(28px,3.6vw,40px)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 800, margin: 0, maxWidth: 600, textWrap: 'balance' }}>
@@ -148,10 +148,10 @@ export default function BrandLandingContent() {
           </Reveal>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            {CREATOR_NICHES.map(n => {
+            {CREATOR_NICHES.map((n, i) => {
               const Icon = NICHE_ICON[n]
               return (
-                <Reveal immediate key={n}>
+                <Reveal key={n} delay={i * 0.03}>
                   <Link
                     href={`/browse?niche=${n}`} className="hover-lift"
                     style={{
@@ -181,15 +181,17 @@ export default function BrandLandingContent() {
             <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 14px' }}>FAQ</p>
             <h2 style={{ fontSize: 'clamp(28px,3.6vw,40px)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 800, margin: 0 }}>Questions, answered.</h2>
             <p style={{ fontSize: 15.5, lineHeight: 1.6, color: INK_SOFT, margin: '16px 0 0' }}>
-              Still stuck? <a href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry" style={{ color: ACCENT, fontWeight: 600 }}>Contact us</a> and a human will reply.
+              Still stuck? <a href="mailto:joincollabr@gmail.com?subject=Collabr%20enquiry" style={{ color: ACCENT, fontWeight: 600 }}>Contact us</a>.
             </p>
           </div>
-          <Reveal immediate style={{ display: 'flex', flexDirection: 'column' }}>
+          <Reveal stagger style={{ display: 'flex', flexDirection: 'column' }}>
             {FAQ.map(([q, a]) => (
-              <details key={q} className="faq-item">
-                <summary>{q}</summary>
-                <p>{a}</p>
-              </details>
+              <RevealItem key={q}>
+                <details className="faq-item">
+                  <summary>{q}</summary>
+                  <p>{a}</p>
+                </details>
+              </RevealItem>
             ))}
           </Reveal>
         </div>
@@ -203,7 +205,7 @@ export default function BrandLandingContent() {
           background: `radial-gradient(ellipse at center, ${GLOW}, rgba(10,14,40,0) 70%)`,
         }} />
         <div style={{ position: 'relative', maxWidth: 1120, margin: '0 auto', padding: 'clamp(64px,9vw,96px) 20px', textAlign: 'center' }}>
-          <Reveal immediate>
+          <Reveal>
             <h2 style={{ fontSize: 'clamp(32px,5vw,50px)', lineHeight: 1.08, letterSpacing: '-0.035em', fontWeight: 800, color: '#fff', margin: '0 auto', maxWidth: 640, textWrap: 'balance' }}>
               Your next collaboration starts here.
             </h2>
