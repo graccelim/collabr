@@ -209,11 +209,21 @@ export default function CreatorAdminPanel({ initialCreators }: { initialCreators
   const [linkFor, setLinkFor] = useState<{ id: string; displayName: string; url: string; expiresAt: string } | null>(null)
   const [query, setQuery] = useState('')
   const [showArchived, setShowArchived] = useState(false)
+  // "Requested" tab - jump straight to creators a brand has asked for,
+  // instead of scrolling the whole roster looking for the small collapsed
+  // "N request(s)" line on whichever card happens to have one.
+  const [onlyRequested, setOnlyRequested] = useState(false)
+
+  const requestedCount = useMemo(
+    () => initialCreators.filter(c => !c.archived && c.requests.length > 0).length,
+    [initialCreators]
+  )
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return initialCreators
       .filter(c => showArchived ? c.archived : !c.archived)
+      .filter(c => onlyRequested ? c.requests.length > 0 : true)
       .filter(c => {
         if (!q) return true
         return c.displayName.toLowerCase().includes(q)
@@ -221,7 +231,7 @@ export default function CreatorAdminPanel({ initialCreators }: { initialCreators
           || c.socials.some(s => s.username.toLowerCase().includes(q))
           || c.nicheTags.some(n => n.toLowerCase().includes(q))
       })
-  }, [initialCreators, query, showArchived])
+  }, [initialCreators, query, showArchived, onlyRequested])
 
   async function createCreator(data: { displayName: string; bio: string; nicheTags: string[]; internalNotes: string; socials: SocialRow[] }) {
     if (!data.displayName || data.displayName.length < 2) { toast.error('Enter a display name'); return }
@@ -343,6 +353,31 @@ export default function CreatorAdminPanel({ initialCreators }: { initialCreators
 
   return (
     <div className="space-y-4">
+      {/* Tabs - "Requested" filters to creators with a brand ask attached,
+          so a new request never has to be spotted by scanning the whole
+          roster for a small collapsed line. */}
+      <div className="flex items-center gap-1.5">
+        <button type="button" onClick={() => setOnlyRequested(false)}
+          className="text-sm font-medium px-3 py-1.5 rounded-full"
+          style={{
+            background: !onlyRequested ? 'var(--ink)' : 'transparent',
+            color: !onlyRequested ? '#fff' : 'var(--ink-soft)',
+          }}>
+          All
+        </button>
+        <button type="button" onClick={() => setOnlyRequested(true)}
+          className="text-sm font-medium px-3 py-1.5 rounded-full inline-flex items-center gap-2"
+          style={{
+            background: onlyRequested ? 'var(--ink)' : 'transparent',
+            color: onlyRequested ? '#fff' : 'var(--ink-soft)',
+          }}>
+          Requested
+          {requestedCount > 0 && (
+            <span className="badge badge-accent" style={{ fontSize: 10.5 }}>{requestedCount}</span>
+          )}
+        </button>
+      </div>
+
       <div className="flex items-center gap-2 flex-wrap">
         {!creating && !bulkAdding && (
           <>
@@ -401,12 +436,17 @@ export default function CreatorAdminPanel({ initialCreators }: { initialCreators
                   )}
                   {c.requests.length > 0 && (
                     <div className="mt-1.5">
-                      <button type="button" onClick={() => toggleExpanded(c.id)}
-                        className="text-xs inline-flex items-center gap-1 text-gray-500 hover:text-gray-700">
-                        {expandedIds.has(c.id) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                        {c.requests.length} request{c.requests.length !== 1 ? 's' : ''}
-                      </button>
-                      {expandedIds.has(c.id) && (
+                      {/* On the "Requested" tab, every card here has a request by
+                          definition - show it open by default instead of making
+                          that the extra click too. */}
+                      {!onlyRequested && (
+                        <button type="button" onClick={() => toggleExpanded(c.id)}
+                          className="text-xs inline-flex items-center gap-1 text-gray-500 hover:text-gray-700">
+                          {expandedIds.has(c.id) ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                          {c.requests.length} request{c.requests.length !== 1 ? 's' : ''}
+                        </button>
+                      )}
+                      {(onlyRequested || expandedIds.has(c.id)) && (
                         <RequestsTable requests={c.requests} busyRequestId={busyRequestId} onStatusChange={updateRequestStatus} />
                       )}
                     </div>
