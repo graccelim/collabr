@@ -84,7 +84,7 @@ export default function InviteCreatorForm({ creatorId, creatorName, campaigns, p
     return (
       <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
         <Send size={14} />
-        Request Collaboration
+        Request
       </button>
     )
   }

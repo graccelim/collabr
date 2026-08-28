@@ -143,7 +143,7 @@ export default function ApplicantList({ applications, campaignId, campaign, spot
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       {showTabs && (
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className="cl-tabs lw-chips" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {tabs.map(t => (
             <button key={t.key} type="button" onClick={() => setFilter(t.key)}
               className={`chip${filter === t.key ? ' on' : ''}`}>
