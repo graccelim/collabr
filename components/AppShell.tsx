@@ -2,6 +2,7 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { getInitials } from '@/lib/utils'
 import { getAuthUser, getUserRow } from '@/lib/auth'
 import { AppNav } from '@/components/AppNav'
+import AdminShell from '@/components/AdminShell'
 import TopBar from '@/components/TopBar'
 import PageTransition from '@/components/PageTransition'
 import TrustBanners from '@/components/TrustBanners'
@@ -28,6 +29,14 @@ export default async function AppShell({ children }: { children: React.ReactNode
       </div>
     )
   }
+
+  // Admin accounts are a distinct third role (see migration 001), not a
+  // bonus flag on a brand/creator account - they have no brand_profiles or
+  // creator_profiles row at all, so the plan/invite lookups below (and
+  // AppNav/TopBar, which are built entirely around brand/creator concepts)
+  // don't apply. Break out to a separate, minimal shell before any of that
+  // runs, rather than threading 'admin' through both components' branches.
+  if (profile.role === 'admin') return <AdminShell>{children}</AdminShell>
 
   const role = profile.role as 'brand' | 'creator'
   const supabase = createClient()

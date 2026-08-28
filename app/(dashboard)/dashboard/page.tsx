@@ -322,6 +322,12 @@ export default async function DashboardPage() {
   if (!user) redirect('/login');
   const profile = await getUserRow();
   if (!profile) redirect('/signup');
+  // Admin is a distinct role, not a brand/creator with extra powers - it has
+  // no brand_profiles/creator_profiles row for either branch below to render,
+  // so this page isn't a valid landing spot for it (redirect(), not render,
+  // since Next treats a thrown redirect from a Server Component as control
+  // flow, not a value the two role checks below need to guard against).
+  if (profile.role === 'admin') redirect('/admin');
 
   if (profile.role === 'brand') return <BrandDashboard userId={user.id} />;
   if (profile.role === 'creator')
