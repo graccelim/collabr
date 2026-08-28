@@ -20,17 +20,23 @@ export default function OnboardingChecklist({ summary, greeting, readyNote }: {
 
   return (
     <div className="card" style={{ padding: 22, marginBottom: 18 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 4 }}>
-        <h2 style={{ fontSize: 17, fontWeight: 700, margin: 0 }}>
-          {greeting || 'Welcome to Collabr'}
-        </h2>
-        <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: 'var(--accent-deep)', whiteSpace: 'nowrap' }}>
+      {/* Title gets the full row to itself so it can wrap freely at any
+          width - it previously shared a flex row with the "N of M done"
+          badge, which stayed pinned beside the title's first line even when
+          the title wrapped to two lines on narrow phones, producing a
+          ragged overlap. The badge now sits beside the progress bar it
+          actually describes instead. */}
+      <h2 style={{ fontSize: 17, fontWeight: 700, margin: '0 0 4px' }}>
+        {greeting || 'Welcome to Collabr'}
+      </h2>
+      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 12px' }}>
+        Your account is live. A couple of quick steps and you&rsquo;re in business — pick up where you left off anytime.
+      </p>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 6 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--accent-deep)' }}>
           {done} of {total} done
         </span>
       </div>
-      <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', lineHeight: 1.5, margin: '0 0 14px' }}>
-        Your account is live. A couple of quick steps and you&rsquo;re in business — pick up where you left off anytime.
-      </p>
       <div style={{ height: 7, borderRadius: 99, background: 'var(--surface-2)', overflow: 'hidden', marginBottom: 16 }}>
         <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 99, transition: 'width .3s ease' }} />
       </div>

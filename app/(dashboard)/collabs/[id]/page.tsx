@@ -183,10 +183,15 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
       </Link>
 
       {/* ── Deal header ───────────────────────────────────── */}
-      {/* Clean, single-row identity: avatar + title/counterpart + status badge.
-         The deal amount is the hero of the escrow card right below, so it isn't
+      {/* Identity row (avatar + title/counterpart) and the status badge are
+         two separate rows, not one shared flex line - campaign titles are
+         user-entered and can be long, and a badge sharing that row (even
+         top-aligned) ends up squeezed into a narrow column alongside a
+         wrapping title on a phone-width screen. Decoupling them means the
+         title always gets the full row to wrap in, at any length. The deal
+         amount is the hero of the escrow card right below, so it isn't
          repeated here (that cramped the mobile header). */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 10 }}>
         <div style={{ width: 48, height: 48, borderRadius: '50%', background: isBrand ? 'var(--creator-tint)' : 'var(--brand-tint)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16, color: isBrand ? 'var(--creator-deep)' : 'var(--ink)', flexShrink: 0 }}>
           {getInitials(isBrand ? creatorName : brandName)}
         </div>
@@ -198,7 +203,9 @@ export default async function CollabDetailPage({ params }: { params: { id: strin
             {isBrand ? `with ${creatorName}` : `for ${brandName}`}
           </p>
         </div>
-        <span className={`badge badge-${status?.color || 'neutral'}`} style={{ flexShrink: 0, marginTop: 4 }}>{status?.label || collab.status}</span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 24 }}>
+        <span className={`badge badge-${status?.color || 'neutral'}`}>{status?.label || collab.status}</span>
       </div>
 
       {/* ── Escrow timeline + status strip. Barter collabs carry no money, so

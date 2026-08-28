@@ -35,10 +35,14 @@ export default function ReviewList({
 }) {
   return (
     <section style={{ marginBottom: 30 }}>
-      <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
-        <h2 className="h2" style={{ fontSize: 18, margin: 0 }}>{heading}</h2>
+      {/* flex-start + wrap (not baseline, no wrap) so a longer heading wraps
+          cleanly onto its own line instead of the count badge hovering
+          beside the wrap point - see OnboardingChecklist for the original
+          version of this bug. */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', justifyContent: 'space-between', gap: '2px 10px', marginBottom: 14 }}>
+        <h2 className="h2" style={{ fontSize: 18, margin: 0, flex: '1 1 auto', minWidth: 0 }}>{heading}</h2>
         {reviews.length > 0 && (
-          <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600 }}>
+          <span style={{ fontSize: 12, color: 'var(--ink-faint-solid)', textTransform: 'uppercase', letterSpacing: '.08em', fontWeight: 600, flexShrink: 0, marginLeft: 'auto' }}>
             {reviews.length} total
           </span>
         )}

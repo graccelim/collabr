@@ -29,9 +29,11 @@ export default function BrandActivation({ hasCampaign, hasInvited, hasFunded, ha
   return (
     <div className="card" style={{ padding: 20, marginBottom: 18 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 6 }}>
-        <Rocket size={17} color="var(--accent-deep)" />
+        <Rocket size={17} color="var(--accent-deep)" style={{ flexShrink: 0 }} />
         <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Get to your first collaboration</h2>
-        <span style={{ marginLeft: 'auto', fontSize: 13, fontWeight: 700, color: 'var(--accent-deep)' }}>{pct}% complete</span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-deep)' }}>{pct}% complete</span>
       </div>
       <div style={{ height: 7, borderRadius: 99, background: 'var(--surface-2)', overflow: 'hidden', margin: '8px 0 14px' }}>
         <div style={{ height: '100%', width: `${pct}%`, background: 'var(--accent)', borderRadius: 99, transition: 'width .3s ease' }} />

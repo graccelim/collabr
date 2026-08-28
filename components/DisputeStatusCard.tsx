@@ -51,21 +51,26 @@ export default function DisputeStatusCard({
 
   return (
     <div className="card" style={{ padding: 20, border: `1px solid ${resolved ? 'var(--line)' : 'rgba(220,38,38,.25)'}` }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
         <span style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, display: 'grid', placeItems: 'center', background: resolved ? 'var(--money-tint)' : 'var(--danger-tint)', color: resolved ? 'var(--money-deep)' : 'var(--danger)' }}>
           {resolved ? <CheckCircle2 size={18} /> : <Scale size={18} />}
         </span>
-        <div style={{ minWidth: 0 }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>{resolved ? 'Dispute resolved' : 'Dispute open'}</div>
           <div style={{ fontSize: 12.5, color: 'var(--ink-faint-solid)' }}>
             Opened by {raisedByType === 'brand' ? 'the brand' : 'the creator'} · {when(openedAt)}
           </div>
         </div>
-        {/* Neutral, not green, a resolved dispute isn't a "win" for whoever's
-            viewing (brand_wins / mutual would otherwise show the loser a success badge). */}
-        <span className={`badge ${resolved ? 'badge-neutral' : 'badge-warn'}`} style={{ marginLeft: 'auto', flexShrink: 0 }}>
-          {statusLabel}
-        </span>
+      </div>
+      {/* Own row, not squeezed into the header - the outcome text can be as
+          long as "Resolved in the creator's favour" or a split percentage,
+          and flexShrink:0 on a badge sharing a row with that text would
+          otherwise crush the title/subtitle column on a narrow screen.
+          Neutral, not green: a resolved dispute isn't a "win" for whoever's
+          viewing (brand_wins / mutual would otherwise show the loser a
+          success badge). */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+        <span className={`badge ${resolved ? 'badge-neutral' : 'badge-warn'}`}>{statusLabel}</span>
       </div>
 
       {!resolved && (
