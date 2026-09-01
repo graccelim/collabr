@@ -3,36 +3,24 @@ import { Reveal, RevealItem } from '@/components/Reveal'
 import { NAVY, INK_SOFT, INK_FAINT, LINE, ACCENT, ACCENT_TINT, GLOW } from './tokens'
 
 const STEPS: readonly (readonly [string, string])[] = [
-  ['Join Collabr', 'Sign up, or activate a profile we may have already started for you.'],
+  ['Join Collabr', 'Sign up, or activate a profile we may have started for you.'],
   ['Get discovered', 'Brands search and browse for creators like you.'],
-  ['Receive requests', 'Accept collaboration requests directly through Collabr.'],
-  ['Get paid securely', 'Funds are protected and released once your work is approved.'],
+  ['Receive requests', 'Accept collaboration requests directly.'],
+  ['Get paid securely', 'Funds are released once your work is approved.'],
 ]
 
 const WHY: readonly (readonly [string, string])[] = [
-  ['Protected payments', 'Get paid securely, funds are held until your work is approved and live.'],
-  ['Manage collaborations in one place', 'Briefs, drafts and approvals, without scattered DMs across five different apps.'],
-  ['Build real reputation', 'Ratings and completed collaborations that help you stand out to brands.'],
+  ['Protected payments', 'Funds are held until your work is approved and live.'],
+  ['One place for everything', 'Briefs, drafts, and approvals, no more scattered DMs.'],
+  ['Real reputation', 'Ratings and completed collabs help you stand out.'],
   ['Free during beta', 'No subscription, no fee to join, keep what you earn.'],
 ]
 
 const FAQ: readonly (readonly [string, string])[] = [
-  [
-    'Do I need to already have a profile?',
-    'No. If we haven’t already put one together for you, you can create your own in a couple of minutes.',
-  ],
-  [
-    'How much does it cost to join?',
-    'Nothing. Joining and receiving collaboration requests is completely free during beta.',
-  ],
-  [
-    'How do I get paid?',
-    'Once your content is approved and live, payment is released automatically, no invoicing and no chasing.',
-  ],
-  [
-    'What if a brand and I don’t see eye to eye?',
-    'Every collaboration has a structured draft-and-revision process, and a dispute process if it’s ever needed.',
-  ],
+  ['Do I need to already have a profile?', 'No, if we haven’t started one for you, you can create your own in minutes.'],
+  ['How much does it cost to join?', 'Nothing, free during beta.'],
+  ['How do I get paid?', 'Payment is released automatically once your content is approved and live.'],
+  ['What if a brand and I don’t see eye to eye?', 'A structured revision process, and a dispute process if it’s ever needed.'],
 ]
 
 // Every CTA on this tab routes to /join, never a generic /signup - /join is

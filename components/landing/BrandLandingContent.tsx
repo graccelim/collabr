@@ -1,48 +1,26 @@
 import Link from 'next/link'
-import {
-  Utensils, Sparkles, Plane, Shirt, Wand2, Dumbbell, Cpu, Baby, Briefcase, Gamepad2, GraduationCap, LayoutGrid,
-} from 'lucide-react'
 import { Reveal, RevealItem } from '@/components/Reveal'
-import { CREATOR_NICHES, NICHE_LABELS, type CreatorNiche } from '@/lib/onboarding'
 import { NAVY, INK_SOFT, INK_FAINT, LINE, ACCENT, ACCENT_TINT, GLOW } from './tokens'
 
-const NICHE_ICON: Record<CreatorNiche, typeof Utensils> = {
-  food: Utensils, lifestyle: Sparkles, travel: Plane, fashion: Shirt, beauty: Wand2,
-  fitness: Dumbbell, tech: Cpu, parenting: Baby, business: Briefcase, gaming: Gamepad2,
-  education: GraduationCap, other: LayoutGrid,
-}
-
 const STEPS: readonly (readonly [string, string])[] = [
-  ['Browse creators', 'Search and filter the roster, no account needed to look around.'],
-  ['Request collaboration', 'Found a fit? Request them, on a campaign you post or one we help you set up.'],
-  ['Connect on Collabr', 'Once they accept, you’ll coordinate directly through the platform. During beta, we’ll personally help facilitate the introduction if a creator hasn’t joined yet.'],
-  ['Manage everything in Collabr', 'Briefs, approvals, and protected payments, all handled inside the platform from there.'],
+  ['Browse creators', 'No account needed to look around.'],
+  ['Request a collaboration', 'Pick a creator, attach a campaign, send your offer.'],
+  ['Connect on Collabr', 'Coordinate directly, in one place, once they accept.'],
+  ['Manage everything', 'Briefs, approvals, and protected payments, all here.'],
 ]
 
 const WHY: readonly (readonly [string, string])[] = [
-  ['Protected payments', 'Funds are held securely and only released once you approve the delivered content.'],
-  ['Manage campaigns in one place', 'Briefs, drafts, feedback, and approvals all live in one place instead of scattered across DMs.'],
-  ['Real reputation, not just followers', 'See ratings and completed collaborations, so you know who’s reliable before you reach out.'],
-  ["We'll help source creators", "Want someone who hasn't joined yet? Request them and we'll personally make the introduction."],
+  ['Protected payments', 'Funds are held securely until you approve the content.'],
+  ['One place for everything', 'Briefs, drafts, and approvals, no more scattered DMs.'],
+  ['Real reputation', 'Ratings and completed collabs show who’s reliable.'],
+  ["We'll help you find creators", "Want someone who hasn't joined yet? We'll reach out for you."],
 ]
 
 const FAQ: readonly (readonly [string, string])[] = [
-  [
-    'How do I contact creators?',
-    'Open any creator’s profile and select "Request Collaboration." We’ll notify them and let you know the moment they respond.',
-  ],
-  [
-    'Do creators have to join first?',
-    'No. Many of the creators you’ll see have already joined Collabr. If you want to work with someone who hasn’t yet, request the collaboration and we’ll personally reach out to bring them on, at no extra cost to you.',
-  ],
-  [
-    'How are payments protected?',
-    'The brand funds the collaboration upfront and the money is held securely by the platform. It’s only released to the creator once the content is approved and live, so you never pay for work that isn’t delivered.',
-  ],
-  [
-    'How much does it cost during beta?',
-    'Browsing, searching, and requesting collaborations is free during beta, no subscription and no credit card required. You only pay the agreed rate when you fund a collaboration, with no commission on top.',
-  ],
+  ['How do I contact creators?', 'Open their profile and select "Request Collaboration." We’ll notify you the moment they respond.'],
+  ['Do creators have to join first?', 'No, request anyone. If they haven’t joined yet, we’ll personally reach out and bring them on.'],
+  ['How are payments protected?', 'Funds are held securely and only released once you approve the delivered content.'],
+  ['How much does it cost during beta?', 'Free, no subscription and no card required.'],
 ]
 
 export default function BrandLandingContent() {
@@ -122,54 +100,6 @@ export default function BrandLandingContent() {
                 <p style={{ fontSize: 14.5, lineHeight: 1.6, color: INK_SOFT, margin: 0 }}>{body}</p>
               </Reveal>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══ CREATORS ACROSS EVERY NICHE ══ category tiles into /browse
-          rather than individual creator cards - real people's photos,
-          handles, and rates don't belong on a public marketing page nobody
-          has to log in to see. This also sidesteps overstating (or
-          embarrassingly understating) how many creators are on the
-          platform right now; the categories are real regardless of count. */}
-      <section id="creators" className="lp-section" style={{ background: '#fff', borderTop: `1px solid ${LINE}`, borderBottom: `1px solid ${LINE}` }}>
-        <div style={{ maxWidth: 1120, margin: '0 auto', padding: '0 clamp(20px,4vw,32px)' }}>
-          <Reveal style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 32, marginBottom: 36, flexWrap: 'wrap' }}>
-            <div>
-              <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 11, letterSpacing: '.16em', textTransform: 'uppercase', color: ACCENT, margin: '0 0 14px' }}>Creators</p>
-              <h2 style={{ fontSize: 'clamp(28px,3.6vw,40px)', lineHeight: 1.1, letterSpacing: '-0.03em', fontWeight: 800, margin: 0, maxWidth: 600, textWrap: 'balance' }}>
-                Creators across every niche.
-              </h2>
-              <p style={{ fontSize: 15.5, lineHeight: 1.6, color: INK_SOFT, margin: '12px 0 0', maxWidth: 480 }}>
-                From food and beauty to tech and gaming, browse real creators building a roster on Collabr.
-              </p>
-            </div>
-            <Link href="/browse" style={{ fontSize: 15, fontWeight: 600, color: ACCENT, whiteSpace: 'nowrap' }}>Browse all creators →</Link>
-          </Reveal>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-            {CREATOR_NICHES.map((n, i) => {
-              const Icon = NICHE_ICON[n]
-              return (
-                <Reveal key={n} delay={i * 0.03}>
-                  <Link
-                    href={`/browse?niche=${n}`} className="hover-lift"
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 12, padding: '16px 18px',
-                      background: '#F4F6FC', border: `1px solid ${LINE}`, borderRadius: 14, color: 'inherit',
-                    }}
-                  >
-                    <span style={{
-                      width: 36, height: 36, borderRadius: 10, background: ACCENT_TINT, color: ACCENT,
-                      display: 'grid', placeItems: 'center', flexShrink: 0,
-                    }}>
-                      <Icon size={17} />
-                    </span>
-                    <span style={{ fontSize: 14.5, fontWeight: 700 }}>{NICHE_LABELS[n]}</span>
-                  </Link>
-                </Reveal>
-              )
-            })}
           </div>
         </div>
       </section>
