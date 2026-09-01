@@ -663,6 +663,11 @@
   align-items: center; justify-content: center;
   z-index: 10; text-align: center;
 }
+
+/* Mobile-only brand/creator toggle for the split-hero - hidden on desktop
+   (where the two sides already sit side by side). Pure CSS via :has(), no JS
+   or hydration cost on an otherwise fully static page. */
+.split-toggle-mobile { display: none; }
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow);
@@ -896,14 +901,36 @@
   }
   .split-hero      { flex-direction: column; min-height: auto; }
   .split-side      { min-height: 320px; padding: 32px 22px; }
-  /* Extra bottom room on the navy (top) side so its button clears the centred
-     medallion below it. */
-  .split-side-brand { padding-bottom: 70px; }
   .split-hero:hover .split-side,
   .split-hero .split-side:hover { flex: 1 !important; }
-  /* Bigger circle (more breathing room around "collabr."), nudged to visual
-     centre. Phones only. */
-  .split-medallion { width: 92px; height: 92px; top: 53%; }
+  /* The medallion sat at the seam between the two panels - with only one
+     panel shown at a time on phones there's no seam to mark, and the fixed
+     bottom padding that used to clear it is no longer needed either. */
+  .split-medallion { display: none; }
+
+  /* Brand/creator toggle - a plain pill switcher, no sliding thumb (that's a
+     JS/measurement trick not worth it for two static options). Whichever
+     radio is checked shows its side and hides the other via :has(), reusing
+     the same pattern already used elsewhere (see .bc-actions:has(...)). */
+  .split-toggle-mobile {
+    display: flex; justify-content: center;
+    padding: 16px 20px; background: var(--paper);
+  }
+  .split-toggle-pills {
+    display: inline-flex; padding: 4px; border-radius: 999px;
+    background: var(--paper-2); border: 1px solid var(--line);
+  }
+  .split-toggle-pills label {
+    padding: 9px 20px; border-radius: 999px; cursor: pointer;
+    font-size: 13.5px; font-weight: 600; color: var(--ink-soft);
+    transition: background .15s ease, color .15s ease;
+  }
+  #split-tab-brand:checked ~ label[for="split-tab-brand"],
+  #split-tab-creator:checked ~ label[for="split-tab-creator"] {
+    background: var(--ink); color: #fff;
+  }
+  .split-wrap:has(#split-tab-creator:checked) .split-side-brand   { display: none; }
+  .split-wrap:has(#split-tab-brand:checked)   .split-side-creator { display: none; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
   /* Split-hero USP bullets carry the first USP hit on phones, so make them read

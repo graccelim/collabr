@@ -332,8 +332,23 @@ export default function CurrentLanding() {
         </div>
       </header>
 
-      {/* ── Dual-sided split (the interaction worth keeping) ── */}
-      <div className="split-hero">
+      {/* ── Dual-sided split (the interaction worth keeping) ── Phones show one
+          side at a time via a CSS-only radio toggle (no JS/hydration cost) -
+          stacking both full panels top-to-bottom made mobile visitors scroll
+          through content for an audience they aren't part of. Desktop is
+          untouched (.split-toggle-mobile and the :has() rules below are both
+          scoped to the same ≤768px breakpoint as the rest of the mobile
+          overrides in globals.css). ── */}
+      <div className="split-wrap">
+        <div className="split-toggle-mobile">
+          <div className="split-toggle-pills">
+            <input type="radio" name="split-tab" id="split-tab-brand" defaultChecked className="sr-only" />
+            <label htmlFor="split-tab-brand">I&rsquo;m a brand</label>
+            <input type="radio" name="split-tab" id="split-tab-creator" className="sr-only" />
+            <label htmlFor="split-tab-creator">I&rsquo;m a creator</label>
+          </div>
+        </div>
+        <div className="split-hero">
         <Link
           href="/signup?role=brand"
           className="split-side split-side-brand"
@@ -518,6 +533,7 @@ export default function CurrentLanding() {
             </span>
           </div>
         </Link>
+        </div>
       </div>
 
       {/* ══ WHY COLLABR ══ benefit-led USP grid. Value before mechanism on every
