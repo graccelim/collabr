@@ -128,7 +128,7 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
 /* FAQ — answers the objections that stop signups. Honest copy only: mechanics
    that exist in the product today. */
 const FAQ: readonly (readonly [string, string])[] = [
-  ['How much does Collabr cost?', 'Free to join, no subscription. Brands pay only the agreed rate; creators keep 90% of every payout.'],
+  ['How much does Collabr cost?', 'Brands pay only the agreed rate; creators keep 90% of every payout.'],
   ['How are payments protected?', 'Funds are held by the platform and only released once the content is approved and live.'],
   ['When do creators get paid?', 'Automatically, the moment the approved post goes live. No invoices, no chasing.'],
   ['What if the content isn’t what we agreed?', 'A structured draft-and-revision workflow, plus a dispute process that mediates fairly within 3 days.'],
@@ -303,23 +303,11 @@ export default function CurrentLanding() {
             Better collaborations for brands and creators, not just more of
             them.
           </p>
-          <div
-            style={{
-              display: 'flex',
-              gap: 10,
-              justifyContent: 'center',
-              flexWrap: 'wrap',
-            }}
-          >
-            <Link href="/signup?role=brand" className="btn-primary btn-lg">
-              I&rsquo;m a brand
-            </Link>
-            <Link href="/signup?role=creator" className="btn-secondary btn-lg">
-              I&rsquo;m a creator
-            </Link>
-          </div>
-          {/* Objection-killers belong next to the CTA, not buried in the
-              footer CTA band. */}
+          {/* No hero CTA buttons here - the brand/creator toggle right below
+              the hero is the one audience-selection moment on the page now;
+              a second "I'm a brand / I'm a creator" pair up here just
+              duplicated it. Objection-killers stay next to the headline,
+              not buried in the footer CTA band. */}
           <p
             style={{
               fontSize: 13,
@@ -327,7 +315,7 @@ export default function CurrentLanding() {
               marginTop: 14,
             }}
           >
-            Free to join · No credit card required · Takes 2 minutes
+            Takes 2 minutes to set up
           </p>
         </div>
       </header>
@@ -858,7 +846,7 @@ export default function CurrentLanding() {
               marginBottom: 32,
             }}
           >
-            Better matches on both sides. Free to join, no credit card needed.
+            Better matches on both sides.
           </p>
           <div
             style={{

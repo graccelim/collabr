@@ -20,7 +20,6 @@ const FAQ: readonly (readonly [string, string])[] = [
   ['How do I contact creators?', 'Open their profile and select "Request Collaboration." We’ll notify you the moment they respond.'],
   ['Do creators have to join first?', 'No, request anyone. If they haven’t joined yet, we’ll personally reach out and bring them on.'],
   ['How are payments protected?', 'Funds are held securely and only released once you approve the delivered content.'],
-  ['How much does it cost during beta?', 'Free, no subscription and no card required.'],
 ]
 
 export default function BrandLandingContent() {
@@ -50,7 +49,7 @@ export default function BrandLandingContent() {
             </Link>
           </div>
           <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 26 }}>
-            Free to post · No credit card required · Browsing needs no account
+            Browsing needs no account
           </p>
         </div>
       </header>

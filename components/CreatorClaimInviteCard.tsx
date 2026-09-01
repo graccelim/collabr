@@ -9,7 +9,6 @@ const BENEFITS = [
   'Receive collaboration requests directly',
   'Manage your campaigns in one place',
   'Protected payments',
-  'Free to join, no subscription',
 ]
 
 /**

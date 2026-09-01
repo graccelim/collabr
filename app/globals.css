@@ -97,7 +97,15 @@
    ============================================================ */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  /* overflow-x:hidden is a safety net, not a fix for a specific element - any
+     single descendant even a few px wider than the viewport (a long
+     unbreakable string, a fixed-width icon row, etc.) creates page-wide
+     horizontal scroll with no visual affordance for it on mobile, and once
+     scrolled even slightly the whole viewport shifts, making otherwise
+     correctly-centered content (e.g. discovery cards) look pushed to one
+     side. This guarantees the viewport itself never moves horizontally,
+     regardless of which element is momentarily too wide. */
+  html, body { margin: 0; padding: 0; overflow-x: hidden; }
 
   body {
     font-family: var(--font-body);
