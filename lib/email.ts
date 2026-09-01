@@ -340,7 +340,7 @@ export const productEmails = {
     subject: 'Add your results so brands can see how you did',
     preheader: 'A quick update helps you get booked again.',
     title: 'How did your post do?',
-    body: `Your collab with ${d.brandName} has been live for a couple of weeks. Add your views, likes and comments so they can see the results, it takes a minute and makes you far more likely to get booked again.`,
+    body: `Your collab with ${d.brandName} has been live for a couple of weeks. Add your views, likes and comments so they can see the results and you're far more likely to get booked again.`,
     ctaLabel: 'Add your results',
     ctaUrl: link(`/collabs/${d.collabId}`),
   }),
@@ -665,10 +665,10 @@ export const emails = {
   welcomeBrand: (name: string, email: string) =>
     sendEmail({
       to: email,
-      subject: 'Your first campaign is waiting, post it in 5 minutes',
+      subject: 'Your first campaign is waiting to go live',
       html: renderEmail({
         title: `Welcome to Collabr, ${name}`,
-        body: 'Post your first campaign brief and start receiving creator applications within 48 hours. You’re on Pro, free while we’re in beta, so run unlimited barter campaigns with no card needed. We’ll give you plenty of notice before anything is ever paid.',
+        body: 'Post your first campaign brief and start receiving creator applications within 48 hours. You’re on Pro, so you can run unlimited barter campaigns free of charge.',
         ctaLabel: 'Post a campaign',
         ctaUrl: link('/post-job'),
       }),

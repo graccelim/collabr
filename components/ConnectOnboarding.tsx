@@ -74,8 +74,8 @@ export default function ConnectOnboarding({ accountExists, payoutsEnabled, justC
         </div>
         <div style={{ fontSize: 12.5, color: 'var(--warn-deep)', opacity: .85, lineHeight: 1.45, marginTop: 1 }}>
           {incomplete
-            ? 'Your payout account isn’t finished, Stripe still needs a few details before payments can reach you. Just a minute or two to complete.'
-            : 'You haven’t connected Stripe yet, payments can’t reach you until you do. Takes about 2 minutes.'}
+            ? 'Your payout account isn’t finished, Stripe still needs a few details before payments can reach you.'
+            : 'You haven’t connected Stripe yet, payments can’t reach you until you do.'}
         </div>
       </div>
       <button onClick={startOnboarding} disabled={loading} className="btn-primary" style={{ flexShrink: 0 }}>

@@ -306,17 +306,7 @@ export default function CurrentLanding() {
           {/* No hero CTA buttons here - the brand/creator toggle right below
               the hero is the one audience-selection moment on the page now;
               a second "I'm a brand / I'm a creator" pair up here just
-              duplicated it. Objection-killers stay next to the headline,
-              not buried in the footer CTA band. */}
-          <p
-            style={{
-              fontSize: 13,
-              color: 'var(--ink-faint-solid)',
-              marginTop: 14,
-            }}
-          >
-            Takes 2 minutes to set up
-          </p>
+              duplicated it. */}
         </div>
       </header>
 

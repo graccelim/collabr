@@ -53,7 +53,7 @@ function toSocialsPayload(rows: SocialRow[]) {
 
 function outreachMessage(displayName: string, claimUrl: string): string {
   const first = displayName.split(' ')[0]
-  return `Hi ${first}! Brands on Collabr are already looking for creators like you. I set up a starting profile from your public info — takes 2 minutes to claim, totally free: ${claimUrl}`
+  return `Hi ${first}! Brands on Collabr are already looking for creators like you. I set up a starting profile from your public info — totally free to claim: ${claimUrl}`
 }
 
 /** Create/edit form - same shape for both, the caller decides which endpoint to hit. */

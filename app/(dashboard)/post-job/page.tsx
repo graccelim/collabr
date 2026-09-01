@@ -101,9 +101,6 @@ export default function PostJobPage() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h1 style={{ fontSize: 28 }}>Post a campaign</h1>
-          <p style={{ color: 'var(--ink-soft)', marginTop: 4, fontSize: 15 }}>
-            Live in under 5 minutes.
-          </p>
         </div>
         <Link href="/campaigns" className="btn btn-ghost">Cancel</Link>
       </div>

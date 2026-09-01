@@ -54,7 +54,6 @@ function SignupForm() {
       <h1 style={{ fontSize: 28, fontWeight: 560, letterSpacing: '-0.02em' }}>Create your account</h1>
       <p style={{ fontSize: 14.5, color: 'var(--ink-soft)', marginTop: 8, marginBottom: 22 }}>
         {role === 'brand' ? 'Post a campaign and find creators who fit.' : 'Set up your profile and start getting paid.'}
-        {' '}Takes under a minute.
       </p>
 
       {/* role toggle */}

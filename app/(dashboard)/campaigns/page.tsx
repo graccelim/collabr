@@ -131,7 +131,7 @@ export default async function CampaignsPage() {
         <EmptyState
           icon={Megaphone}
           title="Let's get your first campaign live"
-          body="Describe what you need and creators start applying, usually within hours. Your money stays protected until you approve the work. Live in under five minutes."
+          body="Describe what you need and creators start applying, usually within hours. Your money stays protected until you approve the work."
           steps={['Write a brief', 'Set your budget', 'Go live']}
           actionHref="/post-job"
           actionLabel="Post your first campaign"

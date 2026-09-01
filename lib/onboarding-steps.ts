@@ -128,7 +128,7 @@ export function brandOnboardingSteps(d: {
     {
       key: 'campaign',
       label: 'Post your first campaign',
-      detail: 'About 5 minutes — most campaigns get their first applications within 48 hours.',
+      detail: 'Most campaigns get their first applications within 48 hours.',
       done: d.campaignCount > 0,
       href: '/post-job',
       cta: 'Post a campaign',

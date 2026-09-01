@@ -52,9 +52,6 @@ export default function CreatorLandingContent() {
               Already active on Collabr? Log in
             </Link>
           </div>
-          <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 26 }}>
-            Takes 2 minutes to set up
-          </p>
         </div>
       </header>
 
