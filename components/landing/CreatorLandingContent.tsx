@@ -13,12 +13,12 @@ const WHY: readonly (readonly [string, string])[] = [
   ['Protected payments', 'Funds are held until your work is approved and live.'],
   ['One place for everything', 'Briefs, drafts, and approvals, no more scattered DMs.'],
   ['Real reputation', 'Ratings and completed collabs help you stand out.'],
-  ['Free during beta', 'No subscription, no fee to join, keep what you earn.'],
+  ['Free to join', 'No subscription, no fee to join, keep what you earn.'],
 ]
 
 const FAQ: readonly (readonly [string, string])[] = [
   ['Do I need to already have a profile?', 'No, if we haven’t started one for you, you can create your own in minutes.'],
-  ['How much does it cost to join?', 'Nothing, free during beta.'],
+  ['How much does it cost to join?', 'Nothing, free with no subscription.'],
   ['How do I get paid?', 'Payment is released automatically once your content is approved and live.'],
   ['What if a brand and I don’t see eye to eye?', 'A structured revision process, and a dispute process if it’s ever needed.'],
 ]
@@ -55,7 +55,7 @@ export default function CreatorLandingContent() {
             </Link>
           </div>
           <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 26 }}>
-            Free during beta · No credit card required · Takes 2 minutes
+            Free to join · No credit card required · Takes 2 minutes
           </p>
         </div>
       </header>

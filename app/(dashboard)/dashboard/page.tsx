@@ -521,7 +521,7 @@ async function BrandDashboard({ userId }: { userId: string }) {
         <EmptyState
           icon={Megaphone}
           title="Your first collaboration starts here"
-          body="Post a campaign, pick a creator you love, and secure the payment, we’ll walk you through every step. It’s free during beta."
+          body="Post a campaign, pick a creator you love, and secure the payment, we’ll walk you through every step. It’s free to post."
           steps={['Post a campaign', 'Pick a creator', 'Secure payment']}
           actionHref="/post-job"
           actionLabel="Post a campaign"

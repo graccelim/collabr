@@ -94,13 +94,14 @@ export default async function BillingPage({
           <span className={`badge ${statusBadge}`}>{statusLabel}</span>
         </div>
 
-        {/* Beta: show Pro's normal price struck through + a Free badge. */}
+        {/* Pro's normal price struck through + a Free badge - barter and paid
+            collabs are free, no beta time limit on this. */}
         {beta && plan.isPro && !plan.isPlus && (
           <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginTop: 8 }}>
             <span style={{ textDecoration: 'line-through', color: '#8E96C8', fontSize: 15 }}>
               {CURRENCY}{PLAN_PRICING.pro.monthly}/mo
             </span>
-            <span className="badge badge-safe">Free during beta</span>
+            <span className="badge badge-safe">Free</span>
           </div>
         )}
 

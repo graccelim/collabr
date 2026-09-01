@@ -24,7 +24,7 @@ const BENEFITS = [
   'Receive collaboration requests',
   'Manage your campaigns',
   'Protected payments',
-  'Everything is free during beta',
+  'Free to join, no subscription',
 ]
 
 export default function ClaimPage({ params }: { params: { token: string } }) {

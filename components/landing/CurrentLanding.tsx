@@ -54,53 +54,13 @@ const Scale = () => (
     <path d="M8 21h8" />
   </svg>
 );
-const Results = () => (
-  <svg {...ico}>
-    <line x1="6" y1="20" x2="6" y2="14" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="18" y1="20" x2="18" y2="10" />
-  </svg>
-);
-
-/* Benefit-led USPs: title → benefit → a quiet "No more…" reinforcement.
-   Desktop-only (mobile carries the same USPs through the split-hero bullets). */
-const WHY: {
-  icon: () => JSX.Element;
-  title: string;
-  benefit: string;
-  noMore: string;
-}[] = [
-  {
-    icon: Shield,
-    title: 'Protected Payments',
-    benefit:
-      'Funds stay protected until collaboration requirements are completed.',
-    noMore:
-      'No more chasing payments or wondering whether work will be delivered.',
-  },
-  {
-    icon: Approve,
-    title: 'Structured Approvals',
-    benefit:
-      'Drafts, feedback, revisions, and approvals managed in one workflow.',
-    noMore:
-      'No more endless revision threads in DMs or content going live before approval.',
-  },
-  {
-    icon: Reputation,
-    title: 'Earned Reputation',
-    benefit:
-      'Trust is built through completed collaborations and genuine reviews.',
-    noMore: 'No more guessing who is reliable based on follower counts alone.',
-  },
-  {
-    icon: Scale,
-    title: 'Fair Resolution',
-    benefit:
-      'A structured dispute process helps both sides resolve issues fairly.',
-    noMore:
-      'No more being left on your own when a collaboration does not go as planned.',
-  },
+/* Benefit-led USPs, one crisp line each - trimmed from a 3-line title/
+   benefit/"no more" stack to just title + benefit. */
+const WHY: { icon: () => JSX.Element; title: string; benefit: string }[] = [
+  { icon: Shield, title: 'Protected payments', benefit: 'Funds stay held until the work is approved.' },
+  { icon: Approve, title: 'Structured approvals', benefit: 'Drafts, feedback, and approvals, all in one workflow.' },
+  { icon: Reputation, title: 'Earned reputation', benefit: 'Trust built from completed collaborations, not follower counts.' },
+  { icon: Scale, title: 'Fair resolution', benefit: 'A structured dispute process if something goes wrong.' },
 ];
 
 const STEPS = {
@@ -168,26 +128,10 @@ const STATS: { value: React.ReactNode; label: string; sub: string }[] = [
 /* FAQ — answers the objections that stop signups. Honest copy only: mechanics
    that exist in the product today. */
 const FAQ: readonly (readonly [string, string])[] = [
-  [
-    'How much does Collabr cost?',
-    'Collabr is free during beta — no subscription and no credit card required to join. Brands pay only the agreed rate when they fund a collaboration, with no commission on top. Creators keep 90% of every payout (the 10% platform fee covers payment protection and dispute support).',
-  ],
-  [
-    'How are payments protected?',
-    'The brand funds the collaboration upfront and the money is held securely by the platform. It is only released to the creator once the content is approved and live — so brands never pay for work that is not delivered, and creators never start work unpaid.',
-  ],
-  [
-    'When do creators get paid?',
-    'As soon as the approved post is live, payment is released automatically to your connected bank account. No invoices and no chasing.',
-  ],
-  [
-    'What if the content is not what we agreed?',
-    'Every collaboration has a structured draft-and-revision workflow, so brands review content before it goes live. If something still goes wrong, a built-in dispute process lets the platform mediate fairly, typically within 3 days.',
-  ],
-  [
-    'Who can join Collabr?',
-    'Brands of any size and creators on TikTok, Instagram, and YouTube. Signing up takes about 2 minutes, and you can browse campaigns or creators right away.',
-  ],
+  ['How much does Collabr cost?', 'Free to join, no subscription. Brands pay only the agreed rate; creators keep 90% of every payout.'],
+  ['How are payments protected?', 'Funds are held by the platform and only released once the content is approved and live.'],
+  ['When do creators get paid?', 'Automatically, the moment the approved post goes live. No invoices, no chasing.'],
+  ['What if the content isn’t what we agreed?', 'A structured draft-and-revision workflow, plus a dispute process that mediates fairly within 3 days.'],
 ];
 
 /* Benefit-led USP grid. Shown on all viewports before "How it works" — leading
@@ -228,8 +172,8 @@ function WhySection() {
           className="resp-1col"
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
         >
-          {WHY.map(({ icon: Icon, title, benefit, noMore }) => (
-            <Reveal key={title} className="card" style={{ padding: 26 }}>
+          {WHY.map(({ icon: Icon, title, benefit }, i) => (
+            <Reveal key={title} delay={i * 0.07} className="card" style={{ padding: 26 }}>
               <div
                 style={{
                   width: 38,
@@ -245,7 +189,6 @@ function WhySection() {
               >
                 <Icon />
               </div>
-              {/* Title is the primary focus, larger and bolder. */}
               <h3
                 style={{
                   fontSize: 19,
@@ -257,97 +200,19 @@ function WhySection() {
               >
                 {title}
               </h3>
-              {/* Benefit, medium emphasis. */}
               <p
                 style={{
                   fontSize: 14.5,
                   color: 'var(--ink-soft)',
                   lineHeight: 1.5,
-                  margin: '0 0 14px',
+                  margin: 0,
                 }}
               >
                 {benefit}
               </p>
-              {/* "No more…" reinforcement, smaller and muted. */}
-              <p
-                style={{
-                  fontSize: 13,
-                  color: 'var(--ink-faint-solid)',
-                  lineHeight: 1.45,
-                  margin: 0,
-                  paddingTop: 12,
-                  borderTop: '1px solid var(--line)',
-                }}
-              >
-                {noMore}
-              </p>
             </Reveal>
           ))}
         </div>
-        {/* Flagship: self-reported results + reminders (full-width feature row). */}
-        <Reveal
-          className="card"
-          style={{
-            padding: 26,
-            marginTop: 18,
-            display: 'flex',
-            gap: 18,
-            alignItems: 'flex-start',
-          }}
-        >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 10,
-              background: 'var(--brand-tint)',
-              color: 'var(--brand)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <Results />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <h3
-              style={{
-                fontSize: 19,
-                fontWeight: 700,
-                color: 'var(--ink)',
-                letterSpacing: '-0.01em',
-                margin: '0 0 8px',
-              }}
-            >
-              Proven Results
-            </h3>
-            <p
-              style={{
-                fontSize: 14.5,
-                color: 'var(--ink-soft)',
-                lineHeight: 1.5,
-                margin: 0,
-              }}
-            >
-              Creators report how each post performed to build their track
-              record, and brands see the numbers without chasing for them.
-            </p>
-            <p
-              style={{
-                fontSize: 13,
-                color: 'var(--ink-faint-solid)',
-                lineHeight: 1.45,
-                margin: '12px 0 0',
-                paddingTop: 12,
-                borderTop: '1px solid var(--line)',
-              }}
-            >
-              No more chasing screenshots or forgotten updates, the reminders
-              are automatic.
-            </p>
-          </div>
-        </Reveal>
       </div>
     </section>
   );
@@ -462,7 +327,7 @@ export default function CurrentLanding() {
               marginTop: 14,
             }}
           >
-            Free during beta · No credit card required · Takes 2 minutes
+            Free to join · No credit card required · Takes 2 minutes
           </p>
         </div>
       </header>
@@ -518,10 +383,9 @@ export default function CurrentLanding() {
             >
               {[
                 'Matched to your niche and budget',
-                'See real creator reputation, not just follower counts',
-                'Funds protected until content is delivered and approved',
-                'Post results reported back to you, with automatic reminders',
-                'Built-in dispute support if things do not go as planned',
+                'Real creator reputation, not just follower counts',
+                'Funds protected until content is approved',
+                'Built-in dispute support if things go sideways',
               ].map((t) => (
                 <div
                   key={t}
@@ -624,11 +488,10 @@ export default function CurrentLanding() {
               }}
             >
               {[
-                'Discover campaigns matched to your niche and rates',
+                'Campaigns matched to your niche and rates',
                 'Build a reputation that gets you hired again',
                 'Get paid securely once your content is approved',
-                'Build a results track record that helps you stand out to brands',
-                'Built-in dispute support if things do not go as planned',
+                'Built-in dispute support if things go sideways',
               ].map((t) => (
                 <div
                   key={t}
@@ -979,8 +842,7 @@ export default function CurrentLanding() {
               marginBottom: 32,
             }}
           >
-            Better matches on both sides. Free during beta · No credit card
-            needed.
+            Better matches on both sides. Free to join, no credit card needed.
           </p>
           <div
             style={{

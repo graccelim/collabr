@@ -163,10 +163,10 @@ export default function PlansPanel({
           <TierCard name="Pro" tagline="Unlimited barter campaigns"
             benefits={['Unlimited barter campaigns (product for content)', 'Everything on Free']}
             price={beta
-              ? <Price amount={0} free struck={`${CURRENCY}${PLAN_PRICING.pro[cycle]}`} note="during beta" />
+              ? <Price amount={0} free struck={`${CURRENCY}${PLAN_PRICING.pro[cycle]}`} />
               : <Price amount={PLAN_PRICING.pro[cycle]} period={cycle === 'annual' ? '/yr' : '/mo'} note={cycle === 'annual' ? '2 months free' : undefined} />}
             cta={beta
-              ? <button className="btn-secondary btn-block" disabled style={{ opacity: .7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Gift size={14} />Free during beta</button>
+              ? <button className="btn-secondary btn-block" disabled style={{ opacity: .7, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}><Gift size={14} />Included free</button>
               : <button className="btn-secondary btn-block btn-sheen" onClick={() => checkout('pro')} disabled={busy === 'pro'}>{busy === 'pro' ? 'Opening…' : 'Choose Pro'}</button>}
           />
           <TierCard featured name="Plus" tagline="Discover & invite creators"

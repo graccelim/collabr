@@ -258,10 +258,12 @@ export function AppNav({ role, displayName, email, initials, planLabel, inviteBa
               marginBottom: 10,
             }}>
               <span className="badge" style={{ marginBottom: 6, background: 'rgba(255,255,255,.14)', color: '#fff' }}>
-                {planLabel ? planLabel.toUpperCase() : 'BETA'}
+                {planLabel ? planLabel.toUpperCase() : 'FREE'}
               </span>
               <p style={{ fontSize: 11.5, color: 'rgba(255,255,255,.55)', lineHeight: 1.45, margin: 0 }}>
-                Pro features free during beta. We&rsquo;ll give 30 days&rsquo; notice before pricing.
+                {isBrand
+                  ? 'Post campaigns and fund collabs for free. Upgrade to Plus for Creator Discovery.'
+                  : 'Applying and getting paid is always free for creators.'}
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

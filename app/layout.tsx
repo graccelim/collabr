@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     template: '%s · Collabr',
   },
   description:
-    'Collabr connects brands and creators with protected payments, structured approvals, and real reputation. Funds stay secured until content is approved. Free during beta.',
+    'Collabr connects brands and creators with protected payments, structured approvals, and real reputation. Funds stay secured until content is approved.',
   keywords: [
     'creator marketplace', 'influencer marketing', 'brand collaborations',
     'UGC creators', 'protected payments', 'Singapore creators',
@@ -37,14 +37,14 @@ export const metadata: Metadata = {
     siteName: 'Collabr',
     title: 'Collabr — Brand–creator collaborations you can trust',
     description:
-      'Protected payments, structured approvals, and real reputation for brands and creators. Free during beta.',
+      'Protected payments, structured approvals, and real reputation for brands and creators.',
     url: '/',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Collabr — Brand–creator collaborations you can trust',
     description:
-      'Protected payments, structured approvals, and real reputation for brands and creators. Free during beta.',
+      'Protected payments, structured approvals, and real reputation for brands and creators.',
   },
   robots: { index: true, follow: true },
 }

@@ -102,7 +102,7 @@ export default function PostJobPage() {
         <div>
           <h1 style={{ fontSize: 28 }}>Post a campaign</h1>
           <p style={{ color: 'var(--ink-soft)', marginTop: 4, fontSize: 15 }}>
-            Live in under 5 minutes. Free during beta.
+            Live in under 5 minutes. Free to post.
           </p>
         </div>
         <Link href="/campaigns" className="btn btn-ghost">Cancel</Link>

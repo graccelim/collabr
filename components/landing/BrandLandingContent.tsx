@@ -50,7 +50,7 @@ export default function BrandLandingContent() {
             </Link>
           </div>
           <p style={{ fontFamily: 'var(--lp-font-mono)', fontSize: 12, color: 'rgba(255,255,255,.55)', marginTop: 26 }}>
-            Free during beta · No credit card required · Browsing needs no account
+            Free to post · No credit card required · Browsing needs no account
           </p>
         </div>
       </header>

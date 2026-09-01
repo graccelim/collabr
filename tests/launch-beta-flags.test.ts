@@ -26,20 +26,28 @@ describe('flags.launchBeta', () => {
     expect(flags.launchBeta).toBe(true)
   })
 
-  it('unlocks Brand Plus (isBetaFreePlus) even without BETA_FREE_PLUS set', async () => {
+  it('Brand Plus (isBetaFreePlus) is a real paid feature - launchBeta no longer unlocks it', async () => {
     vi.resetModules()
     delete process.env.BETA_FREE_PLUS
     process.env.NEXT_PUBLIC_LAUNCH_BETA = 'true'
     const { isBetaFreePlus } = await import('@/lib/plans')
-    expect(isBetaFreePlus()).toBe(true)
+    expect(isBetaFreePlus()).toBe(false)
   })
 
-  it('Plus stays gated when launchBeta is off and BETA_FREE_PLUS is unset', async () => {
+  it('Plus stays gated with launchBeta off and BETA_FREE_PLUS unset', async () => {
     vi.resetModules()
     delete process.env.BETA_FREE_PLUS
     delete process.env.NEXT_PUBLIC_LAUNCH_BETA
     const { isBetaFreePlus } = await import('@/lib/plans')
     expect(isBetaFreePlus()).toBe(false)
+  })
+
+  it('an explicit BETA_FREE_PLUS=true still unlocks Plus as a deliberate promo', async () => {
+    vi.resetModules()
+    process.env.BETA_FREE_PLUS = 'true'
+    delete process.env.NEXT_PUBLIC_LAUNCH_BETA
+    const { isBetaFreePlus } = await import('@/lib/plans')
+    expect(isBetaFreePlus()).toBe(true)
   })
 
   it('force-hides Boost UI even when Boost preview is otherwise on', async () => {

@@ -84,7 +84,7 @@ export default function AuthShell({ children, role }: {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12.5, color: 'rgba(255,255,255,0.45)' }}>
           <span style={{ width: 6, height: 6, borderRadius: 99, background: '#6FCFB2' }} />
-          Free during beta · Singapore · No card needed
+          Free to join · Singapore · No card needed
         </div>
       </div>
 

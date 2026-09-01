@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { flags } from '@/lib/flags'
 
 // Phase 10: single source of truth for plan resolution and feature gating.
 //
@@ -47,16 +46,17 @@ export function isBetaFreePro(): boolean {
 }
 
 /**
- * Plus is GATED during beta by default (Brand Pro is free in beta, Brand Plus is
- * not). Set BETA_FREE_PLUS=true to also make Plus (Creator Discovery + analytics)
- * complimentary during beta — off by default per product direction.
- *
- * flags.launchBeta (concierge launch mode) also unlocks Plus, so a brand can
- * browse Creator Discovery and send invites without you needing to separately
- * manage BETA_FREE_PLUS - one switch instead of two.
+ * Plus (Creator Discovery) is a real paid feature, not part of the free
+ * core — posting campaigns, applying, and funding barter/paid collabs
+ * (Pro, via isBetaFreePro above) stay free for every brand, but browsing
+ * the full creator roster in-app (search, filters, invites, saved
+ * creators) requires an actual paid subscription. Set BETA_FREE_PLUS=true
+ * only for a deliberate temporary promo — it no longer follows
+ * flags.launchBeta, which still separately hides the Boost/Creator Pro
+ * paywalls (see lib/stripe.ts, lib/flags.ts) and is unrelated to Plus.
  */
 export function isBetaFreePlus(): boolean {
-  return process.env.BETA_FREE_PLUS === 'true' || flags.launchBeta
+  return process.env.BETA_FREE_PLUS === 'true'
 }
 
 /** Pro-tier features (barter). */
