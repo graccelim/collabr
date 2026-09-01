@@ -651,7 +651,12 @@
   color: #fff;
 }
 .split-side-creator {
-  background: var(--paper-2);
+  /* A light neutral gray here read as almost the same colour as the page
+     background around it, so the panel didn't visually register as its own
+     block the way the dark brand side does. A distinct light blue (the same
+     one used for the creator tab elsewhere in the app) still keeps the
+     "light" half of the light/dark pairing but is clearly its own surface. */
+  background: linear-gradient(160deg, #EAF1FE 0%, #DEE9FC 100%);
   color: var(--ink);
 }
 .split-watermark {
@@ -922,6 +927,11 @@
      the same pattern already used elsewhere (see .bc-actions:has(...)). */
   .split-toggle-mobile {
     display: flex; justify-content: center;
+    /* Negative margin-top compensates for the header's own bottom padding
+       and the subhead paragraph's bottom margin - three separate spacing
+       declarations from three unrelated elements were stacking additively
+       into a much bigger gap than any one of them intended. */
+    margin-top: -28px;
     padding: 16px 20px; background: var(--paper);
   }
   .split-toggle-pills {
