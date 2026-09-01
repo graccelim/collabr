@@ -681,6 +681,9 @@
    (where the two sides already sit side by side). Pure CSS via :has(), no JS
    or hydration cost on an otherwise fully static page. */
 .split-toggle-mobile { display: none; }
+/* Same pattern for "How it works" - reuses .split-toggle-pills for the pill
+   visuals but its own radio group/ids so the two toggles act independently. */
+.how-toggle-mobile { display: none; }
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow);
@@ -949,6 +952,15 @@
   }
   .split-wrap:has(#split-tab-creator:checked) .split-side-brand   { display: none; }
   .split-wrap:has(#split-tab-brand:checked)   .split-side-creator { display: none; }
+
+  /* "How it works" - same idea, own toggle: show only the checked role's card. */
+  .how-toggle-mobile { display: flex; justify-content: center; margin-bottom: 20px; }
+  #how-tab-brand:checked ~ label[for="how-tab-brand"],
+  #how-tab-creator:checked ~ label[for="how-tab-creator"] {
+    background: var(--ink); color: #fff;
+  }
+  .how-wrap:has(#how-tab-creator:checked) .how-card-brand   { display: none; }
+  .how-wrap:has(#how-tab-brand:checked)   .how-card-creator { display: none; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
   /* Split-hero USP bullets carry the first USP hit on phones, so make them read

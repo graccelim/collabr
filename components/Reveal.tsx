@@ -12,10 +12,10 @@ const EASE = [0.2, 0.7, 0.2, 1] as const
  * ~2/3 less framer-motion than the full `motion` import.
  */
 export function Reveal({
-  children, y = 18, x = 0, delay = 0, duration = 0.5,
+  children, y = 18, x = 0, scale = 1, delay = 0, duration = 0.5,
   immediate = false, className, style, stagger = false,
 }: {
-  children: ReactNode; y?: number; x?: number; delay?: number; duration?: number
+  children: ReactNode; y?: number; x?: number; scale?: number; delay?: number; duration?: number
   /** Animate on mount (above-the-fold heroes) instead of on scroll-into-view. */
   immediate?: boolean
   className?: string; style?: CSSProperties; stagger?: boolean
@@ -44,8 +44,8 @@ export function Reveal({
         className={className} style={style}
         initial="hidden" {...trigger}
         variants={{
-          hidden: { opacity: 0, y, x },
-          show: { opacity: 1, y: 0, x: 0, transition: { duration, ease: EASE, delay } },
+          hidden: { opacity: 0, y, x, scale },
+          show: { opacity: 1, y: 0, x: 0, scale: 1, transition: { duration, ease: EASE, delay } },
         }}
       >
         {children}

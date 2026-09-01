@@ -55,12 +55,14 @@ const Scale = () => (
   </svg>
 );
 /* Benefit-led USPs, one crisp line each - trimmed from a 3-line title/
-   benefit/"no more" stack to just title + benefit. */
-const WHY: { icon: () => JSX.Element; title: string; benefit: string }[] = [
-  { icon: Shield, title: 'Protected payments', benefit: 'Funds stay held until the work is approved.' },
-  { icon: Approve, title: 'Structured approvals', benefit: 'Drafts, feedback, and approvals, all in one workflow.' },
-  { icon: Reputation, title: 'Earned reputation', benefit: 'Trust built from completed collaborations, not follower counts.' },
-  { icon: Scale, title: 'Fair resolution', benefit: 'A structured dispute process if something goes wrong.' },
+   benefit/"no more" stack to just title + benefit. Each gets its own icon
+   tint (was all navy) so the grid reads as four distinct ideas at a glance -
+   these are decorative one-offs, not the reserved --money escrow green. */
+const WHY: { icon: () => JSX.Element; title: string; benefit: string; tint: string; fg: string }[] = [
+  { icon: Shield, title: 'Protected payments', benefit: 'Funds stay held until the work is approved.', tint: '#E5EDFC', fg: '#2451C4' },
+  { icon: Approve, title: 'Structured approvals', benefit: 'Drafts, feedback, and approvals, all in one workflow.', tint: '#E3F3E8', fg: '#1F7A44' },
+  { icon: Reputation, title: 'Earned reputation', benefit: 'Trust built from completed collaborations, not follower counts.', tint: '#FBF1D6', fg: '#8A6D1B' },
+  { icon: Scale, title: 'Fair resolution', benefit: 'A structured dispute process if something goes wrong.', tint: '#E5EDFC', fg: '#2451C4' },
 ];
 
 const STEPS = {
@@ -172,15 +174,15 @@ function WhySection() {
           className="resp-1col"
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}
         >
-          {WHY.map(({ icon: Icon, title, benefit }, i) => (
-            <Reveal key={title} delay={i * 0.07} className="card" style={{ padding: 26 }}>
+          {WHY.map(({ icon: Icon, title, benefit, tint, fg }, i) => (
+            <Reveal key={title} delay={i * 0.07} y={24} scale={0.94} className="card hover-lift" style={{ padding: 26 }}>
               <div
                 style={{
                   width: 38,
                   height: 38,
                   borderRadius: 10,
-                  background: 'var(--brand-tint)',
-                  color: 'var(--brand)',
+                  background: tint,
+                  color: fg,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -504,8 +506,13 @@ export default function CurrentLanding() {
               ))}
             </div>
             <span
-              className="btn btn-money btn-lg hover-lift"
-              style={{ display: 'inline-flex', gap: 8 }}
+              className="btn btn-lg hover-lift"
+              style={{
+                background: 'var(--ink)',
+                color: '#fff',
+                display: 'inline-flex',
+                gap: 8,
+              }}
             >
               Find campaigns <Arrow />
             </span>
@@ -555,41 +562,51 @@ export default function CurrentLanding() {
               payout.
             </p>
           </Reveal>
-          <div
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
-            className="pc-grid"
-          >
-            {(
-              [
-                ['For brands', 'brand', 'var(--brand)', '#fff', {}],
+          <div className="how-wrap">
+            <div className="how-toggle-mobile">
+              <div className="split-toggle-pills">
+                <input type="radio" id="how-tab-brand" name="how-tab" defaultChecked style={{ display: 'none' }} />
+                <label htmlFor="how-tab-brand">For brands</label>
+                <input type="radio" id="how-tab-creator" name="how-tab" style={{ display: 'none' }} />
+                <label htmlFor="how-tab-creator">For creators</label>
+              </div>
+            </div>
+            <div
+              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
+              className="pc-grid"
+            >
+              {(
                 [
-                  'For creators',
-                  'creator',
-                  'var(--creator)',
-                  'var(--creator-ink)',
-                  {
-                    borderColor: 'var(--creator)',
-                    boxShadow: '0 0 0 1px var(--creator-tint) inset',
-                  },
-                ],
-              ] as const
-            ).map(([label, key, dotBg, dotInk, extra]) => (
-              <Reveal
-                key={key}
-                className="card"
-                style={{ padding: 26, ...extra }}
-              >
-                <div className="eyebrow" style={{ marginBottom: 18 }}>
-                  {label}
-                </div>
-                <WorkflowSteps
-                  steps={STEPS[key]}
-                  dotBg={dotBg}
-                  dotInk={dotInk}
-                  lineColor={dotBg}
-                />
-              </Reveal>
-            ))}
+                  ['For brands', 'brand', 'var(--brand)', '#fff', {}],
+                  [
+                    'For creators',
+                    'creator',
+                    'var(--creator)',
+                    'var(--creator-ink)',
+                    {
+                      borderColor: 'var(--creator)',
+                      boxShadow: '0 0 0 1px var(--creator-tint) inset',
+                    },
+                  ],
+                ] as const
+              ).map(([label, key, dotBg, dotInk, extra]) => (
+                <Reveal
+                  key={key}
+                  className={`card how-card-${key}`}
+                  style={{ padding: 26, ...extra }}
+                >
+                  <div className="eyebrow" style={{ marginBottom: 18 }}>
+                    {label}
+                  </div>
+                  <WorkflowSteps
+                    steps={STEPS[key]}
+                    dotBg={dotBg}
+                    dotInk={dotInk}
+                    lineColor={dotBg}
+                  />
+                </Reveal>
+              ))}
+            </div>
           </div>
         </div>
       </section>
