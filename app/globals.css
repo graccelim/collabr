@@ -651,12 +651,11 @@
   color: #fff;
 }
 .split-side-creator {
-  /* A light neutral gray here read as almost the same colour as the page
-     background around it, so the panel didn't visually register as its own
-     block the way the dark brand side does. A distinct light blue (the same
-     one used for the creator tab elsewhere in the app) still keeps the
-     "light" half of the light/dark pairing but is clearly its own surface. */
-  background: linear-gradient(160deg, #EAF1FE 0%, #DEE9FC 100%);
+  /* Plain white on desktop - the light blue tried here read as out of place
+     next to the rest of the page's cool-gray/navy palette when both panels
+     sit side by side. (Mobile overrides back to light blue below - shown
+     alone via the toggle, it reads as its own surface instead of clashing.) */
+  background: #fff;
   color: var(--ink);
 }
 .split-watermark {
@@ -681,9 +680,6 @@
    (where the two sides already sit side by side). Pure CSS via :has(), no JS
    or hydration cost on an otherwise fully static page. */
 .split-toggle-mobile { display: none; }
-/* Same pattern for "How it works" - reuses .split-toggle-pills for the pill
-   visuals but its own radio group/ids so the two toggles act independently. */
-.how-toggle-mobile { display: none; }
 .hover-lift:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow);
@@ -923,6 +919,9 @@
      panel shown at a time on phones there's no seam to mark, and the fixed
      bottom padding that used to clear it is no longer needed either. */
   .split-medallion { display: none; }
+  .split-side-creator {
+    background: linear-gradient(160deg, #EAF1FE 0%, #DEE9FC 100%);
+  }
 
   /* Brand/creator toggle - a plain pill switcher, no sliding thumb (that's a
      JS/measurement trick not worth it for two static options). Whichever
@@ -953,14 +952,12 @@
   .split-wrap:has(#split-tab-creator:checked) .split-side-brand   { display: none; }
   .split-wrap:has(#split-tab-brand:checked)   .split-side-creator { display: none; }
 
-  /* "How it works" - same idea, own toggle: show only the checked role's card. */
-  .how-toggle-mobile { display: flex; justify-content: center; margin-bottom: 20px; }
-  #how-tab-brand:checked ~ label[for="how-tab-brand"],
-  #how-tab-creator:checked ~ label[for="how-tab-creator"] {
-    background: var(--ink); color: #fff;
-  }
-  .how-wrap:has(#how-tab-creator:checked) .how-card-brand   { display: none; }
-  .how-wrap:has(#how-tab-brand:checked)   .how-card-creator { display: none; }
+  /* "How it works" follows the SAME hero toggle above rather than getting its
+     own - .landing-root wraps the whole page, so :has() can reach the hero's
+     radios (higher up in the DOM) from here even though this section is a
+     distant sibling, not a child, of .split-wrap. */
+  .landing-root:has(#split-tab-creator:checked) .how-card-brand   { display: none; }
+  .landing-root:has(#split-tab-brand:checked)   .how-card-creator { display: none; }
   /* Landing sections breathe less on phones (was 80px → endless scroll). */
   .lp-section { padding: 52px 20px !important; }
   /* Split-hero USP bullets carry the first USP hit on phones, so make them read

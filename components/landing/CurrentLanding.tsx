@@ -225,6 +225,7 @@ export default function CurrentLanding() {
   // page stays fully static (prerendered HTML, served from the edge cache).
   return (
     <div
+      className="landing-root"
       style={{
         minHeight: '100vh',
         background: 'var(--paper)',
@@ -562,51 +563,41 @@ export default function CurrentLanding() {
               payout.
             </p>
           </Reveal>
-          <div className="how-wrap">
-            <div className="how-toggle-mobile">
-              <div className="split-toggle-pills">
-                <input type="radio" id="how-tab-brand" name="how-tab" defaultChecked style={{ display: 'none' }} />
-                <label htmlFor="how-tab-brand">For brands</label>
-                <input type="radio" id="how-tab-creator" name="how-tab" style={{ display: 'none' }} />
-                <label htmlFor="how-tab-creator">For creators</label>
-              </div>
-            </div>
-            <div
-              style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
-              className="pc-grid"
-            >
-              {(
+          <div
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
+            className="pc-grid"
+          >
+            {(
+              [
+                ['For brands', 'brand', 'var(--brand)', '#fff', {}],
                 [
-                  ['For brands', 'brand', 'var(--brand)', '#fff', {}],
-                  [
-                    'For creators',
-                    'creator',
-                    'var(--creator)',
-                    'var(--creator-ink)',
-                    {
-                      borderColor: 'var(--creator)',
-                      boxShadow: '0 0 0 1px var(--creator-tint) inset',
-                    },
-                  ],
-                ] as const
-              ).map(([label, key, dotBg, dotInk, extra]) => (
-                <Reveal
-                  key={key}
-                  className={`card how-card-${key}`}
-                  style={{ padding: 26, ...extra }}
-                >
-                  <div className="eyebrow" style={{ marginBottom: 18 }}>
-                    {label}
-                  </div>
-                  <WorkflowSteps
-                    steps={STEPS[key]}
-                    dotBg={dotBg}
-                    dotInk={dotInk}
-                    lineColor={dotBg}
-                  />
-                </Reveal>
-              ))}
-            </div>
+                  'For creators',
+                  'creator',
+                  'var(--creator)',
+                  'var(--creator-ink)',
+                  {
+                    borderColor: 'var(--creator)',
+                    boxShadow: '0 0 0 1px var(--creator-tint) inset',
+                  },
+                ],
+              ] as const
+            ).map(([label, key, dotBg, dotInk, extra]) => (
+              <Reveal
+                key={key}
+                className={`card how-card-${key}`}
+                style={{ padding: 26, ...extra }}
+              >
+                <div className="eyebrow" style={{ marginBottom: 18 }}>
+                  {label}
+                </div>
+                <WorkflowSteps
+                  steps={STEPS[key]}
+                  dotBg={dotBg}
+                  dotInk={dotInk}
+                  lineColor={dotBg}
+                />
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
